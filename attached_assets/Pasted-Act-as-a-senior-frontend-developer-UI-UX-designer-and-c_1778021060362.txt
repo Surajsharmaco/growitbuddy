@@ -1,0 +1,290 @@
+Act as a senior frontend developer, UI/UX designer, and conversion-focused copywriter.
+
+Build a premium, high-converting hero section for a content + distribution agency (GrowitBuddy).
+
+This is NOT a generic landing page hero.
+It must clearly communicate the offer, system, and value within 3–5 seconds.
+
+---
+
+# 🎯 OBJECTIVE
+
+* Instantly explain what we do
+* Position us as a SYSTEM, not just a service
+* Build trust and authority
+* Drive clicks on CTA
+
+---
+
+# 🧠 CORE POSITIONING
+
+We don’t just create content.
+We create AND distribute content that builds authority and generates inbound.
+
+---
+
+---
+
+# 🎥 BACKGROUND VIDEO
+
+* Full-screen video background (absolute positioned, object-cover)
+* Autoplay, loop, muted, playsInline
+* NO overlays (no dark layer, no gradient)
+* Video must reflect:
+
+  * content creation
+  * editing workflows
+  * analytics dashboards
+  * creators / screens / systems
+
+Avoid generic cinematic or aesthetic visuals.
+
+---
+
+---
+
+# 🔤 TYPOGRAPHY
+
+* Use Inter font (Google Fonts)
+* Apply globally
+* Enable font smoothing
+* Tailwind config must use Inter as default sans font
+
+---
+
+---
+
+# 🧭 NAVBAR
+
+Container:
+
+* px-6 md:px-12 lg:px-16
+* pt-6
+
+Style:
+
+* liquid-glass effect
+* rounded-xl
+* flex layout
+
+---
+
+## Left:
+
+GrowitBuddy (text logo)
+
+---
+
+## Center (desktop only):
+
+* System
+* Results
+* Case Studies
+* Process
+
+---
+
+## Right CTA:
+
+Button text:
+👉 “Get Growth Plan”
+
+---
+
+---
+
+# 🎯 HERO STRUCTURE
+
+Full height section
+Content aligned to bottom
+
+On large screens:
+👉 2-column layout
+
+---
+
+---
+
+# 🧠 LEFT SIDE (MAIN CONTENT)
+
+---
+
+## HEADLINE (CRITICAL)
+
+Use:
+
+“Your content isn’t the problem.
+Distribution is.”
+
+---
+
+Typography:
+
+* text-4xl → text-7xl responsive
+* font-normal
+* letterSpacing: -0.04em
+
+---
+
+## ANIMATION:
+
+* Split text into characters
+* Each character:
+
+  * opacity: 0 → 1
+  * translateX(-18px → 0)
+* delay: 30ms stagger
+* start after 200ms
+* duration: 500ms
+
+---
+
+---
+
+## SUBTEXT
+
+“Most brands are creating content.
+Very few are getting reach, trust, or inbound leads.
+We fix that with a system.”
+
+---
+
+* text-base md:text-lg
+* text-gray-300
+
+Fade-in:
+
+* delay: 800ms
+* duration: 1000ms
+
+---
+
+---
+
+## CTA BUTTONS
+
+Primary:
+👉 “Get Your Growth Plan”
+
+Secondary:
+👉 “See How It Works”
+
+---
+
+Style:
+
+* Primary: white bg, black text
+* Secondary: glass style, border white/20
+
+Fade-in:
+
+* delay: 1200ms
+
+---
+
+---
+
+# 🧠 RIGHT SIDE (CORE SYSTEM TAG)
+
+Glass card (liquid-glass style)
+
+Text:
+
+# 👉 “Content → Distribution → Authority → Inbound”
+
+---
+
+Typography:
+
+* text-lg → text-2xl
+* font-light
+
+Fade-in:
+
+* delay: 1400ms
+
+---
+
+---
+
+# 🎨 LIQUID GLASS STYLE
+
+Use same CSS:
+
+* backdrop blur
+* subtle inner border
+* gradient border mask
+
+(keep performance optimized)
+
+---
+
+---
+
+# ⚡ PERFORMANCE RULES
+
+* No heavy scripts
+* No blocking JS
+* Smooth animation only
+* Optimize video size
+
+---
+
+---
+
+# 📱 RESPONSIVENESS
+
+* Mobile-first
+* Stack layout on small screens
+* Maintain readability
+
+---
+
+---
+
+# ❗ CRITICAL CONTENT RULES
+
+---
+
+## ❌ DO NOT USE:
+
+* “We build the future”
+* “We help you grow”
+* vague startup language
+
+---
+
+## ✅ MUST FOLLOW:
+
+* clear messaging
+* outcome-driven copy
+* system-based thinking
+
+---
+
+---
+
+# 📋 OUTPUT REQUIREMENTS
+
+Return:
+
+1. Complete React + TypeScript code
+2. Tailwind styling
+3. Animation logic (heading + fade)
+4. Responsive layout
+5. Clean, production-ready code
+
+---
+
+---
+
+# 🎯 FINAL RESULT
+
+A hero section that:
+
+* looks premium
+* communicates instantly
+* differentiates from agencies
+* increases conversions
+
+---

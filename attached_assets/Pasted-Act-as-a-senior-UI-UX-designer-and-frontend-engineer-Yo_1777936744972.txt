@@ -1,0 +1,247 @@
+Act as a senior UI/UX designer and frontend engineer.
+
+Your task is to redesign the GrowitBuddy website into a **premium, non-generic, high-authority light UI**.
+
+---
+
+# 🎯 CORE OBJECTIVE
+
+Avoid:
+
+* startup template look
+* SaaS-style bright gradients
+* generic purple/red palettes
+
+Create:
+
+* refined, minimal, premium design
+* strong perception of authority
+* editorial + consulting-level aesthetic
+
+---
+
+# 🧠 DESIGN PHILOSOPHY
+
+* Less color, more control
+* Soft contrast, not harsh contrast
+* Premium ≠ loud
+* Every element must feel intentional
+
+---
+
+# 🎨 COLOR SYSTEM (STRICT)
+
+## 🔹 BACKGROUND
+
+* Primary Background: #F8F8F6 (warm white, not pure white)
+* Secondary Sections: #EFEFEA
+
+Alternate sections for depth.
+
+---
+
+## 🔹 TEXT
+
+* Primary Text: #0A0A0A
+* Secondary Text: #5F5F5F
+* Muted Text: #8A8A8A
+
+---
+
+## 🔥 PRIMARY (AUTHORITY COLOR)
+
+* Deep Ink Blue: #1E293B
+* Hover: #334155
+
+Use for:
+
+* headings accents
+* links
+* subtle highlights
+
+---
+
+## 🔥 SECONDARY (SIGNATURE ACCENT)
+
+* Burnt Rust: #8B3A1A
+* Hover: #A34722
+
+Use VERY selectively for:
+
+* CTA buttons
+* key highlights
+* section emphasis
+
+---
+
+## ⚡ MICRO ACCENT (LIMITED USE)
+
+* Soft Gold: #C2A878
+
+Use only for:
+
+* subtle underline
+* icons
+* separators
+
+⚠️ Do not overuse.
+
+---
+
+# ❗ COLOR RULES (IMPORTANT)
+
+* No bright or neon colors
+* No gradients unless extremely subtle
+* One section = one accent focus
+* Maintain visual restraint
+
+---
+
+# 🎯 TYPOGRAPHY
+
+* Font: Inter / Neue Haas / clean modern serif-sans pairing
+* Large, confident headings
+* Tight spacing for premium feel
+* No overly playful fonts
+
+---
+
+# 🎯 LAYOUT SYSTEM
+
+* Strong whitespace
+* Clear section separation
+* Editorial style layout (like premium blogs / consulting firms)
+
+---
+
+# 🎯 COMPONENT DESIGN
+
+## Buttons
+
+* Primary: Rust (#8B3A1A), white text
+* Secondary: outline (ink blue)
+* Hover: subtle darken + slight elevation
+
+---
+
+## Cards
+
+* Background: white (#FFFFFF)
+* Border: very light (#E5E5E0)
+* Shadow: soft, almost invisible
+
+---
+
+## Sections
+
+* Alternate between #F8F8F6 and #EFEFEA
+* Add spacing, not borders
+
+---
+
+---
+
+# 🎯 HERO SECTION (CRITICAL)
+
+Headline:
+
+“Content without distribution is invisible.”
+
+Subtext:
+
+“We build systems that turn content into authority and inbound demand.”
+
+CTA:
+
+Primary → “Get your growth breakdown”
+Secondary → “See how it works”
+
+---
+
+---
+
+# 🎯 PROOF SECTION (ABOVE THE FOLD)
+
+Display clearly:
+
+* 700M+ views generated
+* 1M+ organic reach built
+* creators & brands worked with
+
+Use large typography, not flashy design.
+
+---
+
+---
+
+# 🎯 SYSTEM SECTION
+
+Make this a visual anchor:
+
+Content → Distribution → Authority → Inbound
+
+* clean horizontal flow
+* minimal icons
+* refined typography
+
+---
+
+---
+
+# 🎯 INTERACTIONS
+
+* subtle hover effects
+* soft transitions (0.2s)
+* no flashy animations
+
+---
+
+---
+
+# 🎯 ADMIN PANEL
+
+Allow editing of:
+
+* text
+* stats
+* CTA labels
+* client logos
+
+---
+
+---
+
+# ⚡ PERFORMANCE
+
+* use CSS variables
+* responsive design
+* optimized assets
+
+---
+
+---
+
+# ❗ DO NOT
+
+* use bright purple/red/blue
+* create SaaS-style UI
+* add unnecessary gradients
+* over-design
+
+---
+
+---
+
+# 🎯 FINAL RESULT
+
+A website that feels like:
+
+* a premium consulting firm
+* a high-end strategy studio
+* NOT a generic marketing agency
+
+It should communicate:
+
+“We understand systems, not just content.”
+
+---

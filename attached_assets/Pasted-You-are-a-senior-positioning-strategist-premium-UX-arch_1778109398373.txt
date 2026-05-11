@@ -1,0 +1,357 @@
+You are a senior positioning strategist, premium UX architect, and authority-brand consultant.
+
+Your task is to REWORK the SERVICES SECTION of the GrowitBuddy website.
+
+IMPORTANT:
+Keep the SAME premium card layout style shown in the reference screenshots.
+DO NOT redesign the overall UI style.
+
+Keep:
+- same 6-card grid structure
+- same premium minimal aesthetic
+- same typography system
+- same spacing rhythm
+- same card size
+- same pill/tag styling
+- same navy + white color palette
+- same luxury editorial feel
+
+BUT:
+Completely improve the POSITIONING and SERVICE ARCHITECTURE.
+
+--------------------------------------------------
+MAIN PROBLEM
+--------------------------------------------------
+
+The current services feel too much like:
+- a generic agency
+- random digital services
+- disconnected categories
+
+The website lost its strongest positioning:
+
+Production → Positioning → Distribution → Authority Compounding
+
+We need to bring that back.
+
+The page should feel like:
+“A premium authority infrastructure company.”
+
+NOT:
+- a freelancer marketplace
+- a random SMMA
+- a generic dev agency
+
+--------------------------------------------------
+IMPORTANT STRATEGIC CHANGE
+--------------------------------------------------
+
+DO NOT use categories like:
+- Website & App Development
+- AI Automation
+- Performance Marketing
+
+as standalone disconnected service identities.
+
+Instead:
+Group services under STRATEGIC AUTHORITY PILLARS.
+
+The services themselves remain —
+only the framing changes.
+
+--------------------------------------------------
+TOP MINI NAVIGATION CARD
+--------------------------------------------------
+
+REPLACE the current top section completely.
+
+Current section feels:
+- weak
+- generic
+- disconnected
+
+Create a more strategic version.
+
+--------------------------------------------------
+NEW TOP SECTION
+--------------------------------------------------
+
+Label:
+WHAT WE BUILD
+
+Right-side badge:
+Authority Infrastructure
+
+Divider line below heading.
+
+Then show ONLY 4 core pillars instead of 6 random services.
+
+--------------------------------------------------
+01
+PRODUCTION
+Content systems built for scale.
+
+02
+POSITIONING
+Authority and recognition systems.
+
+03
+DISTRIBUTION
+Amplification and reach infrastructure.
+
+04
+INFRASTRUCTURE
+Systems that convert attention into demand.
+
+--------------------------------------------------
+DESIGN DIRECTION FOR TOP SECTION
+--------------------------------------------------
+
+The section should feel:
+- strategic
+- premium
+- intelligent
+- system-oriented
+- calm
+- highly intentional
+
+NOT:
+- crowded
+- startup-like
+- generic agency-like
+
+Add:
+- subtle hover interactions
+- elegant spacing
+- slightly stronger typography hierarchy
+- premium card feel
+
+--------------------------------------------------
+MAIN 6 SERVICE CARDS SECTION
+--------------------------------------------------
+
+Keep EXACTLY 6 cards.
+
+BUT:
+The cards should now support the new positioning.
+
+The cards should feel interconnected —
+like one authority ecosystem.
+
+--------------------------------------------------
+CARD 01
+--------------------------------------------------
+
+Small Label:
+01 | PRODUCTION
+
+Headline:
+Content Creation
+
+Description:
+High-volume content systems designed to build attention, trust, and long-term visibility.
+
+Service Pills:
+- Short-form Editing
+- Long-form Editing
+- Podcast Editing
+- Script Writing
+- Thumbnail Design
+- Content Repurposing
+- Social Content
+
+--------------------------------------------------
+CARD 02
+--------------------------------------------------
+
+Small Label:
+02 | POSITIONING
+
+Headline:
+Personal Branding
+
+Description:
+Authority systems designed to shape perception and position founders as recognized voices.
+
+Service Pills:
+- Personal Branding
+- Founder Positioning
+- LinkedIn Growth
+- Instagram Growth
+- Content Strategy
+- Audience Growth
+- Authority Building
+
+--------------------------------------------------
+CARD 03
+--------------------------------------------------
+
+Small Label:
+03 | DISTRIBUTION
+
+Headline:
+Distribution Systems
+
+Description:
+Content amplification infrastructure built to scale visibility and audience reach.
+
+Service Pills:
+- Distribution Campaigns
+- Meta Ads
+- Google Ads
+- Influencer Campaigns
+- Distribution Networks
+- Lead Generation
+- Viral Distribution
+
+IMPORTANT:
+This card should feel like your moat.
+
+--------------------------------------------------
+CARD 04
+--------------------------------------------------
+
+Small Label:
+04 | INFRASTRUCTURE
+
+Headline:
+Web & Funnel Systems
+
+Description:
+Digital systems built to convert authority into inbound opportunities and demand.
+
+Service Pills:
+- Website Development
+- Landing Pages
+- Funnel Systems
+- Ecommerce Websites
+- CRM Integration
+- Admin Dashboards
+- Booking Systems
+
+--------------------------------------------------
+CARD 05
+--------------------------------------------------
+
+Small Label:
+05 | AI & AUTOMATION
+
+Headline:
+AI Growth Systems
+
+Description:
+AI-powered systems that automate communication, support, and inbound operations.
+
+Service Pills:
+- AI Chatbots
+- AI Voice Agents
+- AI Automation
+- WhatsApp AI
+- AI Customer Support
+- AI Lead Qualification
+- Custom AI Agents
+
+IMPORTANT:
+This should feel modern and premium —
+not technical and robotic.
+
+--------------------------------------------------
+CARD 06
+--------------------------------------------------
+
+Small Label:
+06 | MONETIZATION
+
+Headline:
+Digital Products & Growth
+
+Description:
+Launch and scale digital products, creator ecosystems, and monetization systems.
+
+Service Pills:
+- Ebook Creation
+- Course Launches
+- Webinar Funnels
+- Creator Monetization
+- Email Marketing
+- Community Growth
+- Distribution Systems
+
+--------------------------------------------------
+VERY IMPORTANT POSITIONING RULE
+--------------------------------------------------
+
+Every single card must psychologically connect to:
+
+AUTHORITY + DISTRIBUTION + INBOUND DEMAND
+
+NOT:
+“we do random services.”
+
+--------------------------------------------------
+BUTTONS
+--------------------------------------------------
+
+Replace repetitive “Get Started” buttons.
+
+Use:
+- Learn More
+- Explore System
+- View Process
+- Build Authority
+- Scale Visibility
+- Launch System
+
+Rotate subtly between cards.
+
+--------------------------------------------------
+VISUAL DIRECTION
+--------------------------------------------------
+
+The section should feel:
+- premium
+- strategic
+- modern
+- calm
+- highly credible
+- scalable
+- system-driven
+
+NOT:
+- noisy
+- overloaded
+- over-designed
+- corporate
+- startup cliché
+
+--------------------------------------------------
+REMOVE REPETITION
+--------------------------------------------------
+
+Do NOT create another repetitive “What we actually do” section below.
+
+Instead add ONE minimal transition section:
+
+THE SYSTEM
+
+Production → Positioning → Distribution → Inbound Demand
+
+Subtext:
+Every layer compounds the next — transforming visibility into long-term authority and inbound growth.
+
+--------------------------------------------------
+FINAL EXPERIENCE GOAL
+--------------------------------------------------
+
+When someone sees this section they should instantly feel:
+
+“These people understand modern authority building at a systems level.”
+
+The final result should feel:
+- differentiated
+- memorable
+- premium
+- psychologically sharp
+- strategically unique
+- easier to understand
+- operationally powerful

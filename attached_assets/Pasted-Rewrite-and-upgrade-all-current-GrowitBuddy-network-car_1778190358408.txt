@@ -1,0 +1,458 @@
+Rewrite and upgrade all current GrowitBuddy network, careers, internship, and services sections using the new positioning below.
+
+IMPORTANT:
+Do NOT redesign the website into a complicated SaaS dashboard or fancy startup UI.
+
+The UI/UX must remain:
+- minimal
+- clean
+- premium
+- simple to understand
+- easy to use
+- low-friction
+- highly readable
+- mobile-friendly
+
+This is VERY important.
+
+Users should instantly understand:
+- what this is
+- what they need to do
+- where to click
+- how to apply
+- how the system works
+
+Do NOT overcomplicate the interface.
+
+====================================================
+OVERALL POSITIONING
+====================================================
+
+GrowitBuddy is NOT just a marketing agency.
+
+We are building:
+- creator infrastructure
+- authority systems
+- talent ecosystems
+- distribution systems
+- creator networks
+- modern media operations
+
+The website should feel like:
+A premium creator ecosystem for:
+- founders
+- creators
+- freelancers
+- operators
+- digital talent
+
+NOT:
+- a random agency
+- a course platform
+- a corporate HR portal
+- a complicated SaaS app
+
+====================================================
+VERY IMPORTANT UI RULES
+====================================================
+
+KEEP:
+- lots of whitespace
+- editorial layouts
+- large typography
+- soft borders
+- minimal cards
+- simple forms
+- clean sections
+- obvious CTAs
+- easy navigation
+
+AVOID:
+- overly complex interactions
+- unnecessary animations
+- cluttered layouts
+- too many buttons
+- confusing menus
+- heavy gradients
+- gamification
+- SaaS dashboard feel
+- excessive text blocks
+
+The experience should feel:
+FAST + CLEAR + PREMIUM.
+
+====================================================
+TALENT NETWORK PAGE
+====================================================
+
+REWRITE THE PAGE COPY.
+
+----------------------------------------
+Hero Section
+----------------------------------------
+
+Label:
+TALENT NETWORK
+
+Headline:
+Join the creator network behind modern authority brands.
+
+Subtext:
+Work on real projects, collaborate with creators and brands, and become part of a long-term creative ecosystem — not random one-off gigs.
+
+----------------------------------------
+What You Get
+----------------------------------------
+
+• Real-world creator and brand projects  
+• Consistent freelance and collaboration opportunities  
+• Access to systems, workflows, and creative resources  
+• Opportunities across content, design, AI, and growth  
+• Long-term relationships inside the GrowitBuddy ecosystem  
+
+----------------------------------------
+Replace “NOT FOR EVERYONE”
+----------------------------------------
+
+Heading:
+BUILT FOR CREATORS WHO WANT TO GROW
+
+Content:
+Creative people serious about improving their craft  
+Freelancers looking for meaningful long-term opportunities  
+Creators who value consistency, quality, and execution  
+Talent interested in building real-world experience and relationships  
+
+----------------------------------------
+Skills Section
+----------------------------------------
+
+Add these skills:
+
+Video Editing  
+Graphic Design  
+Motion Design  
+Thumbnail Design  
+Script Writing  
+Content Strategy  
+Copywriting  
+Social Media Management  
+UGC Creation  
+AI Automation  
+AI Chatbots  
+Web Design  
+Funnel Building  
+Distribution & Growth  
+Community Management  
+Podcast Editing  
+Brand Strategy  
+LinkedIn Growth  
+YouTube Growth  
+Email Marketing  
+
+IMPORTANT:
+Keep skills visually simple and clean.
+No flashy badges or complex interactions.
+
+====================================================
+INTERNSHIP PAGE
+====================================================
+
+Label:
+CREATOR INTERNSHIP
+
+Headline:
+Start building real-world experience.
+
+Subtext:
+Work alongside creators, brands, and modern content systems while learning through execution — not theory.
+
+----------------------------------------
+Section
+----------------------------------------
+
+Heading:
+WHAT YOU’LL EXPERIENCE
+
+Points:
+• Real projects with practical execution  
+• Structured feedback and collaborative workflows  
+• Exposure to modern creator and authority systems  
+• Opportunities to build your portfolio with shipped work  
+• A path toward freelance, creator, or full-time opportunities  
+
+----------------------------------------
+Replace “Who This Is For”
+----------------------------------------
+
+Heading:
+IDEAL FOR
+
+Points:
+Creators starting their journey  
+People who want hands-on experience instead of only tutorials  
+Early-stage creatives looking to sharpen real-world skills  
+Ambitious individuals who want to grow through execution  
+
+----------------------------------------
+Available Tracks
+----------------------------------------
+
+Video Editing  
+Graphic Design  
+Thumbnail Design  
+Content Writing  
+Copywriting  
+Social Media  
+Motion Design  
+AI Automation  
+Web Design  
+Brand Strategy  
+
+====================================================
+CAREERS PAGE
+====================================================
+
+Label:
+CAREERS AT GROWITBUDDY
+
+Headline:
+Build modern authority systems with us.
+
+Subtext:
+We’re building a high-output creative ecosystem for founders, creators, and brands — and we’re looking for ambitious people who want to do meaningful work.
+
+----------------------------------------
+Why Join
+----------------------------------------
+
+• Flexible remote-first work environment  
+• Work directly on creator and authority systems  
+• High ownership and creative impact  
+• Access to modern workflows, systems, and frameworks  
+• Opportunities to grow across multiple creative disciplines  
+
+----------------------------------------
+Open Roles
+----------------------------------------
+
+Content Strategist  
+Video Editor  
+Graphic Designer  
+Motion Designer  
+Thumbnail Designer  
+Copywriter  
+Social Media Manager  
+Distribution Specialist  
+AI Automation Specialist  
+Web & Funnel Designer  
+Community Manager  
+Operations Coordinator  
+
+====================================================
+SERVICES SECTION
+====================================================
+
+Rewrite all service cards with stronger positioning.
+
+IMPORTANT:
+The services section should NOT feel like:
+“we do random marketing services.”
+
+It should feel like:
+- authority infrastructure
+- positioning systems
+- amplification systems
+- monetization systems
+- AI systems
+- digital infrastructure
+
+====================================================
+SERVICE CARD 01
+====================================================
+
+Category:
+AUTHORITY PRODUCTION
+
+Title:
+Content Creation
+
+Description:
+High-volume content systems designed to build visibility, trust, and long-term authority across modern platforms.
+
+Skills:
+Short-form Editing  
+Long-form Editing  
+Podcast Editing  
+Script Writing  
+Thumbnail Design  
+Content Repurposing  
+Social Media Content  
+UGC Content  
+YouTube Content  
+Creative Direction  
+
+CTA:
+Build Visibility →
+
+====================================================
+SERVICE CARD 02
+====================================================
+
+Category:
+POSITIONING & AUTHORITY
+
+Title:
+Personal Branding
+
+Description:
+Authority positioning systems that help founders, creators, and brands become recognized voices in their category.
+
+Skills:
+Founder Positioning  
+LinkedIn Growth  
+Instagram Growth  
+Authority Strategy  
+Thought Leadership  
+Audience Positioning  
+Brand Messaging  
+Content Strategy  
+Personal Branding  
+Category Positioning  
+
+CTA:
+Build Authority →
+
+====================================================
+SERVICE CARD 03
+====================================================
+
+Category:
+AMPLIFICATION SYSTEMS
+
+Title:
+Distribution & Growth
+
+Description:
+Distribution infrastructure designed to amplify reach, compound attention, and generate inbound demand.
+
+Skills:
+Distribution Campaigns  
+Influencer Campaigns  
+Meta Ads  
+Google Ads  
+Lead Generation  
+Newsletter Systems  
+Viral Distribution  
+Growth Systems  
+YouTube Distribution  
+Community Growth  
+
+CTA:
+Scale Reach →
+
+====================================================
+SERVICE CARD 04
+====================================================
+
+Category:
+DIGITAL INFRASTRUCTURE
+
+Title:
+Web & Funnel Systems
+
+Description:
+Digital systems built to convert authority into inbound leads, trust, and scalable opportunities.
+
+Skills:
+Website Development  
+Landing Pages  
+CRM Integration  
+Admin Dashboards  
+Booking Systems  
+Client Portals  
+Funnel Systems  
+Ecommerce Websites  
+UI/UX Systems  
+Conversion Optimization  
+
+CTA:
+Launch Systems →
+
+====================================================
+SERVICE CARD 05
+====================================================
+
+Category:
+AI AUTHORITY SYSTEMS
+
+Title:
+AI Automation
+
+Description:
+AI-powered systems that automate communication, support, lead flow, and creator operations.
+
+Skills:
+AI Chatbots  
+AI Voice Agents  
+WhatsApp AI Systems  
+Lead Qualification AI  
+Custom AI Agents  
+AI Customer Support  
+Workflow Automation  
+CRM Automation  
+AI Content Systems  
+Internal AI Tools  
+
+CTA:
+Automate Growth →
+
+====================================================
+SERVICE CARD 06
+====================================================
+
+Category:
+MONETIZATION SYSTEMS
+
+Title:
+Digital Products & Growth
+
+Description:
+Systems designed to help creators and brands monetize attention through products, communities, and scalable offers.
+
+Skills:
+Course Launches  
+Ebook Systems  
+Community Growth  
+Email Marketing  
+Creator Monetization  
+Membership Funnels  
+Webinar Funnels  
+Digital Products  
+Paid Communities  
+Distribution Systems  
+
+CTA:
+Scale Authority →
+
+====================================================
+FINAL IMPORTANT INSTRUCTION
+====================================================
+
+DO NOT make the UI complex.
+
+The site should feel:
+- intuitive
+- smooth
+- readable
+- premium
+- lightweight
+- easy for non-technical users
+
+Every section should have:
+- clear hierarchy
+- obvious actions
+- minimal friction
+- fast comprehension
+
+A user should understand the page within 5 seconds.

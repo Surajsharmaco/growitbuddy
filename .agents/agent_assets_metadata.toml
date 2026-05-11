@@ -1,0 +1,14 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "_87z37dz7V5AlSJF8ocVx"
+uri = "file://growitbuddy-website-content-for-seo.md"
+type = "text"
+title = "GrowitBuddy — Full Website Content for SEO Copywriting"
+
+[[outputs]]
+id = "YXYE9wDn9nr2cxR0u5YDn"
+uri = "file://growitbuddy-seo-content.txt"
+type = "text"
+title = "GrowitBuddy — Full Website Content for SEO (Plain Text)"

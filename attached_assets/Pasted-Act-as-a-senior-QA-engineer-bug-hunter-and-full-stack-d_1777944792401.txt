@@ -1,0 +1,255 @@
+Act as a senior QA engineer, bug hunter, and full-stack developer.
+
+Your task is to deeply audit, test, and fix all functionality in my website before deployment.
+
+---
+
+# 🎯 OBJECTIVE
+
+* Find ALL bugs (UI, logic, backend, performance)
+* Test EVERY clickable element
+* Ensure all flows work perfectly
+* Fix all broken states
+* Prevent future failures
+
+---
+
+# 🧠 TESTING APPROACH
+
+You must follow a **systematic step-by-step testing process**.
+
+---
+
+# 🔍 1. GLOBAL UI TESTING
+
+Check:
+
+* All buttons clickable
+* All links working
+* No dead clicks
+* No broken navigation
+* Hover states working
+* Mobile responsiveness
+* Tablet responsiveness
+
+---
+
+# 🔍 2. FORM TESTING (CRITICAL)
+
+Test all forms:
+
+## Cases:
+
+* empty input
+* partial input
+* invalid data
+* correct data
+
+---
+
+Check:
+
+* validation working
+* error messages showing
+* submit button working
+* data actually saving
+
+---
+
+# 🔍 3. ADMIN PANEL TESTING (MOST IMPORTANT)
+
+Test:
+
+* login works
+* wrong password handling
+* session persistence
+
+---
+
+## CRUD TESTING:
+
+For each field:
+
+* add data
+* edit data
+* delete data
+* save changes
+
+---
+
+Check:
+
+* data actually updates in frontend
+* no refresh issues
+* no data loss
+
+---
+
+# 🔍 4. CREATOR / PORTFOLIO SYSTEM
+
+Test:
+
+* card rendering
+* clicking card → opens profile
+* profile loads correct data
+
+---
+
+## YouTube Handling:
+
+* paste valid link → works
+* paste invalid link → handled
+* video loads properly
+
+---
+
+---
+
+# 🔍 5. FILTER & CATEGORY SYSTEM
+
+Test:
+
+* all filters
+* switching filters
+* empty state
+
+---
+
+Check:
+
+* correct items showing
+* no duplication
+* no missing data
+
+---
+
+---
+
+# 🔍 6. STATE MANAGEMENT BUGS
+
+Check:
+
+* stale data
+* delayed updates
+* UI not syncing with backend
+
+---
+
+Fix:
+
+* re-render issues
+* caching bugs
+
+---
+
+---
+
+# 🔍 7. PERFORMANCE TEST
+
+Check:
+
+* page load speed
+* large data handling
+* multiple items rendering
+
+---
+
+Fix:
+
+* lazy loading
+* pagination (10–20 items max)
+* optimize images
+
+---
+
+---
+
+# 🔍 8. EDGE CASES (VERY IMPORTANT)
+
+Test:
+
+* rapid clicking
+* slow internet
+* page refresh during action
+* duplicate submissions
+* empty database
+
+---
+
+---
+
+# 🔍 9. ERROR HANDLING
+
+Check:
+
+* proper error messages
+* no silent failures
+* fallback UI
+
+---
+
+---
+
+# 🔍 10. SECURITY CHECK
+
+Check:
+
+* admin routes protected
+* no unauthorized access
+* input sanitization
+* no exposed API
+
+---
+
+---
+
+# 🔍 11. DEPLOYMENT CHECK
+
+Before deploy:
+
+* env variables working
+* routes working
+* build success
+* no console errors
+
+---
+
+---
+
+# 🔧 FIX REQUIREMENTS
+
+For EVERY bug found:
+
+* identify root cause
+* fix it properly (not temporary patch)
+* re-test after fix
+
+---
+
+---
+
+# 📋 FINAL OUTPUT
+
+Provide:
+
+1. List of bugs found
+2. Fix applied
+3. Status (fixed / pending)
+4. Any risk areas
+
+---
+
+---
+
+# 🎯 FINAL GOAL
+
+A production-ready system where:
+
+* no broken buttons
+* no data loss
+* no failed actions
+* smooth user experience
+
+---
+
+---

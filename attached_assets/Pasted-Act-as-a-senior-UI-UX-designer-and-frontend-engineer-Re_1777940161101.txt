@@ -1,0 +1,255 @@
+Act as a senior UI/UX designer and frontend engineer.
+
+Redesign and refine the GrowitBuddy website into a **premium, clear, high-conversion light UI**.
+
+---
+
+# 🎯 CORE GOAL
+
+* Make the website instantly understandable
+* Maintain a premium, non-generic feel
+* Reduce visual noise
+* Use minimal, controlled color accents
+* Improve conversion clarity
+
+---
+
+# 🧠 DESIGN PRINCIPLES
+
+* Clarity > creativity
+* Premium ≠ loud
+* Less color, more hierarchy
+* Every section must feel intentional
+
+---
+
+# 🎨 COLOR SYSTEM (UPDATED — RUST REDUCED)
+
+## 🔹 BACKGROUND
+
+* Primary: #F8F8F6
+* Secondary: #EFEFEA
+
+Alternate sections for depth.
+
+---
+
+## 🔹 TEXT
+
+* Primary: #0A0A0A
+* Secondary: #5F5F5F
+* Muted: #8A8A8A
+
+---
+
+## 🔹 PRIMARY COLOR (MAIN IDENTITY — AUTHORITY)
+
+* Deep Ink Blue: #1E293B
+* Hover: #334155
+
+Use for:
+
+* links
+* subtle highlights
+* icons
+* section emphasis
+
+---
+
+## 🔸 SECONDARY ACCENT (LIMITED USE ONLY)
+
+* Burnt Rust: #8B3A1A
+* Hover: #A34722
+
+⚠️ IMPORTANT RULE:
+
+* Use rust ONLY for:
+
+  * primary CTA buttons
+  * key highlights
+* Do NOT use across entire UI
+* Do NOT use in backgrounds
+
+---
+
+## ⚡ MICRO ACCENT (VERY LIMITED)
+
+* Soft Gold: #C2A878
+
+Use for:
+
+* small dividers
+* icons
+* subtle highlights
+
+---
+
+# ❗ COLOR USAGE RULES
+
+* 80% neutral (white/grey)
+* 15% ink blue
+* 5% rust (max)
+
+---
+
+# 🎯 TYPOGRAPHY
+
+* Font: Inter
+* Bold, clear headings
+* Strong hierarchy
+* High readability
+
+---
+
+# 🎯 HERO SECTION (FINAL COPY)
+
+Headline:
+
+“We create and distribute content that builds your authority.”
+
+Subtext:
+
+“So your content doesn’t just exist — it drives real growth.”
+
+---
+
+## CTA:
+
+Primary:
+“Get your growth breakdown”
+
+Secondary:
+“See how it works”
+
+---
+
+# 🎯 HERO DESIGN
+
+* Clean layout
+* Strong typography
+* Minimal distractions
+* Subtle depth (no heavy gradients)
+
+---
+
+# 🎯 PROOF SECTION (IMMEDIATELY AFTER HERO)
+
+Display:
+
+* 700M+ views generated
+* 1M+ organic reach built
+* creators & brands worked with
+
+Make numbers:
+
+* large
+* bold
+* high contrast
+
+---
+
+# 🎯 SYSTEM SECTION (MAKE THIS STRONG)
+
+Display clearly:
+
+Content → Distribution → Authority → Inbound
+
+* centered layout
+* clean spacing
+* minimal icons
+
+This is a core brand element.
+
+---
+
+# 🎯 COMPONENT SYSTEM
+
+## Buttons
+
+Primary:
+
+* Background: #8B3A1A
+* Text: white
+
+Secondary:
+
+* Outline: #1E293B
+
+Hover:
+
+* slight darken
+* small scale (1.02)
+
+---
+
+## Cards
+
+* Background: white
+* Border: #E5E5E0
+* Shadow: subtle
+
+Hover:
+
+* slight lift
+* slightly stronger shadow
+
+---
+
+## Sections
+
+* Alternate backgrounds
+* No heavy borders
+* Use spacing for separation
+
+---
+
+# 🎯 INTERACTIONS
+
+* Smooth transitions (0.2s)
+* No flashy animations
+* Premium subtle motion
+
+---
+
+# 🎯 ADMIN PANEL
+
+Allow editing of:
+
+* hero text
+* stats
+* client logos
+* CTA text
+
+---
+
+# ⚡ PERFORMANCE
+
+* Use CSS variables
+* Responsive design
+* Optimized assets
+
+---
+
+# ❗ DO NOT
+
+* overuse rust color
+* add bright/neon colors
+* use heavy gradients
+* make it look like SaaS template
+
+---
+
+# 🎯 FINAL RESULT
+
+A website that feels:
+
+* clear
+* premium
+* trustworthy
+* non-generic
+
+It should communicate:
+
+“We build systems that actually work.”
+
+---

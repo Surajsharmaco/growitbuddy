@@ -1,0 +1,312 @@
+Redesign and simplify this entire landing page into a reusable, modular talent onboarding landing page system inside GrowitBuddy.
+
+IMPORTANT:
+The current version feels too long, too detailed, and too complex.
+
+This should become:
+- a simple high-converting landing page
+- easy to duplicate
+- easy to customize
+- easy to manage from admin panel
+
+This page will mainly be used for:
+- Instagram bio links
+- ad campaigns
+- recruitment funnels
+- creator onboarding
+- freelancer onboarding
+
+Traffic will come quickly from:
+- reels
+- stories
+- ads
+- social posts
+
+So the page must:
+- explain the opportunity fast
+- reduce friction
+- feel modern and premium
+- stay extremely clear
+
+━━━━━━━━━━━━━━━━━━
+CORE GOAL
+━━━━━━━━━━━━━━━━━━
+
+Create a GENERAL reusable onboarding page template.
+
+This should NOT be hardcoded for:
+- video editors only
+- graphic designers only
+- creators only
+
+Instead:
+make it fully dynamic and reusable from admin panel.
+
+Example future use cases:
+- Video Editors Pool
+- Graphic Designers Pool
+- Thumbnail Designers Pool
+- Script Writers Pool
+- AI Creators Pool
+- Content Strategists Pool
+- Meme Creators Pool
+
+Admin should simply:
+- duplicate page
+- change text
+- change video
+- change resources
+- publish new version
+
+━━━━━━━━━━━━━━━━━━
+VERY IMPORTANT
+━━━━━━━━━━━━━━━━━━
+
+Keep the page:
+- SHORT
+- SIMPLE
+- CLEAN
+- CONVERSION-FOCUSED
+
+Do NOT overload with content.
+Do NOT create huge sections.
+Do NOT make it feel like a course website.
+
+This is:
+a talent onboarding landing page.
+
+━━━━━━━━━━━━━━━━━━
+NEW PAGE STRUCTURE
+━━━━━━━━━━━━━━━━━━
+
+ONLY KEEP THESE SECTIONS:
+
+1. HERO SECTION
+2. HOW IT WORKS
+3. RESOURCES / GUIDELINES
+4. SUBMISSION FORM
+5. FINAL CTA
+
+That’s it.
+
+━━━━━━━━━━━━━━━━━━
+SECTION 01 — HERO
+━━━━━━━━━━━━━━━━━━
+
+Dynamic editable fields:
+
+- Eyebrow text
+- Headline
+- Description
+- CTA buttons
+- YouTube/Vimeo/Loom video
+- Opportunity text
+
+Example structure:
+
+Eyebrow:
+VIDEO EDITORS POOL
+
+Headline:
+Join our growing network of editors.
+
+Description:
+Watch the demo, follow the workflow, submit your work, and get added to our internal talent network.
+
+Opportunity text:
+Top performers may receive freelance, creator, or agency opportunities in the future.
+
+Buttons:
+Watch Demo
+Submit Work
+
+Right side:
+embedded video player
+
+IMPORTANT:
+Video link must be editable from admin panel.
+
+━━━━━━━━━━━━━━━━━━
+SECTION 02 — HOW IT WORKS
+━━━━━━━━━━━━━━━━━━
+
+Simple 4-step row.
+
+01 — Watch Demo
+02 — Download Resources
+03 — Submit Your Work
+04 — Get Reviewed
+
+Very short text only.
+
+━━━━━━━━━━━━━━━━━━
+SECTION 03 — RESOURCES
+━━━━━━━━━━━━━━━━━━
+
+Simple clean cards.
+
+Examples:
+- Editing Guidelines
+- Raw Files
+- Brand Assets
+- Submission Rules
+- References
+
+Each card should support:
+- title
+- small description
+- external link
+- button
+
+All editable from admin panel.
+
+━━━━━━━━━━━━━━━━━━
+SECTION 04 — SUBMISSION FORM
+━━━━━━━━━━━━━━━━━━
+
+Keep it simple.
+
+Fields:
+- Full Name
+- Email
+- WhatsApp / Telegram
+- Portfolio Link
+- Submission Link
+- Notes
+
+Button:
+Submit Application
+
+Below form:
+“This is a network-based opportunity system, not a guaranteed job offer.”
+
+━━━━━━━━━━━━━━━━━━
+SECTION 05 — FINAL CTA
+━━━━━━━━━━━━━━━━━━
+
+Simple premium CTA.
+
+Headline:
+Ready to join the network?
+
+Description:
+Submit your work and become part of the GrowitBuddy ecosystem.
+
+Buttons:
+Submit Work
+Watch Demo
+
+━━━━━━━━━━━━━━━━━━
+ADMIN PANEL REQUIREMENTS
+━━━━━━━━━━━━━━━━━━
+
+THIS IS THE MOST IMPORTANT PART.
+
+Create a FULLY DYNAMIC reusable system.
+
+Admin must be able to:
+
+━━━━━━━━
+PAGE MANAGEMENT
+━━━━━━━━
+
+- duplicate entire page
+- rename page
+- change URL slug
+- publish/unpublish page
+- delete page
+
+Example:
+Duplicate “Video Editors Pool”
+→ rename to “Graphic Designers Pool”
+
+━━━━━━━━
+CONTENT EDITING
+━━━━━━━━
+
+Admin can edit:
+- headlines
+- descriptions
+- buttons
+- labels
+- CTA text
+- all section content
+
+━━━━━━━━
+VIDEO MANAGEMENT
+━━━━━━━━
+
+Admin can:
+- paste YouTube link
+- paste Vimeo link
+- paste Loom link
+- replace video anytime
+
+━━━━━━━━
+RESOURCE MANAGEMENT
+━━━━━━━━
+
+Admin can:
+- add/remove cards
+- reorder cards
+- edit resource links
+- upload files
+- add drive links
+
+━━━━━━━━
+FORM MANAGEMENT
+━━━━━━━━
+
+Admin can:
+- edit form fields
+- change submission destination
+- connect email/webhook
+- export submissions
+
+━━━━━━━━
+DESIGN SYSTEM
+━━━━━━━━
+
+The design must stay:
+- consistent with GrowitBuddy
+- premium
+- minimal
+- modern
+- clean
+
+Use:
+- strong typography
+- whitespace
+- soft borders
+- navy accents
+- elegant hover effects
+
+━━━━━━━━━━━━━━━━━━
+DESIGN DIRECTION
+━━━━━━━━━━━━━━━━━━
+
+This page should feel like:
+- modern talent infrastructure
+- premium onboarding system
+- simple but high-trust
+- elite but accessible
+
+NOT:
+- overdesigned
+- overly corporate
+- too detailed
+- too educational
+- too complicated
+
+━━━━━━━━━━━━━━━━━━
+IMPORTANT
+━━━━━━━━━━━━━━━━━━
+
+Optimize for:
+- mobile-first experience
+- fast scanning
+- high conversion
+- social traffic
+- ad traffic
+
+The entire purpose should be understood within 5–8 seconds of landing on the page.

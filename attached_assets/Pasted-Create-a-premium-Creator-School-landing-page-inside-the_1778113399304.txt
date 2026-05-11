@@ -1,0 +1,333 @@
+Create a premium Creator School landing page inside the existing GrowitBuddy website ecosystem.
+
+IMPORTANT:
+This is NOT a separate brand.
+This page should feel like a premium internal GrowitBuddy experience.
+
+The page should match:
+- typography
+- spacing
+- colors
+- navigation
+- footer
+- button styles
+- layout system
+- visual hierarchy
+
+Use the same GrowitBuddy aesthetic:
+minimal, authority-driven, premium, modern, clean.
+
+━━━━━━━━━━━━━━━━━━
+PAGE PURPOSE
+━━━━━━━━━━━━━━━━━━
+
+This landing page is for onboarding creators/editors into the GrowitBuddy Creator School ecosystem.
+
+The purpose is to:
+- educate creators
+- give clear workflow instructions
+- provide editing guidelines
+- share raw files/resources
+- explain submission process
+- improve creator quality and consistency
+
+This page should psychologically feel:
+“You are entering a professional creator operating system.”
+
+NOT:
+- a cheap course page
+- a random Notion page
+- a basic Google Drive dump
+
+The page should feel:
+- structured
+- premium
+- serious
+- operational
+- high-performance
+- creator-focused
+
+━━━━━━━━━━━━━━━━━━
+URL STRUCTURE
+━━━━━━━━━━━━━━━━━━
+
+Create this page inside the website.
+
+Suggested URL:
+/creator-school
+
+Alternative:
+/creator-hub
+/growitbuddy-school
+/creator-system
+
+After creating the page, clearly mention the final URL.
+
+━━━━━━━━━━━━━━━━━━
+HERO SECTION
+━━━━━━━━━━━━━━━━━━
+
+Small Label:
+CREATOR SCHOOL
+
+Main Headline:
+Learn the system behind high-performing content.
+
+Subheadline:
+Everything you need to create, edit, submit, and grow inside the GrowitBuddy ecosystem.
+
+Primary CTA:
+Start Learning
+
+Secondary CTA:
+View Guidelines
+
+Right side:
+Large embedded VSL/video section.
+
+The VSL area should support:
+- YouTube embed
+- Loom embed
+- Vimeo embed
+- self-hosted video
+
+Add a premium video container design with:
+- rounded corners
+- subtle shadows
+- clean controls
+- premium thumbnail support
+
+━━━━━━━━━━━━━━━━━━
+SECTION 02 — WHAT YOU’LL LEARN
+━━━━━━━━━━━━━━━━━━
+
+Create a premium 3-column card grid.
+
+Cards:
+
+01 — Content Psychology
+Hooks, retention, pacing, audience behavior, attention engineering.
+
+02 — Editing Systems
+Short-form editing workflows, storytelling, transitions, subtitles, pacing.
+
+03 — Growth & Distribution
+Platform optimization, creator positioning, packaging, and virality systems.
+
+04 — Creator Standards
+How GrowitBuddy creators are expected to deliver quality and consistency.
+
+05 — Submission Workflow
+How to submit work, deadlines, revisions, and approval systems.
+
+06 — Real Client Systems
+Understand how actual creator campaigns and authority systems are built.
+
+━━━━━━━━━━━━━━━━━━
+SECTION 03 — CREATOR GUIDELINES
+━━━━━━━━━━━━━━━━━━
+
+Create a structured premium section with downloadable resources.
+
+Title:
+Creator Guidelines
+
+Subtitle:
+Read everything carefully before starting.
+
+Create clean downloadable resource cards:
+
+- Editing Guidelines
+- Content Guidelines
+- Hook Writing Framework
+- Thumbnail References
+- Brand Style Guide
+- Submission SOP
+- Retention Framework
+- Creator Checklist
+
+Each card should support:
+- title
+- short description
+- drive link
+- file type badge
+- open/download button
+
+Admin panel editable.
+
+━━━━━━━━━━━━━━━━━━
+SECTION 04 — RAW FILES & RESOURCES
+━━━━━━━━━━━━━━━━━━
+
+Title:
+Raw Files & Assets
+
+Subtitle:
+Access project files, source assets, references, and editing material.
+
+Create premium resource blocks for:
+- Raw footage
+- B-roll libraries
+- Music packs
+- Sound effects
+- Subtitle presets
+- Motion graphics
+- Project files
+- Brand assets
+
+Each resource card should allow:
+- Drive link
+- Dropbox link
+- Mega link
+- ZIP upload
+- external URL
+
+Admin editable.
+
+━━━━━━━━━━━━━━━━━━
+SECTION 05 — SUBMISSION SYSTEM
+━━━━━━━━━━━━━━━━━━
+
+Title:
+Submit Your Work
+
+Subtitle:
+Follow the submission process carefully to ensure fast review.
+
+Create a premium submission form with:
+
+Fields:
+- Full Name
+- Email
+- Telegram / WhatsApp
+- Project Name
+- Submission Link
+- Notes
+- Deadline Confirmation Checkbox
+
+Add:
+Upload Button
+Submit Button
+
+Below the form add:
+“Submissions that do not follow the guidelines may be rejected.”
+
+━━━━━━━━━━━━━━━━━━
+SECTION 06 — WORKFLOW PROCESS
+━━━━━━━━━━━━━━━━━━
+
+Create a horizontal 4-step process section.
+
+01 — Watch The VSL
+Understand the system and expectations.
+
+02 — Read The Guidelines
+Learn editing standards and workflows.
+
+03 — Download Resources
+Access files, templates, and raw assets.
+
+04 — Submit Your Work
+Send your final work for review and approval.
+
+━━━━━━━━━━━━━━━━━━
+SECTION 07 — CREATOR STANDARDS
+━━━━━━━━━━━━━━━━━━
+
+Dark premium section.
+
+Headline:
+This is not random content. It’s a system.
+
+Add bullet points:
+- Fast communication
+- Clean organization
+- Deadline discipline
+- Retention-focused editing
+- Platform-native content
+- Attention engineering
+- Consistent quality standards
+- Long-term creator growth
+
+━━━━━━━━━━━━━━━━━━
+SECTION 08 — FAQ
+━━━━━━━━━━━━━━━━━━
+
+Questions:
+- How do submissions work?
+- How will feedback be given?
+- What editing software is preferred?
+- Can beginners apply?
+- Where are raw files uploaded?
+- How are creators selected?
+- What content style does GrowitBuddy prefer?
+- How fast are reviews done?
+
+━━━━━━━━━━━━━━━━━━
+FINAL CTA SECTION
+━━━━━━━━━━━━━━━━━━
+
+Headline:
+Ready to create better content?
+
+Subheadline:
+Learn the systems, follow the process, and build with GrowitBuddy.
+
+Buttons:
+Join Creator School
+Submit Your First Project
+
+━━━━━━━━━━━━━━━━━━
+ADMIN PANEL REQUIREMENTS
+━━━━━━━━━━━━━━━━━━
+
+Everything must be editable from admin panel.
+
+Admin should be able to:
+- change VSL video
+- edit sections
+- upload resources
+- update Drive links
+- add/remove guidelines
+- change submission destination
+- manage creator resources
+- update CTA buttons
+- manage FAQ
+- reorder sections
+
+━━━━━━━━━━━━━━━━━━
+DESIGN DIRECTION
+━━━━━━━━━━━━━━━━━━
+
+This page should feel like:
+- a premium creator operating system
+- a modern creator academy
+- internal creator infrastructure
+- high-performance onboarding
+
+NOT:
+- childish
+- course marketplace
+- overly colorful
+- template-looking
+- corporate boring
+
+Use:
+- clean spacing
+- strong typography
+- premium cards
+- smooth hover animations
+- subtle gradients
+- dark navy accents matching GrowitBuddy
+- soft borders
+- modern UI
+
+Maintain the exact GrowitBuddy design language.
+
+━━━━━━━━━━━━━━━━━━
+IMPORTANT
+━━━━━━━━━━━━━━━━━━
+
+Do NOT redesign the whole website.
+
+Only create this dedicated Creator School landing page while preserving the existing GrowitBuddy ecosystem and authority positioning.

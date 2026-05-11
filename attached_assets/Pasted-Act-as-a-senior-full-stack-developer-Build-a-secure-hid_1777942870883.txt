@@ -1,0 +1,191 @@
+Act as a senior full-stack developer.
+
+Build a secure, hidden portfolio system inside my website.
+
+---
+
+# 🎯 GOAL
+
+Create a **private portfolio page** that:
+
+* is NOT publicly accessible
+* can only be accessed via a secret link or password
+* allows dynamic content updates from an admin panel
+* supports YouTube-based content (no heavy uploads)
+
+---
+
+# 🔐 ACCESS CONTROL (IMPORTANT)
+
+Implement ONE or BOTH:
+
+## Option 1 (Simple)
+
+* Secret URL (e.g. /portfolio-hidden-xyz123)
+
+## Option 2 (Better)
+
+* Password-protected page
+* Simple login (no signup required)
+* Store password securely (env variable)
+
+---
+
+# 🎬 PORTFOLIO PAGE FEATURES
+
+## Layout:
+
+* Clean, premium UI
+* Grid or category-based layout
+
+---
+
+## 🎯 CATEGORY FILTER (VERY IMPORTANT)
+
+Add filter tabs:
+
+* All Work
+* Video Editing
+* Reels / Shorts
+* Graphics
+* Social Media Management
+
+---
+
+## 🎥 VIDEO SYSTEM
+
+* Use YouTube embeds only (iframe)
+* User pastes YouTube link → auto embed
+* Smooth playback
+* Lazy loading for performance
+
+---
+
+## 🧠 VIDEO CARD STRUCTURE
+
+Each item should include:
+
+* Title
+* Category
+* YouTube link
+* Optional description
+
+---
+
+---
+
+# 🛠 ADMIN PANEL (CRITICAL FEATURE)
+
+Create a simple admin panel:
+
+## Features:
+
+* Add new content
+* Edit content
+* Delete content
+
+---
+
+## FORM FIELDS:
+
+* Title
+* Category (dropdown)
+* YouTube URL
+* Description (optional)
+
+---
+
+## BEHAVIOR:
+
+* When YouTube link is pasted → auto convert to embed format
+* Data stored in database (or JSON if simple)
+* Changes reflect instantly on frontend
+
+---
+
+---
+
+# 🧠 DATA STRUCTURE
+
+Use:
+
+* JSON (simple version)
+  OR
+* database (better scalability)
+
+---
+
+Example:
+
+[
+{
+"title": "Client Reel Example",
+"category": "Reels",
+"youtube": "https://youtube.com/...",
+"description": "Short viral reel"
+}
+]
+
+---
+
+---
+
+# 🎨 UI DESIGN
+
+* Match existing website theme (light premium UI)
+* Clean cards
+* Smooth hover effects
+* Minimal design
+
+---
+
+---
+
+# ⚡ PERFORMANCE
+
+* Lazy load videos
+* Do NOT autoplay all videos
+* Optimize for fast loading
+
+---
+
+---
+
+# 🔒 SECURITY
+
+* Hide admin panel route
+* Protect admin panel with password
+* Do not expose API publicly
+
+---
+
+---
+
+# 🎯 EXTRA FEATURE (OPTIONAL — HIGH VALUE)
+
+Add:
+
+👉 “Select what you want to see”
+
+Dropdown:
+
+* Video Editing
+* Graphics
+* Social Media
+
+→ Auto filter content
+
+---
+
+---
+
+# 🎯 FINAL RESULT
+
+A smooth, secure, hidden portfolio system where:
+
+* Only selected users can access
+* You can easily update content
+* Videos play seamlessly
+* Categories help navigation
+
+---

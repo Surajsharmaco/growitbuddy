@@ -1,0 +1,234 @@
+Refine and optimize the onboarding landing page for LOWER BOUNCE RATE and HIGHER COMPLETION RATE.
+
+IMPORTANT:
+The current messaging feels too performance-pressure heavy.
+
+Lines like:
+- “Top performers may get…”
+- “Best editors will…”
+- “May unlock opportunities…”
+
+can psychologically create pressure and increase bounce rate because users feel:
+“I probably won’t qualify.”
+
+We want:
+MORE people to complete the process.
+MORE submissions.
+LOWER friction.
+LOWER intimidation.
+HIGHER trust.
+
+The page should feel:
+- welcoming
+- opportunity-driven
+- professional
+- simple
+- low-pressure
+- modern
+- creator-friendly
+
+━━━━━━━━━━━━━━━━━━
+VERY IMPORTANT COPY CHANGE
+━━━━━━━━━━━━━━━━━━
+
+REMOVE overly selective or intimidating wording like:
+- top performers
+- best editors
+- selected creators
+- elite only
+- may qualify
+- only serious people
+
+Instead use softer but still premium language.
+
+Better positioning:
+- “Join the network”
+- “Become part of the ecosystem”
+- “Future collaboration opportunities”
+- “We continuously work with creators and freelancers”
+- “Opportunities can open over time”
+- “We’re building a long-term network”
+
+The psychology should feel:
+“This is accessible.”
+NOT:
+“I’m being judged.”
+
+━━━━━━━━━━━━━━━━━━
+NEW POSITIONING STYLE
+━━━━━━━━━━━━━━━━━━
+
+The page should communicate:
+
+“We are building a growing network of creators and freelancers we can potentially work with over time.”
+
+This feels:
+- safer
+- easier
+- lower pressure
+- more inviting
+
+━━━━━━━━━━━━━━━━━━
+HERO SECTION REDESIGN
+━━━━━━━━━━━━━━━━━━
+
+CURRENT ISSUE:
+The side-by-side layout weakens the page.
+
+NEW STRUCTURE:
+Use a centered stacked hero layout.
+
+━━━━━━━━
+NEW HERO LAYOUT
+━━━━━━━━
+
+1. Small Eyebrow
+2. Big Headline
+3. Small Description
+4. CTA Buttons
+5. LARGE VIDEO
+6. Supporting trust text
+
+━━━━━━━━
+EXAMPLE STRUCTURE
+━━━━━━━━
+
+Eyebrow:
+VIDEO EDITORS NETWORK
+
+Headline:
+Join our growing network of video editors.
+
+Subheadline:
+Watch the demo, understand the workflow, submit your edit, and become part of the GrowitBuddy ecosystem.
+
+Buttons:
+Watch Demo
+View Resources
+
+THEN:
+
+Large centered video section underneath.
+
+IMPORTANT:
+The video should become the visual focus of the page.
+
+━━━━━━━━━━━━━━━━━━
+VIDEO SECTION REQUIREMENTS
+━━━━━━━━━━━━━━━━━━
+
+Make the video:
+- much larger
+- centered
+- premium
+- visually dominant
+
+Desktop:
+- centered below hero text
+- large cinematic container
+- wide responsive player
+
+Mobile:
+- centered
+- NOT pushed to bottom
+- NOT side-by-side
+- maintain visual importance
+
+The structure on mobile should be:
+
+Headline
+Subheadline
+Buttons
+Large Video
+Remaining sections
+
+NOT:
+Text left → video bottom
+
+━━━━━━━━━━━━━━━━━━
+COPY STYLE IMPROVEMENTS
+━━━━━━━━━━━━━━━━━━
+
+Use shorter, softer, more natural wording.
+
+Avoid:
+- corporate pressure
+- aggressive selection language
+- intimidating positioning
+
+Use:
+- collaborative language
+- growth language
+- ecosystem language
+- creator-friendly tone
+
+━━━━━━━━━━━━━━━━━━
+BETTER OPPORTUNITY TEXT
+━━━━━━━━━━━━━━━━━━
+
+Replace aggressive opportunity messaging with:
+
+“We regularly work with creators, freelancers, and editors across different projects and campaigns.”
+
+OR
+
+“As new projects come in, we often collaborate with creators and freelancers from within our network.”
+
+OR
+
+“This helps us build long-term creative relationships inside the GrowitBuddy ecosystem.”
+
+This feels:
+- natural
+- trustworthy
+- lower pressure
+- less salesy
+
+━━━━━━━━━━━━━━━━━━
+OVERALL PAGE GOAL
+━━━━━━━━━━━━━━━━━━
+
+The page should now feel like:
+
+- a welcoming creator ecosystem
+- a modern onboarding system
+- a simple collaboration funnel
+- an easy entry point into the network
+
+NOT:
+- a difficult application process
+- a stressful talent competition
+- a job interview funnel
+
+━━━━━━━━━━━━━━━━━━
+DESIGN IMPROVEMENTS
+━━━━━━━━━━━━━━━━━━
+
+Increase:
+- whitespace
+- visual breathing room
+- typography clarity
+- section separation
+
+Reduce:
+- clutter
+- excessive text
+- visual density
+
+The page should feel:
+- lighter
+- cleaner
+- more premium
+- easier to consume
+
+━━━━━━━━━━━━━━━━━━
+IMPORTANT
+━━━━━━━━━━━━━━━━━━
+
+Keep everything:
+- fully editable from admin panel
+- reusable
+- duplicatable
+- dynamic
+
+Maintain the GrowitBuddy visual identity and authority-first aesthetic.

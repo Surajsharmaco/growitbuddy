@@ -1,0 +1,205 @@
+Act as a senior full-stack engineer and deployment specialist.
+
+Your task is to audit, modify, and prepare the entire website so it runs smoothly on FREE hosting (Vercel or Hostinger shared hosting).
+
+---
+
+# 🎯 OBJECTIVE
+
+Ensure the website:
+
+* works on free-tier hosting
+* uses ONLY free tools and services
+* avoids features that break on free plans
+* remains fast and stable after deployment
+
+---
+
+# ⚠️ STRICT RULES
+
+* DO NOT use any paid services
+* DO NOT rely on heavy backend infrastructure
+* DO NOT use long-running server processes
+* Optimize everything for low-resource environments
+
+---
+
+# 📍 STEP 1: DETECT INCOMPATIBLE FEATURES
+
+Scan entire project and identify features that may fail on free hosting:
+
+Check for:
+
+* heavy backend APIs
+* long-running server tasks
+* large file uploads
+* video hosting (non-YouTube)
+* large databases
+* real-time systems (websockets)
+* server-side caching requiring memory persistence
+
+---
+
+# 📍 STEP 2: REPLACE WITH FREE ALTERNATIVES
+
+For each issue:
+
+## ❌ Replace with:
+
+* Upload → ❌ remove
+* Video hosting → ✅ YouTube embed
+* Heavy backend → ✅ lightweight API / static JSON
+* Database → ✅ simple DB or JSON / free DB (like Supabase free tier)
+* Image storage → ✅ optimized static assets
+
+---
+
+# 📍 STEP 3: CACHE + PERFORMANCE ADJUSTMENT
+
+Ensure:
+
+* no server-side heavy caching
+* use browser caching
+* use CDN (Vercel default)
+
+Fix:
+
+* stale data issues
+* excessive API calls
+* large payload responses
+
+---
+
+# 📍 STEP 4: ADMIN PANEL COMPATIBILITY
+
+Check:
+
+* does admin panel require backend?
+* does it store data safely?
+
+---
+
+## FIX:
+
+* use lightweight API routes
+* or external free DB (Supabase / Firebase free tier)
+
+Ensure:
+
+* no crash on multiple requests
+* no memory overload
+
+---
+
+# 📍 STEP 5: DATA STORAGE STRATEGY
+
+Choose one:
+
+## Option A (simple):
+
+* JSON file (small apps only)
+
+## Option B (recommended):
+
+* Supabase free tier
+
+---
+
+Ensure:
+
+* CRUD works
+* no sync issues
+* fast reads
+
+---
+
+# 📍 STEP 6: IMAGE & VIDEO OPTIMIZATION
+
+Fix:
+
+* large images → compress
+* use lazy loading
+* no autoplay videos
+
+---
+
+# 📍 STEP 7: ROUTING & BUILD CHECK
+
+Ensure:
+
+* all routes work after deploy
+* no broken links
+* no dynamic route failures
+
+---
+
+# 📍 STEP 8: ERROR HANDLING
+
+Add:
+
+* fallback UI
+* error messages
+* retry logic
+
+---
+
+# 📍 STEP 9: PERFORMANCE TEST
+
+Simulate:
+
+* slow network
+* multiple users
+* repeated actions
+
+Fix:
+
+* unnecessary re-renders
+* heavy components
+* blocking scripts
+
+---
+
+# 📍 STEP 10: FINAL DEPLOYMENT CHECKLIST
+
+Verify:
+
+* builds successfully
+* no console errors
+* env variables configured
+* API routes working
+* admin panel accessible
+
+---
+
+# 📋 REQUIRED OUTPUT
+
+Return:
+
+## 1. FEATURES THAT WOULD FAIL ON FREE HOSTING
+
+(list them)
+
+## 2. FIXES APPLIED
+
+(what replaced them)
+
+## 3. FINAL ARCHITECTURE
+
+(frontend + backend + DB)
+
+## 4. DEPLOYMENT STATUS
+
+(ready / issues)
+
+---
+
+# 🎯 FINAL GOAL
+
+A website that:
+
+* runs fully on free hosting
+* is fast and stable
+* has no hidden breaking points
+* is safe to deploy
+
+---

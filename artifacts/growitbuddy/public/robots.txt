@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Admin panel — never crawl
+Disallow: /admin
+Disallow: /admin/
+
+# Verification routes
+Disallow: /verify/
+
+# Static pages sitemap
+Sitemap: https://growitbuddy.com/sitemap.xml
+
+# Blog posts sitemap (dynamic — WordPress + CMS, updated hourly)
+Sitemap: https://growitbuddy.com/api/sitemap-blog.xml

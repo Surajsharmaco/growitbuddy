@@ -1,0 +1,289 @@
+Act as a senior frontend developer, backend engineer, and conversion-focused UI/UX designer.
+
+Your task is to build and optimize the **Work / Proof Page** for GrowitBuddy.
+
+This page must be clean, high-authority, and focused on real proof — not clutter.
+
+---
+
+# 🎯 OBJECTIVE
+
+* Show credibility instantly
+* Keep layout simple and premium
+* Use only high-impact content
+* Remove unnecessary elements
+* Improve clarity and trust
+
+---
+
+# ⚠️ STRICT RULES
+
+* Keep the page minimal and scannable
+* Do NOT overload with text
+* Do NOT add extra sections
+* Use ONLY real data and real client logos
+* Maintain consistent spacing and typography
+
+---
+
+---
+
+# 📍 PAGE STRUCTURE
+
+---
+
+## 1. HERO SECTION
+
+### HEADLINE:
+
+“Proof of authority at scale.”
+
+---
+
+### SUBTEXT:
+
+Real systems. Real execution. Real outcomes.
+
+---
+
+### CTA:
+
+“Book a strategy call”
+
+---
+
+---
+
+## 2. STATS SECTION (ONLY 3 CARDS — FINAL)
+
+---
+
+### CARD 1
+
+**700M+**
+Views Generated Across Content Networks
+
+Across multi-platform content systems, campaigns, and distribution engines built for scale.
+
+---
+
+---
+
+### CARD 2
+
+**200+**
+Founders & Brands Served
+
+Working with founders, creators, and businesses to build authority and consistent inbound growth.
+
+---
+
+---
+
+### CARD 3
+
+**90K+**
+Content Assets Created Across High-Volume Pages
+
+Executed at scale across short-form, long-form, and platform-native content systems.
+
+---
+
+---
+
+### DESIGN:
+
+* 3 cards in one row (desktop)
+* equal width and height
+* strong bold typography for numbers
+* clean spacing
+* no extra elements
+
+---
+
+---
+
+## 3. CLIENT LOGO SECTION (IMPORTANT)
+
+---
+
+### TITLE:
+
+Our Clients
+
+---
+
+### SUBTEXT:
+
+Trusted by founders, creators, and brands
+
+---
+
+---
+
+### GRID:
+
+* 4 rows × 6 logos (24 total)
+* evenly spaced
+* centered layout
+
+---
+
+---
+
+### LOGO RULES (CRITICAL)
+
+* Use ONLY real client logos
+* Use ORIGINAL brand colors (NO grayscale)
+* DO NOT recolor logos
+* DO NOT distort or stretch logos
+* Maintain aspect ratio
+* Add equal padding around each logo
+
+---
+
+---
+
+### HOVER EFFECT:
+
+* slight scale (1.05)
+* optional subtle shadow
+
+---
+
+---
+
+# 📍 ADMIN PANEL (LOGO MANAGEMENT)
+
+---
+
+## DATABASE:
+
+table: clients
+
+fields:
+
+* id
+* image_url
+* alt_text
+* order
+
+---
+
+---
+
+## ADMIN FEATURES:
+
+* Add logo (upload or URL)
+* Delete logo
+* Edit logo
+* Reorder logos
+
+---
+
+---
+
+## API ROUTES:
+
+* GET /clients
+* POST /clients
+* PUT /clients/:id
+* DELETE /clients/:id
+
+---
+
+---
+
+## FRONTEND:
+
+* fetch logos dynamically
+* render automatically in grid
+* maintain order
+
+---
+
+---
+
+# 📍 4. FINAL CTA
+
+---
+
+### TITLE:
+
+“Your results, next.”
+
+---
+
+### SUBTEXT:
+
+We’ll map exactly how to build your authority system.
+
+---
+
+### BUTTON:
+
+“Book a strategy call”
+
+---
+
+---
+
+# 🎨 DESIGN RULES
+
+* minimal and clean layout
+* strong typography hierarchy
+* generous spacing between sections
+* no clutter
+* premium feel
+
+---
+
+---
+
+# 📱 RESPONSIVE
+
+* stats stack vertically on mobile
+* logos adjust (2–3 per row)
+* maintain readability
+
+---
+
+---
+
+# ⚡ PERFORMANCE
+
+* lazy load logos
+* optimize images (SVG/WebP)
+* fast rendering
+
+---
+
+---
+
+# 📋 OUTPUT REQUIREMENTS
+
+Return:
+
+1. Full UI structure
+2. React + TypeScript code
+3. Tailwind CSS styling
+4. Logo grid implementation
+5. Admin panel logic
+6. API endpoints
+7. Responsive design
+
+---
+
+---
+
+# 🎯 FINAL RESULT
+
+A Work page that:
+
+* communicates scale instantly
+* builds trust through real logos
+* feels clean and premium
+* avoids confusion
+* is fully manageable from admin
+
+---

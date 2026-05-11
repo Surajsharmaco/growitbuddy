@@ -1,0 +1,104 @@
+Redesign the “Our Clients” logo section to align with the actual visual content and improve trust consistency.
+
+IMPORTANT:
+The current heading says:
+“Trusted by founders, creators, and brands”
+
+But the section only displays company/platform logos, not founder identities or creator profiles. This creates a psychological mismatch and weakens credibility.
+
+Fix this by repositioning the section as a pure brand/client credibility section.
+
+━━━━━━━━━━━━━━━
+SECTION COPY
+━━━━━━━━━━━━━━━
+
+Small Eyebrow Label:
+OUR CLIENTS
+
+Main Heading:
+Trusted by brands.
+
+Subtext:
+Across industries, platforms, and growth stages.
+
+Alternative acceptable heading:
+“Brands we’ve worked with.”
+
+Do NOT mention:
+- founders
+- creators
+- influencers
+unless actual people/testimonials/faces are shown.
+
+━━━━━━━━━━━━━━━
+LOGO GRID
+━━━━━━━━━━━━━━━
+
+Keep the existing clean premium logo grid layout.
+
+Requirements:
+- 4 rows
+- 6 logos per row
+- evenly spaced
+- premium minimal aesthetic
+- maintain current GrowitBuddy design language
+- soft borders
+- subtle hover effect
+- preserve whitespace
+
+Use ONLY:
+- real logos
+- official original-color brand logos
+- no monochrome conversions
+- no fake/generated logos
+- no placeholder icons
+
+The logos should feel:
+premium, modern, enterprise, trustworthy.
+
+━━━━━━━━━━━━━━━
+ADMIN PANEL REQUIREMENTS
+━━━━━━━━━━━━━━━
+
+Make the entire logo section fully editable from admin panel.
+
+Admin must be able to:
+- add logos
+- remove logos
+- reorder logos
+- upload SVG/PNG/WebP
+- edit brand name
+- add optional link
+- enable/disable logos
+- change rows dynamically
+
+Make it scalable.
+
+━━━━━━━━━━━━━━━
+DESIGN DIRECTION
+━━━━━━━━━━━━━━━
+
+This section should psychologically communicate:
+“These people work with credible modern brands.”
+
+NOT:
+“We are showing random software tools.”
+
+The section should feel:
+- premium agency
+- authority-first
+- enterprise-ready
+- modern positioning
+- high-trust
+- clean and intentional
+
+Keep the layout minimal and elegant.
+Avoid visual clutter.
+Preserve strong spacing and hierarchy.
+
+━━━━━━━━━━━━━━━
+IMPORTANT
+━━━━━━━━━━━━━━━
+
+Do NOT redesign the entire page.
+Only improve and reposition this specific client logo section while maintaining the existing GrowitBuddy visual identity.

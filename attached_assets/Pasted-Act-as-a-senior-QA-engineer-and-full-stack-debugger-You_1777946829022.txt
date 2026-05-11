@@ -1,0 +1,232 @@
+Act as a senior QA engineer and full-stack debugger.
+
+You are NOT allowed to give suggestions only.
+You must EXECUTE testing, FIND bugs, FIX them, and VERIFY again.
+
+---
+
+# 🎯 OBJECTIVE
+
+Make the entire website production-ready by:
+
+1. Testing every feature
+2. Finding all bugs
+3. Fixing them
+4. Re-testing until no issues remain
+
+---
+
+# ⚠️ STRICT RULES (VERY IMPORTANT)
+
+* Do NOT skip any step
+* Do NOT assume anything works
+* Do NOT stop after finding bugs
+* You MUST fix and re-test
+* Repeat until everything works perfectly
+
+---
+
+# 🔁 WORKFLOW LOOP (MANDATORY)
+
+For each feature:
+
+1. Test
+2. Break it intentionally
+3. Identify bug
+4. Fix bug
+5. Re-test
+6. Confirm working
+7. Move to next
+
+---
+
+# 📍 STEP 1: MAP ALL FEATURES
+
+List ALL features present in the app:
+
+* navigation
+* forms
+* admin panel
+* creator profiles
+* filters
+* buttons
+* routes
+
+Do NOT proceed until full list is created.
+
+---
+
+# 📍 STEP 2: BUTTON-BY-BUTTON TESTING
+
+For EVERY button:
+
+* click it
+* verify action happens
+* test double-click
+* test rapid clicks
+* test disabled state
+
+If ANY button fails → FIX immediately
+
+---
+
+# 📍 STEP 3: FORM TESTING (STRICT)
+
+For EACH form:
+
+Test:
+
+* empty submit
+* invalid data
+* correct data
+* duplicate submission
+
+Verify:
+
+* validation messages
+* data saving
+* UI updates
+
+Fix ALL issues before moving ahead
+
+---
+
+# 📍 STEP 4: ADMIN PANEL (CRITICAL)
+
+Test ALL actions:
+
+* login/logout
+* wrong credentials
+* add data
+* edit data
+* delete data
+
+Verify:
+
+* changes reflect instantly
+* no refresh issues
+* no data loss
+
+---
+
+# 📍 STEP 5: DATA FLOW TEST
+
+Check:
+
+* frontend → backend → database → frontend
+
+Verify:
+
+* data consistency
+* no stale data
+* no mismatch
+
+---
+
+# 📍 STEP 6: CREATOR / VIDEO SYSTEM
+
+Test:
+
+* card click → profile open
+* correct data load
+* YouTube links:
+
+  * valid link
+  * invalid link
+  * empty state
+
+Fix all issues
+
+---
+
+# 📍 STEP 7: FILTER SYSTEM
+
+Test:
+
+* switching filters
+* multiple clicks
+* no results case
+
+Fix:
+
+* duplication bugs
+* wrong filtering
+
+---
+
+# 📍 STEP 8: PERFORMANCE TEST
+
+Simulate:
+
+* many creators
+* slow loading
+
+Fix:
+
+* add pagination
+* lazy loading
+* optimize rendering
+
+---
+
+# 📍 STEP 9: EDGE CASES
+
+Test:
+
+* refresh during action
+* multiple tabs
+* fast repeated actions
+* empty database
+
+---
+
+# 📍 STEP 10: SECURITY
+
+Check:
+
+* admin routes protected
+* no direct URL bypass
+* sanitize inputs
+
+---
+
+# 📍 STEP 11: FINAL VERIFICATION
+
+Re-test EVERYTHING again from start.
+
+---
+
+# 📋 REQUIRED OUTPUT FORMAT
+
+Return:
+
+## 1. FEATURES TESTED
+
+(list all)
+
+## 2. BUGS FOUND
+
+* Bug 1:
+* Bug 2:
+
+## 3. FIXES APPLIED
+
+* Fix 1:
+* Fix 2:
+
+## 4. FINAL STATUS
+
+* All working / Issues remaining
+
+---
+
+# 🎯 FINAL GOAL
+
+ZERO broken buttons
+ZERO failed submissions
+ZERO UI inconsistencies
+SMOOTH full workflow
+
+---
+
+Do not stop until system is stable.

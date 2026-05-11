@@ -1,0 +1,238 @@
+Act as a senior full-stack performance engineer.
+
+Build a SAFE, production-ready **Website Optimization & Cache Control System** inside the admin panel.
+
+---
+
+# 🎯 OBJECTIVE
+
+Create an admin feature that:
+
+* Improves website speed
+* Clears cache safely
+* Fixes common performance issues
+* NEVER deletes or corrupts content
+* Works like “optimization plugins” (but controlled)
+
+---
+
+# ⚠️ CRITICAL RULES
+
+* DO NOT delete any user data
+* DO NOT modify database content destructively
+* DO NOT break UI or routes
+* All actions must be REVERSIBLE or SAFE
+
+---
+
+# 🧠 FEATURE NAME
+
+Admin Panel → **“Performance & Optimization”**
+
+---
+
+# 🎯 MAIN FEATURES
+
+---
+
+## 🔹 1. CACHE CLEAR SYSTEM
+
+Create buttons:
+
+### ✅ “Clear Frontend Cache”
+
+* Clears cached API responses
+* Clears local storage (if used)
+* Clears server cache
+
+---
+
+### ✅ “Clear Image Cache”
+
+* Refresh cached images
+* Keep original files intact
+
+---
+
+### ✅ “Clear Full Cache (Safe Mode)”
+
+* Clears all temporary cache
+* DOES NOT delete database or media
+
+---
+
+---
+
+## 🔹 2. PERFORMANCE BOOST ACTIONS
+
+Add toggle buttons:
+
+### ⚡ Enable Lazy Loading
+
+* Images load only when visible
+
+---
+
+### ⚡ Optimize Images
+
+* Compress images (non-destructive)
+* Use lower resolution previews
+
+---
+
+### ⚡ Reduce Re-renders
+
+* Optimize frontend state updates
+* Prevent unnecessary reloads
+
+---
+
+### ⚡ Enable Code Splitting
+
+* Load components only when needed
+
+---
+
+---
+
+## 🔹 3. SPEED CHECK SYSTEM
+
+Add a button:
+
+### 🚀 “Analyze Performance”
+
+Show:
+
+* Page load time
+* API response time
+* number of requests
+* heavy components
+
+---
+
+---
+
+## 🔹 4. ISSUE DETECTION SYSTEM
+
+Automatically detect:
+
+* large images
+* too many API calls
+* duplicate renders
+* unused components
+
+Display warnings in admin panel.
+
+---
+
+---
+
+## 🔹 5. SAFE RESET SYSTEM
+
+Add:
+
+### 🔄 “Reset Optimization Settings”
+
+* restores default config
+* does NOT affect content
+
+---
+
+---
+
+## 🔹 6. LOG SYSTEM (IMPORTANT)
+
+Track:
+
+* when cache cleared
+* what actions triggered
+* errors
+
+---
+
+---
+
+# 🧠 BACKEND IMPLEMENTATION
+
+* Use server-side cache layer (memory or file-based)
+
+* Use API endpoints:
+
+  /api/clear-cache
+  /api/optimize
+  /api/analyze
+
+* Ensure protected routes (admin only)
+
+---
+
+---
+
+# 🎨 UI DESIGN (ADMIN PANEL)
+
+Create a clean dashboard:
+
+Sections:
+
+* Cache Controls
+* Optimization Tools
+* Performance Insights
+* Logs
+
+---
+
+Each action should show:
+
+* loading state
+* success message
+* error message
+
+---
+
+---
+
+# 🔐 SECURITY
+
+* Admin authentication required
+* No public access to optimization routes
+* Rate limit actions (avoid abuse)
+
+---
+
+---
+
+# ⚡ PERFORMANCE PRINCIPLES
+
+* No blocking operations
+* Run heavy tasks asynchronously
+* Keep UI responsive
+
+---
+
+---
+
+# ❗ DO NOT
+
+* delete database data
+* clear critical configs
+* remove user uploads
+* break routing
+
+---
+
+---
+
+# 🎯 FINAL RESULT
+
+An admin panel system where:
+
+* You can safely clear cache
+* Improve website speed
+* Detect issues
+* Optimize performance
+
+WITHOUT breaking anything
+
+---
+
+---

@@ -1,0 +1,319 @@
+Act as a senior frontend developer, backend engineer, and conversion-focused UX designer.
+
+Your task is to build and optimize the **Work / Proof Page** for GrowitBuddy.
+
+This page must function as a **high-authority proof system**, not just a portfolio.
+
+---
+
+# 🎯 OBJECTIVE
+
+* Build trust instantly
+* Show real proof (not fluff)
+* Highlight scale and results
+* Display client logos
+* Keep everything clean, premium, and scannable
+
+---
+
+# ⚠️ STRICT RULES
+
+* Do NOT overload with text
+* Do NOT add generic descriptions
+* Focus on results and proof
+* Keep layout minimal and structured
+* Maintain consistent typography and spacing
+
+---
+
+---
+
+# 📍 PAGE STRUCTURE
+
+---
+
+## 1. HERO SECTION
+
+### HEADLINE:
+
+“The work behind the results”
+
+---
+
+### SUBTEXT:
+
+Real systems. Real execution. Real outcomes.
+
+---
+
+### CTA:
+
+“Book a strategy call”
+
+---
+
+---
+
+## 2. STATS SECTION (KEEP CLEAN)
+
+Display ONLY 3 stats:
+
+---
+
+**700M+**
+Views Generated
+
+**200+**
+Founders & Brands Served
+
+**90K+**
+Content Assets Created
+
+---
+
+👉 Add one small line below:
+
+“Across content networks, campaigns, and high-volume distribution systems.”
+
+---
+
+---
+
+## 3. CASE STUDY / RESULT CARDS
+
+---
+
+### GRID:
+
+* 2–3 columns
+* max 6 cards
+
+---
+
+### EACH CARD STRUCTURE:
+
+* Big metric (bold)
+* Short outcome headline
+* One-line explanation
+
+---
+
+### EXAMPLES:
+
+**14M+**
+Built a SaaS founder into an industry voice
+→ From zero presence to authority in 6 months
+
+---
+
+**250K+**
+Scaled a creator audience rapidly
+→ Consistent inbound through content systems
+
+---
+
+👉 Keep:
+
+* no long paragraphs
+* high contrast typography
+
+---
+
+---
+
+## 4. CLIENT LOGO SECTION (CRITICAL)
+
+---
+
+### TITLE:
+
+# 👉 Our Clients
+
+---
+
+### SUBTEXT:
+
+Trusted by founders, creators, and brands
+
+---
+
+---
+
+### GRID:
+
+* 4 rows × 6 logos (24 total)
+* equal spacing
+
+---
+
+### STYLE:
+
+* grayscale logos
+* 60% opacity
+* hover → 100% opacity
+* consistent size and padding
+
+---
+
+---
+
+# 📍 ADMIN PANEL (VERY IMPORTANT)
+
+---
+
+## CREATE LOGO MANAGEMENT SYSTEM
+
+---
+
+### DATABASE:
+
+table: clients
+
+fields:
+
+* id
+* image_url
+* alt_text
+* order
+
+---
+
+---
+
+### ADMIN FEATURES:
+
+* Add logo (upload or URL)
+* Delete logo
+* Edit logo
+* Reorder logos
+
+---
+
+---
+
+### API ROUTES:
+
+* GET /clients
+* POST /clients
+* PUT /clients/:id
+* DELETE /clients/:id
+
+---
+
+---
+
+### FRONTEND:
+
+* Fetch logos dynamically
+* Render grid automatically
+
+---
+
+---
+
+## ⚡ PERFORMANCE
+
+* lazy load logos
+* optimize images (webp/svg)
+* fast rendering
+
+---
+
+---
+
+# 📍 5. SYSTEM PROOF SECTION
+
+---
+
+### TITLE:
+
+“This is not random. It’s a system.”
+
+---
+
+### VISUAL FLOW:
+
+Content → Distribution → Authority → Inbound
+
+---
+
+### TEXT:
+
+Every result you see is built through a repeatable system.
+
+---
+
+---
+
+# 📍 6. FINAL CTA
+
+---
+
+### TITLE:
+
+“Your results, next.”
+
+---
+
+### SUBTEXT:
+
+We’ll map exactly how to build your authority system.
+
+---
+
+### BUTTON:
+
+“Book a strategy call”
+
+---
+
+---
+
+# 🎨 DESIGN RULES
+
+* Large spacing between sections
+* Strong typography hierarchy
+* Minimal colors
+* Clean grid layouts
+* No clutter
+
+---
+
+---
+
+# 📱 RESPONSIVE
+
+* cards stack cleanly
+* logos grid adjusts (2–3 per row mobile)
+* maintain readability
+
+---
+
+---
+
+# 📋 OUTPUT REQUIREMENTS
+
+Return:
+
+1. Full UI structure
+2. React + TypeScript code
+3. Tailwind CSS styling
+4. Logo grid implementation
+5. Admin panel logic
+6. API endpoints
+
+---
+
+---
+
+# 🎯 FINAL RESULT
+
+A Work page that:
+
+* builds trust instantly
+* shows real proof
+* highlights scale
+* feels premium and structured
+* is fully manageable from admin
+
+---

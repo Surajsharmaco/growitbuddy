@@ -1,0 +1,216 @@
+Act as a senior UI/UX designer + frontend engineer.
+
+Your task is to implement a complete scalable design system for a premium agency website (GrowitBuddy) with a secondary differentiated section (Creator / Distribution Network).
+
+---
+
+# 🎯 GOAL
+
+* Maintain strong brand consistency
+* Add clear visual differentiation between sections
+* Keep UI premium, minimal, and modern
+* Ensure scalability for future pages
+
+---
+
+# 🧠 CORE DESIGN PRINCIPLE
+
+* Same base design system across entire website
+* Only accent colors change based on context
+* No drastic theme switching
+* Maintain premium dark UI
+
+---
+
+# 🎨 GLOBAL DESIGN SYSTEM (APPLIES TO ENTIRE WEBSITE)
+
+## 🔹 BACKGROUND COLORS
+
+* Primary Background: #0B0B0F
+* Secondary Background: #121217
+
+---
+
+## 🔹 TEXT COLORS
+
+* Primary Text: #FFFFFF
+* Secondary Text: #B0B0B8
+* Muted Text: #7A7A85
+
+---
+
+## 🔹 UI ELEMENTS
+
+* Card Background: #1F1F2A
+* Border Color: #2A2A38
+* Divider Color: #23232F
+
+---
+
+## 🔹 TYPOGRAPHY
+
+* Clean sans-serif (Inter / Poppins)
+* Strong hierarchy (H1 bold, body clean)
+
+---
+
+---
+
+# 🎯 MAIN WEBSITE (DEFAULT THEME)
+
+## 🔹 ACCENT COLOR (PRIMARY BRAND)
+
+* Primary Accent: #7C3AED
+* Hover Accent: #A78BFA
+
+---
+
+## 🔹 USAGE
+
+* Buttons
+* Links
+* Highlights
+* Active states
+
+---
+
+## 🔹 BUTTON STYLE
+
+* Background: #7C3AED
+* Hover: #A78BFA
+* Text: #FFFFFF
+* Border Radius: 8px
+
+---
+
+---
+
+# 🔥 CREATOR / DISTRIBUTION PAGE (DIFFERENTIATION)
+
+## IMPORTANT:
+
+DO NOT change background, layout, or typography.
+
+Only change accent system.
+
+---
+
+## 🔹 ACCENT COLOR
+
+* Primary Accent: #EF4444
+* Hover Accent: #F87171
+
+---
+
+## 🔹 USAGE
+
+* CTA buttons
+* Tags / badges
+* Hover highlights
+* Active filters
+
+---
+
+## 🔹 OPTIONAL GRADIENT
+
+Use only for highlights:
+
+linear-gradient(135deg, #EF4444, #7C3AED)
+
+---
+
+---
+
+# 🎯 UI BEHAVIOR RULES
+
+## 🔹 HOVER STATES
+
+* Slight glow using accent color
+* Smooth transition (0.2–0.3s)
+
+---
+
+## 🔹 CARDS
+
+* Default: #1F1F2A
+* Hover:
+
+  * Slight lift (transform: translateY(-3px))
+  * Soft shadow
+  * Accent border highlight
+
+---
+
+## 🔹 BUTTONS
+
+* Smooth hover transitions
+* Slight scale (1.02 max)
+
+---
+
+---
+
+# 🧠 COMPONENT SYSTEM
+
+Make all components reusable:
+
+* Button component
+* Card component
+* Badge component
+* Section container
+* Grid system
+
+---
+
+---
+
+# 🎯 ADMIN PANEL CONTROL (VERY IMPORTANT)
+
+Allow editing of:
+
+* Accent color per page
+* Button styles
+* Section highlights
+* Card appearance
+
+---
+
+---
+
+# ⚡ PERFORMANCE
+
+* Use CSS variables for colors
+* Enable theme switching via class-based system
+* Optimize for fast load
+
+---
+
+---
+
+# 🧠 FINAL OUTPUT REQUIREMENTS
+
+* Clean, minimal, premium UI
+* Consistent design across all pages
+* Clear differentiation via accents
+* Scalable for future expansion
+
+---
+
+⚠️ DO NOT:
+
+* Create completely different themes per page
+* Use multiple random colors
+* Break design consistency
+
+---
+
+# 🎯 RESULT
+
+A premium agency website that:
+
+* Looks high-end
+* Feels consistent
+* Has clear section differentiation
+* Is scalable and maintainable
+
+---
