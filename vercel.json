@@ -3,7 +3,14 @@
   "outputDirectory": "artifacts/growitbuddy/dist/public",
   "installCommand": "pnpm install",
   "framework": null,
+  "functions": {
+    "api/index.ts": {
+      "memory": 512,
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/api/:path*", "destination": "/api/index" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
