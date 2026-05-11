@@ -12,3 +12,9 @@ id = "YXYE9wDn9nr2cxR0u5YDn"
 uri = "file://growitbuddy-seo-content.txt"
 type = "text"
 title = "GrowitBuddy — Full Website Content for SEO (Plain Text)"
+
+[[outputs]]
+id = "_Ae4OPke2ATHuQ4HVoNYs"
+uri = "file://growitbuddy_import.sql.gz"
+type = "unspecified"
+title = "Database Backup (ready to import)"
