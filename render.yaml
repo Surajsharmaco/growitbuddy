@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: growitbuddy-api
+    env: node
+    plan: free
+    rootDir: .
+    buildCommand: pnpm install && pnpm --filter @workspace/api-server run build
+    startCommand: node --enable-source-maps ./artifacts/api-server/dist/index.mjs
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: CAREERS_EMAIL
+        sync: false
+      - key: NOTIFY_EMAIL
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false

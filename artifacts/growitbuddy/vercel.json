@@ -1,7 +1,8 @@
 {
   "outputDirectory": "dist/public",
-  "buildCommand": "pnpm run build",
-  "installCommand": "pnpm install",
+  "buildCommand": "cd ../.. && pnpm --filter @workspace/growitbuddy run build",
+  "installCommand": "cd ../.. && pnpm install",
+  "framework": null,
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
