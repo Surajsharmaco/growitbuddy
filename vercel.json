@@ -1,16 +1,16 @@
 {
-  "buildCommand": "pnpm --filter @workspace/growitbuddy run build",
+  "buildCommand": "pnpm --filter @workspace/api-server run build:vercel && pnpm --filter @workspace/growitbuddy run build",
   "outputDirectory": "artifacts/growitbuddy/dist/public",
   "installCommand": "pnpm install",
   "framework": null,
   "functions": {
-    "api/index.ts": {
+    "api/handler.mjs": {
       "memory": 512,
       "maxDuration": 30
     }
   },
   "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/index" },
+    { "source": "/api/:path*", "destination": "/api/handler" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
