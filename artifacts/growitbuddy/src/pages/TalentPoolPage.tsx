@@ -117,10 +117,14 @@ function PoolForm({ d, formVariant, poolType, submitLabel }: PoolFormProps) {
     e.preventDefault();
     setStatus("sending");
     try {
+      const extraSummary = Object.entries(extra)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join("\n");
+      const message = [base.notes, extraSummary].filter(Boolean).join("\n\n") || `Talent pool application for ${poolType}`;
       const res = await fetch(`${API_BASE}/forms/contact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...base, ...extra, type: `pool-${poolType}`, notifyEmail: d.formNotifyEmail }),
+        body: JSON.stringify({ ...base, ...extra, message, type: `pool-${poolType}`, notifyEmail: d.formNotifyEmail }),
       });
       if (res.ok) {
         setSubmittedEmail(base.email);
