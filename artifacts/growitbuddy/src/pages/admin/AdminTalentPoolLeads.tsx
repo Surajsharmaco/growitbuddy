@@ -4,11 +4,11 @@ import { PageHeader, Card } from "@/components/admin/AdminField";
 import {
   Trash2, Download, RefreshCw, Search, Mail, User, Clock,
   Calendar, X, ChevronLeft, ChevronRight, SlidersHorizontal,
-  CheckSquare, Square, Tag, FileText, ArrowUpDown,
+  CheckSquare, Square, Tag, FileText, ArrowUpDown, Users,
 } from "lucide-react";
 import ExcelJS from "exceljs";
-
 import { API_BASE } from "@/lib/api";
+
 const PAGE_SIZE = 25;
 
 interface Lead {
@@ -22,49 +22,41 @@ interface Lead {
   createdAt: string;
 }
 
-const TYPE_META: Record<string, { label: string; color: string; bg: string }> = {
-  contact:                    { label: "Contact",             color: "#2563eb", bg: "#eff6ff" },
-  creator:                    { label: "Influencer",          color: "#1E293B", bg: "#e8edf2" },
-  "page-owner":               { label: "Page Owner",          color: "#0891b2", bg: "#ecfeff" },
-  page:                       { label: "Page Owner",          color: "#0891b2", bg: "#ecfeff" },
-  freelancer:                 { label: "Freelancer",          color: "#059669", bg: "#ecfdf5" },
-  "full-time":                { label: "Full-Time",           color: "#d97706", bg: "#fffbeb" },
-  internship:                 { label: "Internship",          color: "#be185d", bg: "#fdf2f8" },
-  newsletter:                 { label: "Newsletter",          color: "#db2777", bg: "#fdf2f8" },
-  "pool-designers":           { label: "Pool: Designers",     color: "#7c3aed", bg: "#f5f3ff" },
-  "pool-thumbnail-designers": { label: "Pool: Thumbnail",     color: "#be185d", bg: "#fce7f3" },
-  "pool-writers":             { label: "Pool: Writers",       color: "#065f46", bg: "#ecfdf5" },
-  "pool-social-managers":     { label: "Pool: Social",        color: "#0e7490", bg: "#ecfeff" },
-  "pool-motion-designers":    { label: "Pool: Motion",        color: "#92400e", bg: "#fffbeb" },
-  "pool-ai-creators":         { label: "Pool: AI Creators",   color: "#991b1b", bg: "#fef2f2" },
-  "pool-ugc-creators":        { label: "Pool: UGC",           color: "#1e40af", bg: "#eff6ff" },
-  "pool-meme-designers":      { label: "Pool: Meme",          color: "#374151", bg: "#f9fafb" },
+const POOL_TYPE_META: Record<string, { label: string; color: string; bg: string }> = {
+  "pool-designers":           { label: "Designers",          color: "#7c3aed", bg: "#f5f3ff" },
+  "pool-thumbnail-designers": { label: "Thumbnail Designers", color: "#be185d", bg: "#fdf2f8" },
+  "pool-writers":             { label: "Writers",            color: "#065f46", bg: "#ecfdf5" },
+  "pool-social-managers":     { label: "Social Managers",    color: "#0e7490", bg: "#ecfeff" },
+  "pool-motion-designers":    { label: "Motion Designers",   color: "#92400e", bg: "#fffbeb" },
+  "pool-ai-creators":         { label: "AI Creators",        color: "#991b1b", bg: "#fef2f2" },
+  "pool-ugc-creators":        { label: "UGC Creators",       color: "#1e40af", bg: "#eff6ff" },
+  "pool-meme-designers":      { label: "Meme Designers",     color: "#374151", bg: "#f9fafb" },
 };
 
 const LEAD_STATUSES = [
-  { key: "new",        label: "New",        color: "#2563eb", bg: "#eff6ff" },
-  { key: "reviewed",   label: "Reviewed",   color: "#6b7280", bg: "#f3f4f6" },
-  { key: "contacted",  label: "Contacted",  color: "#0891b2", bg: "#ecfeff" },
-  { key: "approved",   label: "Approved",   color: "#059669", bg: "#ecfdf5" },
-  { key: "rejected",   label: "Rejected",   color: "#dc2626", bg: "#fef2f2" },
-  { key: "archived",   label: "Archived",   color: "#9ca3af", bg: "#f9fafb" },
+  { key: "new",       label: "New",       color: "#2563eb", bg: "#eff6ff" },
+  { key: "reviewed",  label: "Reviewed",  color: "#6b7280", bg: "#f3f4f6" },
+  { key: "contacted", label: "Contacted", color: "#0891b2", bg: "#ecfeff" },
+  { key: "approved",  label: "Approved",  color: "#059669", bg: "#ecfdf5" },
+  { key: "rejected",  label: "Rejected",  color: "#dc2626", bg: "#fef2f2" },
+  { key: "archived",  label: "Archived",  color: "#9ca3af", bg: "#f9fafb" },
 ];
 
 const DATE_PRESETS = [
-  { key: "all",  label: "All time"    },
-  { key: "24h",  label: "Last 24 hrs" },
-  { key: "7d",   label: "Last 7 days" },
-  { key: "30d",  label: "Last 30 days"},
-  { key: "90d",  label: "Last 90 days"},
-  { key: "1y",   label: "Last year"   },
+  { key: "all", label: "All time"     },
+  { key: "24h", label: "Last 24 hrs"  },
+  { key: "7d",  label: "Last 7 days"  },
+  { key: "30d", label: "Last 30 days" },
+  { key: "90d", label: "Last 90 days" },
+  { key: "1y",  label: "Last year"    },
 ];
 
 const DATE_MS: Record<string, number> = {
-  "24h": 24 * 3600 * 1000,
-  "7d":  7  * 86400 * 1000,
-  "30d": 30 * 86400 * 1000,
-  "90d": 90 * 86400 * 1000,
-  "1y":  365 * 86400 * 1000,
+  "24h":  24 * 3600 * 1000,
+  "7d":   7  * 86400 * 1000,
+  "30d":  30 * 86400 * 1000,
+  "90d":  90 * 86400 * 1000,
+  "1y":   365 * 86400 * 1000,
 };
 
 function applyDateFilter(leads: Lead[], df: string): Lead[] {
@@ -96,7 +88,7 @@ function matchSearch(lead: Lead, q: string): boolean {
 }
 
 function TypeBadge({ type }: { type: string }) {
-  const m = TYPE_META[type] ?? { label: type, color: "#6b7280", bg: "#f3f4f6" };
+  const m = POOL_TYPE_META[type] ?? { label: type.replace("pool-", ""), color: "#6b7280", bg: "#f3f4f6" };
   return (
     <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", padding: "3px 8px", borderRadius: 100, background: m.bg, color: m.color, whiteSpace: "nowrap" }}>
       {m.label}
@@ -113,13 +105,8 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-/* ── Detail Drawer ── */
 function LeadDrawer({
-  lead,
-  onClose,
-  onStatusChange,
-  onNotesChange,
-  onDelete,
+  lead, onClose, onStatusChange, onNotesChange, onDelete,
 }: {
   lead: Lead;
   onClose: () => void;
@@ -158,14 +145,11 @@ function LeadDrawer({
 
   return (
     <div className="fixed inset-0 z-50 flex" onClick={onClose}>
-      {/* Backdrop */}
       <div className="flex-1 bg-black/20" />
-      {/* Drawer */}
       <div
         className="w-full max-w-[460px] bg-white h-full overflow-y-auto shadow-2xl flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="flex items-center gap-3 px-6 py-5 border-b border-[#0B0B0B]/8 sticky top-0 bg-white z-10">
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#0B0B0B]/6 text-[#0B0B0B]/40 transition-colors">
             <X size={16} />
@@ -186,7 +170,6 @@ function LeadDrawer({
         </div>
 
         <div className="flex-1 px-6 py-5 space-y-6">
-          {/* Contact info */}
           <div>
             <p className="text-[10px] font-bold text-[#0B0B0B]/35 uppercase tracking-widest mb-2">Contact Info</p>
             <div className="space-y-2">
@@ -202,6 +185,12 @@ function LeadDrawer({
                   <span className="text-[13px] text-[#0B0B0B]">{lead.name}</span>
                 </div>
               )}
+              {lead.data.contact != null && String(lead.data.contact) && (
+                <div className="flex items-center gap-2">
+                  <User size={13} className="text-[#0B0B0B]/30 shrink-0" />
+                  <span className="text-[13px] text-[#0B0B0B]/70">{String(lead.data.contact)}</span>
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <Clock size={13} className="text-[#0B0B0B]/30 shrink-0" />
                 <span className="text-[12px] text-[#0B0B0B]/50">{fmt(lead.createdAt)}</span>
@@ -209,7 +198,6 @@ function LeadDrawer({
             </div>
           </div>
 
-          {/* Status */}
           <div>
             <p className="text-[10px] font-bold text-[#0B0B0B]/35 uppercase tracking-widest mb-2">Status</p>
             <div className="flex flex-wrap gap-1.5">
@@ -230,28 +218,32 @@ function LeadDrawer({
             </div>
           </div>
 
-          {/* Submission data */}
           {Object.keys(lead.data).length > 0 && (
             <div>
-              <p className="text-[10px] font-bold text-[#0B0B0B]/35 uppercase tracking-widest mb-2">Submission Data</p>
+              <p className="text-[10px] font-bold text-[#0B0B0B]/35 uppercase tracking-widest mb-2">Submission Details</p>
               <div className="rounded-xl border border-[#0B0B0B]/8 divide-y divide-[#0B0B0B]/5 overflow-hidden">
-                {Object.entries(lead.data).filter(([, v]) => v != null && v !== "").map(([k, v]) => (
-                  <div key={k} className="px-4 py-2.5 flex gap-3">
-                    <span className="text-[11px] font-semibold text-[#0B0B0B]/40 uppercase tracking-wide w-28 shrink-0">{k}</span>
-                    <span className="text-[12px] text-[#0B0B0B] break-words flex-1">{String(v)}</span>
-                  </div>
-                ))}
+                {Object.entries(lead.data)
+                  .filter(([k, v]) => v != null && v !== "" && k !== "name" && k !== "email")
+                  .map(([k, v]) => (
+                    <div key={k} className="px-4 py-2.5 flex gap-3">
+                      <span className="text-[11px] font-semibold text-[#0B0B0B]/40 uppercase tracking-wide w-28 shrink-0">{k}</span>
+                      {String(v).startsWith("http") ? (
+                        <a href={String(v)} target="_blank" rel="noreferrer" className="text-[12px] text-[#7c3aed] hover:underline break-all flex-1">{String(v)}</a>
+                      ) : (
+                        <span className="text-[12px] text-[#0B0B0B] break-words flex-1">{String(v)}</span>
+                      )}
+                    </div>
+                  ))}
               </div>
             </div>
           )}
 
-          {/* Notes */}
           <div>
             <p className="text-[10px] font-bold text-[#0B0B0B]/35 uppercase tracking-widest mb-2">Notes</p>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add internal notes about this lead..."
+              placeholder="Add internal notes about this applicant..."
               rows={4}
               className="w-full border border-[#0B0B0B]/12 rounded-xl px-4 py-3 text-[13px] text-[#0B0B0B] placeholder-[#0B0B0B]/30 outline-none focus:border-[#0B0B0B]/30 resize-none bg-white"
             />
@@ -272,9 +264,8 @@ function LeadDrawer({
   );
 }
 
-/* ── Main Page ── */
-export default function AdminLeads() {
-  const [leads, setLeads]               = useState<Lead[]>([]);
+export default function AdminTalentPoolLeads() {
+  const [allLeads, setAllLeads]         = useState<Lead[]>([]);
   const [loading, setLoading]           = useState(true);
   const [typeFilter, setTypeFilter]     = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -295,33 +286,32 @@ export default function AdminLeads() {
     try {
       const r = await authFetch(`${API_BASE}/admin/leads`);
       const data = await r.json();
-      setLeads(Array.isArray(data) ? data : []);
+      const all: Lead[] = Array.isArray(data) ? data : [];
+      setAllLeads(all.filter((l) => l.type.startsWith("pool-")));
     } catch {
-      setLeads([]);
+      setAllLeads([]);
     } finally {
       setLoading(false);
     }
   }, [authFetch]);
 
   useEffect(() => { load(); }, [load]);
-
-  /* Reset page on filter change */
   useEffect(() => { setPage(1); }, [typeFilter, statusFilter, dateFilter, search, sortDir]);
 
   async function handleDelete(id: number) {
-    if (!confirm("Delete this lead permanently?")) return;
+    if (!confirm("Delete this applicant permanently?")) return;
     await authFetch(`${API_BASE}/admin/leads/${id}`, { method: "DELETE" });
-    setLeads((prev) => prev.filter((l) => l.id !== id));
+    setAllLeads((prev) => prev.filter((l) => l.id !== id));
     if (drawer?.id === id) setDrawer(null);
   }
 
   function handleStatusChange(id: number, status: string) {
-    setLeads((prev) => prev.map((l) => l.id === id ? { ...l, status } : l));
+    setAllLeads((prev) => prev.map((l) => l.id === id ? { ...l, status } : l));
     if (drawer?.id === id) setDrawer((d) => d ? { ...d, status } : d);
   }
 
   function handleNotesChange(id: number, notes: string) {
-    setLeads((prev) => prev.map((l) => l.id === id ? { ...l, notes } : l));
+    setAllLeads((prev) => prev.map((l) => l.id === id ? { ...l, notes } : l));
     if (drawer?.id === id) setDrawer((d) => d ? { ...d, notes } : d);
   }
 
@@ -335,42 +325,37 @@ export default function AdminLeads() {
         body: JSON.stringify({ status: bulkStatus }),
       })
     ));
-    setLeads((prev) => prev.map((l) => selected.has(l.id) ? { ...l, status: bulkStatus } : l));
+    setAllLeads((prev) => prev.map((l) => selected.has(l.id) ? { ...l, status: bulkStatus } : l));
     setSelected(new Set());
     setBulkStatus("");
   }
 
   async function handleBulkDelete() {
-    if (!confirm(`Delete ${selected.size} lead(s) permanently?`)) return;
+    if (!confirm(`Delete ${selected.size} applicant(s) permanently?`)) return;
     const ids = Array.from(selected);
     await Promise.all(ids.map((id) =>
       authFetch(`${API_BASE}/admin/leads/${id}`, { method: "DELETE" })
     ));
-    setLeads((prev) => prev.filter((l) => !selected.has(l.id)));
+    setAllLeads((prev) => prev.filter((l) => !selected.has(l.id)));
     setSelected(new Set());
   }
 
-  /* Date-filtered base — used for counts so chips reflect active period */
-  const dateFiltered = applyDateFilter(leads, dateFilter);
+  const dateFiltered = applyDateFilter(allLeads, dateFilter);
 
-  /* Type-filtered base — byStatus counts must match what the list will actually show */
   const typeFiltered = typeFilter !== "all"
     ? dateFiltered.filter((l) => l.type === typeFilter)
     : dateFiltered;
 
-  /* byType: counts for the type-chip strip (date window only, all types) */
   const byType: Record<string, number> = {};
   for (const l of dateFiltered) {
     byType[l.type] = (byType[l.type] ?? 0) + 1;
   }
 
-  /* byStatus: counts scoped to both date window AND active type filter */
   const byStatus: Record<string, number> = {};
   for (const l of typeFiltered) {
     byStatus[l.status] = (byStatus[l.status] ?? 0) + 1;
   }
 
-  /* Filtering pipeline */
   let visible = typeFiltered;
   if (statusFilter !== "all") visible = visible.filter((l) => l.status === statusFilter);
   if (search) visible = visible.filter((l) => matchSearch(l, search));
@@ -378,7 +363,6 @@ export default function AdminLeads() {
 
   const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
   const paginated = visible.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
   const allPageSelected = paginated.length > 0 && paginated.every((l) => selected.has(l.id));
 
   function toggleSelectAll() {
@@ -399,36 +383,35 @@ export default function AdminLeads() {
     wb.creator = "GrowitBuddy Admin";
     wb.created = new Date();
 
-    const ws = wb.addWorksheet("Leads", {
+    const ws = wb.addWorksheet("Talent Pool", {
       views: [{ state: "frozen", ySplit: 4 }],
       pageSetup: { orientation: "landscape", fitToPage: true, fitToWidth: 1 },
     });
 
     const COLS: { header: string; key: string; width: number }[] = [
-      { header: "#",       key: "idx",     width: 5  },
-      { header: "Type",    key: "type",    width: 14 },
-      { header: "Status",  key: "status",  width: 12 },
-      { header: "Name",    key: "name",    width: 26 },
-      { header: "Email",   key: "email",   width: 30 },
-      { header: "Date",    key: "date",    width: 20 },
-      { header: "Notes",   key: "notes",   width: 36 },
-      { header: "Details", key: "details", width: 60 },
+      { header: "#",        key: "idx",     width: 5  },
+      { header: "Pool",     key: "type",    width: 20 },
+      { header: "Status",   key: "status",  width: 12 },
+      { header: "Name",     key: "name",    width: 26 },
+      { header: "Email",    key: "email",   width: 30 },
+      { header: "Contact",  key: "contact", width: 18 },
+      { header: "Date",     key: "date",    width: 20 },
+      { header: "Notes",    key: "notes",   width: 36 },
+      { header: "Details",  key: "details", width: 70 },
     ];
     ws.columns = COLS;
 
-    /* Row 1: Title */
     ws.mergeCells(1, 1, 1, COLS.length);
     const titleCell = ws.getCell("A1");
-    titleCell.value = "GrowitBuddy — Leads & CRM Export";
+    titleCell.value = "GrowitBuddy — Talent Pool Submissions";
     titleCell.font  = { bold: true, size: 15, color: { argb: "FF0A0A0A" }, name: "Calibri" };
     titleCell.fill  = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8F8F6" } };
     titleCell.alignment = { vertical: "middle" };
     ws.getRow(1).height = 32;
 
-    /* Row 2: Subtitle */
     ws.mergeCells(2, 1, 2, COLS.length);
-    const metaParts: string[] = [`${visible.length} lead${visible.length !== 1 ? "s" : ""}`];
-    if (typeFilter !== "all") metaParts.push(`Type: ${TYPE_META[typeFilter]?.label ?? typeFilter}`);
+    const metaParts: string[] = [`${visible.length} applicant${visible.length !== 1 ? "s" : ""}`];
+    if (typeFilter !== "all") metaParts.push(`Pool: ${POOL_TYPE_META[typeFilter]?.label ?? typeFilter}`);
     if (statusFilter !== "all") metaParts.push(`Status: ${LEAD_STATUSES.find((s) => s.key === statusFilter)?.label ?? statusFilter}`);
     metaParts.push(`Period: ${DATE_LABELS[dateFilter] ?? dateFilter}`);
     metaParts.push(`Exported: ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`);
@@ -439,12 +422,10 @@ export default function AdminLeads() {
     subCell.alignment = { vertical: "middle" };
     ws.getRow(2).height = 20;
 
-    /* Row 3: Spacer */
     ws.mergeCells(3, 1, 3, COLS.length);
     ws.getCell("A3").fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8F8F6" } };
     ws.getRow(3).height = 6;
 
-    /* Row 4: Header */
     const headerRow = ws.getRow(4);
     COLS.forEach((col, ci) => {
       const cell = headerRow.getCell(ci + 1);
@@ -457,42 +438,40 @@ export default function AdminLeads() {
     headerRow.height = 26;
     ws.autoFilter = { from: { row: 4, column: 1 }, to: { row: 4, column: COLS.length } };
 
-    /* Data rows */
     visible.forEach((l, i) => {
-      const isEven   = i % 2 === 1;
-      const bgArgb   = isEven ? "FFEFEFEA" : "FFFFFFFF";
-      const typeMeta = TYPE_META[l.type] ?? { label: l.type, color: "#6b7280", bg: "#f3f4f6" };
+      const isEven    = i % 2 === 1;
+      const bgArgb    = isEven ? "FFEFEFEA" : "FFFFFFFF";
+      const typeMeta  = POOL_TYPE_META[l.type] ?? { label: l.type, color: "#6b7280", bg: "#f3f4f6" };
       const statusMeta = LEAD_STATUSES.find((s) => s.key === l.status) ?? { label: l.status, color: "#6b7280", bg: "#f3f4f6" };
       const detailsText = Object.entries(l.data)
         .filter(([, v]) => v != null && v !== "")
         .map(([k, v]) => `${k}: ${v}`)
         .join("\n");
 
-      const row = ws.addRow({
+      const dataRow = ws.addRow({
         idx:     i + 1,
         type:    typeMeta.label,
         status:  statusMeta.label,
         name:    l.name ?? "",
         email:   l.email,
+        contact: l.data.contact ? String(l.data.contact) : "",
         date:    fmt(l.createdAt),
         notes:   l.notes ?? "",
         details: detailsText,
       });
 
-      row.eachCell({ includeEmpty: true }, (cell, colNum) => {
+      dataRow.eachCell({ includeEmpty: true }, (cell, colNum) => {
         cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: bgArgb } };
         cell.font = { size: 11, color: { argb: "FF0A0A0A" }, name: "Calibri" };
-        cell.alignment = { vertical: "middle", wrapText: colNum >= 7 };
+        cell.alignment = { vertical: "middle", wrapText: colNum >= 8 };
         cell.border = { bottom: { style: "hair", color: { argb: "FFE5E5E0" } } };
         if (colNum === 1) cell.alignment = { horizontal: "center", vertical: "middle" };
-        /* Type cell — colour-coded */
         if (colNum === 2) {
           const argbBg = typeMeta.bg.replace("#", "FF").padStart(8, "FF");
           const argbFg = typeMeta.color.replace("#", "FF").padStart(8, "FF");
           cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: argbBg } };
           cell.font = { bold: true, size: 10, name: "Calibri", color: { argb: argbFg } };
         }
-        /* Status cell — colour-coded */
         if (colNum === 3) {
           const argbBg = statusMeta.bg.replace("#", "FF").padStart(8, "FF");
           const argbFg = statusMeta.color.replace("#", "FF").padStart(8, "FF");
@@ -500,20 +479,19 @@ export default function AdminLeads() {
           cell.font = { bold: true, size: 10, name: "Calibri", color: { argb: argbFg } };
         }
       });
-      row.height = detailsText.split("\n").length > 3 ? 60 : 20;
+      dataRow.height = detailsText.split("\n").length > 3 ? 60 : 20;
     });
 
-    /* Download */
     const buffer = await wb.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement("a");
     a.href = url;
-    const fParts: string[] = [];
+    const fParts: string[] = ["talent-pool"];
     if (typeFilter !== "all")   fParts.push(typeFilter);
     if (statusFilter !== "all") fParts.push(statusFilter);
     if (dateFilter !== "all")   fParts.push(dateFilter);
-    a.download = `leads${fParts.length ? `-${fParts.join("-")}` : ""}-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    a.download = `${fParts.join("-")}-${new Date().toISOString().slice(0, 10)}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -533,14 +511,21 @@ export default function AdminLeads() {
       )}
 
       <PageHeader
-        title="Leads & CRM"
-        description={`${leads.length} total submission${leads.length !== 1 ? "s" : ""}${dateFilter !== "all" ? ` · ${dateFiltered.length} in period` : ""}`}
+        title="Talent Pool Submissions"
+        description={`${allLeads.length} total applicant${allLeads.length !== 1 ? "s" : ""}${dateFilter !== "all" ? ` · ${applyDateFilter(allLeads, dateFilter).length} in period` : ""}`}
       />
 
-      {/* Type stats strip */}
-      <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-2 mb-4">
-        {[{ key: "all", label: "All" }, ...Object.keys(TYPE_META).map((k) => ({ key: k, label: TYPE_META[k].label }))].map(({ key, label }) => {
-          const count = key === "all" ? dateFiltered.length : (byType[key] ?? 0);
+      {/* Pool type stats strip */}
+      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-9 gap-2 mb-4">
+        <button
+          onClick={() => setTypeFilter("all")}
+          className={`text-left p-3 rounded-xl border transition-all ${typeFilter === "all" ? "border-[#0B0B0B] bg-[#0B0B0B] text-white" : "border-[#0B0B0B]/10 bg-white hover:border-[#0B0B0B]/25"}`}
+        >
+          <p className={`text-[18px] font-black tracking-tight leading-none ${typeFilter === "all" ? "text-white" : "text-[#0B0B0B]"}`}>{dateFiltered.length}</p>
+          <p className={`text-[9px] font-semibold mt-1 leading-tight ${typeFilter === "all" ? "text-white/60" : "text-[#0B0B0B]/40"}`}>All</p>
+        </button>
+        {Object.entries(POOL_TYPE_META).map(([key, meta]) => {
+          const count = byType[key] ?? 0;
           return (
             <button
               key={key}
@@ -548,7 +533,7 @@ export default function AdminLeads() {
               className={`text-left p-3 rounded-xl border transition-all ${typeFilter === key ? "border-[#0B0B0B] bg-[#0B0B0B] text-white" : "border-[#0B0B0B]/10 bg-white hover:border-[#0B0B0B]/25"}`}
             >
               <p className={`text-[18px] font-black tracking-tight leading-none ${typeFilter === key ? "text-white" : "text-[#0B0B0B]"}`}>{count}</p>
-              <p className={`text-[9px] font-semibold mt-1 leading-tight ${typeFilter === key ? "text-white/60" : "text-[#0B0B0B]/40"}`}>{label}</p>
+              <p className={`text-[9px] font-semibold mt-1 leading-tight ${typeFilter === key ? "text-white/60" : "text-[#0B0B0B]/40"}`}>{meta.label}</p>
             </button>
           );
         })}
@@ -562,7 +547,7 @@ export default function AdminLeads() {
             ref={searchRef}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search name, email, notes, any field..."
+            placeholder="Search name, email, portfolio, skills..."
             className="w-full pl-9 pr-9 py-2.5 border border-[#0B0B0B]/12 rounded-xl text-[13px] text-[#0B0B0B] placeholder-[#0B0B0B]/30 outline-none focus:border-[#0B0B0B]/30 bg-white"
           />
           {search && (
@@ -602,7 +587,6 @@ export default function AdminLeads() {
       {/* Filter panel */}
       {filtersOpen && (
         <Card className="mb-4 p-4 space-y-4">
-          {/* Date */}
           <div>
             <div className="flex items-center gap-1.5 mb-2">
               <Calendar size={11} className="text-[#0B0B0B]/40" />
@@ -613,7 +597,7 @@ export default function AdminLeads() {
                 <button
                   key={key}
                   onClick={() => setDateFilter(key)}
-                  className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold border transition-all ${dateFilter === key ? "bg-[#8B3A1A] border-[#8B3A1A] text-white" : "bg-white border-[#0B0B0B]/12 text-[#0B0B0B]/55 hover:border-[#0B0B0B]/25"}`}
+                  className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold border transition-all ${dateFilter === key ? "bg-[#7c3aed] border-[#7c3aed] text-white" : "bg-white border-[#0B0B0B]/12 text-[#0B0B0B]/55 hover:border-[#0B0B0B]/25"}`}
                 >
                   {label}
                 </button>
@@ -621,7 +605,6 @@ export default function AdminLeads() {
             </div>
           </div>
 
-          {/* Status */}
           <div>
             <div className="flex items-center gap-1.5 mb-2">
               <Tag size={11} className="text-[#0B0B0B]/40" />
@@ -661,7 +644,7 @@ export default function AdminLeads() {
         </Card>
       )}
 
-      {/* Bulk actions bar */}
+      {/* Bulk actions */}
       {selected.size > 0 && (
         <div className="flex items-center gap-3 mb-3 bg-[#0B0B0B] text-white px-4 py-2.5 rounded-xl">
           <CheckSquare size={14} className="shrink-0" />
@@ -696,24 +679,26 @@ export default function AdminLeads() {
       {/* Table */}
       <Card className="p-0 overflow-hidden">
         {loading ? (
-          <div className="py-12 text-center text-[13px] text-[#0B0B0B]/35">Loading leads...</div>
+          <div className="py-12 text-center text-[13px] text-[#0B0B0B]/35">Loading submissions...</div>
         ) : visible.length === 0 ? (
-          <div className="py-12 text-center">
-            <p className="text-[14px] font-semibold text-[#0B0B0B]/30">No leads found</p>
+          <div className="py-16 text-center">
+            <div className="w-12 h-12 rounded-full bg-[#0B0B0B]/5 flex items-center justify-center mx-auto mb-3">
+              <Users size={22} className="text-[#0B0B0B]/20" />
+            </div>
+            <p className="text-[14px] font-semibold text-[#0B0B0B]/30">No talent pool submissions yet</p>
             <p className="text-[12px] text-[#0B0B0B]/25 mt-1">
-              {search || dateFilter !== "all" || statusFilter !== "all" ? "Try adjusting your filters" : "Form submissions will appear here automatically"}
+              {search || activeFilters > 0 ? "Try adjusting your filters" : "Submissions from talent pool pages will appear here"}
             </p>
           </div>
         ) : (
           <div>
-            {/* Header */}
-            <div className="hidden md:grid grid-cols-[36px_110px_1fr_1fr_100px_120px_44px] gap-0 px-4 py-3 border-b border-[#0B0B0B]/6 bg-[#FAFAFA]">
+            <div className="hidden md:grid grid-cols-[36px_150px_1fr_1fr_100px_120px_44px] gap-0 px-4 py-3 border-b border-[#0B0B0B]/6 bg-[#FAFAFA]">
               <div className="flex items-center">
                 <button onClick={toggleSelectAll} className="text-[#0B0B0B]/30 hover:text-[#0B0B0B]">
                   {allPageSelected ? <CheckSquare size={14} /> : <Square size={14} />}
                 </button>
               </div>
-              {["Type", "Name", "Email", "Status", "Date", ""].map((h) => (
+              {["Pool", "Name", "Email", "Status", "Date", ""].map((h) => (
                 <span key={h} className="text-[10px] font-bold text-[#0B0B0B]/35 uppercase tracking-widest self-center">{h}</span>
               ))}
             </div>
@@ -724,25 +709,24 @@ export default function AdminLeads() {
                 className="border-b border-[#0B0B0B]/5 hover:bg-[#0B0B0B]/2 transition-colors cursor-pointer"
                 onClick={() => setDrawer(lead)}
               >
-                {/* Desktop row */}
-                <div className="hidden md:grid grid-cols-[36px_110px_1fr_1fr_100px_120px_44px] gap-0 px-4 py-3.5 items-center">
+                <div className="hidden md:grid grid-cols-[36px_150px_1fr_1fr_100px_120px_44px] gap-0 px-4 py-3.5 items-center">
                   <div onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => setSelected((s) => { const n = new Set(s); n.has(lead.id) ? n.delete(lead.id) : n.add(lead.id); return n; })}
                       className="text-[#0B0B0B]/30 hover:text-[#0B0B0B]"
                     >
-                      {selected.has(lead.id) ? <CheckSquare size={14} className="text-[#8B3A1A]" /> : <Square size={14} />}
+                      {selected.has(lead.id) ? <CheckSquare size={14} className="text-[#7c3aed]" /> : <Square size={14} />}
                     </button>
                   </div>
                   <div><TypeBadge type={lead.type} /></div>
                   <div className="flex items-center gap-2 min-w-0 pr-3">
-                    <span className="text-[13px] text-[#0B0B0B] truncate">{lead.name || <span className="text-[#0B0B0B]/30 italic text-[12px]">No name</span>}</span>
+                    <span className="text-[13px] text-[#0B0B0B] truncate">{lead.name ? lead.name : <span className="text-[#0B0B0B]/30 italic text-[12px]">No name</span>}</span>
                   </div>
                   <div className="flex items-center gap-2 min-w-0 pr-3">
                     <span className="text-[13px] text-[#0B0B0B]/60 truncate">{lead.email}</span>
                   </div>
                   <div><StatusBadge status={lead.status} /></div>
-                  <div className="flex items-center gap-1">
+                  <div>
                     <span className="text-[11px] text-[#0B0B0B]/40">{fmtShort(lead.createdAt)}</span>
                   </div>
                   <div onClick={(e) => e.stopPropagation()}>
@@ -755,7 +739,6 @@ export default function AdminLeads() {
                   </div>
                 </div>
 
-                {/* Mobile card */}
                 <div className="md:hidden px-4 py-3.5">
                   <div className="flex items-start justify-between gap-2 mb-1.5">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -764,7 +747,7 @@ export default function AdminLeads() {
                     </div>
                     <span className="text-[10px] text-[#0B0B0B]/35 shrink-0">{fmtShort(lead.createdAt)}</span>
                   </div>
-                  <p className="text-[13px] font-semibold text-[#0B0B0B]">{lead.name || <span className="italic text-[#0B0B0B]/40">No name</span>}</p>
+                  <p className="text-[13px] font-semibold text-[#0B0B0B]">{lead.name ? lead.name : <span className="italic text-[#0B0B0B]/40">No name</span>}</p>
                   <p className="text-[12px] text-[#0B0B0B]/55 mt-0.5 truncate">{lead.email}</p>
                   {lead.notes && <p className="text-[11px] text-[#0B0B0B]/40 mt-1 truncate italic">{lead.notes}</p>}
                 </div>
@@ -774,7 +757,6 @@ export default function AdminLeads() {
         )}
       </Card>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">
           <p className="text-[12px] text-[#0B0B0B]/40">
@@ -813,8 +795,8 @@ export default function AdminLeads() {
 
       {!loading && visible.length > 0 && totalPages <= 1 && (
         <p className="text-[11px] text-[#0B0B0B]/30 text-center mt-3">
-          {visible.length} lead{visible.length !== 1 ? "s" : ""}
-          {(search || activeFilters > 0) && ` · filtered`}
+          {visible.length} applicant{visible.length !== 1 ? "s" : ""}
+          {(search || activeFilters > 0) && " · filtered"}
           {" · "}Click any row to open details
         </p>
       )}

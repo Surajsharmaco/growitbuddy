@@ -60,6 +60,7 @@ const AdminAbout              = lazy(() => import("@/pages/admin/AdminAbout"));
 const AdminNavbar             = lazy(() => import("@/pages/admin/AdminNavbar"));
 const AdminFooter             = lazy(() => import("@/pages/admin/AdminFooter"));
 const AdminLeads              = lazy(() => import("@/pages/admin/AdminLeads"));
+const AdminTalentPoolLeads    = lazy(() => import("@/pages/admin/AdminTalentPoolLeads"));
 const AdminCertificates       = lazy(() => import("@/pages/admin/AdminCertificates"));
 const AdminContact            = lazy(() => import("@/pages/admin/AdminContact"));
 const AdminJoinNetwork        = lazy(() => import("@/pages/admin/AdminJoinNetwork"));
@@ -125,6 +126,7 @@ function AdminRoutes() {
       <Route path="/admin/navbar">{() => <AdminGuard><AdminNavbar /></AdminGuard>}</Route>
       <Route path="/admin/footer">{() => <AdminGuard><AdminFooter /></AdminGuard>}</Route>
       <Route path="/admin/leads">{() => <AdminGuard><AdminLeads /></AdminGuard>}</Route>
+      <Route path="/admin/talent-pool-leads">{() => <AdminGuard><AdminTalentPoolLeads /></AdminGuard>}</Route>
       <Route path="/admin/certificates">{() => <AdminGuard><AdminCertificates /></AdminGuard>}</Route>
       <Route path="/admin/contact">{() => <AdminGuard><AdminContact /></AdminGuard>}</Route>
       <Route path="/admin/join-network">{() => <AdminGuard><AdminJoinNetwork /></AdminGuard>}</Route>

@@ -407,6 +407,100 @@ router.post("/internship", formLimit, async (req, res) => {
   res.json({ success: true, message: "Your application has been received. We will review and get back to you." });
 });
 
+// ── TALENT POOL  →  careers.growitbuddy@gmail.com ───────────────────────────
+const POOL_LABELS: Record<string, string> = {
+  "pool-designers":           "Graphic Designers",
+  "pool-thumbnail-designers": "Thumbnail Designers",
+  "pool-writers":             "Writers",
+  "pool-social-managers":     "Social Media Managers",
+  "pool-motion-designers":    "Motion Designers",
+  "pool-ai-creators":         "AI Creators",
+  "pool-ugc-creators":        "UGC Creators",
+  "pool-meme-designers":      "Meme Designers",
+};
+
+const POOL_BADGE_COLORS: Record<string, string> = {
+  "pool-designers":           "#7c3aed",
+  "pool-thumbnail-designers": "#be185d",
+  "pool-writers":             "#065f46",
+  "pool-social-managers":     "#0e7490",
+  "pool-motion-designers":    "#92400e",
+  "pool-ai-creators":         "#991b1b",
+  "pool-ugc-creators":        "#1e40af",
+  "pool-meme-designers":      "#374151",
+};
+
+const IGNORED_FIELDS = new Set(["type", "notifyEmail", "message", "notes"]);
+
+router.post("/talent-pool", formLimit, async (req, res) => {
+  const { name, email, contact, type, message } = req.body;
+  if (!name || !email) {
+    res.status(400).json({ error: "name and email are required" });
+    return;
+  }
+  if (!isValidEmail(email)) {
+    res.status(400).json({ error: "Invalid email address" });
+    return;
+  }
+  const poolType: string = (typeof type === "string" && type.startsWith("pool-")) ? type : "pool-unknown";
+  const poolLabel = POOL_LABELS[poolType] ?? poolType;
+  const badgeBg   = POOL_BADGE_COLORS[poolType] ?? "#374151";
+  const ts = nowIST();
+
+  // Collect all extra fields from the body for DB + email
+  const extraFields: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(req.body)) {
+    if (!IGNORED_FIELDS.has(k) && k !== "name" && k !== "email" && k !== "contact" && v) {
+      extraFields[k] = v;
+    }
+  }
+
+  logger.info({ name, email, poolType }, "Talent pool application submission");
+  await saveLead(poolType, name, email, { name, email, contact: contact || null, ...extraFields, message: message || null });
+
+  // Build email rows from extra fields
+  const extraRows = Object.entries(extraFields)
+    .map(([k, v]) => row(k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, " $1"), String(v)))
+    .join("");
+
+  await sendEmail(
+    CAREERS_EMAIL,
+    `[TALENT POOL – ${poolLabel.toUpperCase()}] ${name}`,
+    `<!DOCTYPE html><html><head><meta charset="utf-8"/></head>
+<body style="margin:0;padding:0;background:#F7F7F5;font-family:Inter,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 16px">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;border:1.5px solid rgba(11,11,11,0.08)">
+  <tr><td style="background:#0B0B0B;padding:24px 36px">
+    <span style="font-size:20px;font-weight:800;color:#fff;letter-spacing:-0.03em">GrowitBuddy</span>
+    <span style="display:inline-block;margin-left:12px;background:${badgeBg};color:#fff;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:4px 12px;border-radius:100px">TALENT POOL</span>
+  </td></tr>
+  <tr><td style="background:#F0F4FF;padding:12px 36px;border-bottom:1px solid #E0E8FF">
+    <span style="font-size:12px;color:#1E3A5F;font-weight:600;font-family:monospace">📍 FROM: ${poolLabel} Pool  →  growitbuddy.com</span>
+  </td></tr>
+  <tr><td style="padding:28px 36px 8px">
+    <p style="margin:0 0 20px;font-size:22px;font-weight:800;color:#0B0B0B;letter-spacing:-0.03em">New ${poolLabel} Application</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1.5px solid rgba(11,11,11,0.08)">
+      ${highlightRow("Pool", poolLabel, badgeBg)}
+      ${row("Name", name)}
+      ${row("Email", email)}
+      ${contact ? row("Phone / Contact", contact) : ""}
+      ${extraRows}
+      ${message ? row("Notes / Message", message) : ""}
+    </table>
+  </td></tr>
+  <tr><td style="padding:20px 36px 32px;border-top:1px solid #f0f0f0;margin-top:8px">
+    <p style="margin:0;font-size:12px;color:#aaa;font-family:Inter,sans-serif">
+      Submitted at: <strong style="color:#888">${ts}</strong><br/>
+      Sent automatically from your GrowitBuddy website.
+    </p>
+  </td></tr>
+</table>
+</td></tr></table></body></html>`,
+    email,
+  );
+  res.json({ success: true, message: "You're in the network! We'll reach out when opportunities open up." });
+});
+
 // ── NEWSLETTER  →  careers or general based on source ───────────────────────
 router.post("/newsletter", newsletterLimit, async (req, res) => {
   const { email, source, tags } = req.body;

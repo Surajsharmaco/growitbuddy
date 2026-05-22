@@ -19,6 +19,7 @@ const navGroups: NavGroup[] = [
       { label: "Dashboard", path: "/admin", icon: <LayoutDashboard size={15} /> },
       { label: "Team Members", path: "/admin/team", icon: <UserCog size={15} />, superOnly: true },
       { label: "Leads & CRM", path: "/admin/leads", icon: <Inbox size={15} />, permission: "leads" },
+      { label: "Pool Submissions", path: "/admin/talent-pool-leads", icon: <Users size={15} />, permission: "leads" },
       { label: "Certificates", path: "/admin/certificates", icon: <ShieldCheck size={15} />, permission: "certificates" },
     ],
   },
