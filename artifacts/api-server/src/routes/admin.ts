@@ -359,7 +359,7 @@ router.get("/content/:section", authMiddleware, async (req, res) => {
 
 // Sections listed here cannot be modified or deleted via the API.
 // To unlock a section, a developer must explicitly remove it from this list.
-const LOCKED_SECTIONS = ["home"] as const;
+const LOCKED_SECTIONS = [] as const;
 
 router.put("/content/:section", authMiddleware, async (req, res) => {
   const section = String(req.params.section);
