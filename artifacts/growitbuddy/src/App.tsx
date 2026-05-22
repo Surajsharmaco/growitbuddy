@@ -192,8 +192,8 @@ function App() {
   }, []);
 
   return (
-    <LazyMotion features={domAnimation} strict>
-    <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+    <LazyMotion features={domAnimation}>
+      <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
       <AdminProvider>
         <FaviconInjector />
         <ScrollToTop />
@@ -250,7 +250,7 @@ function App() {
           </Route>
         </Switch>
       </AdminProvider>
-    </WouterRouter>
+      </WouterRouter>
     </LazyMotion>
   );
 }
