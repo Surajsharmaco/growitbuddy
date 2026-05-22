@@ -36,57 +36,57 @@ const PAGE_DEFAULTS: ServicesPageData = {
   services: [
     {
       id: "1",
-      title: "Content Creation",
-      subtitle: "01 | Authority Production",
-      headline: "Content systems built for scale.",
-      description: "High-volume content systems designed to build visibility, trust, and long-term authority across modern platforms.",
-      features: ["Short-form Editing", "Long-form Editing", "Podcast Editing", "Script Writing", "Thumbnail Design", "Content Repurposing", "Social Media Content", "UGC Content", "YouTube Content", "Creative Direction"],
-      cta: "Build Visibility",
+      title: "Positioning & Authority",
+      subtitle: "01 | Positioning",
+      headline: "Shape how the market perceives you.",
+      description: "Before any content is created, we define your category angle, point of view, and the positioning that makes you the recognized authority in your space.",
+      features: ["Founder Positioning", "Category Design", "Authority Strategy", "Thought Leadership", "Brand Messaging", "Audience Positioning", "LinkedIn Growth", "Instagram Growth", "Content Strategy", "Category Positioning"],
+      cta: "Define Your Position",
     },
     {
       id: "2",
-      title: "Personal Branding",
-      subtitle: "02 | Positioning & Authority",
-      headline: "Become recognized in your category.",
-      description: "Authority positioning systems that help founders, creators, and brands become recognized voices in their category.",
-      features: ["Founder Positioning", "LinkedIn Growth", "Instagram Growth", "Authority Strategy", "Thought Leadership", "Audience Positioning", "Brand Messaging", "Content Strategy", "Personal Branding", "Category Positioning"],
-      cta: "Build Authority",
+      title: "Authority Production",
+      subtitle: "02 | Production",
+      headline: "High-signal content built to compound.",
+      description: "We build a repeatable production system that extracts your expertise and turns it into content that builds visibility, trust, and long-term authority.",
+      features: ["Short-form Editing", "Long-form Editing", "Podcast Editing", "Script Writing", "Thumbnail Design", "Content Repurposing", "Social Media Content", "UGC Content", "YouTube Content", "Creative Direction"],
+      cta: "Build Your Content Engine",
     },
     {
       id: "3",
       title: "Distribution & Growth",
-      subtitle: "03 | Amplification Systems",
-      headline: "Distribution infrastructure that amplifies reach.",
-      description: "Distribution infrastructure designed to amplify reach, compound attention, and generate inbound demand.",
+      subtitle: "03 | Distribution",
+      headline: "Get seen by the people who actually matter.",
+      description: "Distribution infrastructure designed to push your content to the right audiences through owned channels, paid systems, and network amplification.",
       features: ["Distribution Campaigns", "Influencer Campaigns", "Meta Ads", "Google Ads", "Lead Generation", "Newsletter Systems", "Viral Distribution", "Growth Systems", "YouTube Distribution", "Community Growth"],
-      cta: "Scale Reach",
+      cta: "Scale Your Reach",
     },
     {
       id: "4",
-      title: "Web & Funnel Systems",
-      subtitle: "04 | Digital Infrastructure",
-      headline: "Digital systems that convert authority into demand.",
-      description: "Digital systems built to convert authority into inbound leads, trust, and scalable opportunities.",
+      title: "Inbound & Funnel Systems",
+      subtitle: "04 | Inbound Demand",
+      headline: "Convert authority into consistent inbound demand.",
+      description: "Digital systems built to capture the attention your content generates and convert it into leads, trust, and scalable inbound opportunities.",
       features: ["Website Development", "Landing Pages", "CRM Integration", "Admin Dashboards", "Booking Systems", "Client Portals", "Funnel Systems", "Ecommerce Websites", "UI/UX Systems", "Conversion Optimization"],
-      cta: "Launch Systems",
+      cta: "Build Your Inbound System",
     },
     {
       id: "5",
       title: "AI Automation",
-      subtitle: "05 | AI Authority Systems",
-      headline: "AI systems that power inbound authority.",
-      description: "AI-powered systems that automate communication, support, lead flow, and creator operations.",
+      subtitle: "05 | AI Systems",
+      headline: "AI that powers your authority infrastructure.",
+      description: "AI-powered systems that automate communication, support, lead qualification, and creator operations — so your authority system runs without manual overhead.",
       features: ["AI Chatbots", "AI Voice Agents", "WhatsApp AI Systems", "Lead Qualification AI", "Custom AI Agents", "AI Customer Support", "Workflow Automation", "CRM Automation", "AI Content Systems", "Internal AI Tools"],
-      cta: "Automate Growth",
+      cta: "Automate Your Operations",
     },
     {
       id: "6",
       title: "Digital Products & Growth",
-      subtitle: "06 | Monetization Systems",
-      headline: "Launch and scale your authority ecosystem.",
-      description: "Systems designed to help creators and brands monetize attention through products, communities, and scalable offers.",
+      subtitle: "06 | Monetization",
+      headline: "Monetize the authority you've built.",
+      description: "Systems designed to help founders and creators turn compounding authority into products, communities, and scalable revenue streams.",
       features: ["Course Launches", "Ebook Systems", "Community Growth", "Email Marketing", "Creator Monetization", "Membership Funnels", "Webinar Funnels", "Digital Products", "Paid Communities", "Distribution Systems"],
-      cta: "Scale Authority",
+      cta: "Monetize Your Authority",
     },
   ],
 };
@@ -350,11 +350,12 @@ export default function Services() {
             {/* Three-line build */}
             <div style={{ display: "flex", flexDirection: "column", gap: 0, marginBottom: 22 }}>
               {[
-                "Content creates visibility.",
-                "Distribution creates reach.",
-                "Authority creates inbound demand.",
+                "Positioning shapes perception.",
+                "Production creates high-signal assets.",
+                "Distribution amplifies reach.",
+                "Inbound Demand converts attention into leads.",
               ].map((line, li) => (
-                <div key={li} style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 0", borderBottom: li < 2 ? "1px solid #F2F2EE" : "none" }}>
+                <div key={li} style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 0", borderBottom: li < 3 ? "1px solid #F2F2EE" : "none" }}>
                   <span style={{ fontSize: 10, fontWeight: 800, color: "#C2A878", letterSpacing: "0.06em", fontVariantNumeric: "tabular-nums", flexShrink: 0, minWidth: "2ch" }}>
                     {String(li + 1).padStart(2, "0")}
                   </span>
@@ -367,7 +368,7 @@ export default function Services() {
 
             {/* Footer */}
             <p style={{ fontSize: 12, lineHeight: "1.8", color: "#8A8A8A", paddingTop: 18, borderTop: "1px solid #EEEEEA", margin: 0, fontStyle: "italic" }}>
-              Production · Positioning · Amplification · Infrastructure - one growth ecosystem.
+              Positioning · Production · Distribution · Inbound Demand — one compounding system.
             </p>
           </motion.div>
         </div>
@@ -525,10 +526,10 @@ export default function Services() {
               The Authority System
             </p>
             <h2 style={{ fontWeight: 800, fontSize: "clamp(22px, 4vw, 48px)", letterSpacing: "-0.04em", lineHeight: "1.1", color: "#0A0A0A", marginBottom: 20 }}>
-              How authority compounds.
+              How the system compounds.
             </h2>
             <p style={{ fontSize: 15, lineHeight: "1.9", color: "#5F5F5F" }}>
-              Every layer strengthens the next - transforming visibility into recognition, trust, and inbound growth.
+              Positioning defines perception. Production creates signal. Distribution amplifies reach. Inbound Demand is the result.
             </p>
           </motion.div>
 
@@ -547,10 +548,10 @@ export default function Services() {
 
             <div className="svc-flow-grid">
               {[
-                { num: "01", title: "Production", desc: "Create high-signal content built for attention, trust, and consistency at scale." },
-                { num: "02", title: "Positioning", desc: "Shape perception and build recognition in your category and niche." },
-                { num: "03", title: "Distribution", desc: "Push content into the right audiences through networks and performance systems." },
-                { num: "04", title: "Inbound Demand", desc: "Turn compounding visibility into authority, leads, and inbound opportunities." },
+                { num: "01", title: "Positioning", desc: "Define perception, category, and authority angle before a single piece of content is created." },
+                { num: "02", title: "Production", desc: "Build high-signal content around your positioning — formats that educate, trust-build, and convert." },
+                { num: "03", title: "Distribution", desc: "Push content into the right audiences through owned channels, paid systems, and network amplification." },
+                { num: "04", title: "Inbound Demand", desc: "When the first three layers compound, qualified leads and opportunities start finding you." },
               ].map((step, i) => (
                 <motion.div
                   key={step.num}

@@ -11,15 +11,15 @@ interface FrameworkPageData {
   ctaHeadline: string; ctaSubtext: string; ctaButton: string;
 }
 const FW_STEPS: FrameworkStep[] = [
-  { num: "01", title: "Positioning", headline: "Know exactly what you stand for.", desc: "We audit your space, map your competitors, and identify the specific category angle only you can own.", details: ["Competitor landscape audit", "Category design & naming", "Unique point of view articulation", "Target audience avatar mapping", "90-day authority roadmap"] },
-  { num: "02", title: "Content Engine", headline: "High-signal content strategy. At scale.", desc: "We build a repeatable content system that extracts your expertise and packages it into formats that educate, persuade, and convert.", details: ["Pillar content strategy", "Content calendar & themes", "Ghostwriting & scripting", "Multi-format repurposing", "Editorial quality control"] },
-  { num: "03", title: "Distribution Loop", headline: "Content Distribution Strategy That Actually Works", desc: "Make sure your content doesn't just get posted - it gets seen by the people who actually matter.", details: ["LinkedIn publishing system", "Email list growth strategy", "Cross-platform syndication", "Podcast & media placement", "Community building"] },
-  { num: "04", title: "Authority Compounding", headline: "The flywheel that never stops.", desc: "When your personal branding strategy, content system, and distribution work together, authority compounds automatically.", details: ["Monthly authority score tracking", "Inbound opportunity capture", "Premium positioning signals", "Speaking & PR outreach", "Authority monetization"] },
+  { num: "01", title: "Positioning", headline: "Define how the market perceives you.", desc: "Before any content exists, we establish the specific angle, category, and point of view that makes you the only credible choice in your space.", details: ["Competitor landscape audit", "Category design & naming", "Unique point of view articulation", "Target audience avatar mapping", "90-day authority roadmap"] },
+  { num: "02", title: "Production", headline: "High-signal content built to compound.", desc: "We build a repeatable production system that extracts your expertise and packages it into content formats that educate, build trust, and convert.", details: ["Pillar content strategy", "Content calendar & themes", "Ghostwriting & scripting", "Multi-format repurposing", "Editorial quality control"] },
+  { num: "03", title: "Distribution", headline: "Get seen by the people who actually matter.", desc: "Great content only works if it reaches the right audience. We build distribution infrastructure across owned, earned, and paid channels.", details: ["LinkedIn publishing system", "Email list growth strategy", "Cross-platform syndication", "Podcast & media placement", "Community building"] },
+  { num: "04", title: "Inbound Demand", headline: "Turn visibility into authority and leads.", desc: "When positioning, production, and distribution work together, authority compounds. Qualified leads, partnerships, and opportunities start coming to you.", details: ["Monthly authority score tracking", "Inbound opportunity capture", "Premium positioning signals", "Speaking & PR outreach", "Authority monetization"] },
 ];
 const FW_DEFAULTS: FrameworkPageData = {
-  heroLabel: "Framework", heroHeadline: "The Authority Framework.", heroSubtext: "A battle-tested content marketing framework for engineering category dominance that compounds over time. No hacks. No shortcuts. Just infrastructure built to generate inbound leads.",
+  heroLabel: "Framework", heroHeadline: "The Authority Framework.", heroSubtext: "A four-part system for building positioning, content, distribution, and inbound demand. No hacks. No shortcuts. Just infrastructure that compounds over time.",
   steps: FW_STEPS,
-  ctaHeadline: "Ready to start building?", ctaSubtext: "Book a free strategy call and we'll map out your authority roadmap.", ctaButton: "Book a Strategy Call",
+  ctaHeadline: "Ready to build your system?", ctaSubtext: "Book a free strategy call and we'll map out your positioning, your content gaps, and the fastest path to consistent inbound demand.", ctaButton: "Book a Strategy Call",
 };
 
 export default function Framework() {
@@ -33,13 +33,13 @@ export default function Framework() {
         schema={{
           "@type": "HowTo",
           "name": "The Authority Framework - GrowitBuddy",
-          "description": "A 4-step content marketing framework for engineering category dominance and compounding inbound growth over time.",
+          "description": "A 4-part system for building positioning, production, distribution, and inbound demand infrastructure for founders and creators.",
           "url": "https://growitbuddy.com/framework",
           "step": [
-            { "@type": "HowToStep", "position": 1, "name": "Positioning", "text": "Audit your space, map competitors, and identify the specific category angle only you can own. Includes competitor landscape audit, category design, and 90-day authority roadmap." },
-            { "@type": "HowToStep", "position": 2, "name": "Content Engine", "text": "Build a repeatable content system that extracts your expertise and packages it into formats that educate, persuade, and convert. Includes pillar content strategy, ghostwriting, and editorial quality control." },
-            { "@type": "HowToStep", "position": 3, "name": "Distribution Loop", "text": "Ensure content is seen by the people who actually matter. Includes LinkedIn publishing system, email list growth, cross-platform syndication, and podcast & media placement." },
-            { "@type": "HowToStep", "position": 4, "name": "Authority Compounding", "text": "When your positioning, content, and distribution work together, authority compounds automatically. Includes monthly tracking, inbound opportunity capture, and authority monetization." }
+            { "@type": "HowToStep", "position": 1, "name": "Positioning", "text": "Define perception before creating any content. Includes competitor landscape audit, category design, unique point of view articulation, and 90-day authority roadmap." },
+            { "@type": "HowToStep", "position": 2, "name": "Production", "text": "Build a repeatable content production system that extracts expertise and packages it into formats that educate, build trust, and convert. Includes pillar content strategy, ghostwriting, and editorial quality control." },
+            { "@type": "HowToStep", "position": 3, "name": "Distribution", "text": "Build distribution infrastructure across owned, earned, and paid channels. Includes LinkedIn publishing system, email list growth, cross-platform syndication, and podcast & media placement." },
+            { "@type": "HowToStep", "position": 4, "name": "Inbound Demand", "text": "When positioning, production, and distribution compound together, qualified leads and opportunities come to you. Includes monthly authority tracking, inbound opportunity capture, and authority monetization." }
           ]
         } as Record<string, unknown>}
       />

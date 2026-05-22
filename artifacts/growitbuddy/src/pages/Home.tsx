@@ -70,10 +70,10 @@ interface HomeData {
 
 const DEFAULTS: HomeData = {
   heroBadge: "700M+ views generated for our clients",
-  heroHeadline: "We create and distribute content that builds your",
-  heroHeadlineItalic: "authority.",
+  heroHeadline: "We build authority systems that turn your expertise into",
+  heroHeadlineItalic: "inbound demand.",
   heroSubtext:
-    "We help founders, creators, and businesses turn expertise into authority and that authority into consistent inbound demand through content strategy and distribution.",
+    "GrowitBuddy builds positioning, production, distribution, and inbound demand systems for founders, creators, and modern brands.",
   heroCTAPrimary: "Book a Strategy Call",
   heroCTASecondary: "See Our Work",
   stats: [
@@ -82,77 +82,77 @@ const DEFAULTS: HomeData = {
     { value: "90K+",  label: "Content Assets Created Across High-Volume Pages" },
   ],
   problemLabel: "The Problem",
-  problemHeadline: "Most content gets attention. Very little builds authority.",
+  problemHeadline: "Most content gets posted. Almost none of it builds authority.",
   problems: [
     {
-      title: "You're creating content. But it's not part of a real content strategy.",
-      desc: "Most content gets a few likes, then disappears. Without a clear content strategy and positioning, your output doesn't build the kind of trust that turns followers into paying clients.",
+      title: "You're producing content with no positioning behind it.",
+      desc: "Without a clear category angle and point of view, content blends into the noise. Posting more doesn't fix a positioning problem — it amplifies the confusion.",
     },
     {
-      title: "You're getting attention - but not reaching the right audience.",
-      desc: "Reach without relevance leads nowhere. Without precise audience targeting, your content misses the decision-makers and buyers who actually matter to your business.",
+      title: "You're visible, but not to the people who actually matter.",
+      desc: "Reach without relevance produces vanity metrics. Without a distribution system built for your audience, your content misses the decision-makers and buyers who drive real growth.",
     },
     {
-      title: "You have no system - just constant effort.",
-      desc: "Showing up consistently is exhausting when every post is a new decision. Without a structured content system, growth stays unpredictable no matter how much effort you put in.",
+      title: "You're grinding - but the system isn't compounding.",
+      desc: "Effort without infrastructure doesn't scale. Without a positioning-first system, every piece of content starts from zero — no compounding, no inbound, no authority.",
     },
   ],
   solutionLabel: "The Solution",
-  solutionHeadline: "From random content - to a system that builds authority.",
-  solutionBeforeLabel: "Content without a system",
+  solutionHeadline: "From random content — to a system that compounds.",
+  solutionBeforeLabel: "Without a system",
   solutionAfterLabel: "With GrowitBuddy",
   solutionBefore: [
-    "Content with no strategic direction",
+    "Production before positioning",
     "Reach without the right audience",
-    "Metrics without real business outcomes",
+    "Metrics without business outcomes",
     "Inconsistency and creative burnout",
     "No compounding effect over time",
   ],
   solutionAfter: [
-    "Clear positioning before any content",
-    "Consistent reach to the right people",
-    "Content that builds trust and drives demand",
-    "A system that runs without daily effort",
-    "Authority that compounds with every piece",
+    "Positioning defined before any content",
+    "Production built around your authority angle",
+    "Distribution to the audience that converts",
+    "A system that generates inbound demand",
+    "Authority that compounds with every asset",
   ],
   servicesLabel: "Services",
   servicesHeadline:
-    "Everything you need to build authority and generate inbound demand.",
+    "One complete system. Positioning, production, distribution, inbound.",
   services: [
     {
       num: "01",
-      title: "Content Creation",
-      desc: "High-volume content systems designed to build visibility, trust, and long-term authority across modern platforms.",
+      title: "Positioning & Authority",
+      desc: "We define your category angle, messaging, and point of view — the strategic foundation everything else is built on.",
       href: "/services#service-1",
     },
     {
       num: "02",
-      title: "Personal Branding",
-      desc: "Authority positioning systems that help founders, creators, and brands become recognized voices in their category.",
+      title: "Authority Production",
+      desc: "High-signal content systems built around your positioning — video, copy, and formats that educate and convert.",
       href: "/services#service-2",
     },
     {
       num: "03",
       title: "Distribution & Growth",
-      desc: "Distribution infrastructure designed to amplify reach, compound attention, and generate inbound demand.",
+      desc: "Distribution infrastructure designed to push your content to the right audiences through owned, paid, and earned channels.",
       href: "/services#service-3",
     },
     {
       num: "04",
-      title: "Web & Funnel Systems",
-      desc: "Digital systems built to convert authority into inbound leads, trust, and scalable opportunities.",
+      title: "Inbound & Funnel Systems",
+      desc: "Digital infrastructure that converts the authority you've built into consistent inbound leads and scalable opportunities.",
       href: "/services#service-4",
     },
     {
       num: "05",
       title: "AI Automation",
-      desc: "AI-powered systems that automate communication, support, lead flow, and creator operations.",
+      desc: "AI-powered systems that automate communication, lead qualification, and operations so your authority system runs at scale.",
       href: "/services#service-5",
     },
     {
       num: "06",
       title: "Digital Products & Growth",
-      desc: "Systems designed to help creators and brands monetize attention through products, communities, and scalable offers.",
+      desc: "Monetization systems that help founders and creators turn compounding authority into products, communities, and revenue.",
       href: "/services#service-6",
     },
   ],
@@ -161,23 +161,23 @@ const DEFAULTS: HomeData = {
   frameworkSteps: [
     {
       step: "01",
-      title: "Content",
-      desc: "High-quality content built around your positioning - video, graphics, and copy that captures attention and communicates authority.",
+      title: "Positioning",
+      desc: "Before any content is created, we define your category angle, point of view, and the authority position only you can own.",
     },
     {
       step: "02",
-      title: "Distribution",
-      desc: "A structured system to push your content to the right audiences through ads, creators, and our owned network - at scale.",
+      title: "Production",
+      desc: "We build a repeatable content production system around your positioning — high-signal assets that educate, trust-build, and convert.",
     },
     {
       step: "03",
-      title: "Authority",
-      desc: "Consistent visibility to the right people builds recognition and trust. Your name becomes the first one they think of in your space.",
+      title: "Distribution",
+      desc: "We push your content through owned channels, paid systems, and our network — to the audiences that actually move the needle.",
     },
     {
       step: "04",
-      title: "Inbound",
-      desc: "Authority compounds. Qualified leads, partnerships, and opportunities start coming to you - without chasing them.",
+      title: "Inbound Demand",
+      desc: "When positioning, production, and distribution compound, qualified leads and opportunities start finding you — without cold outreach.",
     },
   ],
   frameworkCTA: "Explore the Full Framework",
@@ -193,23 +193,23 @@ const DEFAULTS: HomeData = {
   processSteps: [
     {
       num: "01",
-      title: "Understand",
-      desc: "We study your market, your audience, and your current positioning to identify exactly where your content marketing opportunity is.",
+      title: "Audit",
+      desc: "We audit your market, competitors, and current perception to identify the exact positioning gap and authority opportunity only you can own.",
     },
     {
       num: "02",
-      title: "Strategize",
-      desc: "We design your content planning roadmap - what to say, where to say it, and how to say it in a way that builds trust and drives real inbound demand.",
+      title: "Position",
+      desc: "We define your category angle, messaging architecture, and content strategy — the strategic foundation that every asset is built on.",
     },
     {
       num: "03",
-      title: "Execute",
-      desc: "Our team handles content creation and distribution every week - so you can focus entirely on running your business.",
+      title: "Build",
+      desc: "We produce and distribute high-signal content every week — handling execution so you stay focused on running your business.",
     },
     {
       num: "04",
-      title: "Scale",
-      desc: "We track performance, refine your growth strategy, and expand your content reach as your authority compounds over time.",
+      title: "Compound",
+      desc: "We track authority metrics, refine distribution, and scale the system as your positioning compounds into consistent inbound demand.",
     },
   ],
   ecosystemLabel: "Ecosystem",
@@ -262,7 +262,7 @@ const DEFAULTS: HomeData = {
   ],
   ctaHeadline: "If your content isn't driving results, it's not a content problem.",
   ctaSubtext:
-    "It's a distribution and authority problem. Book a free growth breakdown - we'll show you exactly what to fix and how.",
+    "It's a positioning and distribution problem. Book a free strategy call — we'll map out exactly where your system breaks and how to fix it.",
   ctaButton: "Get your growth breakdown",
   ctaSuccess: "You're on the list. We'll be in touch within 24 hours.",
   ctaSecondaryLink: "Take the Authority Audit",
@@ -450,7 +450,7 @@ export default function Home() {
             {
               "@type": "Question",
               "name": "How is GrowitBuddy different from other content marketing agencies?",
-              "acceptedAnswer": { "@type": "Answer", "text": "We don't just create content - we build the full Content → Distribution → Authority → Inbound system. Most agencies create content and hope it spreads. We build infrastructure that compounds over time." }
+              "acceptedAnswer": { "@type": "Answer", "text": "We don't just create content - we build the full Positioning → Production → Distribution → Inbound Demand system. Most agencies produce content without strategic positioning. We build infrastructure that compounds over time." }
             }
           ]
         } as Record<string, unknown>}
