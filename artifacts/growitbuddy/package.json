@@ -1,6 +1,6 @@
 {
   "name": "@workspace/growitbuddy",
-  "version": "0.0.0",
+  "version": "0.1.0-talent-pool-crm",
   "private": true,
   "type": "module",
   "scripts": {
