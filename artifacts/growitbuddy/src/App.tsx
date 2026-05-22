@@ -1,4 +1,3 @@
-// BUILD-TAG: TALENT-POOL-CRM-DEPLOY-$(date +%s)
 import { lazy, Suspense, useEffect } from "react";
 import { LazyMotion, domAnimation } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
@@ -47,6 +46,7 @@ const MotionDesignersPool  = lazy(() => import("@/pages/MotionDesignersPool"));
 const AICreatorsPool       = lazy(() => import("@/pages/AICreatorsPool"));
 const UGCCreatorsPool      = lazy(() => import("@/pages/UGCCreatorsPool"));
 const MemeDesignersPool    = lazy(() => import("@/pages/MemeDesignersPool"));
+const EditorsPool          = lazy(() => import("@/pages/EditorsPool"));
 
 // ── Lazy-loaded admin pages ───────────────────────────────────────────────────
 const AdminLogin              = lazy(() => import("@/pages/admin/AdminLogin"));
@@ -153,6 +153,7 @@ function AdminRoutes() {
       <Route path="/admin/pool-ai-creators">{() => <AdminGuard><AdminTalentPool poolKey="pool-ai-creators" label="AI Creators Pool" description="Manage the /ai-creators landing page." pageUrl="/ai-creators" /></AdminGuard>}</Route>
       <Route path="/admin/pool-ugc-creators">{() => <AdminGuard><AdminTalentPool poolKey="pool-ugc-creators" label="UGC Creators Pool" description="Manage the /ugc-creators landing page." pageUrl="/ugc-creators" /></AdminGuard>}</Route>
       <Route path="/admin/pool-meme-designers">{() => <AdminGuard><AdminTalentPool poolKey="pool-meme-designers" label="Meme Designers Pool" description="Manage the /meme-designers landing page." pageUrl="/meme-designers" /></AdminGuard>}</Route>
+      <Route path="/admin/pool-editors">{() => <AdminGuard><AdminTalentPool poolKey="pool-editors" label="Video Editors Pool" description="Manage the /video-editors landing page." pageUrl="/video-editors" /></AdminGuard>}</Route>
       <Route path="/admin/page-visibility">{() => <AdminGuard><AdminPageVisibility /></AdminGuard>}</Route>
       <Route path="/admin">{() => <AdminGuard><AdminDashboard /></AdminGuard>}</Route>
     </Switch>
@@ -166,7 +167,7 @@ const ALL_SECTIONS = [
   "distribution-pages", "blog", "creator-school", "settings",
   "pool-designers", "pool-thumbnail-designers", "pool-writers",
   "pool-social-managers", "pool-motion-designers", "pool-ai-creators",
-  "pool-ugc-creators", "pool-meme-designers", "page_visibility",
+  "pool-ugc-creators", "pool-meme-designers", "pool-editors", "page_visibility",
 ];
 
 function FaviconInjector() {
@@ -244,6 +245,7 @@ function App() {
                       <Route path="/ai-creators">{() => <PageGate slug="ai-creators"><AICreatorsPool /></PageGate>}</Route>
                       <Route path="/ugc-creators">{() => <PageGate slug="ugc-creators"><UGCCreatorsPool /></PageGate>}</Route>
                       <Route path="/meme-designers">{() => <PageGate slug="meme-designers"><MemeDesignersPool /></PageGate>}</Route>
+                      <Route path="/video-editors">{() => <PageGate slug="video-editors"><EditorsPool /></PageGate>}</Route>
                       <Route component={NotFound} />
                     </Switch>
                   </Suspense>
