@@ -182,8 +182,12 @@ function FaviconInjector() {
 
 function App() {
   useEffect(() => {
-    prefetchSections(ALL_SECTIONS);
-    prefetchInfluencers();
+    // Delay prefetch to avoid competing with LCP rendering on initial load
+    const t = setTimeout(() => {
+      prefetchSections(ALL_SECTIONS);
+      prefetchInfluencers();
+    }, 1500);
+    return () => clearTimeout(t);
   }, []);
 
   return (

@@ -14,12 +14,12 @@ export default function PageIntro() {
 
   useEffect(() => {
     if (!visible) return;
-    const t1 = setTimeout(() => setPhase("hold"), 400);
-    const t2 = setTimeout(() => setPhase("out"), 1400);
+    const t1 = setTimeout(() => setPhase("hold"), 100);
+    const t2 = setTimeout(() => setPhase("out"), 280);
     const t3 = setTimeout(() => {
       setVisible(false);
       try { sessionStorage.setItem("gb_intro_seen", "1"); } catch {}
-    }, 2200);
+    }, 800);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [visible]);
 
@@ -30,7 +30,7 @@ export default function PageIntro() {
           key="intro"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.6, ease: "easeInOut" }}
+          transition={{ duration: 0.35, ease: "easeInOut" }}
           style={{
             position: "fixed",
             inset: 0,
@@ -50,7 +50,7 @@ export default function PageIntro() {
               : phase === "hold" ? { scale: 1, opacity: 0.6 }
               : { scale: 2.5, opacity: 0 }
             }
-            transition={{ duration: phase === "out" ? 0.7 : 0.8, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: phase === "out" ? 0.4 : 0.3, ease: [0.22, 1, 0.36, 1] }}
             style={{
               position: "absolute",
               width: 500,
@@ -66,7 +66,7 @@ export default function PageIntro() {
               : phase === "hold" ? { opacity: 1, scale: 1 }
               : { opacity: 0, scale: 1.05 }
             }
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             style={{
               position: "relative",
               zIndex: 1,
@@ -80,6 +80,8 @@ export default function PageIntro() {
             <img
               src={`${import.meta.env.BASE_URL}logo-circle.png`}
               alt="GrowitBuddy"
+              width={56}
+              height={56}
               style={{
                 width: 56,
                 height: 56,
@@ -110,7 +112,7 @@ export default function PageIntro() {
                 color: "#9CA3AF",
               }}
             >
-              Authority, content & distribution systems
+              Authority, content &amp; distribution systems
             </p>
           </motion.div>
         </motion.div>
