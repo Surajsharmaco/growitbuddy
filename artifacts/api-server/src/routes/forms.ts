@@ -417,6 +417,7 @@ const POOL_LABELS: Record<string, string> = {
   "pool-ai-creators":         "AI Creators",
   "pool-ugc-creators":        "UGC Creators",
   "pool-meme-designers":      "Meme Designers",
+  "pool-editors":             "Video Editors",
 };
 
 const POOL_BADGE_COLORS: Record<string, string> = {
@@ -428,6 +429,7 @@ const POOL_BADGE_COLORS: Record<string, string> = {
   "pool-ai-creators":         "#991b1b",
   "pool-ugc-creators":        "#1e40af",
   "pool-meme-designers":      "#374151",
+  "pool-editors":             "#0f766e",
 };
 
 const IGNORED_FIELDS = new Set(["type", "notifyEmail", "message", "notes"]);
