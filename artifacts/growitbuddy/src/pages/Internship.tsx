@@ -320,7 +320,7 @@ export default function Internship() {
                       <FormItem style={{ display: "flex", flexDirection: "column" }}>
                         <FormLabel style={lbl}>Portfolio / Work Link <span style={{ fontWeight: 400, opacity: 0.6, textTransform: "none", letterSpacing: 0 }}>(optional)</span></FormLabel>
                         <FormControl>
-                          <input {...field} type="url" placeholder="https://yourwork.com" style={inp} />
+                          <input {...field} type="text" placeholder="https://yourwork.com" style={inp} />
                         </FormControl>
                         <FormMessage style={{ fontSize: 11, color: "#ef4444" }} />
                       </FormItem>

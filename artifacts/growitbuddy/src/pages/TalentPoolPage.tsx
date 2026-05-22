@@ -156,34 +156,34 @@ function PoolForm({ d, formVariant, poolType, submitLabel }: PoolFormProps) {
 
   const variantFields: Record<FormVariant, React.ReactNode> = {
     designers: (<>
-      {inp("Behance / Dribbble", extra.portfolio ?? "", v => se("portfolio", v), "url", "https://behance.net/...")}
-      {inp("Figma Portfolio", extra.figma ?? "", v => se("figma", v), "url", "https://figma.com/...", false)}
+      {inp("Behance / Dribbble", extra.portfolio ?? "", v => se("portfolio", v), "text", "https://behance.net/...")}
+      {inp("Figma Portfolio", extra.figma ?? "", v => se("figma", v), "text", "https://figma.com/...", false)}
     </>),
     thumbnail: (<>
-      {inp("Portfolio Link", extra.portfolio ?? "", v => se("portfolio", v), "url", "https://...")}
-      {inp("Submission Link", extra.link ?? "", v => se("link", v), "url", "Google Drive / Dropbox with your thumbnail")}
+      {inp("Portfolio Link", extra.portfolio ?? "", v => se("portfolio", v), "text", "https://...")}
+      {inp("Submission Link", extra.link ?? "", v => se("link", v), "text", "Google Drive / Dropbox with your thumbnail")}
     </>),
     writers: (<>
       {inp("Writing Niche / Topics", extra.niche ?? "", v => se("niche", v), "text", "e.g. Finance, Health, Creator Economy")}
-      {inp("Writing Sample (Google Docs)", extra.sample ?? "", v => se("sample", v), "url", "https://docs.google.com/...")}
-      {inp("LinkedIn Profile", extra.linkedin ?? "", v => se("linkedin", v), "url", "https://linkedin.com/in/...", false)}
+      {inp("Writing Sample (Google Docs)", extra.sample ?? "", v => se("sample", v), "text", "https://docs.google.com/...")}
+      {inp("LinkedIn Profile", extra.linkedin ?? "", v => se("linkedin", v), "text", "https://linkedin.com/in/...", false)}
     </>),
     social: (<>
       {inp("Platforms Managed", extra.platforms ?? "", v => se("platforms", v), "text", "e.g. Instagram, LinkedIn, TikTok")}
-      {inp("Portfolio / Case Study Link", extra.portfolio ?? "", v => se("portfolio", v), "url", "https://...")}
+      {inp("Portfolio / Case Study Link", extra.portfolio ?? "", v => se("portfolio", v), "text", "https://...")}
     </>),
     motion: (<>
       {inp("Tools Used", extra.tools ?? "", v => se("tools", v), "text", "e.g. After Effects, Rive, Cavalry")}
-      {inp("Reel / Demo Link", extra.reel ?? "", v => se("reel", v), "url", "https://...")}
+      {inp("Reel / Demo Link", extra.reel ?? "", v => se("reel", v), "text", "https://...")}
     </>),
     ai: (<>
       {inp("AI Tools Used", extra.tools ?? "", v => se("tools", v), "text", "e.g. n8n, Make, OpenAI, Zapier")}
-      {inp("Automation Example Link", extra.example ?? "", v => se("example", v), "url", "https://...")}
-      {inp("Loom Walkthrough", extra.loom ?? "", v => se("loom", v), "url", "https://loom.com/share/...", false)}
+      {inp("Automation Example Link", extra.example ?? "", v => se("example", v), "text", "https://...")}
+      {inp("Loom Walkthrough", extra.loom ?? "", v => se("loom", v), "text", "https://loom.com/share/...", false)}
     </>),
     ugc: (<>
       {inp("Instagram / TikTok Handle", extra.social ?? "", v => se("social", v), "text", "@yourhandle")}
-      {inp("Content Sample Link", extra.sample ?? "", v => se("sample", v), "url", "Drive / Dropbox / Link")}
+      {inp("Content Sample Link", extra.sample ?? "", v => se("sample", v), "text", "Drive / Dropbox / Link")}
       {inp("Brand Types / Niches", extra.niche ?? "", v => se("niche", v), "text", "e.g. Skincare, Tech, Food", false)}
     </>),
   };
