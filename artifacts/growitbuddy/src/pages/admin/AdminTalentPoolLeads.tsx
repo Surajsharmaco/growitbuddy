@@ -31,6 +31,7 @@ const POOL_TYPE_META: Record<string, { label: string; color: string; bg: string 
   "pool-ai-creators":         { label: "AI Creators",        color: "#991b1b", bg: "#fef2f2" },
   "pool-ugc-creators":        { label: "UGC Creators",       color: "#1e40af", bg: "#eff6ff" },
   "pool-meme-designers":      { label: "Meme Designers",     color: "#374151", bg: "#f9fafb" },
+  "pool-editors":             { label: "Video Editors",      color: "#0f766e", bg: "#f0fdfa" },
 };
 
 const LEAD_STATUSES = [
