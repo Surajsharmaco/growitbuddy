@@ -367,7 +367,7 @@ export default function Services() {
 
             {/* Footer */}
             <p style={{ fontSize: 12, lineHeight: "1.8", color: "#8A8A8A", paddingTop: 18, borderTop: "1px solid #EEEEEA", margin: 0, fontStyle: "italic" }}>
-              Production · Positioning · Amplification · Infrastructure - one growth ecosystem.
+              Positioning · Production · Distribution · Inbound Demand — one compounding system.
             </p>
           </motion.div>
         </div>
@@ -448,7 +448,7 @@ export default function Services() {
                     </span>
                     <span style={{ width: 1, height: 10, background: isDark ? "rgba(255,255,255,0.15)" : "rgba(10,10,10,0.12)", flexShrink: 0 }} />
                     <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: isDark ? "rgba(255,255,255,0.35)" : "#8A8A8A" }}>
-                      {s.subtitle}
+                      {(s.subtitle ?? "").replace(/^\d+\s*\|\s*/, "")}
                     </span>
                   </div>
 
@@ -547,8 +547,8 @@ export default function Services() {
 
             <div className="svc-flow-grid">
               {[
-                { num: "01", title: "Production", desc: "Create high-signal content built for attention, trust, and consistency at scale." },
-                { num: "02", title: "Positioning", desc: "Shape perception and build recognition in your category and niche." },
+                { num: "01", title: "Positioning", desc: "Shape perception and build recognition in your category and niche." },
+                { num: "02", title: "Production", desc: "Create high-signal content built for attention, trust, and consistency at scale." },
                 { num: "03", title: "Distribution", desc: "Push content into the right audiences through networks and performance systems." },
                 { num: "04", title: "Inbound Demand", desc: "Turn compounding visibility into authority, leads, and inbound opportunities." },
               ].map((step, i) => (
