@@ -36,21 +36,21 @@ const PAGE_DEFAULTS: ServicesPageData = {
   services: [
     {
       id: "1",
-      title: "Content Creation",
-      subtitle: "01 | Authority Production",
-      headline: "Content systems built for scale.",
-      description: "High-volume content systems designed to build visibility, trust, and long-term authority across modern platforms.",
-      features: ["Short-form Editing", "Long-form Editing", "Podcast Editing", "Script Writing", "Thumbnail Design", "Content Repurposing", "Social Media Content", "UGC Content", "YouTube Content", "Creative Direction"],
-      cta: "Build Visibility",
-    },
-    {
-      id: "2",
       title: "Personal Branding",
-      subtitle: "02 | Positioning & Authority",
+      subtitle: "01 | Positioning & Authority",
       headline: "Become recognized in your category.",
       description: "Authority positioning systems that help founders, creators, and brands become recognized voices in their category.",
       features: ["Founder Positioning", "LinkedIn Growth", "Instagram Growth", "Authority Strategy", "Thought Leadership", "Audience Positioning", "Brand Messaging", "Content Strategy", "Personal Branding", "Category Positioning"],
       cta: "Build Authority",
+    },
+    {
+      id: "2",
+      title: "Content Creation",
+      subtitle: "02 | Authority Production",
+      headline: "Content systems built for scale.",
+      description: "High-volume content systems designed to build visibility, trust, and long-term authority across modern platforms.",
+      features: ["Short-form Editing", "Long-form Editing", "Podcast Editing", "Script Writing", "Thumbnail Design", "Content Repurposing", "Social Media Content", "UGC Content", "YouTube Content", "Creative Direction"],
+      cta: "Build Visibility",
     },
     {
       id: "3",
