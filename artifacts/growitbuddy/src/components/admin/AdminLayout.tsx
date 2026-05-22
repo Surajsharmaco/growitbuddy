@@ -60,6 +60,7 @@ const navGroups: NavGroup[] = [
       { label: "AI Creators",            path: "/admin/pool-ai-creators",         icon: <TrendingUp size={15} />, permission: "creator-school" },
       { label: "UGC Creators",           path: "/admin/pool-ugc-creators",        icon: <TrendingUp size={15} />, permission: "creator-school" },
       { label: "Meme Designers",         path: "/admin/pool-meme-designers",      icon: <TrendingUp size={15} />, permission: "creator-school" },
+      { label: "Video Editors",          path: "/admin/pool-editors",             icon: <TrendingUp size={15} />, permission: "creator-school" },
     ],
   },
   {
