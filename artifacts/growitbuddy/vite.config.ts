@@ -4,8 +4,8 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
-// During `vite build` the dev server port is irrelevant — only required at runtime.
 const isBuildMode = process.argv.some((a) => a === "build");
+const isProduction = process.env.NODE_ENV === "production";
 
 const rawPort = process.env.PORT;
 if (!rawPort && !isBuildMode) {
@@ -26,14 +26,12 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    runtimeErrorOverlay(),
-    ...(process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
+    // Only include dev-only plugins outside production builds
+    ...(!isProduction ? [runtimeErrorOverlay()] : []),
+    ...(!isProduction && process.env.REPL_ID !== undefined
       ? [
           await import("@replit/vite-plugin-cartographer").then((m) =>
-            m.cartographer({
-              root: path.resolve(import.meta.dirname, ".."),
-            }),
+            m.cartographer({ root: path.resolve(import.meta.dirname, "..") }),
           ),
           await import("@replit/vite-plugin-dev-banner").then((m) =>
             m.devBanner(),
@@ -52,6 +50,12 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    // esbuild is faster and produces smaller output than the default
+    minify: "esbuild",
+    target: "es2020",
+    cssMinify: true,
+    // Raise warning threshold — lazy loading naturally creates many small chunks
+    chunkSizeWarningLimit: 1000,
   },
   server: {
     port,
