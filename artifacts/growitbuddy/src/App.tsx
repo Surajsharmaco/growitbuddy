@@ -1,3 +1,4 @@
+// BUILD-TAG: TALENT-POOL-CRM-DEPLOY-$(date +%s)
 import { lazy, Suspense, useEffect } from "react";
 import { LazyMotion, domAnimation } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
