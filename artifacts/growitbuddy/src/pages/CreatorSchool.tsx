@@ -128,9 +128,14 @@ function Form({ d }: { d: PageData }) {
   async function submit(e: React.FormEvent) {
     e.preventDefault(); setStatus("sending");
     try {
+      const message = [
+        v.notes,
+        v.portfolio && `Portfolio: ${v.portfolio}`,
+        v.link && `Submission link: ${v.link}`,
+      ].filter(Boolean).join("\n") || "Video editor talent pool application";
       const res = await fetch(`${API_BASE}/forms/contact`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...v, type: "talent-pool-submission", notifyEmail: d.formNotifyEmail }),
+        body: JSON.stringify({ name: v.name, email: v.email, contact: v.contact, message, type: "talent-pool-submission", notifyEmail: d.formNotifyEmail }),
       });
       if (res.ok) {
         setStatus("sent");
@@ -167,9 +172,9 @@ function Form({ d }: { d: PageData }) {
         {field("Full Name",           "name",      "text",  "Your full name")}
         {field("Email Address",       "email",     "email", "you@example.com")}
         {field("WhatsApp / Telegram", "contact",   "text",  "@handle or number")}
-        {field("Portfolio Link",      "portfolio", "url",   "https://...")}
+        {field("Portfolio Link",      "portfolio", "text",  "https://...")}
       </div>
-      {field("Submission Link", "link", "url", "Google Drive / Dropbox / WeTransfer link to your edit")}
+      {field("Submission Link", "link", "text", "Google Drive / Dropbox / WeTransfer link to your edit")}
       <div>
         <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "#8A8A8A", marginBottom: 7, textTransform: "uppercase" }}>Notes (optional)</label>
         <textarea value={v.notes} onChange={e => s("notes", e.target.value)}
