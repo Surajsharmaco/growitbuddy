@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { API_BASE } from "@/lib/api";
 import { ArrowRight, Check, ChevronRight, Star, X } from "lucide-react";
 import { Link } from "wouter";
@@ -525,7 +525,7 @@ export default function Home() {
         />
 
         <div style={{ position: "relative", zIndex: 1, maxWidth: 900, padding: "0 24px" }}>
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -544,9 +544,9 @@ export default function Home() {
             <span style={{ fontSize: 12, fontWeight: 600, color: "#0A0A0A", letterSpacing: "0.04em" }}>
               {hm.heroBadge}
             </span>
-          </motion.div>
+          </m.div>
 
-          <motion.h1
+          <m.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
@@ -563,9 +563,9 @@ export default function Home() {
           >
             {hm.heroHeadline}{" "}
             <span style={{ fontStyle: "italic" }}>{hm.heroHeadlineItalic}</span>
-          </motion.h1>
+          </m.h1>
 
-          <motion.p
+          <m.p
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.7 }}
@@ -579,9 +579,9 @@ export default function Home() {
             }}
           >
             {hm.heroSubtext}
-          </motion.p>
+          </m.p>
 
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6 }}
@@ -598,7 +598,7 @@ export default function Home() {
                 {hm.heroCTASecondary}
               </span>
             </Link>
-          </motion.div>
+          </m.div>
         </div>
       </section>
 
@@ -606,7 +606,7 @@ export default function Home() {
       <section style={{ borderTop: "1px solid #E5E5E0", borderBottom: "1px solid #E5E5E0", background: "#FFFFFF", padding: "0 24px" }}>
         <div className="max-w-[1100px] mx-auto home-stats-grid">
           {hm.stats.map((stat, i) => (
-            <motion.div
+            <m.div
               key={i}
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -626,7 +626,7 @@ export default function Home() {
                 <CountUp value={stat.value} />
               </div>
               <div style={{ fontSize: 13, color: "#8A8A8A", fontWeight: 500, maxWidth: "20ch", lineHeight: 1.6, textAlign: "center" }}>{stat.label}</div>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </section>
@@ -655,7 +655,7 @@ export default function Home() {
           </FadeUp>
           <div className="home-problem-grid">
             {hm.problems.map((p, i) => (
-              <motion.div
+              <m.div
                 key={i}
                 initial={{ opacity: 0, y: 28 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -687,7 +687,7 @@ export default function Home() {
 
                 <h3 style={{ fontWeight: 800, fontSize: "clamp(17px, 2vw, 20px)", letterSpacing: "-0.025em", color: "#FFFFFF", marginBottom: 16, lineHeight: "1.3", flex: 1 }}>{p.title}</h3>
                 <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", lineHeight: "1.8", margin: 0 }}>{p.desc}</p>
-              </motion.div>
+              </m.div>
             ))}
           </div>
         </div>
@@ -712,7 +712,7 @@ export default function Home() {
             {hm.services.map((s, i) => {
               const isAccent = i === 5;
               return (
-                <motion.div
+                <m.div
                   key={i}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -760,7 +760,7 @@ export default function Home() {
                       Explore Service <span style={{ fontSize: 14 }}>→</span>
                     </a>
                   </div>
-                </motion.div>
+                </m.div>
               );
             })}
           </div>
@@ -787,7 +787,7 @@ export default function Home() {
           </FadeUp>
           <div className="home-proof-grid">
             {hm.proof.map((p, i) => (
-              <motion.div
+              <m.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -806,7 +806,7 @@ export default function Home() {
                 </div>
                 <p style={{ fontSize: 13, color: i % 2 === 0 ? "#8A8A8A" : "rgba(11,11,11,0.4)", marginBottom: 16 }}>{p.unit}</p>
                 <h3 style={{ fontSize: 16, fontWeight: 600, color: "#0A0A0A", lineHeight: 1.4 }}>{p.name}</h3>
-              </motion.div>
+              </m.div>
             ))}
           </div>
           <div style={{ marginTop: 40, textAlign: "center" }}>
@@ -831,7 +831,7 @@ export default function Home() {
               { tag: hm.ecosystemCreatorTag, title: hm.ecosystemCreatorTitle, desc: hm.ecosystemCreatorDesc, cta: hm.ecosystemCreatorCTA, href: "/creators", dark: false },
               { tag: hm.ecosystemFreelancerTag, title: hm.ecosystemFreelancerTitle, desc: hm.ecosystemFreelancerDesc, cta: hm.ecosystemFreelancerCTA, href: "/freelancers", dark: true },
             ].map((card, i) => (
-              <motion.div
+              <m.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -848,7 +848,7 @@ export default function Home() {
                     <ArrowRight className="w-4 h-4" />
                   </span>
                 </Link>
-              </motion.div>
+              </m.div>
             ))}
           </div>
         </div>
@@ -899,7 +899,7 @@ export default function Home() {
                 outcome: "A distribution-first brand that attracts premium clients and positions you as the obvious authority.",
               },
             ].map((card, i) => (
-              <motion.div
+              <m.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -924,7 +924,7 @@ export default function Home() {
                 <p style={{ fontSize: 14, color: i === 1 ? "rgba(255,255,255,0.6)" : "#5F5F5F", lineHeight: "1.75", marginTop: "auto" }}>
                   {card.outcome}
                 </p>
-              </motion.div>
+              </m.div>
             ))}
           </div>
         </div>
@@ -940,7 +940,7 @@ export default function Home() {
           </FadeUp>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
             {hm.testimonials.map((t, i) => (
-              <motion.div
+              <m.div
                 key={i}
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -959,7 +959,7 @@ export default function Home() {
                     <p style={{ fontSize: 12, color: "#7A7A85" }}>{t.role}</p>
                   </div>
                 </div>
-              </motion.div>
+              </m.div>
             ))}
           </div>
         </div>
@@ -976,7 +976,7 @@ export default function Home() {
           origin="bottom-right" width={280} height={220}
         />
         <div className="max-w-[700px] mx-auto">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -1037,7 +1037,7 @@ export default function Home() {
                 <ArrowRight className="w-3.5 h-3.5" />
               </span>
             </Link>
-          </motion.div>
+          </m.div>
         </div>
       </section>
     </div>

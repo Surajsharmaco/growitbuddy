@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 
 export default function PageIntro() {
   const [visible, setVisible] = useState(() => {
@@ -26,7 +26,7 @@ export default function PageIntro() {
   return (
     <AnimatePresence>
       {visible && (
-        <motion.div
+        <m.div
           key="intro"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -43,7 +43,7 @@ export default function PageIntro() {
             pointerEvents: "all",
           }}
         >
-          <motion.div
+          <m.div
             initial={{ scale: 0.3, opacity: 0 }}
             animate={
               phase === "in" ? { scale: 0.6, opacity: 0.5 }
@@ -59,7 +59,7 @@ export default function PageIntro() {
               background: "radial-gradient(ellipse at center, rgba(30,41,59,0.14) 0%, rgba(30,41,59,0.05) 40%, transparent 70%)",
             }}
           />
-          <motion.div
+          <m.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={
               phase === "in" ? { opacity: 0, scale: 0.9 }
@@ -114,8 +114,8 @@ export default function PageIntro() {
             >
               Authority, content &amp; distribution systems
             </p>
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       )}
     </AnimatePresence>
   );

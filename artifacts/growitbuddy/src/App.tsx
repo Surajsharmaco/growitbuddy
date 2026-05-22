@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
+import { LazyMotion, domAnimation } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
 import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { prefetchSections, usePublicContent } from "@/hooks/usePublicContent";
@@ -191,6 +192,7 @@ function App() {
   }, []);
 
   return (
+    <LazyMotion features={domAnimation} strict>
     <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
       <AdminProvider>
         <FaviconInjector />
@@ -249,6 +251,7 @@ function App() {
         </Switch>
       </AdminProvider>
     </WouterRouter>
+    </LazyMotion>
   );
 }
 

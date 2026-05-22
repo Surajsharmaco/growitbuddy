@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { ArrowUpRight, Menu, X, ChevronDown } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { usePublicContent } from "@/hooks/usePublicContent";
 
 interface NavbarData {
@@ -178,7 +178,7 @@ export function Navbar() {
                     </button>
                     <AnimatePresence>
                       {isThisOpen && (
-                        <motion.div
+                        <m.div
                           initial={{ opacity: 0, y: 6, scale: 0.97 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 6, scale: 0.97 }}
@@ -241,7 +241,7 @@ export function Navbar() {
                               </span>
                             </a>
                           ))}
-                        </motion.div>
+                        </m.div>
                       )}
                     </AnimatePresence>
                   </div>
@@ -326,7 +326,7 @@ export function Navbar() {
 
       <AnimatePresence>
         {isOpen && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
@@ -421,7 +421,7 @@ export function Navbar() {
                 <ArrowUpRight className="w-3.5 h-3.5" />
               </button>
             </nav>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </>

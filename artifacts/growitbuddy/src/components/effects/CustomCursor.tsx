@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { m, useMotionValue, useSpring } from "framer-motion";
 
 function isFinePointer() {
   if (typeof window === "undefined") return false;
@@ -69,7 +69,7 @@ export default function CustomCursor() {
   return (
     <>
       {/* Large ring cursor */}
-      <motion.div
+      <m.div
         style={{
           position: "fixed",
           top: 0,
@@ -93,7 +93,7 @@ export default function CustomCursor() {
         className="rounded-full"
       />
       {/* Dot */}
-      <motion.div
+      <m.div
         style={{
           position: "fixed",
           top: 0,

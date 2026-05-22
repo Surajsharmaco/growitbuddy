@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { m, useScroll, useTransform } from "framer-motion";
 
 interface MarqueeProps {
   items: string[];
@@ -80,7 +80,7 @@ export function ScrollMarquee({ items, dark = false }: { items: string[]; dark?:
 
   return (
     <div style={{ overflow: "hidden", background: dark ? "#F4F4F8" : "#F6F6F6", padding: "20px 0" }} ref={containerRef}>
-      <motion.div style={{ x, display: "flex", gap: "3rem", width: "max-content" }}>
+      <m.div style={{ x, display: "flex", gap: "3rem", width: "max-content" }}>
         {[...items, ...items, ...items].map((item, i) => (
           <span
             key={i}
@@ -97,7 +97,7 @@ export function ScrollMarquee({ items, dark = false }: { items: string[]; dark?:
             {item}
           </span>
         ))}
-      </motion.div>
+      </m.div>
     </div>
   );
 }
