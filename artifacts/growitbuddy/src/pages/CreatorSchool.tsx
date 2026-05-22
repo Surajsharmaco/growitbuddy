@@ -133,9 +133,9 @@ function Form({ d }: { d: PageData }) {
         v.portfolio && `Portfolio: ${v.portfolio}`,
         v.link && `Submission link: ${v.link}`,
       ].filter(Boolean).join("\n") || "Video editor talent pool application";
-      const res = await fetch(`${API_BASE}/forms/contact`, {
+      const res = await fetch(`${API_BASE}/forms/talent-pool`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: v.name, email: v.email, contact: v.contact, message, type: "talent-pool-submission", notifyEmail: d.formNotifyEmail }),
+        body: JSON.stringify({ name: v.name, email: v.email, contact: v.contact, portfolio: v.portfolio, reel: v.link, message, type: "pool-editors", notifyEmail: d.formNotifyEmail }),
       });
       if (res.ok) {
         setStatus("sent");
