@@ -161,23 +161,23 @@ const DEFAULTS: HomeData = {
   frameworkSteps: [
     {
       step: "01",
-      title: "Content",
-      desc: "High-quality content built around your positioning - video, graphics, and copy that captures attention and communicates authority.",
+      title: "Positioning",
+      desc: "Shape perception and build recognition in your category and niche so the right people know exactly what you stand for.",
     },
     {
       step: "02",
-      title: "Distribution",
-      desc: "A structured system to push your content to the right audiences through ads, creators, and our owned network - at scale.",
+      title: "Production",
+      desc: "Create high-signal content built for attention, trust, and consistency at scale — video, copy, and graphics that communicate authority.",
     },
     {
       step: "03",
-      title: "Authority",
-      desc: "Consistent visibility to the right people builds recognition and trust. Your name becomes the first one they think of in your space.",
+      title: "Distribution",
+      desc: "Push content into the right audiences through networks and performance systems so it reaches the people who actually matter.",
     },
     {
       step: "04",
-      title: "Inbound",
-      desc: "Authority compounds. Qualified leads, partnerships, and opportunities start coming to you - without chasing them.",
+      title: "Inbound Demand",
+      desc: "Turn compounding visibility into authority, qualified leads, and inbound opportunities — without chasing anyone.",
     },
   ],
   frameworkCTA: "Explore the Full Framework",
