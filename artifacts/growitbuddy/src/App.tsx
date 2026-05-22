@@ -1,87 +1,78 @@
-import { lazy, Suspense, useEffect } from "react";
+import { useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { prefetchSections, usePublicContent } from "@/hooks/usePublicContent";
 import { prefetchInfluencers } from "@/hooks/useLiveInfluencers";
 import Home from "@/pages/Home";
+import Services from "@/pages/Services";
+import Work from "@/pages/Work";
+import Framework from "@/pages/Framework";
+import Insights from "@/pages/Insights";
+import InsightDetail from "@/pages/InsightDetail";
+import Creators from "@/pages/Creators";
+import Freelancers from "@/pages/Freelancers";
+import InfluencerExplore from "@/pages/InfluencerExplore";
+import DistributionNetwork from "@/pages/DistributionNetwork";
+import JoinNetwork from "@/pages/JoinNetwork";
+import PageOwnerApply from "@/pages/PageOwnerApply";
+import FullTime from "@/pages/FullTime";
+import AuthorityAudit from "@/pages/AuthorityAudit";
+import Portfolio from "@/pages/Portfolio";
+import AdminPortfolio from "@/pages/admin/AdminPortfolio";
+import Resources from "@/pages/Resources";
+import About from "@/pages/About";
+import Contact from "@/pages/Contact";
+import Internship from "@/pages/Internship";
+import Verify from "@/pages/Verify";
+import VerifyCertificate from "@/pages/VerifyCertificate";
+import Privacy from "@/pages/Privacy";
+import Terms from "@/pages/Terms";
+import NotFound from "@/pages/not-found";
 import CustomCursor from "@/components/effects/CustomCursor";
 import PageIntro from "@/components/effects/PageIntro";
 import ScrollToTop from "@/components/ScrollToTop";
 import { AdminProvider, useAdmin } from "@/context/AdminContext";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import AdminLogin from "@/pages/admin/AdminLogin";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminSettings from "@/pages/admin/AdminSettings";
+import AdminInfluencers from "@/pages/admin/AdminInfluencers";
+import AdminBlog from "@/pages/admin/AdminBlog";
+import AdminServices from "@/pages/admin/AdminServices";
+import AdminWork from "@/pages/admin/AdminWork";
+import AdminHome from "@/pages/admin/AdminHome";
+import AdminAbout from "@/pages/admin/AdminAbout";
+import AdminNavbar from "@/pages/admin/AdminNavbar";
+import AdminFooter from "@/pages/admin/AdminFooter";
+import AdminLeads from "@/pages/admin/AdminLeads";
+import AdminCertificates from "@/pages/admin/AdminCertificates";
+import AdminContact from "@/pages/admin/AdminContact";
+import AdminJoinNetwork from "@/pages/admin/AdminJoinNetwork";
+import AdminFreelancers from "@/pages/admin/AdminFreelancers";
+import AdminFullTime from "@/pages/admin/AdminFullTime";
+import AdminFramework from "@/pages/admin/AdminFramework";
+import AdminDistributionNetwork from "@/pages/admin/AdminDistributionNetwork";
+import AdminDistributionPages from "@/pages/admin/AdminDistributionPages";
+import AdminInfluencerExplore from "@/pages/admin/AdminInfluencerExplore";
+import AdminAuthorityAudit from "@/pages/admin/AdminAuthorityAudit";
+import AdminResources from "@/pages/admin/AdminResources";
+import AdminMediaLibrary from "@/pages/admin/AdminMediaLibrary";
+import AdminTeamMembers from "@/pages/admin/AdminTeamMembers";
+import AdminOptimize from "@/pages/admin/AdminOptimize";
+import AdminLogos from "@/pages/admin/AdminLogos";
+import CreatorSchool from "@/pages/CreatorSchool";
+import AdminCreatorSchool from "@/pages/admin/AdminCreatorSchool";
+import DesignersPool from "@/pages/DesignersPool";
+import ThumbnailDesignersPool from "@/pages/ThumbnailDesignersPool";
+import WritersPool from "@/pages/WritersPool";
+import SocialMediaManagersPool from "@/pages/SocialMediaManagersPool";
+import MotionDesignersPool from "@/pages/MotionDesignersPool";
+import AICreatorsPool from "@/pages/AICreatorsPool";
+import UGCCreatorsPool from "@/pages/UGCCreatorsPool";
+import MemeDesignersPool from "@/pages/MemeDesignersPool";
+import AdminTalentPool from "@/pages/admin/AdminTalentPool";
+import AdminPageVisibility from "@/pages/admin/AdminPageVisibility";
 import { PageGate } from "@/components/PageGate";
-
-const PageSpinner = () => (
-  <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-    <div style={{ width: 20, height: 20, borderRadius: "50%", border: "2px solid #E5E5E0", borderTopColor: "#1E293B", animation: "spin 0.7s linear infinite" }} />
-    <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-  </div>
-);
-
-const Services          = lazy(() => import("@/pages/Services"));
-const Work              = lazy(() => import("@/pages/Work"));
-const Framework         = lazy(() => import("@/pages/Framework"));
-const Insights          = lazy(() => import("@/pages/Insights"));
-const InsightDetail     = lazy(() => import("@/pages/InsightDetail"));
-const Creators          = lazy(() => import("@/pages/Creators"));
-const Freelancers       = lazy(() => import("@/pages/Freelancers"));
-const InfluencerExplore = lazy(() => import("@/pages/InfluencerExplore"));
-const DistributionNetwork = lazy(() => import("@/pages/DistributionNetwork"));
-const JoinNetwork       = lazy(() => import("@/pages/JoinNetwork"));
-const PageOwnerApply    = lazy(() => import("@/pages/PageOwnerApply"));
-const FullTime          = lazy(() => import("@/pages/FullTime"));
-const AuthorityAudit    = lazy(() => import("@/pages/AuthorityAudit"));
-const Portfolio         = lazy(() => import("@/pages/Portfolio"));
-const Resources         = lazy(() => import("@/pages/Resources"));
-const About             = lazy(() => import("@/pages/About"));
-const Contact           = lazy(() => import("@/pages/Contact"));
-const Internship        = lazy(() => import("@/pages/Internship"));
-const Verify            = lazy(() => import("@/pages/Verify"));
-const VerifyCertificate = lazy(() => import("@/pages/VerifyCertificate"));
-const Privacy           = lazy(() => import("@/pages/Privacy"));
-const Terms             = lazy(() => import("@/pages/Terms"));
-const NotFound          = lazy(() => import("@/pages/not-found"));
-const CreatorSchool     = lazy(() => import("@/pages/CreatorSchool"));
-const DesignersPool          = lazy(() => import("@/pages/DesignersPool"));
-const ThumbnailDesignersPool = lazy(() => import("@/pages/ThumbnailDesignersPool"));
-const WritersPool            = lazy(() => import("@/pages/WritersPool"));
-const SocialMediaManagersPool = lazy(() => import("@/pages/SocialMediaManagersPool"));
-const MotionDesignersPool    = lazy(() => import("@/pages/MotionDesignersPool"));
-const AICreatorsPool         = lazy(() => import("@/pages/AICreatorsPool"));
-const UGCCreatorsPool        = lazy(() => import("@/pages/UGCCreatorsPool"));
-const MemeDesignersPool      = lazy(() => import("@/pages/MemeDesignersPool"));
-
-const AdminLogin              = lazy(() => import("@/pages/admin/AdminLogin"));
-const AdminDashboard          = lazy(() => import("@/pages/admin/AdminDashboard"));
-const AdminSettings           = lazy(() => import("@/pages/admin/AdminSettings"));
-const AdminInfluencers        = lazy(() => import("@/pages/admin/AdminInfluencers"));
-const AdminBlog               = lazy(() => import("@/pages/admin/AdminBlog"));
-const AdminServices           = lazy(() => import("@/pages/admin/AdminServices"));
-const AdminWork               = lazy(() => import("@/pages/admin/AdminWork"));
-const AdminHome               = lazy(() => import("@/pages/admin/AdminHome"));
-const AdminAbout              = lazy(() => import("@/pages/admin/AdminAbout"));
-const AdminNavbar             = lazy(() => import("@/pages/admin/AdminNavbar"));
-const AdminFooter             = lazy(() => import("@/pages/admin/AdminFooter"));
-const AdminLeads              = lazy(() => import("@/pages/admin/AdminLeads"));
-const AdminCertificates       = lazy(() => import("@/pages/admin/AdminCertificates"));
-const AdminContact            = lazy(() => import("@/pages/admin/AdminContact"));
-const AdminJoinNetwork        = lazy(() => import("@/pages/admin/AdminJoinNetwork"));
-const AdminFreelancers        = lazy(() => import("@/pages/admin/AdminFreelancers"));
-const AdminFullTime           = lazy(() => import("@/pages/admin/AdminFullTime"));
-const AdminFramework          = lazy(() => import("@/pages/admin/AdminFramework"));
-const AdminDistributionNetwork = lazy(() => import("@/pages/admin/AdminDistributionNetwork"));
-const AdminDistributionPages  = lazy(() => import("@/pages/admin/AdminDistributionPages"));
-const AdminInfluencerExplore  = lazy(() => import("@/pages/admin/AdminInfluencerExplore"));
-const AdminAuthorityAudit     = lazy(() => import("@/pages/admin/AdminAuthorityAudit"));
-const AdminResources          = lazy(() => import("@/pages/admin/AdminResources"));
-const AdminMediaLibrary       = lazy(() => import("@/pages/admin/AdminMediaLibrary"));
-const AdminTeamMembers        = lazy(() => import("@/pages/admin/AdminTeamMembers"));
-const AdminOptimize           = lazy(() => import("@/pages/admin/AdminOptimize"));
-const AdminPortfolio          = lazy(() => import("@/pages/admin/AdminPortfolio"));
-const AdminLogos              = lazy(() => import("@/pages/admin/AdminLogos"));
-const AdminCreatorSchool      = lazy(() => import("@/pages/admin/AdminCreatorSchool"));
-const AdminTalentPool         = lazy(() => import("@/pages/admin/AdminTalentPool"));
-const AdminPageVisibility     = lazy(() => import("@/pages/admin/AdminPageVisibility"));
 
 function AdminGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, verifying } = useAdmin();
@@ -93,13 +84,13 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
     );
   }
   if (!isAuthenticated) return <Redirect to="/admin/login" />;
-  return <AdminLayout><Suspense fallback={<PageSpinner />}>{children}</Suspense></AdminLayout>;
+  return <AdminLayout>{children}</AdminLayout>;
 }
 
 function AdminRoutes() {
   return (
     <Switch>
-      <Route path="/admin/login">{() => <Suspense fallback={<PageSpinner />}><AdminLogin /></Suspense>}</Route>
+      <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin/settings">
         {() => <AdminGuard><AdminSettings /></AdminGuard>}
       </Route>
@@ -241,6 +232,9 @@ function FaviconInjector() {
 }
 
 function App() {
+  // Fire all content fetches immediately on app load.
+  // By the time the user navigates to any page, the cache is warm
+  // and pages render with real data from the very first paint.
   useEffect(() => {
     prefetchSections(ALL_SECTIONS);
     prefetchInfluencers();
@@ -253,51 +247,51 @@ function App() {
         <ScrollToTop />
         <CustomCursor />
         <Switch>
+          {/* All admin routes */}
           <Route path="/admin/:rest*" component={AdminRoutes} />
           <Route path="/admin" component={AdminRoutes} />
 
+          {/* Public site */}
           <Route>
             {() => (
               <>
                 <PageIntro />
                 <Layout>
-                  <Suspense fallback={<PageSpinner />}>
-                    <Switch>
-                      <Route path="/">{() => <PageGate slug="home"><Home /></PageGate>}</Route>
-                      <Route path="/services">{() => <PageGate slug="services"><Services /></PageGate>}</Route>
-                      <Route path="/work">{() => <PageGate slug="work"><Work /></PageGate>}</Route>
-                      <Route path="/framework">{() => <PageGate slug="framework"><Framework /></PageGate>}</Route>
-                      <Route path="/insights">{() => <PageGate slug="insights"><Insights /></PageGate>}</Route>
-                      <Route path="/insights/:slug">{() => <PageGate slug="insights"><InsightDetail /></PageGate>}</Route>
-                      <Route path="/influencers">{() => <PageGate slug="influencers"><InfluencerExplore /></PageGate>}</Route>
-                      <Route path="/distribution">{() => <PageGate slug="distribution"><DistributionNetwork /></PageGate>}</Route>
-                      <Route path="/join">{() => <PageGate slug="join"><JoinNetwork /></PageGate>}</Route>
-                      <Route path="/join/page-owner">{() => <PageGate slug="join-page-owner"><PageOwnerApply /></PageGate>}</Route>
-                      <Route path="/creators">{() => <PageGate slug="creators"><Creators /></PageGate>}</Route>
-                      <Route path="/freelancers">{() => <PageGate slug="freelancers"><Freelancers /></PageGate>}</Route>
-                      <Route path="/full-time">{() => <PageGate slug="full-time"><FullTime /></PageGate>}</Route>
-                      <Route path="/authority-audit">{() => <PageGate slug="authority-audit"><AuthorityAudit /></PageGate>}</Route>
-                      <Route path="/portfolio-private" component={Portfolio} />
-                      <Route path="/resources">{() => <PageGate slug="resources"><Resources /></PageGate>}</Route>
-                      <Route path="/about">{() => <PageGate slug="about"><About /></PageGate>}</Route>
-                      <Route path="/contact">{() => <PageGate slug="contact"><Contact /></PageGate>}</Route>
-                      <Route path="/internship">{() => <PageGate slug="internship"><Internship /></PageGate>}</Route>
-                      <Route path="/verify/:id">{() => <PageGate slug="verify"><VerifyCertificate /></PageGate>}</Route>
-                      <Route path="/verify">{() => <PageGate slug="verify"><Verify /></PageGate>}</Route>
-                      <Route path="/privacy" component={Privacy} />
-                      <Route path="/terms" component={Terms} />
-                      <Route path="/editors-pool">{() => <PageGate slug="creator-school"><CreatorSchool /></PageGate>}</Route>
-                      <Route path="/designers-pool">{() => <PageGate slug="designers-pool"><DesignersPool /></PageGate>}</Route>
-                      <Route path="/thumbnail-designers">{() => <PageGate slug="thumbnail-designers"><ThumbnailDesignersPool /></PageGate>}</Route>
-                      <Route path="/writers-pool">{() => <PageGate slug="writers-pool"><WritersPool /></PageGate>}</Route>
-                      <Route path="/social-media-managers">{() => <PageGate slug="social-media-managers"><SocialMediaManagersPool /></PageGate>}</Route>
-                      <Route path="/motion-designers">{() => <PageGate slug="motion-designers"><MotionDesignersPool /></PageGate>}</Route>
-                      <Route path="/ai-creators">{() => <PageGate slug="ai-creators"><AICreatorsPool /></PageGate>}</Route>
-                      <Route path="/ugc-creators">{() => <PageGate slug="ugc-creators"><UGCCreatorsPool /></PageGate>}</Route>
-                      <Route path="/meme-designers">{() => <PageGate slug="meme-designers"><MemeDesignersPool /></PageGate>}</Route>
-                      <Route component={NotFound} />
-                    </Switch>
-                  </Suspense>
+                  <Switch>
+                    <Route path="/">{() => <PageGate slug="home"><Home /></PageGate>}</Route>
+                    <Route path="/services">{() => <PageGate slug="services"><Services /></PageGate>}</Route>
+                    <Route path="/work">{() => <PageGate slug="work"><Work /></PageGate>}</Route>
+                    <Route path="/framework">{() => <PageGate slug="framework"><Framework /></PageGate>}</Route>
+                    <Route path="/insights">{() => <PageGate slug="insights"><Insights /></PageGate>}</Route>
+                    <Route path="/insights/:slug">{() => <PageGate slug="insights"><InsightDetail /></PageGate>}</Route>
+                    <Route path="/influencers">{() => <PageGate slug="influencers"><InfluencerExplore /></PageGate>}</Route>
+                    <Route path="/distribution">{() => <PageGate slug="distribution"><DistributionNetwork /></PageGate>}</Route>
+                    <Route path="/join">{() => <PageGate slug="join"><JoinNetwork /></PageGate>}</Route>
+                    <Route path="/join/page-owner">{() => <PageGate slug="join-page-owner"><PageOwnerApply /></PageGate>}</Route>
+                    <Route path="/creators">{() => <PageGate slug="creators"><Creators /></PageGate>}</Route>
+                    <Route path="/freelancers">{() => <PageGate slug="freelancers"><Freelancers /></PageGate>}</Route>
+                    <Route path="/full-time">{() => <PageGate slug="full-time"><FullTime /></PageGate>}</Route>
+                    <Route path="/authority-audit">{() => <PageGate slug="authority-audit"><AuthorityAudit /></PageGate>}</Route>
+                    <Route path="/portfolio-private" component={Portfolio} />
+                    <Route path="/resources">{() => <PageGate slug="resources"><Resources /></PageGate>}</Route>
+                    <Route path="/about">{() => <PageGate slug="about"><About /></PageGate>}</Route>
+                    <Route path="/contact">{() => <PageGate slug="contact"><Contact /></PageGate>}</Route>
+                    <Route path="/internship">{() => <PageGate slug="internship"><Internship /></PageGate>}</Route>
+                    <Route path="/verify/:id">{() => <PageGate slug="verify"><VerifyCertificate /></PageGate>}</Route>
+                    <Route path="/verify">{() => <PageGate slug="verify"><Verify /></PageGate>}</Route>
+                    <Route path="/privacy" component={Privacy} />
+                    <Route path="/terms" component={Terms} />
+                    <Route path="/editors-pool">{() => <PageGate slug="creator-school"><CreatorSchool /></PageGate>}</Route>
+                    <Route path="/designers-pool">{() => <PageGate slug="designers-pool"><DesignersPool /></PageGate>}</Route>
+                    <Route path="/thumbnail-designers">{() => <PageGate slug="thumbnail-designers"><ThumbnailDesignersPool /></PageGate>}</Route>
+                    <Route path="/writers-pool">{() => <PageGate slug="writers-pool"><WritersPool /></PageGate>}</Route>
+                    <Route path="/social-media-managers">{() => <PageGate slug="social-media-managers"><SocialMediaManagersPool /></PageGate>}</Route>
+                    <Route path="/motion-designers">{() => <PageGate slug="motion-designers"><MotionDesignersPool /></PageGate>}</Route>
+                    <Route path="/ai-creators">{() => <PageGate slug="ai-creators"><AICreatorsPool /></PageGate>}</Route>
+                    <Route path="/ugc-creators">{() => <PageGate slug="ugc-creators"><UGCCreatorsPool /></PageGate>}</Route>
+                    <Route path="/meme-designers">{() => <PageGate slug="meme-designers"><MemeDesignersPool /></PageGate>}</Route>
+                    <Route component={NotFound} />
+                  </Switch>
                 </Layout>
               </>
             )}
