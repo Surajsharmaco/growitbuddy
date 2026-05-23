@@ -495,7 +495,7 @@ router.get("/public/certificate/:certificateId", async (req, res) => {
       .select()
       .from(certificates)
       .where(eq(certificates.certificateId, certificateId));
-    if (rows.length === 0) {
+    if (rows.length === 0 || rows[0].isHidden) {
       res.status(404).json({ error: "Certificate not found" });
       return;
     }
@@ -542,10 +542,17 @@ router.post("/certificates", authMiddleware, async (req, res) => {
 router.put("/certificates/:id", authMiddleware, async (req, res) => {
   const id = parseInt(String(req.params.id));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
-  const { name, email, role, issueDate, status } = req.body;
+  const { name, email, role, issueDate, status, isHidden } = req.body;
+  const update: Record<string, unknown> = { updatedAt: new Date() };
+  if (name !== undefined) update.name = name;
+  if (email !== undefined) update.email = email || null;
+  if (role !== undefined) update.role = role;
+  if (issueDate !== undefined) update.issueDate = issueDate;
+  if (status !== undefined) update.status = status;
+  if (typeof isHidden === "boolean") update.isHidden = isHidden;
   const rows = await db
     .update(certificates)
-    .set({ name, email: email || null, role, issueDate, status, updatedAt: new Date() })
+    .set(update)
     .where(eq(certificates.id, id))
     .returning();
   if (rows.length === 0) { res.status(404).json({ error: "Certificate not found" }); return; }
@@ -853,7 +860,11 @@ router.delete("/portfolio/:id", authMiddleware, async (req, res) => {
 
 router.get("/logos/public", async (_req, res) => {
   try {
-    const rows = await db.select().from(clientLogos).orderBy(asc(clientLogos.sortOrder), asc(clientLogos.createdAt));
+    const rows = await db
+      .select()
+      .from(clientLogos)
+      .where(eq(clientLogos.enabled, true))
+      .orderBy(asc(clientLogos.sortOrder), asc(clientLogos.createdAt));
     res.json(rows);
   } catch (err) {
     logger.error({ err }, "Failed to list client logos");
