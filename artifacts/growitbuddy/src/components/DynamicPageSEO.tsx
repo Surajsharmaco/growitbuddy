@@ -130,6 +130,19 @@ function applySEO(entry: PageRegistryEntry, seo: PageSEOData, pathname: string) 
  * any open public tab on the same browser will re-apply on the next route
  * change (good enough for v1).
  */
+// Per-component monotonic load id so an older in-flight SEO fetch can't
+// overwrite a newer one (e.g. route change + broadcast firing in quick
+// succession).
+let loadId = 0;
+
+function parseBroadcastSection(value: string | null): string | null {
+  if (!value) return null;
+  const pipe = value.lastIndexOf("|");
+  if (pipe !== -1) return value.slice(0, pipe);
+  const m = value.match(/^(.+):\d+$/);
+  return m ? m[1] : value;
+}
+
 export default function DynamicPageSEO() {
   const [location] = useLocation();
 
@@ -139,19 +152,19 @@ export default function DynamicPageSEO() {
     let cancelled = false;
 
     async function load() {
+      const myId = ++loadId;
       try {
         const r = await fetch(
           `${API_BASE}/seo/${encodeURIComponent(entry!.slug)}?t=${Date.now()}`,
           { cache: "no-store" },
         );
-        if (!r.ok) {
-          if (!cancelled) applySEO(entry!, {}, location);
-          return;
-        }
+        if (cancelled || myId !== loadId) return;
+        if (!r.ok) { applySEO(entry!, {}, location); return; }
         const body = (await r.json()) as { data: PageSEOData | null };
-        if (!cancelled) applySEO(entry!, body.data ?? {}, location);
+        if (cancelled || myId !== loadId) return;
+        applySEO(entry!, body.data ?? {}, location);
       } catch {
-        if (!cancelled) applySEO(entry!, {}, location);
+        if (!cancelled && myId === loadId) applySEO(entry!, {}, location);
       }
     }
 
@@ -161,14 +174,12 @@ export default function DynamicPageSEO() {
     // under "seo:<slug>"), reload so the public tab reflects the change
     // without the user needing to refresh.
     function onStorage(e: StorageEvent) {
-      if (e.key !== "gb-content-updated" || !e.newValue) return;
-      const sec = e.newValue.split(":")[0];
-      // SEO sections have keys like "seo:home"; refresh on any seo:* change
-      // for the current slug, or any non-seo section (defaults may have moved).
-      if (sec.startsWith("seo:")) {
-        const slug = sec.slice(4);
-        if (slug === entry!.slug) load();
-      }
+      if (e.key !== "gb-content-updated") return;
+      const sec = parseBroadcastSection(e.newValue);
+      if (!sec) return;
+      // SEO sections have keys like "seo:home"; refresh when the SEO record
+      // for the current page slug changes.
+      if (sec === `seo:${entry!.slug}`) load();
     }
     // Re-validate when the tab regains focus — covers the case where the
     // user edited in another window and switches back to the public tab.

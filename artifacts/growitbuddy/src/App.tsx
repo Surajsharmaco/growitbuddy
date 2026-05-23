@@ -190,12 +190,23 @@ function FaviconInjector() {
 
 function App() {
   useEffect(() => {
-    // Kick off content prefetch immediately so first paint already has the
-    // latest admin-edited copy. The previous 1500ms delay was the main cause
-    // of the "old content flash" — pages rendered hardcoded defaults during
-    // that window before the real content arrived.
-    prefetchSections(ALL_SECTIONS);
-    prefetchInfluencers();
+    // Use requestIdleCallback so prefetch doesn't compete with critical
+    // resources on the first paint (preserves LCP) while still kicking off
+    // much sooner than the previous 1500ms timeout. Mounted hooks also do
+    // their own refresh-on-mount, so even if a section isn't pre-warmed by
+    // the time a page renders, the hook will pull fresh data right away.
+    const ric = (window as unknown as {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+    }).requestIdleCallback;
+    const run = () => { prefetchSections(ALL_SECTIONS); prefetchInfluencers(); };
+    let handle: number | NodeJS.Timeout;
+    if (ric) handle = ric(run, { timeout: 800 });
+    else handle = setTimeout(run, 300);
+    return () => {
+      const cic = (window as unknown as { cancelIdleCallback?: (h: number) => void }).cancelIdleCallback;
+      if (ric && cic) cic(handle as number);
+      else clearTimeout(handle as NodeJS.Timeout);
+    };
   }, []);
 
   return (

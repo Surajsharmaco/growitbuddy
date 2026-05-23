@@ -7,8 +7,35 @@ const cache = new Map<string, object>();
 const inFlight = new Map<string, Promise<object | null>>();
 
 // localStorage key used by the admin to signal "I just saved this section,
-// public tabs should refetch". The value is `${section}:${timestamp}`.
+// public tabs should refetch". The value is `${section}|${timestamp}` —
+// section may itself contain ":" (e.g. "seo:home"), so we use "|" as the
+// separator to keep parsing unambiguous.
 const BROADCAST_KEY = "gb-content-updated";
+
+function parseBroadcast(value: string | null): string | null {
+  if (!value) return null;
+  // Support both old (":") and new ("|") separators; the timestamp is always
+  // a numeric tail, so strip from the last separator that has a numeric tail.
+  const pipe = value.lastIndexOf("|");
+  if (pipe !== -1) return value.slice(0, pipe);
+  // Legacy: strip trailing ":<digits>" if present, otherwise return as-is.
+  const m = value.match(/^(.+):\d+$/);
+  return m ? m[1] : value;
+}
+
+export { parseBroadcast };
+
+// Per-section monotonic version counter — prevents an older in-flight fetch
+// from overwriting newer data when refresh() is called multiple times.
+const versionCounter = new Map<string, number>();
+function nextVersion(section: string): number {
+  const v = (versionCounter.get(section) ?? 0) + 1;
+  versionCounter.set(section, v);
+  return v;
+}
+function currentVersion(section: string): number {
+  return versionCounter.get(section) ?? 0;
+}
 
 function fetchSection(section: string): Promise<object | null> {
   if (inFlight.has(section)) return inFlight.get(section)!;
@@ -51,7 +78,7 @@ export function prefetchSections(sections: string[]): void {
  */
 export function broadcastContentUpdate(section: string): void {
   try {
-    localStorage.setItem(BROADCAST_KEY, `${section}:${Date.now()}`);
+    localStorage.setItem(BROADCAST_KEY, `${section}|${Date.now()}`);
   } catch {
     /* localStorage might be unavailable; non-fatal */
   }
@@ -92,36 +119,38 @@ export function usePublicContent<T extends object>(
   useEffect(() => {
     let cancelled = false;
 
+    function applyIfCurrent(myVersion: number, fresh: object | null) {
+      if (cancelled || !fresh) return;
+      // Guard against out-of-order responses: only apply if this is still
+      // the latest version we've requested for this section.
+      if (myVersion !== currentVersion(section)) return;
+      setData((prev) => {
+        const next = { ...prev, ...(fresh as Partial<T>) } as T;
+        // Skip the state update (and re-render) when nothing actually
+        // changed — eliminates the visible "flash" on background refreshes.
+        return shallowEqual(prev as object, next as object) ? prev : next;
+      });
+    }
+
     function refresh() {
       // Clear in-memory cache so we actually hit the network instead of
       // resolving with a stale value from the previous fetch.
       cache.delete(section);
       inFlight.delete(section);
-      fetchSection(section).then((fresh) => {
-        if (cancelled || !fresh) return;
-        setData((prev) => {
-          const next = { ...prev, ...(fresh as Partial<T>) } as T;
-          // Skip the state update (and re-render) when nothing actually
-          // changed — eliminates the visible "flash" on background refreshes.
-          return shallowEqual(prev as object, next as object) ? prev : next;
-        });
-      });
+      const myVersion = nextVersion(section);
+      fetchSection(section).then((fresh) => applyIfCurrent(myVersion, fresh));
     }
 
-    // If already cached, still refresh silently in background to pick up any edits
-    fetchSection(section).then((fresh) => {
-      if (cancelled || !fresh) return;
-      setData((prev) => {
-        const next = { ...prev, ...(fresh as Partial<T>) } as T;
-        return shallowEqual(prev as object, next as object) ? prev : next;
-      });
-    });
+    // Initial silent refresh on mount to pick up any admin edits made since
+    // the cache was warmed.
+    const initialVersion = nextVersion(section);
+    fetchSection(section).then((fresh) => applyIfCurrent(initialVersion, fresh));
 
     // Cross-tab live update: when the admin saves, BROADCAST_KEY changes
     // and we re-fetch immediately so the public tab never shows stale data.
     function onStorage(e: StorageEvent) {
-      if (e.key !== BROADCAST_KEY || !e.newValue) return;
-      const sec = e.newValue.split(":")[0];
+      if (e.key !== BROADCAST_KEY) return;
+      const sec = parseBroadcast(e.newValue);
       if (sec === section) refresh();
     }
     // When the tab regains focus, also re-validate — covers the case where

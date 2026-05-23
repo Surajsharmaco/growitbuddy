@@ -191,9 +191,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       }
       // Ping every other tab in this browser so public pages re-fetch and
       // never show stale content. Public SPA tabs listen via the `storage`
-      // event in usePublicContent and DynamicPageSEO.
+      // event in usePublicContent and DynamicPageSEO. We use "|" as the
+      // section/timestamp separator because section names themselves may
+      // contain ":" (e.g. "seo:home").
       try {
-        localStorage.setItem("gb-content-updated", `${section}:${Date.now()}`);
+        localStorage.setItem("gb-content-updated", `${section}|${Date.now()}`);
       } catch { /* localStorage may be unavailable */ }
     },
     [authFetch],

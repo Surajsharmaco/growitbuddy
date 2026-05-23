@@ -18,10 +18,25 @@ interface InfluencerCache {
 let cachedInfluencers: InfluencerCache | null = null;
 let inFlightInfluencers: Promise<InfluencerCache | null> | null = null;
 
+// Per-fetch version guard so an older in-flight response can't overwrite a
+// newer one when refresh() is called multiple times (broadcast + visibility).
+let influencersVersion = 0;
+
+function parseBroadcastSection(value: string | null): string | null {
+  if (!value) return null;
+  const pipe = value.lastIndexOf("|");
+  if (pipe !== -1) return value.slice(0, pipe);
+  const m = value.match(/^(.+):\d+$/);
+  return m ? m[1] : value;
+}
+
 function fetchInfluencers(): Promise<InfluencerCache | null> {
   if (inFlightInfluencers) return inFlightInfluencers;
 
-  inFlightInfluencers = fetch(`${API_BASE}/admin/public/content/influencers`)
+  inFlightInfluencers = fetch(
+    `${API_BASE}/admin/public/content/influencers?t=${Date.now()}`,
+    { cache: "no-store" },
+  )
     .then((r) => (r.ok ? r.json() : null))
     .then((json) => {
       inFlightInfluencers = null;
@@ -68,23 +83,52 @@ export function useLiveInfluencers(): LiveInfluencersResult {
   const [loading, setLoading] = useState(!cachedInfluencers);
 
   useEffect(() => {
+    let cancelled = false;
+
+    function apply(data: InfluencerCache | null, myVersion: number) {
+      if (cancelled || !data) return;
+      if (myVersion !== influencersVersion) return;
+      setInfluencers(data.items);
+      setGenres(data.genres);
+      setCountries(data.countries);
+      setLoading(false);
+    }
+
+    function refresh() {
+      // Bypass cache so the admin's most recent save wins.
+      cachedInfluencers = null;
+      inFlightInfluencers = null;
+      const myVersion = ++influencersVersion;
+      fetchInfluencers().then((data) => apply(data, myVersion));
+    }
+
     if (cachedInfluencers) {
-      // Already have data - apply it immediately, then refresh silently
       setInfluencers(cachedInfluencers.items);
       setGenres(cachedInfluencers.genres);
       setCountries(cachedInfluencers.countries);
       setLoading(false);
     }
 
-    let cancelled = false;
-    fetchInfluencers().then((data) => {
-      if (cancelled || !data) return;
-      setInfluencers(data.items);
-      setGenres(data.genres);
-      setCountries(data.countries);
-      setLoading(false);
-    });
-    return () => { cancelled = true; };
+    const initialVersion = ++influencersVersion;
+    fetchInfluencers().then((data) => apply(data, initialVersion));
+
+    // Cross-tab live update: admin saved → public tab re-fetches.
+    function onStorage(e: StorageEvent) {
+      if (e.key !== "gb-content-updated") return;
+      const sec = parseBroadcastSection(e.newValue);
+      if (sec === "influencers") refresh();
+    }
+    function onVisible() {
+      if (document.visibilityState === "visible") refresh();
+    }
+
+    window.addEventListener("storage", onStorage);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("storage", onStorage);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, []);
 
   return { influencers, genres, countries, loading };
