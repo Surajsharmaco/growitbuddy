@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { Card, PageHeader, SectionTitle } from "@/components/admin/AdminField";
 import { ImageUrlField } from "@/components/admin/ImageUrlField";
-import { Plus, Trash2, Edit2, X, Save, Upload, Image } from "lucide-react";
+import { Plus, Trash2, Edit2, X, Save, Upload, Image, Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { API_BASE } from "@/lib/api";
@@ -333,15 +333,25 @@ export default function AdminLogos() {
                         <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
                           <button
                             onClick={async () => {
+                              const prev = logo.enabled;
+                              setLogos((list) => list.map((l) => l.id === logo.id ? { ...l, enabled: !prev } : l));
                               const fd = new FormData();
-                              fd.append("enabled", String(!logo.enabled));
+                              fd.append("enabled", String(!prev));
                               const res = await fetch(`${API_BASE}/admin/logos/${logo.id}`, { method: "PUT", headers: { Authorization: `Bearer ${token}` }, body: fd });
-                              if (res.ok) { const updated = await res.json(); setLogos(prev => prev.map(l => l.id === updated.id ? updated : l)); }
+                              if (res.ok) { const updated = await res.json(); setLogos(list => list.map(l => l.id === updated.id ? updated : l)); }
+                              else setLogos((list) => list.map((l) => l.id === logo.id ? { ...l, enabled: prev } : l));
                             }}
-                            style={{ padding: 4, border: "none", background: "transparent", cursor: "pointer", color: logo.enabled ? "#16A34A" : "#8A8A8A", borderRadius: 4 }}
-                            title={logo.enabled ? "Visible - click to hide" : "Hidden - click to show"}
+                            style={{
+                              padding: "3px 6px", border: "1px solid",
+                              borderColor: logo.enabled ? "rgba(22,163,74,0.25)" : "rgba(251,191,36,0.4)",
+                              background: logo.enabled ? "rgba(22,163,74,0.08)" : "rgba(251,191,36,0.12)",
+                              cursor: "pointer",
+                              color: logo.enabled ? "#16A34A" : "#92400E",
+                              borderRadius: 4, display: "flex", alignItems: "center",
+                            }}
+                            title={logo.enabled ? "Visible on website — click to hide" : "Hidden from website — click to restore"}
                           >
-                            <span style={{ fontSize: 10, fontWeight: 700 }}>{logo.enabled ? "ON" : "OFF"}</span>
+                            {logo.enabled ? <Eye size={11} /> : <EyeOff size={11} />}
                           </button>
                           <button
                             onClick={() => setEditId(logo.id)}
