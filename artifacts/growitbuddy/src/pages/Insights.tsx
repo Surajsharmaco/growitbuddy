@@ -2,18 +2,20 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { ArrowRight } from "lucide-react";
-import { blogPosts as DEFAULT_POSTS, type BlogPost } from "@/data/blogPosts";
+import { type BlogPost } from "@/data/blogPosts";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import { useWordPressPosts } from "@/hooks/useWordPressPosts";
 import SEOMeta from "@/components/SEOMeta";
 
 export default function Insights() {
   const [activeTag, setActiveTag] = useState("All");
-  const { posts: cmsPosts } = usePublicContent<{ posts: BlogPost[] }>("blog", { posts: DEFAULT_POSTS });
+  // Default is empty so the page never flashes hardcoded/stale posts.
+  // CMS is the source of truth — whatever admin saves is what shows.
+  const { posts: cmsPosts } = usePublicContent<{ posts: BlogPost[] }>("blog", { posts: [] });
   const { posts: wpPosts } = useWordPressPosts();
 
   const blogPosts = useMemo(() => {
-    const base: BlogPost[] = (cmsPosts?.length ? cmsPosts : DEFAULT_POSTS).map((p) => ({ ...p, source: "cms" as const }));
+    const base: BlogPost[] = (cmsPosts ?? []).map((p) => ({ ...p, source: "cms" as const }));
     const combined = [...base, ...wpPosts];
     combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     return combined;
