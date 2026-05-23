@@ -5,6 +5,8 @@ import { useRoute, Link } from "wouter";
 
 import { API_BASE } from "@/lib/api";
 
+type CategoryType = "video" | "reel" | "case-study";
+
 const CATEGORIES = [
   "Personal Branding",
   "Content Creation",
@@ -18,58 +20,61 @@ const CATEGORIES = [
   "Digital Products & Growth",
 ] as const;
 
-const CATEGORY_META: Record<string, { slug: string; tagline: string; accent: string }> = {
+const CATEGORY_META: Record<string, { slug: string; tagline: string; type: CategoryType }> = {
   "Personal Branding": {
     slug: "personal-branding",
     tagline: "Positioning and authority systems for founders, creators, and operators.",
-    accent: "linear-gradient(135deg, #1E293B 0%, #0F172A 100%)",
+    type: "case-study",
   },
   "Content Creation": {
     slug: "content-creation",
     tagline: "High-signal content production engineered for trust and consistency at scale.",
-    accent: "linear-gradient(135deg, #2D3F50 0%, #1A2733 100%)",
+    type: "video",
   },
   "Video Editing": {
     slug: "video-editing",
     tagline: "Cinematic long-form edits crafted to convert attention into authority.",
-    accent: "linear-gradient(135deg, #0F172A 0%, #020617 100%)",
+    type: "video",
   },
   "Reels / Shorts": {
     slug: "reels-shorts",
     tagline: "Scroll-stopping short-form built for reach and retention.",
-    accent: "linear-gradient(135deg, #8B3A1A 0%, #5B2410 100%)",
+    type: "reel",
   },
   "Graphics": {
     slug: "graphics",
     tagline: "Visual systems and design that make brands unforgettable.",
-    accent: "linear-gradient(135deg, #C2A878 0%, #8A7449 100%)",
+    type: "case-study",
   },
   "Social Media Management": {
     slug: "social-media-management",
     tagline: "End-to-end social systems that turn channels into engines.",
-    accent: "linear-gradient(135deg, #334155 0%, #1E293B 100%)",
+    type: "case-study",
   },
   "Distribution & Growth": {
     slug: "distribution-growth",
     tagline: "Amplification networks and performance systems that push content to the right audiences.",
-    accent: "linear-gradient(135deg, #6B2B4F 0%, #3D1830 100%)",
+    type: "case-study",
   },
   "Web & Funnel Systems": {
     slug: "web-funnel-systems",
     tagline: "Digital infrastructure — sites and funnels engineered to convert.",
-    accent: "linear-gradient(135deg, #1F4068 0%, #0F2540 100%)",
+    type: "case-study",
   },
   "AI Automation": {
     slug: "ai-automation",
     tagline: "AI-powered authority systems that compound output without scaling headcount.",
-    accent: "linear-gradient(135deg, #2A4A3B 0%, #142C22 100%)",
+    type: "case-study",
   },
   "Digital Products & Growth": {
     slug: "digital-products-growth",
     tagline: "Monetization systems — products, offers, and funnels built to grow.",
-    accent: "linear-gradient(135deg, #8A6A2E 0%, #50401C 100%)",
+    type: "case-study",
   },
 };
+
+// Single brand palette accent — used for all service cards and hero backgrounds
+const BRAND_ACCENT = "linear-gradient(135deg, #1E293B 0%, #0F172A 100%)";
 
 function slugToCategory(slug: string): string | null {
   for (const [cat, meta] of Object.entries(CATEGORY_META)) {
@@ -119,7 +124,7 @@ function getHiResThumbnail(url: string): string {
   return m ? `https://img.youtube.com/vi/${m[1]}/maxresdefault.jpg` : "";
 }
 
-// ── Video Tile (used in category collage) ──
+// ── Video Tile (16:9) — long-form ──
 function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?: boolean }) {
   const [playing, setPlaying] = useState(false);
   const embedUrl = getEmbedUrl(item.youtubeUrl);
@@ -159,7 +164,6 @@ function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?:
                 style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
                 loading="lazy"
                 onError={(e) => {
-                  // fallback to hqdefault if maxres fails
                   const el = e.currentTarget as HTMLImageElement;
                   const fallback = getThumbnail(item.youtubeUrl);
                   if (el.src !== fallback) el.src = fallback;
@@ -224,7 +228,219 @@ function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?:
   );
 }
 
-// ── Service Category Card (landing) ──
+// ── Reel Tile (9:16) — short-form, aligned grid ──
+function ReelTile({ item }: { item: PortfolioItem }) {
+  const [playing, setPlaying] = useState(false);
+  const embedUrl = getEmbedUrl(item.youtubeUrl);
+  const thumb = getHiResThumbnail(item.youtubeUrl);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45 }}
+      style={{
+        background: "#0A0A0A",
+        borderRadius: 18,
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        border: "1.5px solid #E5E5E0",
+        transition: "transform 0.25s, box-shadow 0.25s, border-color 0.25s",
+      }}
+      className="hover:-translate-y-1 hover:shadow-2xl hover:border-[#C2A878]"
+    >
+      <div style={{ position: "relative", aspectRatio: "9/16", background: "#0A0A0A" }}>
+        {playing && embedUrl ? (
+          <iframe
+            src={`${embedUrl}&autoplay=1`}
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            loading="lazy"
+          />
+        ) : (
+          <>
+            {thumb && (
+              <img
+                src={thumb}
+                alt={item.title}
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                loading="lazy"
+                onError={(e) => {
+                  const el = e.currentTarget as HTMLImageElement;
+                  const fallback = getThumbnail(item.youtubeUrl);
+                  if (el.src !== fallback) el.src = fallback;
+                }}
+              />
+            )}
+            {/* Bottom info overlay — title visible on the reel */}
+            <div
+              style={{
+                position: "absolute", inset: 0,
+                background: "linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.85) 100%)",
+                cursor: "pointer",
+                display: "flex", flexDirection: "column", justifyContent: "space-between",
+                padding: 16,
+              }}
+              onClick={() => setPlaying(true)}
+            >
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <div
+                  style={{
+                    width: 52, height: 52, borderRadius: "50%",
+                    background: "rgba(255,255,255,0.95)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
+                    transition: "transform 0.2s",
+                  }}
+                  className="hover:scale-110"
+                >
+                  <Play size={22} style={{ color: "#0A0A0A", marginLeft: 3 }} fill="#0A0A0A" />
+                </div>
+              </div>
+              <div>
+                <h3
+                  style={{
+                    fontWeight: 800,
+                    fontSize: 15,
+                    letterSpacing: "-0.02em",
+                    color: "#fff",
+                    lineHeight: 1.3,
+                    margin: 0,
+                  }}
+                >
+                  {item.title}
+                </h3>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+// ── Case Study Tile — no play button, hero image + title + description ──
+function CaseStudyTile({ item, featured = false }: { item: PortfolioItem; featured?: boolean }) {
+  const thumb = featured ? getHiResThumbnail(item.youtubeUrl) : getThumbnail(item.youtubeUrl);
+
+  return (
+    <motion.a
+      href={item.youtubeUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      style={{
+        background: "#fff",
+        border: "1.5px solid #E5E5E0",
+        borderRadius: 18,
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        transition: "transform 0.25s, box-shadow 0.25s, border-color 0.25s",
+        textDecoration: "none",
+        color: "inherit",
+      }}
+      className="group hover:-translate-y-1 hover:shadow-2xl hover:border-[#C2A878]"
+    >
+      <div
+        style={{
+          position: "relative",
+          aspectRatio: featured ? "16/9" : "4/3",
+          background: BRAND_ACCENT,
+          overflow: "hidden",
+        }}
+      >
+        {thumb && (
+          <img
+            src={thumb}
+            alt={item.title}
+            style={{
+              position: "absolute", inset: 0, width: "100%", height: "100%",
+              objectFit: "cover",
+              transition: "transform 0.6s",
+            }}
+            loading="lazy"
+            className="group-hover:scale-105"
+            onError={(e) => {
+              const el = e.currentTarget as HTMLImageElement;
+              const fallback = getThumbnail(item.youtubeUrl);
+              if (el.src !== fallback) el.src = fallback;
+            }}
+          />
+        )}
+        <div
+          style={{
+            position: "absolute", inset: 0,
+            background: "linear-gradient(180deg, rgba(15,23,42,0) 50%, rgba(15,23,42,0.6) 100%)",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute", top: 14, left: 14,
+            fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase",
+            padding: "5px 11px", borderRadius: 100,
+            background: "rgba(255,255,255,0.95)", color: "#1E293B",
+          }}
+        >
+          Case Study
+        </div>
+      </div>
+
+      <div style={{ padding: featured ? "28px 28px 30px" : "22px", flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+        <span
+          style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase",
+            color: "#8A8A8A",
+          }}
+        >
+          {item.category}
+        </span>
+        <h3
+          style={{
+            fontWeight: 800,
+            fontSize: featured ? 26 : 18,
+            letterSpacing: "-0.025em",
+            color: "#0A0A0A",
+            lineHeight: 1.25,
+            margin: 0,
+          }}
+        >
+          {item.title}
+        </h3>
+        {item.description && (
+          <p style={{ fontSize: featured ? 15 : 13.5, color: "#5F5F5F", lineHeight: 1.6, margin: 0 }}>
+            {item.description}
+          </p>
+        )}
+        <div
+          style={{
+            marginTop: 6,
+            display: "inline-flex", alignItems: "center", gap: 6,
+            fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
+            color: "#1E293B",
+            transition: "color 0.2s",
+          }}
+          className="group-hover:text-[#C2A878]"
+        >
+          View case study <ArrowUpRight size={14} />
+        </div>
+      </div>
+    </motion.a>
+  );
+}
+
+// ── Renderer per category type ──
+function Tile({ item, type, featured = false }: { item: PortfolioItem; type: CategoryType; featured?: boolean }) {
+  if (type === "reel") return <ReelTile item={item} />;
+  if (type === "case-study") return <CaseStudyTile item={item} featured={featured} />;
+  return <VideoTile item={item} featured={featured} />;
+}
+
+// ── Service Category Card (landing) — uniform brand palette ──
 function ServiceCard({
   category, count, previewThumb, index,
 }: { category: string; count: number; previewThumb: string; index: number }) {
@@ -243,14 +459,13 @@ function ServiceCard({
           overflow: "hidden",
           cursor: "pointer",
           minHeight: 340,
-          background: meta.accent,
+          background: BRAND_ACCENT,
           boxShadow: "0 8px 32px rgba(15,23,42,0.12)",
           transition: "box-shadow 0.3s",
           textDecoration: "none",
         }}
         className="service-card group hover:shadow-2xl"
       >
-        {/* Background thumbnail */}
         {previewThumb && (
           <img
             src={previewThumb}
@@ -258,20 +473,18 @@ function ServiceCard({
             loading="lazy"
             style={{
               position: "absolute", inset: 0, width: "100%", height: "100%",
-              objectFit: "cover", opacity: 0.42,
+              objectFit: "cover", opacity: 0.32,
               transition: "transform 0.6s, opacity 0.3s",
             }}
-            className="group-hover:scale-110 group-hover:opacity-60"
+            className="group-hover:scale-110 group-hover:opacity-50"
           />
         )}
-        {/* Gradient overlay */}
         <div
           style={{
             position: "absolute", inset: 0,
-            background: "linear-gradient(160deg, rgba(15,23,42,0.55) 0%, rgba(15,23,42,0.85) 100%)",
+            background: "linear-gradient(160deg, rgba(15,23,42,0.65) 0%, rgba(15,23,42,0.92) 100%)",
           }}
         />
-        {/* Gold accent bar */}
         <div
           style={{
             position: "absolute", top: 0, left: 0, right: 0, height: 3,
@@ -279,7 +492,6 @@ function ServiceCard({
           }}
         />
 
-        {/* Content */}
         <div
           style={{
             position: "relative", height: "100%", minHeight: 340,
@@ -393,7 +605,7 @@ export default function Portfolio() {
         <div style={{ minHeight: "100vh", background: "#F8F8F6", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <div style={{ textAlign: "center" }}>
             <p style={{ fontSize: 16, color: "#5F5F5F", marginBottom: 16 }}>Category not found.</p>
-            <Link href="/portfolio-private">
+            <Link href="/portfolio">
               <a style={{ color: "#1E293B", fontWeight: 700, textDecoration: "underline" }}>← Back to portfolio</a>
             </Link>
           </div>
@@ -403,13 +615,20 @@ export default function Portfolio() {
 
     const categoryItems = items.filter((i) => i.category === activeCategory);
     const meta = CATEGORY_META[activeCategory];
-    const featured = categoryItems[0];
-    const rest = categoryItems.slice(1);
+    const isReel = meta.type === "reel";
+    const featured = !isReel ? categoryItems[0] : undefined;
+    const rest = !isReel ? categoryItems.slice(1) : categoryItems;
+
+    // Grid columns differ per type (reels are narrower, so more per row)
+    const gridTemplate =
+      meta.type === "reel"
+        ? "repeat(auto-fill, minmax(220px, 1fr))"
+        : "repeat(auto-fill, minmax(300px, 1fr))";
 
     return (
       <div style={{ minHeight: "100vh", background: "#F8F8F6" }}>
         {/* Hero */}
-        <div style={{ background: meta.accent, padding: "120px 24px 72px", position: "relative", overflow: "hidden" }}>
+        <div style={{ background: BRAND_ACCENT, padding: "120px 24px 72px", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #C2A878, #D4BB90)" }} />
           <div style={{ maxWidth: 1180, margin: "0 auto", position: "relative" }}>
             <Link href="/portfolio">
@@ -462,10 +681,10 @@ export default function Portfolio() {
             </div>
           ) : (
             <>
-              {/* Featured */}
+              {/* Featured (not used for reels) */}
               {featured && (
                 <div style={{ marginBottom: 28 }}>
-                  <VideoTile item={featured} featured />
+                  <Tile item={featured} type={meta.type} featured />
                 </div>
               )}
               {/* Grid */}
@@ -473,11 +692,11 @@ export default function Portfolio() {
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                    gap: 22,
+                    gridTemplateColumns: gridTemplate,
+                    gap: meta.type === "reel" ? 18 : 22,
                   }}
                 >
-                  {rest.map((item) => <VideoTile key={item.id} item={item} />)}
+                  {rest.map((item) => <Tile key={item.id} item={item} type={meta.type} />)}
                 </div>
               )}
             </>
