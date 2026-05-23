@@ -50,7 +50,11 @@ router.get("/seo/:slug", async (req: Request, res: Response) => {
       .from(siteContent)
       .where(eq(siteContent.section, `seo:${slug}`))
       .limit(1);
-    res.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=3600");
+    // No caching — admin edits must be visible immediately on next page-load.
+    // Payload is tiny (~1 KB JSON) so this has negligible cost.
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
     if (!rows.length) { res.json({ slug, data: null }); return; }
     res.json({ slug, data: rows[0].data, updatedAt: rows[0].updatedAt });
   } catch {
