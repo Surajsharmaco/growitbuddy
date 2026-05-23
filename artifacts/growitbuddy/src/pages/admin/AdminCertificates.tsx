@@ -4,7 +4,7 @@ import { PageHeader, Card, SectionTitle, Input, SaveBar } from "@/components/adm
 import {
   Plus, Trash2, ChevronDown, ChevronUp, ShieldCheck, ShieldX,
   Copy, ExternalLink, Download, Search, X, ChevronLeft, ChevronRight,
-  Calendar, RefreshCw, Eye, EyeOff,
+  Calendar, RefreshCw,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 
@@ -19,7 +19,6 @@ interface Certificate {
   role: string;
   issueDate: string;
   status: "verified" | "revoked";
-  isHidden: boolean;
   createdAt: string;
 }
 
@@ -69,12 +68,11 @@ function matchSearch(cert: Certificate, q: string): boolean {
 
 /* ── Certificate Row (edit panel) ── */
 function CertRow({
-  cert, onUpdate, onDelete, onToggleHidden,
+  cert, onUpdate, onDelete,
 }: {
   cert: Certificate;
   onUpdate: (cert: Certificate) => void;
   onDelete: (id: number) => void;
-  onToggleHidden: (cert: Certificate) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ ...cert });
@@ -111,13 +109,7 @@ function CertRow({
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(window.location.origin + "/" + verifyUrl.replace(/^\//, ""))}`;
 
   return (
-    <div
-      className="border rounded-xl overflow-hidden bg-white"
-      style={{
-        borderColor: cert.isHidden ? "#FBBF24" : "rgba(11,11,11,0.08)",
-        opacity: cert.isHidden ? 0.78 : 1,
-      }}
-    >
+    <div className="border border-[#0B0B0B]/8 rounded-xl overflow-hidden bg-white">
       <div className="flex items-center gap-2 pr-3 hover:bg-[#0B0B0B]/3 transition-colors">
         <button onClick={() => setOpen((p) => !p)} className="flex-1 flex items-center gap-3 px-4 py-3.5 text-left min-w-0">
           <div className="flex-1 min-w-0">
@@ -129,28 +121,12 @@ function CertRow({
               <span className="text-[10px] font-bold text-[#0B0B0B]/40 bg-[#0B0B0B]/6 px-2 py-0.5 rounded-full shrink-0 font-mono">
                 {cert.certificateId}
               </span>
-              {cert.isHidden && (
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full shrink-0">
-                  Hidden
-                </span>
-              )}
             </div>
             <p className="text-[11px] text-[#0B0B0B]/40 mt-0.5">{cert.role} &middot; {cert.issueDate}</p>
           </div>
           {open ? <ChevronUp size={14} className="text-[#0B0B0B]/40 shrink-0" /> : <ChevronDown size={14} className="text-[#0B0B0B]/40 shrink-0" />}
         </button>
-        <button
-          onClick={() => onToggleHidden(cert)}
-          className="p-1.5 rounded transition-colors shrink-0"
-          style={{
-            color: cert.isHidden ? "#15803D" : "#92400E",
-            background: cert.isHidden ? "rgba(34,197,94,0.10)" : "rgba(251,191,36,0.12)",
-          }}
-          title={cert.isHidden ? "Restore to public verification" : "Hide from public verification page"}
-        >
-          {cert.isHidden ? <Eye size={14} /> : <EyeOff size={14} />}
-        </button>
-        <button onClick={() => onDelete(cert.id)} className="p-1.5 rounded hover:bg-red-50 hover:text-red-500 text-[#0B0B0B]/30 transition-colors shrink-0" title="Delete forever">
+        <button onClick={() => onDelete(cert.id)} className="p-1.5 rounded hover:bg-red-50 hover:text-red-500 text-[#0B0B0B]/30 transition-colors shrink-0">
           <Trash2 size={14} />
         </button>
       </div>
@@ -214,7 +190,6 @@ export default function AdminCertificates() {
   const [creating, setCreating]     = useState(false);
   const [search, setSearch]         = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "verified" | "revoked">("all");
-  const [visibilityFilter, setVisibilityFilter] = useState<"all" | "visible" | "hidden">("all");
   const [dateFilter, setDateFilter] = useState("all");
   const [page, setPage]             = useState(1);
   const [newForm, setNewForm]       = useState({
@@ -236,31 +211,7 @@ export default function AdminCertificates() {
 
   useEffect(() => { load(); }, [authFetch]);
 
-  useEffect(() => { setPage(1); }, [search, statusFilter, dateFilter, visibilityFilter]);
-
-  async function handleToggleHidden(cert: Certificate) {
-    const next = !cert.isHidden;
-    // Optimistic update
-    setCerts((p) => p.map((c) => (c.id === cert.id ? { ...c, isHidden: next } : c)));
-    try {
-      const res = await authFetch(`${API_BASE}/admin/certificates/${cert.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isHidden: next }),
-      });
-      if (!res.ok) {
-        // Revert on failure
-        setCerts((p) => p.map((c) => (c.id === cert.id ? { ...c, isHidden: cert.isHidden } : c)));
-        const err = await res.json().catch(() => ({}));
-        alert(err.error || "Failed to update visibility");
-        return;
-      }
-      const updated = await res.json();
-      setCerts((p) => p.map((c) => (c.id === updated.id ? updated : c)));
-    } catch {
-      setCerts((p) => p.map((c) => (c.id === cert.id ? { ...c, isHidden: cert.isHidden } : c)));
-    }
-  }
+  useEffect(() => { setPage(1); }, [search, statusFilter, dateFilter]);
 
   async function handleCreate() {
     if (!newForm.certificateId || !newForm.name || !newForm.role || !newForm.issueDate) {
@@ -285,7 +236,7 @@ export default function AdminCertificates() {
   }
 
   async function handleDelete(id: number) {
-    if (!confirm("Permanently delete this certificate? This cannot be undone. Use Hide instead if you only want to remove it from public verification.")) return;
+    if (!confirm("Delete this certificate? This cannot be undone.")) return;
     await authFetch(`${API_BASE}/admin/certificates/${id}`, { method: "DELETE" });
     setCerts((p) => p.filter((c) => c.id !== id));
   }
@@ -293,11 +244,7 @@ export default function AdminCertificates() {
   /* Filtering */
   let visible = applyDateFilter(certs, dateFilter);
   if (statusFilter !== "all") visible = visible.filter((c) => c.status === statusFilter);
-  if (visibilityFilter === "visible") visible = visible.filter((c) => !c.isHidden);
-  else if (visibilityFilter === "hidden") visible = visible.filter((c) => c.isHidden);
   if (search) visible = visible.filter((c) => matchSearch(c, search));
-
-  const hiddenCount = certs.filter((c) => c.isHidden).length;
 
   const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
   const paginated = visible.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -379,31 +326,6 @@ export default function AdminCertificates() {
         >
           <Plus size={15} /> Issue Certificate
         </button>
-      </div>
-
-      {/* Visibility filter chips */}
-      <div className="flex items-center gap-2 mb-3 flex-wrap">
-        <Eye size={12} className="text-[#0B0B0B]/30 shrink-0" />
-        <span className="text-[10px] font-bold text-[#0B0B0B]/35 uppercase tracking-widest mr-1">Visibility:</span>
-        {[
-          { key: "all", label: `All (${certs.length})` },
-          { key: "visible", label: `Visible (${certs.length - hiddenCount})` },
-          { key: "hidden", label: `Hidden (${hiddenCount})` },
-        ].map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => setVisibilityFilter(key as typeof visibilityFilter)}
-            className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold border transition-all ${
-              visibilityFilter === key
-                ? key === "hidden"
-                  ? "bg-amber-500 border-amber-500 text-white"
-                  : "bg-[#0B0B0B] border-[#0B0B0B] text-white"
-                : "bg-white border-[#0B0B0B]/12 text-[#0B0B0B]/55 hover:border-[#0B0B0B]/25"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
       </div>
 
       {/* Date filter chips */}
@@ -509,7 +431,6 @@ export default function AdminCertificates() {
               cert={cert}
               onUpdate={(updated) => setCerts((p) => p.map((c) => (c.id === updated.id ? updated : c)))}
               onDelete={handleDelete}
-              onToggleHidden={handleToggleHidden}
             />
           ))}
         </div>
