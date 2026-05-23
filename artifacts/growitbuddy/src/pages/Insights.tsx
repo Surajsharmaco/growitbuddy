@@ -21,7 +21,10 @@ export default function Insights() {
     return combined;
   }, [cmsPosts, wpPosts]);
 
-  const allTags = ["All", ...Array.from(new Set(blogPosts.map(p => p.tag)))];
+  // Always show the core brand categories so the filter bar stays consistent
+  // even before CMS posts have loaded or if a category is temporarily empty.
+  const FIXED_TAGS = ["Founder", "Brand", "Creator"];
+  const allTags = ["All", ...Array.from(new Set([...FIXED_TAGS, ...blogPosts.map(p => p.tag)]))];
   const filtered = activeTag === "All" ? blogPosts : blogPosts.filter(p => p.tag === activeTag);
 
   return (
