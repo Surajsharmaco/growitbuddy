@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Play, ArrowLeft, ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRoute, Link, useLocation } from "wouter";
 
 import { API_BASE } from "@/lib/api";
+import { useAdmin } from "@/context/AdminContext";
+import AdminInlineControls from "@/components/AdminInlineControls";
 
 type CategoryType = "video" | "reel" | "case-study";
 
@@ -90,6 +92,7 @@ interface PortfolioItem {
   youtubeUrl: string;
   description: string | null;
   sortOrder: number;
+  isHidden?: boolean;
 }
 
 function getEmbedUrl(url: string): string {
@@ -586,6 +589,7 @@ export default function Portfolio() {
   const categorySlug = params?.category;
   const activeCategory = categorySlug ? slugToCategory(categorySlug) : null;
 
+  const { isAuthenticated, authFetch } = useAdmin();
   const [items, setItems] = useState<PortfolioItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -594,7 +598,11 @@ export default function Portfolio() {
     (async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${API_BASE}/admin/portfolio/items`);
+        // Admin sees ALL items (including hidden); visitors see only visible.
+        const url = isAuthenticated
+          ? `${API_BASE}/admin/portfolio`
+          : `${API_BASE}/admin/portfolio/items`;
+        const res = isAuthenticated ? await authFetch(url) : await fetch(url);
         if (!cancelled && res.ok) {
           setItems(await res.json());
         }
@@ -605,7 +613,57 @@ export default function Portfolio() {
       }
     })();
     return () => { cancelled = true; };
+  }, [isAuthenticated, authFetch]);
+
+  const handleToggleHidden = useCallback(async (item: PortfolioItem) => {
+    const next = !item.isHidden;
+    const prev = items;
+    setItems((p) => p.map((i) => (i.id === item.id ? { ...i, isHidden: next } : i)));
+    try {
+      const r = await authFetch(`${API_BASE}/admin/portfolio/${item.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isHidden: next }),
+      });
+      if (!r.ok) throw new Error(`Update failed (${r.status})`);
+    } catch (e) {
+      setItems(prev);
+      alert(`Could not ${next ? "hide" : "restore"} item. ${e instanceof Error ? e.message : ""}`);
+    }
+  }, [items, authFetch]);
+
+  const handleDelete = useCallback(async (item: PortfolioItem) => {
+    const prev = items;
+    setItems((p) => p.filter((i) => i.id !== item.id));
+    try {
+      const r = await authFetch(`${API_BASE}/admin/portfolio/${item.id}`, { method: "DELETE" });
+      if (!r.ok) throw new Error(`Delete failed (${r.status})`);
+    } catch (e) {
+      setItems(prev);
+      alert(`Could not delete item. ${e instanceof Error ? e.message : ""}`);
+    }
+  }, [items, authFetch]);
+
+  const handleEdit = useCallback((_item: PortfolioItem) => {
+    // Edit happens in the dedicated admin page (full form with all fields).
+    window.location.href = "/admin/portfolio";
   }, []);
+
+  function wrapTile(item: PortfolioItem, node: React.ReactNode) {
+    if (!isAuthenticated) return node;
+    return (
+      <AdminInlineControls
+        key={item.id}
+        itemLabel="portfolio item"
+        isHidden={!!item.isHidden}
+        onEdit={() => handleEdit(item)}
+        onToggleHidden={() => handleToggleHidden(item)}
+        onDelete={() => handleDelete(item)}
+      >
+        {node}
+      </AdminInlineControls>
+    );
+  }
 
   // ── CATEGORY VIEW ──
   if (categorySlug) {
@@ -697,14 +755,14 @@ export default function Portfolio() {
                 gap: 24,
               }}
             >
-              {categoryItems.map((item) => <ReelTile key={item.id} item={item} />)}
+              {categoryItems.map((item) => wrapTile(item, <ReelTile key={item.id} item={item} />))}
             </div>
           ) : meta.type === "video" ? (
             // ── VIDEO: pattern of [1 big, 2 normal] repeating ──
             <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
               {videoBlocks.map((block, bi) => (
                 <div key={bi} style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-                  {block[0] && <VideoTile item={block[0]} featured />}
+                  {block[0] && wrapTile(block[0], <VideoTile item={block[0]} featured />)}
                   {block.length > 1 && (
                     <div
                       className="video-row"
@@ -714,7 +772,7 @@ export default function Portfolio() {
                         gap: 22,
                       }}
                     >
-                      {block.slice(1).map((item) => <VideoTile key={item.id} item={item} />)}
+                      {block.slice(1).map((item) => wrapTile(item, <VideoTile key={item.id} item={item} />))}
                     </div>
                   )}
                 </div>
@@ -723,7 +781,7 @@ export default function Portfolio() {
           ) : (
             // ── CASE STUDY: featured + grid ──
             <div style={{ display: "flex", flexDirection: "column", gap: 48 }}>
-              {categoryItems[0] && <CaseStudyTile item={categoryItems[0]} featured />}
+              {categoryItems[0] && wrapTile(categoryItems[0], <CaseStudyTile item={categoryItems[0]} featured />)}
               {categoryItems.length > 1 && (
                 <div
                   style={{
@@ -732,7 +790,7 @@ export default function Portfolio() {
                     gap: 36,
                   }}
                 >
-                  {categoryItems.slice(1).map((item) => <CaseStudyTile key={item.id} item={item} />)}
+                  {categoryItems.slice(1).map((item) => wrapTile(item, <CaseStudyTile key={item.id} item={item} />))}
                 </div>
               )}
             </div>
