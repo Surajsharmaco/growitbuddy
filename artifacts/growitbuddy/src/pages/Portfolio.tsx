@@ -1,10 +1,46 @@
-import { useState, useEffect, useRef } from "react";
-import { Play, X, Filter } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
+import { Play, ArrowLeft, ArrowUpRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { useRoute, Link } from "wouter";
 
 import { API_BASE } from "@/lib/api";
 
-const CATEGORIES = ["All Work", "Video Editing", "Reels / Shorts", "Graphics", "Social Media Management"];
+const CATEGORIES = [
+  "Video Editing",
+  "Reels / Shorts",
+  "Graphics",
+  "Social Media Management",
+] as const;
+
+const CATEGORY_META: Record<string, { slug: string; tagline: string; accent: string }> = {
+  "Video Editing": {
+    slug: "video-editing",
+    tagline: "Cinematic long-form edits crafted to convert attention into authority.",
+    accent: "linear-gradient(135deg, #1E293B 0%, #0F172A 100%)",
+  },
+  "Reels / Shorts": {
+    slug: "reels-shorts",
+    tagline: "Scroll-stopping short-form built for reach and retention.",
+    accent: "linear-gradient(135deg, #8B3A1A 0%, #5B2410 100%)",
+  },
+  "Graphics": {
+    slug: "graphics",
+    tagline: "Visual systems and design that make brands unforgettable.",
+    accent: "linear-gradient(135deg, #C2A878 0%, #8A7449 100%)",
+  },
+  "Social Media Management": {
+    slug: "social-media-management",
+    tagline: "End-to-end social systems that turn channels into engines.",
+    accent: "linear-gradient(135deg, #2D3F50 0%, #1A2733 100%)",
+  },
+};
+
+function slugToCategory(slug: string): string | null {
+  for (const [cat, meta] of Object.entries(CATEGORY_META)) {
+    if (meta.slug === slug) return cat;
+  }
+  return null;
+}
 
 interface PortfolioItem {
   id: number;
@@ -41,26 +77,35 @@ function getThumbnail(url: string): string {
   return m ? `https://img.youtube.com/vi/${m[1]}/hqdefault.jpg` : "";
 }
 
-// ── Video Card ──
-function VideoCard({ item }: { item: PortfolioItem }) {
+function getHiResThumbnail(url: string): string {
+  const embed = getEmbedUrl(url);
+  const m = embed.match(/embed\/([a-zA-Z0-9_-]{11})/);
+  return m ? `https://img.youtube.com/vi/${m[1]}/maxresdefault.jpg` : "";
+}
+
+// ── Video Tile (used in category collage) ──
+function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?: boolean }) {
   const [playing, setPlaying] = useState(false);
   const embedUrl = getEmbedUrl(item.youtubeUrl);
-  const thumb = getThumbnail(item.youtubeUrl);
+  const thumb = featured ? getHiResThumbnail(item.youtubeUrl) : getThumbnail(item.youtubeUrl);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: 0.5 }}
       style={{
-        background: "#fff", border: "1.5px solid #E5E5E0", borderRadius: 16,
-        overflow: "hidden", display: "flex", flexDirection: "column",
-        transition: "transform 0.2s, box-shadow 0.2s",
+        background: "#fff",
+        border: "1.5px solid #E5E5E0",
+        borderRadius: 18,
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        transition: "transform 0.25s, box-shadow 0.25s, border-color 0.25s",
       }}
-      className="hover:-translate-y-1 hover:shadow-lg"
+      className="hover:-translate-y-1 hover:shadow-2xl hover:border-[#C2A878]"
     >
-      {/* Thumbnail / Player */}
-      <div style={{ position: "relative", aspectRatio: "16/9", background: "#0A0A0A", flexShrink: 0 }}>
+      <div style={{ position: "relative", aspectRatio: "16/9", background: "#0A0A0A" }}>
         {playing && embedUrl ? (
           <iframe
             src={`${embedUrl}&autoplay=1`}
@@ -77,40 +122,64 @@ function VideoCard({ item }: { item: PortfolioItem }) {
                 alt={item.title}
                 style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
                 loading="lazy"
+                onError={(e) => {
+                  // fallback to hqdefault if maxres fails
+                  const el = e.currentTarget as HTMLImageElement;
+                  const fallback = getThumbnail(item.youtubeUrl);
+                  if (el.src !== fallback) el.src = fallback;
+                }}
               />
             )}
-            <div style={{
-              position: "absolute", inset: 0, background: "rgba(0,0,0,0.35)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer",
-            }} onClick={() => setPlaying(true)}>
-              <div style={{
-                width: 56, height: 56, borderRadius: "50%", background: "rgba(255,255,255,0.92)",
+            <div
+              style={{
+                position: "absolute", inset: 0,
+                background: "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 100%)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.3)", transition: "transform 0.2s",
+                cursor: "pointer",
               }}
-              className="hover:scale-110">
-                <Play size={22} style={{ color: "#0A0A0A", marginLeft: 3 }} />
+              onClick={() => setPlaying(true)}
+            >
+              <div
+                style={{
+                  width: featured ? 76 : 60, height: featured ? 76 : 60,
+                  borderRadius: "50%", background: "rgba(255,255,255,0.95)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.4)",
+                  transition: "transform 0.2s",
+                }}
+                className="hover:scale-110"
+              >
+                <Play size={featured ? 30 : 24} style={{ color: "#0A0A0A", marginLeft: 3 }} fill="#0A0A0A" />
               </div>
             </div>
           </>
         )}
       </div>
 
-      {/* Info */}
-      <div style={{ padding: "20px 20px 20px", flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-        <span style={{
-          fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
-          padding: "4px 10px", borderRadius: 100, background: "#EFEFEA", color: "#1E293B",
-          alignSelf: "flex-start",
-        }}>
+      <div style={{ padding: featured ? "26px 26px 28px" : "20px", flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
+        <span
+          style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase",
+            padding: "5px 11px", borderRadius: 100, background: "#EFEFEA", color: "#1E293B",
+            alignSelf: "flex-start",
+          }}
+        >
           {item.category}
         </span>
-        <h3 style={{ fontWeight: 700, fontSize: 16, letterSpacing: "-0.02em", color: "#0A0A0A", lineHeight: 1.3, margin: 0 }}>
+        <h3
+          style={{
+            fontWeight: 800,
+            fontSize: featured ? 24 : 17,
+            letterSpacing: "-0.025em",
+            color: "#0A0A0A",
+            lineHeight: 1.25,
+            margin: 0,
+          }}
+        >
           {item.title}
         </h3>
         {item.description && (
-          <p style={{ fontSize: 13, color: "#8A8A8A", lineHeight: 1.6, margin: 0 }}>
+          <p style={{ fontSize: featured ? 15 : 13, color: "#5F5F5F", lineHeight: 1.6, margin: 0 }}>
             {item.description}
           </p>
         )}
@@ -119,98 +188,327 @@ function VideoCard({ item }: { item: PortfolioItem }) {
   );
 }
 
+// ── Service Category Card (landing) ──
+function ServiceCard({
+  category, count, previewThumb, index,
+}: { category: string; count: number; previewThumb: string; index: number }) {
+  const meta = CATEGORY_META[category];
+  return (
+    <Link href={`/portfolio-private/${meta.slug}`}>
+      <motion.a
+        initial={{ opacity: 0, y: 28 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.08, duration: 0.55 }}
+        whileHover={{ y: -6 }}
+        style={{
+          position: "relative",
+          display: "block",
+          borderRadius: 22,
+          overflow: "hidden",
+          cursor: "pointer",
+          minHeight: 340,
+          background: meta.accent,
+          boxShadow: "0 8px 32px rgba(15,23,42,0.12)",
+          transition: "box-shadow 0.3s",
+        }}
+        className="service-card group hover:shadow-2xl"
+      >
+        {/* Background thumbnail */}
+        {previewThumb && (
+          <img
+            src={previewThumb}
+            alt=""
+            loading="lazy"
+            style={{
+              position: "absolute", inset: 0, width: "100%", height: "100%",
+              objectFit: "cover", opacity: 0.42,
+              transition: "transform 0.6s, opacity 0.3s",
+            }}
+            className="group-hover:scale-110 group-hover:opacity-60"
+          />
+        )}
+        {/* Gradient overlay */}
+        <div
+          style={{
+            position: "absolute", inset: 0,
+            background: "linear-gradient(160deg, rgba(15,23,42,0.55) 0%, rgba(15,23,42,0.85) 100%)",
+          }}
+        />
+        {/* Gold accent bar */}
+        <div
+          style={{
+            position: "absolute", top: 0, left: 0, right: 0, height: 3,
+            background: "linear-gradient(90deg, #C2A878, #D4BB90)",
+          }}
+        />
+
+        {/* Content */}
+        <div
+          style={{
+            position: "relative", height: "100%", minHeight: 340,
+            padding: "32px 32px 30px",
+            display: "flex", flexDirection: "column", justifyContent: "space-between",
+            color: "#fff",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <span
+              style={{
+                fontSize: 10, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase",
+                color: "rgba(194,168,120,0.9)",
+              }}
+            >
+              0{index + 1} · Service
+            </span>
+            <div
+              style={{
+                width: 44, height: 44, borderRadius: "50%",
+                background: "rgba(255,255,255,0.1)",
+                border: "1px solid rgba(255,255,255,0.2)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "background 0.25s, transform 0.25s",
+              }}
+              className="group-hover:bg-[#C2A878] group-hover:scale-110"
+            >
+              <ArrowUpRight size={20} />
+            </div>
+          </div>
+
+          <div>
+            <h3
+              style={{
+                fontWeight: 800,
+                fontSize: "clamp(28px, 3.6vw, 40px)",
+                letterSpacing: "-0.035em",
+                lineHeight: 1.05,
+                marginBottom: 14,
+              }}
+            >
+              {category}
+            </h3>
+            <p
+              style={{
+                fontSize: 14, color: "rgba(255,255,255,0.72)",
+                lineHeight: 1.55, marginBottom: 20, maxWidth: "36ch",
+              }}
+            >
+              {meta.tagline}
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span
+                style={{
+                  fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
+                  padding: "6px 14px", borderRadius: 100,
+                  background: "rgba(255,255,255,0.12)",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                }}
+              >
+                {count} {count === 1 ? "project" : "projects"}
+              </span>
+              <span
+                style={{
+                  fontSize: 12, color: "rgba(255,255,255,0.6)",
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                }}
+              >
+                <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#C2A878" }} />
+                View collection
+              </span>
+            </div>
+          </div>
+        </div>
+      </motion.a>
+    </Link>
+  );
+}
+
 // ── Main Portfolio Page ──
 export default function Portfolio() {
-  const [items, setItems] = useState<PortfolioItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("All Work");
+  const [, params] = useRoute<{ category?: string }>("/portfolio-private/:category");
+  const categorySlug = params?.category;
+  const activeCategory = categorySlug ? slugToCategory(categorySlug) : null;
 
-  async function loadItems() {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_BASE}/admin/portfolio/items`);
-      if (res.ok) {
-        setItems(await res.json());
-      }
-    } catch {
-      // silent
-    } finally {
-      setLoading(false);
-    }
-  }
+  const [items, setItems] = useState<PortfolioItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadItems();
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`${API_BASE}/admin/portfolio/items`);
+        if (!cancelled && res.ok) {
+          setItems(await res.json());
+        }
+      } catch {
+        // silent
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
   }, []);
 
-  const filtered = activeCategory === "All Work"
-    ? items
-    : items.filter((i) => i.category === activeCategory);
+  // ── CATEGORY VIEW ──
+  if (categorySlug) {
+    if (!activeCategory) {
+      return (
+        <div style={{ minHeight: "100vh", background: "#F8F8F6", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <div style={{ textAlign: "center" }}>
+            <p style={{ fontSize: 16, color: "#5F5F5F", marginBottom: 16 }}>Category not found.</p>
+            <Link href="/portfolio-private">
+              <a style={{ color: "#1E293B", fontWeight: 700, textDecoration: "underline" }}>← Back to portfolio</a>
+            </Link>
+          </div>
+        </div>
+      );
+    }
+
+    const categoryItems = items.filter((i) => i.category === activeCategory);
+    const meta = CATEGORY_META[activeCategory];
+    const featured = categoryItems[0];
+    const rest = categoryItems.slice(1);
+
+    return (
+      <div style={{ minHeight: "100vh", background: "#F8F8F6" }}>
+        {/* Hero */}
+        <div style={{ background: meta.accent, padding: "56px 24px 64px", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #C2A878, #D4BB90)" }} />
+          <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative" }}>
+            <Link href="/portfolio-private">
+              <a
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  color: "rgba(255,255,255,0.7)", fontSize: 13, fontWeight: 600,
+                  marginBottom: 28, textDecoration: "none",
+                  transition: "color 0.2s",
+                }}
+                className="hover:!text-white"
+              >
+                <ArrowLeft size={15} /> All services
+              </a>
+            </Link>
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(194,168,120,0.9)", marginBottom: 14 }}>
+              Portfolio · Collection
+            </p>
+            <h1 style={{ fontWeight: 800, fontSize: "clamp(36px, 7vw, 72px)", letterSpacing: "-0.04em", lineHeight: 1.04, color: "#fff", marginBottom: 18 }}>
+              {activeCategory}
+            </h1>
+            <p style={{ fontSize: 16, color: "rgba(255,255,255,0.7)", lineHeight: 1.6, maxWidth: "52ch", marginBottom: 22 }}>
+              {meta.tagline}
+            </p>
+            <span
+              style={{
+                fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase",
+                padding: "7px 14px", borderRadius: 100,
+                background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)",
+                color: "#fff",
+                display: "inline-block",
+              }}
+            >
+              {categoryItems.length} {categoryItems.length === 1 ? "project" : "projects"}
+            </span>
+          </div>
+        </div>
+
+        {/* Collage */}
+        <div style={{ maxWidth: 1180, margin: "0 auto", padding: "56px 24px 96px" }}>
+          {loading ? (
+            <div style={{ display: "flex", justifyContent: "center", padding: "80px 0" }}>
+              <div style={{ width: 36, height: 36, borderRadius: "50%", border: "3px solid #E5E5E0", borderTopColor: "#1E293B" }} className="animate-spin" />
+            </div>
+          ) : categoryItems.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "80px 0" }}>
+              <p style={{ fontSize: 16, color: "#8A8A8A" }}>
+                No projects in {activeCategory} yet.
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Featured */}
+              {featured && (
+                <div style={{ marginBottom: 28 }}>
+                  <VideoTile item={featured} featured />
+                </div>
+              )}
+              {/* Grid */}
+              {rest.length > 0 && (
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+                    gap: 22,
+                  }}
+                >
+                  {rest.map((item) => <VideoTile key={item.id} item={item} />)}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── LANDING (service grid) ──
+  const itemsByCategory = (cat: string) => items.filter((i) => i.category === cat);
 
   return (
     <div style={{ minHeight: "100vh", background: "#F8F8F6" }}>
-      {/* Header */}
-      <div style={{ background: "#1E293B", padding: "60px 24px 48px" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(248,248,246,0.5)", marginBottom: 16 }}>
+      {/* Hero */}
+      <div style={{ background: "#1E293B", padding: "70px 24px 60px", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #C2A878, #D4BB90)" }} />
+        <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative" }}>
+          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(194,168,120,0.9)", marginBottom: 18 }}>
             Private Portfolio
           </p>
-          <h1 style={{ fontWeight: 800, fontSize: "clamp(32px, 6vw, 64px)", letterSpacing: "-0.04em", lineHeight: 1.05, color: "#F8F8F6", marginBottom: 16 }}>
-            Our Work
+          <h1 style={{ fontWeight: 800, fontSize: "clamp(40px, 7vw, 78px)", letterSpacing: "-0.04em", lineHeight: 1.03, color: "#F8F8F6", marginBottom: 20 }}>
+            Our Work, by service.
           </h1>
-          <p style={{ fontSize: 16, color: "rgba(248,248,246,0.6)", lineHeight: 1.6, maxWidth: "48ch" }}>
-            A curated selection of content, campaigns, and creative work - shared privately with you.
+          <p style={{ fontSize: 17, color: "rgba(248,248,246,0.62)", lineHeight: 1.65, maxWidth: "52ch" }}>
+            A curated look at what we build — pick a service to explore the full collection.
           </p>
         </div>
       </div>
 
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "40px 24px 80px" }}>
-        {/* Category Filter */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 40 }}>
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              style={{
-                padding: "8px 18px", borderRadius: 100, fontSize: 13, fontWeight: 600,
-                border: "1.5px solid",
-                borderColor: activeCategory === cat ? "#1E293B" : "#E5E5E0",
-                background: activeCategory === cat ? "#1E293B" : "#fff",
-                color: activeCategory === cat ? "#fff" : "#0A0A0A",
-                cursor: "pointer", transition: "all 0.15s",
-              }}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* Grid */}
+      {/* Service grid */}
+      <div style={{ maxWidth: 1180, margin: "0 auto", padding: "56px 24px 96px" }}>
         {loading ? (
           <div style={{ display: "flex", justifyContent: "center", padding: "80px 0" }}>
-            <div style={{ width: 36, height: 36, borderRadius: "50%", border: "3px solid #E5E5E0", borderTopColor: "#1E293B" }}
-              className="animate-spin" />
-          </div>
-        ) : filtered.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "80px 0" }}>
-            <p style={{ fontSize: 16, color: "#8A8A8A" }}>
-              {items.length === 0 ? "No portfolio items yet." : `No items in "${activeCategory}".`}
-            </p>
+            <div style={{ width: 36, height: 36, borderRadius: "50%", border: "3px solid #E5E5E0", borderTopColor: "#1E293B" }} className="animate-spin" />
           </div>
         ) : (
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-            gap: 20,
-          }}>
-            <AnimatePresence mode="popLayout">
-              {filtered.map((item) => (
-                <VideoCard key={item.id} item={item} />
-              ))}
-            </AnimatePresence>
+          <div
+            className="service-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(2, 1fr)",
+              gap: 24,
+            }}
+          >
+            {CATEGORIES.map((cat, i) => {
+              const list = itemsByCategory(cat);
+              const preview = list[0] ? getHiResThumbnail(list[0].youtubeUrl) : "";
+              return (
+                <ServiceCard
+                  key={cat}
+                  category={cat}
+                  count={list.length}
+                  previewThumb={preview}
+                  index={i}
+                />
+              );
+            })}
           </div>
         )}
       </div>
+
+      <style>{`
+        @media (max-width: 760px) {
+          .service-grid { grid-template-columns: 1fr !important; }
+        }
+        .service-card a, .service-card { text-decoration: none; }
+      `}</style>
     </div>
   );
 }
