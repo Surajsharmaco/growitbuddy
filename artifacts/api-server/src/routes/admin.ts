@@ -346,6 +346,11 @@ router.get("/sections", authMiddleware, async (_req, res) => {
 
 router.get("/content/:section", authMiddleware, async (req, res) => {
   const section = String(req.params.section);
+  // SEO records are super-admin only (per-page indexability + meta is sensitive)
+  if (section.startsWith("seo:") && req.adminRole !== "super") {
+    res.status(403).json({ error: "SEO controls are restricted to super admins." });
+    return;
+  }
   const rows = await db
     .select()
     .from(siteContent)
@@ -365,6 +370,11 @@ router.put("/content/:section", authMiddleware, async (req, res) => {
   const section = String(req.params.section);
   if ((LOCKED_SECTIONS as readonly string[]).includes(section)) {
     res.status(403).json({ error: `The "${section}" section is locked and cannot be modified. Contact a developer to make changes.` });
+    return;
+  }
+  // SEO records are super-admin only (per-page indexability + meta is sensitive)
+  if (section.startsWith("seo:") && req.adminRole !== "super") {
+    res.status(403).json({ error: "SEO controls are restricted to super admins." });
     return;
   }
   const { data } = req.body;
