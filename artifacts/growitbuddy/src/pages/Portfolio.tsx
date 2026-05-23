@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Play, ArrowLeft, ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
-import { useRoute, Link } from "wouter";
+import { useRoute, Link, useLocation } from "wouter";
 
 import { API_BASE } from "@/lib/api";
 
@@ -445,27 +445,36 @@ function ServiceCard({
   category, count, previewThumb, index,
 }: { category: string; count: number; previewThumb: string; index: number }) {
   const meta = CATEGORY_META[category];
+  const [, setLocation] = useLocation();
+  const href = `/portfolio/${meta.slug}`;
+  const go = (e: React.MouseEvent) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return; // allow new-tab
+    e.preventDefault();
+    setLocation(href);
+    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+  };
   return (
-    <Link href={`/portfolio/${meta.slug}`}>
-      <motion.a
-        initial={{ opacity: 0, y: 28 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.08, duration: 0.55 }}
-        whileHover={{ y: -6 }}
-        style={{
-          position: "relative",
-          display: "block",
-          borderRadius: 22,
-          overflow: "hidden",
-          cursor: "pointer",
-          minHeight: 340,
-          background: BRAND_ACCENT,
-          boxShadow: "0 8px 32px rgba(15,23,42,0.12)",
-          transition: "box-shadow 0.3s",
-          textDecoration: "none",
-        }}
-        className="service-card group hover:shadow-2xl"
-      >
+    <motion.a
+      href={href}
+      onClick={go}
+      initial={{ opacity: 0, y: 28 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.08, duration: 0.55 }}
+      whileHover={{ y: -6 }}
+      style={{
+        position: "relative",
+        display: "block",
+        borderRadius: 22,
+        overflow: "hidden",
+        cursor: "pointer",
+        minHeight: 340,
+        background: BRAND_ACCENT,
+        boxShadow: "0 8px 32px rgba(15,23,42,0.12)",
+        transition: "box-shadow 0.3s",
+        textDecoration: "none",
+      }}
+      className="service-card group hover:shadow-2xl"
+    >
         {previewThumb && (
           <img
             src={previewThumb}
@@ -566,8 +575,7 @@ function ServiceCard({
             </div>
           </div>
         </div>
-      </motion.a>
-    </Link>
+    </motion.a>
   );
 }
 
