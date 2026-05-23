@@ -42,12 +42,16 @@ const CORRECT_FRAMEWORK_STEPS = [
 ];
 
 async function runStartupMigrations() {
-  // Idempotent column add for soft-hide on portfolio items
-  try {
-    await pool.query(`ALTER TABLE portfolio_items ADD COLUMN IF NOT EXISTS is_hidden boolean NOT NULL DEFAULT false`);
-    logger.info("Startup migration: portfolio_items.is_hidden column ensured.");
-  } catch (err) {
-    logger.error({ err }, "Startup migration: failed to ensure portfolio_items.is_hidden column.");
+  // Idempotent column adds for soft-hide functionality across list-based tables.
+  // Safe to run on every boot — ADD COLUMN IF NOT EXISTS is a no-op when present.
+  const hideColumnTables = ["portfolio_items", "certificates"];
+  for (const table of hideColumnTables) {
+    try {
+      await pool.query(`ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS is_hidden boolean NOT NULL DEFAULT false`);
+      logger.info({ table }, "Startup migration: is_hidden column ensured.");
+    } catch (err) {
+      logger.error({ err, table }, "Startup migration: failed to ensure is_hidden column.");
+    }
   }
   try {
     const rows = await db.select().from(siteContent).where(eq(siteContent.section, "home"));
