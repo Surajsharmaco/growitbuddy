@@ -465,35 +465,35 @@ export function Navbar() {
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "space-between",
-                                padding: "clamp(8px, 1.4vw, 14px) 0",
-                                fontSize: "clamp(30px, 5.6vw, 56px)",
-                                fontWeight: 800,
-                                letterSpacing: "-0.04em",
-                                lineHeight: 1.05,
-                                color: active ? "#0A0A0A" : "#8A8A8A",
+                                padding: "clamp(6px, 0.9vw, 10px) 0",
+                                fontSize: "clamp(22px, 3.2vw, 34px)",
+                                fontWeight: 700,
+                                letterSpacing: "-0.025em",
+                                lineHeight: 1.1,
+                                color: active ? "#0A0A0A" : "#5F5F5F",
                                 cursor: "pointer",
                                 transition: "color 0.18s",
                                 position: "relative",
                                 borderBottom: "1px solid rgba(10,10,10,0.06)",
                               }}
                             >
-                              <span style={{ display: "inline-flex", alignItems: "baseline", gap: 14 }}>
+                              <span style={{ display: "inline-flex", alignItems: "baseline", gap: 12 }}>
                                 <span style={{
-                                  fontSize: "clamp(11px, 1.1vw, 12px)",
+                                  fontSize: 11,
                                   fontWeight: 700,
                                   letterSpacing: "0.18em",
                                   color: "var(--gb-accent)",
                                   fontFamily: "'Inter', sans-serif",
-                                  width: 28,
+                                  width: 24,
                                   display: "inline-block",
-                                  transform: "translateY(-4px)",
-                                  opacity: 0.7,
+                                  transform: "translateY(-3px)",
+                                  opacity: 0.75,
                                 }}>
                                   {String(i + 1).padStart(2, "0")}
                                 </span>
                                 {it.label}
                               </span>
-                              <ArrowUpRight className="gb-menu-arrow" style={{ width: 26, height: 26, opacity: 0, transform: "translateX(-12px)", transition: "opacity 0.2s, transform 0.25s", color: "var(--gb-accent)" }} />
+                              <ArrowUpRight className="gb-menu-arrow" style={{ width: 20, height: 20, opacity: 0, transform: "translateX(-10px)", transition: "opacity 0.2s, transform 0.25s", color: "var(--gb-accent)" }} />
                             </span>
                           </Link>
                         </m.div>
@@ -509,11 +509,11 @@ export function Navbar() {
                         style={{ paddingTop: "clamp(10px, 1.4vw, 16px)" }}
                       >
                         <p style={{
-                          fontSize: 11, fontWeight: 800, letterSpacing: "0.22em",
+                          fontSize: 10, fontWeight: 800, letterSpacing: "0.22em",
                           textTransform: "uppercase", color: "var(--gb-accent)",
-                          margin: 0, marginBottom: 8, paddingLeft: 42, opacity: 0.7,
+                          margin: 0, marginBottom: 6, paddingLeft: 36, opacity: 0.75,
                         }}>{it.label}</p>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
                           {it.items.map((sub) => {
                             const active = location === sub.href;
                             return (
@@ -525,18 +525,18 @@ export function Navbar() {
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "space-between",
-                                    padding: "clamp(6px, 1vw, 10px) 0 clamp(6px, 1vw, 10px) 42px",
-                                    fontSize: "clamp(20px, 3.6vw, 32px)",
-                                    fontWeight: 700,
-                                    letterSpacing: "-0.03em",
-                                    lineHeight: 1.1,
-                                    color: active ? "#0A0A0A" : "#8A8A8A",
+                                    padding: "6px 0 6px 36px",
+                                    fontSize: "clamp(15px, 1.6vw, 18px)",
+                                    fontWeight: 500,
+                                    letterSpacing: "-0.01em",
+                                    lineHeight: 1.3,
+                                    color: active ? "#0A0A0A" : "#7A7A85",
                                     cursor: "pointer",
                                     transition: "color 0.18s",
                                   }}
                                 >
                                   {sub.label}
-                                  <ArrowUpRight className="gb-menu-arrow" style={{ width: 20, height: 20, opacity: 0, transform: "translateX(-12px)", transition: "opacity 0.2s, transform 0.25s", color: "var(--gb-accent)" }} />
+                                  <ArrowUpRight className="gb-menu-arrow" style={{ width: 16, height: 16, opacity: 0, transform: "translateX(-8px)", transition: "opacity 0.2s, transform 0.25s", color: "var(--gb-accent)" }} />
                                 </span>
                               </Link>
                             );
