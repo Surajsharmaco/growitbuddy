@@ -62,21 +62,45 @@ const FI = (delay = 0) => ({
 
 function VideoPlayer({ url }: { url: string }) {
   const [playing, setPlaying] = useState(false);
+
+  const getYtId = (raw: string) => raw.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?/]+)/)?.[1] ?? null;
+
   const embed = (raw: string) => {
-    const yt = raw.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?/]+)/);
-    if (yt) return `https://www.youtube.com/embed/${yt[1]}?autoplay=1&rel=0`;
+    const ytId = getYtId(raw);
+    if (ytId) return `https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&mute=0`;
     const loom = raw.match(/loom\.com\/share\/([^?]+)/);
     if (loom) return `https://www.loom.com/embed/${loom[1]}?autoplay=1`;
     const vimeo = raw.match(/vimeo\.com\/(\d+)/);
     if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}?autoplay=1`;
     return raw;
   };
+
+  // Auto-start after 1.5 s once url is available
+  useEffect(() => {
+    if (!url) return;
+    const t = setTimeout(() => setPlaying(true), 1500);
+    return () => clearTimeout(t);
+  }, [url]);
+
+  const ytId = url ? getYtId(url) : null;
+  const thumbUrl = ytId ? `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg` : null;
+
   return (
-    <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: 16, overflow: "hidden", background: "#0F172A", position: "relative", boxShadow: "0 24px 64px rgba(0,0,0,0.22)" }}>
+    <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: 16, overflow: "hidden", position: "relative", boxShadow: "0 24px 64px rgba(0,0,0,0.22)", background: "#0F172A" }}>
+      {/* Thumbnail — always visible until iframe loads */}
+      {thumbUrl && (
+        <img
+          src={thumbUrl}
+          alt="Video thumbnail"
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: playing ? 0 : 1, transition: "opacity 0.4s" }}
+        />
+      )}
+
+      {/* Play button overlay — shown before autoplay kicks in */}
       {!playing && (
         <div
           onClick={() => url && setPlaying(true)}
-          style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", cursor: url ? "pointer" : "default" }}
+          style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", cursor: url ? "pointer" : "default", background: thumbUrl ? "rgba(0,0,0,0.25)" : "transparent" }}
         >
           <div style={{ textAlign: "center" }}>
             <div style={{
@@ -93,9 +117,11 @@ function VideoPlayer({ url }: { url: string }) {
           </div>
         </div>
       )}
+
+      {/* Iframe — shown once playing */}
       {playing && url && (
         <iframe src={embed(url)} allow="autoplay; fullscreen" allowFullScreen
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }} />
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none", zIndex: 1 }} />
       )}
     </div>
   );
