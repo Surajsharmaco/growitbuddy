@@ -227,7 +227,12 @@ export default function Career() {
           </p>
 
           {/* Type Selector */}
-          <div role="tablist" aria-label="Choose application type" style={{ display: "inline-flex", flexWrap: "wrap", gap: 8, background: "#FFFFFF", border: "1px solid #E5E5E0", borderRadius: 14, padding: 6 }}>
+          <div
+            role="tablist"
+            aria-label="Choose application type"
+            className="grid grid-cols-3 gap-1.5 sm:gap-2 w-full sm:w-auto sm:inline-flex sm:flex-wrap"
+            style={{ background: "#FFFFFF", border: "1px solid #E5E5E0", borderRadius: 14, padding: 6 }}
+          >
             {TYPE_OPTIONS.map((opt) => {
               const active = type === opt.value;
               return (
@@ -237,30 +242,39 @@ export default function Career() {
                   aria-selected={active}
                   onClick={() => switchType(opt.value)}
                   data-testid={`career-tab-${opt.value}`}
+                  className="career-tab-btn"
                   style={{
-                    padding: "10px 18px",
                     borderRadius: 10,
                     border: "none",
                     background: active ? "#1E293B" : "transparent",
                     color: active ? "#FFFFFF" : "#5F5F5F",
                     fontFamily: "'Inter', sans-serif",
-                    fontSize: 14,
                     fontWeight: 600,
                     cursor: "pointer",
                     transition: "all 0.18s",
-                    display: "inline-flex",
+                    display: "flex",
                     flexDirection: "column",
                     alignItems: "flex-start",
                     gap: 2,
-                    minWidth: 140,
+                    width: "100%",
                   }}
                 >
-                  <span style={{ fontSize: 14, fontWeight: 700 }}>{opt.label}</span>
-                  <span style={{ fontSize: 11, fontWeight: 500, opacity: active ? 0.8 : 0.65 }}>{opt.sub}</span>
+                  <span className="career-tab-label">{opt.label}</span>
+                  <span className="career-tab-sub" style={{ opacity: active ? 0.85 : 0.65 }}>{opt.sub}</span>
                 </button>
               );
             })}
           </div>
+          <style>{`
+            .career-tab-btn { padding: 8px 10px; }
+            .career-tab-label { font-size: 13px; font-weight: 700; line-height: 1.2; }
+            .career-tab-sub { font-size: 10.5px; font-weight: 500; line-height: 1.2; }
+            @media (min-width: 640px) {
+              .career-tab-btn { padding: 10px 18px; min-width: 140px; width: auto !important; }
+              .career-tab-label { font-size: 14px; }
+              .career-tab-sub { font-size: 11px; }
+            }
+          `}</style>
         </div>
       </section>
 
