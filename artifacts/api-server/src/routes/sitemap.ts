@@ -41,6 +41,12 @@ const REGISTERED_PAGES: RegisteredPage[] = [
   { slug: "ai-creators",           path: "/ai-creators",            priority: 0.7, changefreq: "monthly" },
   { slug: "ugc-creators",          path: "/ugc-creators",           priority: 0.7, changefreq: "monthly" },
   { slug: "meme-designers",        path: "/meme-designers",         priority: 0.7, changefreq: "monthly" },
+  // Additional public pages
+  { slug: "resources",             path: "/resources",              priority: 0.7, changefreq: "weekly"  },
+  { slug: "internship",            path: "/internship",             priority: 0.6, changefreq: "monthly" },
+  { slug: "join-page-owner",       path: "/join/page-owner",        priority: 0.6, changefreq: "monthly" },
+  { slug: "privacy",               path: "/privacy",                priority: 0.3, changefreq: "yearly"  },
+  { slug: "terms",                 path: "/terms",                  priority: 0.3, changefreq: "yearly"  },
 ];
 
 interface SEOData {
