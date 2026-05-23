@@ -6,7 +6,18 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import { API_BASE } from "@/lib/api";
 
-const CATEGORIES = ["Video Editing", "Reels / Shorts", "Graphics", "Social Media Management"];
+const CATEGORIES = [
+  "Personal Branding",
+  "Content Creation",
+  "Video Editing",
+  "Reels / Shorts",
+  "Graphics",
+  "Social Media Management",
+  "Distribution & Growth",
+  "Web & Funnel Systems",
+  "AI Automation",
+  "Digital Products & Growth",
+];
 
 interface PortfolioItem {
   id: number;
