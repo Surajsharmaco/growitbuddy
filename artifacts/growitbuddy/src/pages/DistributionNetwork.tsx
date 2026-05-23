@@ -105,26 +105,26 @@ function PageCard({ page, i }: { page: DistributionPage; i: number }) {
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(11,11,11,0.55) 0%, transparent 60%)" }} />
 
           {/* Niche badge */}
-          <div style={{ position: "absolute", top: 14, left: 14, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#1E293B", background: "rgba(255,255,255,0.92)", backdropFilter: "blur(8px)", borderRadius: 100, padding: "4px 12px", border: "1px solid rgba(255,255,255,0.6)" }}>
+          <div className="dn-badge dn-badge-niche" style={{ position: "absolute", top: 14, left: 14, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#1E293B", background: "rgba(255,255,255,0.92)", backdropFilter: "blur(8px)", borderRadius: 100, padding: "4px 12px", border: "1px solid rgba(255,255,255,0.6)", maxWidth: "55%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {page.niche}
           </div>
 
           {/* High engagement badge */}
           {page.highEngagement && (
-            <div style={{ position: "absolute", top: 14, right: 14, display: "flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#0A0A0A", background: "#F8F8F6", borderRadius: 100, padding: "4px 10px" }}>
+            <div className="dn-badge dn-badge-hot" style={{ position: "absolute", top: 14, right: 14, display: "flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#0A0A0A", background: "#F8F8F6", borderRadius: 100, padding: "4px 10px" }}>
               <Zap style={{ width: 9, height: 9, fill: "#EFEFEA" }} />
-              High Engagement
+              <span className="dn-hot-text">High Engagement</span>
             </div>
           )}
 
           {/* Followers - bottom left */}
-          <div style={{ position: "absolute", bottom: 14, left: 14 }}>
+          <div className="dn-stat-followers" style={{ position: "absolute", bottom: 14, left: 14 }}>
             <p style={{ fontWeight: 800, fontSize: 22, color: "#0A0A0A", letterSpacing: "-0.04em", lineHeight: 1 }}>{page.followers}</p>
             <p style={{ fontSize: 10, fontWeight: 600, color: "#5F5F5F", letterSpacing: "0.08em", textTransform: "uppercase", marginTop: 2 }}>Followers</p>
           </div>
 
           {/* Country - bottom right */}
-          <div style={{ position: "absolute", bottom: 14, right: 14 }}>
+          <div className="dn-stat-country" style={{ position: "absolute", bottom: 14, right: 14, maxWidth: "45%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             <p style={{ fontSize: 11, fontWeight: 600, color: "#8A8A8A", letterSpacing: "0.04em" }}>{page.country}</p>
           </div>
         </div>
@@ -375,6 +375,18 @@ export default function DistributionNetwork() {
           .filter-dropdown-wrap { flex: 1 1 100%; }
           .dist-steps-grid { grid-template-columns: 1fr; gap: 28px; }
           .dist-cta-box { padding: 36px 20px; }
+        }
+        /* Mobile: prevent overlay badge collision on the image */
+        @media (max-width: 560px) {
+          .dn-badge { font-size: 9px !important; padding: 3px 9px !important; letter-spacing: 0.1em !important; }
+          .dn-badge-niche { top: 10px !important; left: 10px !important; max-width: 50% !important; }
+          .dn-badge-hot { top: 10px !important; right: 10px !important; gap: 3px !important; padding: 3px 7px !important; }
+          .dn-hot-text { display: none; }
+          .dn-stat-followers { bottom: 10px !important; left: 12px !important; }
+          .dn-stat-followers > p:first-child { font-size: 18px !important; }
+          .dn-stat-followers > p:last-child { font-size: 9px !important; }
+          .dn-stat-country { bottom: 10px !important; right: 12px !important; max-width: 40% !important; }
+          .dn-stat-country > p { font-size: 10px !important; }
         }
       `}</style>
 

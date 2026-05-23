@@ -69,7 +69,7 @@ function InfluencerCard({ inf, i }: { inf: Influencer; i: number }) {
                 {inf.initials}
               </div>
             )}
-            <div style={{ position: "absolute", top: 14, left: 14, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#1E293B", background: "rgba(255,255,255,0.92)", backdropFilter: "blur(8px)", borderRadius: 100, padding: "4px 12px", border: "1px solid rgba(255,255,255,0.6)" }}>
+            <div className="inf-badge-niche" style={{ position: "absolute", top: 14, left: 14, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#1E293B", background: "rgba(255,255,255,0.92)", backdropFilter: "blur(8px)", borderRadius: 100, padding: "4px 12px", border: "1px solid rgba(255,255,255,0.6)", maxWidth: "calc(100% - 28px)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {inf.niche}
             </div>
           </div>
@@ -379,6 +379,7 @@ export default function InfluencerExplore() {
           .influencer-cta-section { padding: 0 16px 64px !important; }
           .influencer-cta-box { padding: 36px 20px !important; border-radius: 16px !important; }
           .card-description { display: none; }
+          .inf-badge-niche { top: 10px !important; left: 10px !important; font-size: 9px !important; padding: 3px 9px !important; letter-spacing: 0.1em !important; max-width: calc(100% - 20px) !important; }
           .filter-row { flex-wrap: wrap; }
           .filter-dropdown-wrap { flex: 1 1 calc(50% - 5px); min-width: 0; }
           .filter-dropdown-wrap button { min-width: unset !important; width: 100%; box-sizing: border-box; }
