@@ -433,13 +433,6 @@ function CaseStudyTile({ item, featured = false }: { item: PortfolioItem; featur
   );
 }
 
-// ── Renderer per category type ──
-function Tile({ item, type, featured = false }: { item: PortfolioItem; type: CategoryType; featured?: boolean }) {
-  if (type === "reel") return <ReelTile item={item} />;
-  if (type === "case-study") return <CaseStudyTile item={item} featured={featured} />;
-  return <VideoTile item={item} featured={featured} />;
-}
-
 // ── Service Category Card (landing) — uniform brand palette ──
 function ServiceCard({
   category, count, previewThumb, index,
@@ -623,15 +616,14 @@ export default function Portfolio() {
 
     const categoryItems = items.filter((i) => i.category === activeCategory);
     const meta = CATEGORY_META[activeCategory];
-    const isReel = meta.type === "reel";
-    const featured = !isReel ? categoryItems[0] : undefined;
-    const rest = !isReel ? categoryItems.slice(1) : categoryItems;
 
-    // Grid columns differ per type (reels are narrower, so more per row)
-    const gridTemplate =
-      meta.type === "reel"
-        ? "repeat(auto-fill, minmax(220px, 1fr))"
-        : "repeat(auto-fill, minmax(300px, 1fr))";
+    // Chunk video items into [1 big, 2 normal] repeating blocks
+    const videoBlocks: PortfolioItem[][] = [];
+    if (meta.type === "video") {
+      for (let i = 0; i < categoryItems.length; i += 3) {
+        videoBlocks.push(categoryItems.slice(i, i + 3));
+      }
+    }
 
     return (
       <div style={{ minHeight: "100vh", background: "#F8F8F6" }}>
@@ -687,29 +679,73 @@ export default function Portfolio() {
                 No projects in {activeCategory} yet.
               </p>
             </div>
+          ) : meta.type === "reel" ? (
+            // ── REEL: 3 per row, bigger tiles ──
+            <div
+              className="reel-grid"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: 24,
+              }}
+            >
+              {categoryItems.map((item) => <ReelTile key={item.id} item={item} />)}
+            </div>
+          ) : meta.type === "video" ? (
+            // ── VIDEO: pattern of [1 big, 2 normal] repeating ──
+            <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+              {videoBlocks.map((block, bi) => (
+                <div key={bi} style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+                  {block[0] && <VideoTile item={block[0]} featured />}
+                  {block.length > 1 && (
+                    <div
+                      className="video-row"
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(2, 1fr)",
+                        gap: 22,
+                      }}
+                    >
+                      {block.slice(1).map((item) => <VideoTile key={item.id} item={item} />)}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           ) : (
+            // ── CASE STUDY: featured + grid ──
             <>
-              {/* Featured (not used for reels) */}
-              {featured && (
+              {categoryItems[0] && (
                 <div style={{ marginBottom: 28 }}>
-                  <Tile item={featured} type={meta.type} featured />
+                  <CaseStudyTile item={categoryItems[0]} featured />
                 </div>
               )}
-              {/* Grid */}
-              {rest.length > 0 && (
+              {categoryItems.length > 1 && (
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: gridTemplate,
-                    gap: meta.type === "reel" ? 18 : 22,
+                    gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+                    gap: 22,
                   }}
                 >
-                  {rest.map((item) => <Tile key={item.id} item={item} type={meta.type} />)}
+                  {categoryItems.slice(1).map((item) => <CaseStudyTile key={item.id} item={item} />)}
                 </div>
               )}
             </>
           )}
         </div>
+        <style>{`
+          @media (max-width: 1100px) {
+            .reel-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          }
+          @media (max-width: 768px) {
+            .video-row { grid-template-columns: 1fr !important; }
+          }
+          @media (max-width: 640px) {
+            .reel-grid { grid-template-columns: 1fr !important; }
+            .services-wrap { padding-left: 20px !important; padding-right: 20px !important; }
+          }
+        `}</style>
       </div>
     );
   }
@@ -770,9 +806,12 @@ export default function Portfolio() {
       <style>{`
         @media (max-width: 1100px) {
           .service-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .reel-grid { grid-template-columns: repeat(2, 1fr) !important; }
         }
         @media (max-width: 640px) {
           .service-grid { grid-template-columns: 1fr !important; gap: 18px !important; }
+          .reel-grid { grid-template-columns: 1fr !important; }
+          .video-row { grid-template-columns: 1fr !important; }
           .services-wrap { padding-left: 20px !important; padding-right: 20px !important; }
         }
         .service-card a, .service-card { text-decoration: none; }
