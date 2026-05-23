@@ -123,8 +123,53 @@ const ARTICLE_CSS = `
 .article-body .wp-block-pullquote p { font-size: 22px; font-weight: 700; color: #1E293B; font-style: italic; letter-spacing: -0.02em; margin: 0; }
 
 /* ── Buttons (WP) ── */
-.article-body .wp-block-button { margin: 28px 0; }
-.article-body .wp-block-button__link { display: inline-block; background: #1E293B; color: #fff !important; text-decoration: none !important; font-weight: 700; padding: 12px 26px; border-radius: 100px; font-size: 14px; }
+/* ── WordPress Button block — brand-matched ──
+   Editor → "/" → Button → choose Fill (default) or Outline style.
+   Both variants auto-render on-brand on growitbuddy.com. */
+.article-body .wp-block-buttons { display: flex; flex-wrap: wrap; gap: 12px; margin: 32px 0; }
+.article-body .wp-block-button { margin: 0; }
+
+/* Filled (default) — primary CTA */
+.article-body .wp-block-button__link,
+.article-body .wp-block-button.is-style-fill .wp-block-button__link {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, #1E293B 0%, #334155 100%) !important;
+  color: #fff !important;
+  text-decoration: none !important;
+  font-weight: 700; font-size: 15px; letter-spacing: -0.01em;
+  padding: 13px 26px; border-radius: 100px; border: none !important;
+  box-shadow: 0 6px 18px rgba(30,41,59,0.18);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.article-body .wp-block-button__link:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(30,41,59,0.24);
+  color: #fff !important;
+}
+.article-body .wp-block-button__link::after {
+  content: "→"; display: inline-block; transition: transform 0.18s ease;
+  font-weight: 600;
+}
+.article-body .wp-block-button__link:hover::after { transform: translateX(3px); }
+
+/* Outline variant — secondary CTA (WP: Styles → Outline) */
+.article-body .wp-block-button.is-style-outline .wp-block-button__link {
+  background: transparent !important;
+  color: #1E293B !important;
+  border: 1.5px solid rgba(30,41,59,0.22) !important;
+  box-shadow: none;
+}
+.article-body .wp-block-button.is-style-outline .wp-block-button__link:hover {
+  background: rgba(30,41,59,0.04) !important;
+  border-color: rgba(30,41,59,0.4) !important;
+  color: #1E293B !important;
+}
+
+/* Accent variant — gold (add class "is-style-accent" in WP Advanced → Additional CSS class) */
+.article-body .wp-block-button.is-style-accent .wp-block-button__link {
+  background: linear-gradient(135deg, #C2A878 0%, #B8975F 100%) !important;
+  box-shadow: 0 6px 18px rgba(194,168,120,0.32);
+}
 
 /* ── Mobile tightening ── most users read here ── */
 @media (max-width: 640px) {
