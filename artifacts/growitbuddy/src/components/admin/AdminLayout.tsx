@@ -10,7 +10,7 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 
 interface NavGroup { label: string; items: NavItem[]; }
-interface NavItem { label: string; path: string; icon: ReactNode; permission?: string; superOnly?: boolean; }
+interface NavItem { label: string; path: string; icon: ReactNode; permission?: string; anyPermission?: string[]; superOnly?: boolean; }
 
 const navGroups: NavGroup[] = [
   {
@@ -44,7 +44,7 @@ const navGroups: NavGroup[] = [
       { label: "Distribution Pages", path: "/admin/distribution-pages", icon: <Network size={15} />, permission: "distribution-pages" },
       { label: "Authority Audit", path: "/admin/authority-audit", icon: <Scan size={15} />, permission: "authority-audit" },
       { label: "Join Network", path: "/admin/join-network", icon: <Network size={15} />, permission: "join-network" },
-      { label: "Careers Page", path: "/admin/career", icon: <Briefcase size={15} />, permission: "freelancers" },
+      { label: "Careers Page", path: "/admin/career", icon: <Briefcase size={15} />, anyPermission: ["freelancers", "full-time", "internship"] },
     ],
   },
   {
@@ -95,6 +95,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
 
   function canSee(item: NavItem): boolean {
     if (item.superOnly) return isSuperAdmin;
+    if (item.anyPermission?.length) return item.anyPermission.some((p) => hasPermission(p));
     if (!item.permission) return true;
     return hasPermission(item.permission);
   }

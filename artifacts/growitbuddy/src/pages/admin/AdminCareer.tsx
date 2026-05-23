@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
@@ -402,14 +402,35 @@ function FormTextCard({ data, set }: { data: any; set: (k: any, v: any) => void 
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────
-const TABS: { value: Tab; label: string; icon: React.ReactNode }[] = [
-  { value: "full-time",  label: "Full-Time",      icon: <Briefcase size={14} /> },
-  { value: "internship", label: "Internship",     icon: <GraduationCap size={14} /> },
-  { value: "freelancer", label: "Talent Network", icon: <UserPlus size={14} /> },
+const ALL_TABS: { value: Tab; label: string; icon: React.ReactNode; permission: string }[] = [
+  { value: "full-time",  label: "Full-Time",      icon: <Briefcase size={14} />,      permission: "full-time" },
+  { value: "internship", label: "Internship",     icon: <GraduationCap size={14} />,  permission: "internship" },
+  { value: "freelancer", label: "Talent Network", icon: <UserPlus size={14} />,       permission: "freelancers" },
 ];
 
 export default function AdminCareer() {
-  const [tab, setTab] = useState<Tab>("full-time");
+  const { hasPermission, isSuperAdmin } = useAdmin();
+  const visibleTabs = useMemo(
+    () => ALL_TABS.filter((t) => isSuperAdmin || hasPermission(t.permission)),
+    [hasPermission, isSuperAdmin],
+  );
+  const [tab, setTab] = useState<Tab>(visibleTabs[0]?.value ?? "full-time");
+
+  // If permissions change and current tab is not visible, switch to first visible
+  useEffect(() => {
+    if (visibleTabs.length && !visibleTabs.some((t) => t.value === tab)) {
+      setTab(visibleTabs[0].value);
+    }
+  }, [visibleTabs, tab]);
+
+  if (!visibleTabs.length) {
+    return (
+      <div>
+        <PageHeader title="Careers Page" description="Unified careers admin." />
+        <p className="text-[13px] text-[#0B0B0B]/55">You don't have permission to manage any career sections.</p>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -419,7 +440,7 @@ export default function AdminCareer() {
       />
 
       <div className="flex gap-1 mb-5 p-1 bg-[#0B0B0B]/5 rounded-xl inline-flex">
-        {TABS.map((t) => (
+        {visibleTabs.map((t) => (
           <button
             key={t.value}
             onClick={() => setTab(t.value)}
