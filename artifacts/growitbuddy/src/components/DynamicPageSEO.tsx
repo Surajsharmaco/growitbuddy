@@ -5,7 +5,11 @@
  * JSON-LD script on the document.
  *
  * Falls back to PAGE_REGISTRY defaults when no admin override exists.
- * Runs AFTER any page-level <SEOMeta>, so admin values always win.
+ *
+ * IMPORTANT: every tag this component writes is stamped with
+ * `data-gb-admin="1"`. Page-level <SEOMeta> checks for that flag and
+ * refuses to overwrite — so admin overrides always win, even across
+ * re-renders.
  */
 
 import { useEffect } from "react";
@@ -22,6 +26,7 @@ const SITE_NAME = "GrowitBuddy";
 const DEFAULT_IMAGE = `${SITE}/opengraph.jpg`;
 const TWITTER_HANDLE = "@growitbuddy";
 
+/** Force-set a meta tag and stamp it so SEOMeta won't overwrite. */
 function setMeta(selector: string, keyAttr: string, keyVal: string, content: string) {
   let el = document.head.querySelector(selector) as HTMLMetaElement | null;
   if (!el) {
@@ -30,6 +35,7 @@ function setMeta(selector: string, keyAttr: string, keyVal: string, content: str
     document.head.appendChild(el);
   }
   el.setAttribute("content", content);
+  el.setAttribute("data-gb-admin", "1");
 }
 
 function setLink(rel: string, href: string) {
@@ -40,17 +46,15 @@ function setLink(rel: string, href: string) {
     document.head.appendChild(el);
   }
   el.setAttribute("href", href);
+  el.setAttribute("data-gb-admin", "1");
 }
 
 function setOrRemoveSchema(json: string | undefined) {
-  // Use the SAME script id ("gb-jsonld") that SEOMeta writes to, so admin
-  // overrides REPLACE the page-level schema instead of coexisting with it.
-  // Also defensively remove any legacy admin-id script in case of leftovers.
   const id = "gb-jsonld";
   document.getElementById("gb-admin-jsonld")?.remove();
   const existing = document.getElementById(id) as HTMLScriptElement | null;
   if (!json || !json.trim()) {
-    existing?.remove();
+    existing?.removeAttribute("data-gb-admin");
     return;
   }
   try {
@@ -63,8 +67,8 @@ function setOrRemoveSchema(json: string | undefined) {
       document.head.appendChild(el);
     }
     el.textContent = json;
+    el.setAttribute("data-gb-admin", "1");
   } catch {
-    // Invalid JSON — remove any previous so we don't ship broken markup
     existing?.remove();
   }
 }
@@ -73,9 +77,11 @@ function applySEO(entry: PageRegistryEntry, seo: PageSEOData, pathname: string) 
   const title       = seo.title       ?? entry.defaults.title;
   const description = seo.description ?? entry.defaults.description;
 
-  // Robots
-  const indexDirective  = seo.index  === false ? "noindex" : "index";
-  const followDirective = seo.follow === false ? "nofollow" : "follow";
+  // Indexability — admin value > registry default > true
+  const indexResolved  = seo.index  ?? entry.defaults.index  ?? true;
+  const followResolved = seo.follow ?? true;
+  const indexDirective  = indexResolved  ? "index"  : "noindex";
+  const followDirective = followResolved ? "follow" : "nofollow";
   const robots = `${indexDirective},${followDirective}`;
 
   // Canonical
@@ -88,12 +94,13 @@ function applySEO(entry: PageRegistryEntry, seo: PageSEOData, pathname: string) 
     ? (seo.ogImage.startsWith("http") ? seo.ogImage : `${SITE}${seo.ogImage}`)
     : DEFAULT_IMAGE;
 
-  // Core
+  // Title (mark via attribute on <title> so SEOMeta can detect)
   document.title = title;
+  document.querySelector("title")?.setAttribute("data-gb-admin", "1");
+
   setMeta('meta[name="description"]', "name", "description", description);
   setMeta('meta[name="robots"]',      "name", "robots",      robots);
 
-  // Open Graph
   setMeta('meta[property="og:title"]',        "property", "og:title",        seo.ogTitle       ?? title);
   setMeta('meta[property="og:description"]',  "property", "og:description",  seo.ogDescription ?? description);
   setMeta('meta[property="og:url"]',          "property", "og:url",          canonical);
@@ -103,47 +110,46 @@ function applySEO(entry: PageRegistryEntry, seo: PageSEOData, pathname: string) 
   setMeta('meta[property="og:image:height"]', "property", "og:image:height", "630");
   setMeta('meta[property="og:site_name"]',    "property", "og:site_name",    SITE_NAME);
 
-  // Twitter
   setMeta('meta[name="twitter:card"]',        "name", "twitter:card",        seo.twitterCard ?? "summary_large_image");
   setMeta('meta[name="twitter:title"]',       "name", "twitter:title",       seo.twitterTitle       ?? seo.ogTitle       ?? title);
   setMeta('meta[name="twitter:description"]', "name", "twitter:description", seo.twitterDescription ?? seo.ogDescription ?? description);
   setMeta('meta[name="twitter:image"]',       "name", "twitter:image",       (seo.twitterImage && (seo.twitterImage.startsWith("http") ? seo.twitterImage : `${SITE}${seo.twitterImage}`)) ?? ogImage);
   setMeta('meta[name="twitter:site"]',        "name", "twitter:site",        TWITTER_HANDLE);
 
-  // Canonical link
   setLink("canonical", canonical);
 
-  // JSON-LD (free-form, admin-edited)
   setOrRemoveSchema(seo.schema);
 }
 
-// In-memory cache so route changes don't re-fetch the same slug repeatedly
-const cache = new Map<string, PageSEOData>();
-
+/**
+ * NO in-memory cache. The /api/seo/:slug response is small (~1 KB) and the
+ * server now sets Cache-Control: no-store. This means: edit in admin →
+ * navigate to the public page → see new SEO immediately. No staleness.
+ *
+ * Cross-tab live updates: when admin saves, it broadcasts via localStorage;
+ * any open public tab on the same browser will re-apply on the next route
+ * change (good enough for v1).
+ */
 export default function DynamicPageSEO() {
   const [location] = useLocation();
 
   useEffect(() => {
     const entry = findEntryByPath(location);
-    if (!entry) return; // No registry match (admin / verify / etc) — leave whatever existing tags
+    if (!entry) return;
     let cancelled = false;
 
     async function load() {
-      const cached = cache.get(entry!.slug);
-      if (cached) {
-        applySEO(entry!, cached, location);
-        return;
-      }
       try {
-        const r = await fetch(`${API_BASE}/seo/${encodeURIComponent(entry!.slug)}`, { cache: "no-cache" });
+        const r = await fetch(
+          `${API_BASE}/seo/${encodeURIComponent(entry!.slug)}?t=${Date.now()}`,
+          { cache: "no-store" },
+        );
         if (!r.ok) {
-          applySEO(entry!, {}, location);
+          if (!cancelled) applySEO(entry!, {}, location);
           return;
         }
         const body = (await r.json()) as { data: PageSEOData | null };
-        const seo: PageSEOData = body.data ?? {};
-        cache.set(entry!.slug, seo);
-        if (!cancelled) applySEO(entry!, seo, location);
+        if (!cancelled) applySEO(entry!, body.data ?? {}, location);
       } catch {
         if (!cancelled) applySEO(entry!, {}, location);
       }
