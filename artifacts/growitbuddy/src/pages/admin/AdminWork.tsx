@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
 import { ImageCropUploader } from "@/components/admin/ImageCropUploader";
-import { Plus, Trash2, ChevronDown, ChevronUp, Pencil, X, Check, Upload, Image, GripVertical } from "lucide-react";
+import { ImageUrlField } from "@/components/admin/ImageUrlField";
+import { Plus, Trash2, ChevronDown, ChevronUp, Pencil, X, Check, GripVertical, Image } from "lucide-react";
 
 import { API_BASE } from "@/lib/api";
 
@@ -152,8 +153,6 @@ interface AddLogoFormState {
   imageUrl: string;
   altText: string;
   sortOrder: string;
-  file: File | null;
-  mode: "url" | "file";
 }
 
 function LogoCard({
@@ -291,30 +290,24 @@ function LogoCard({
 
 function AddLogoPanel({ onAdd }: { onAdd: (logo: ClientLogo) => void }) {
   const { authFetch } = useAdmin();
-  const fileRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<AddLogoFormState>({ imageUrl: "", altText: "", sortOrder: "0", file: null, mode: "url" });
+  const [form, setForm] = useState<AddLogoFormState>({ imageUrl: "", altText: "", sortOrder: "0" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   function reset() {
-    setForm({ imageUrl: "", altText: "", sortOrder: "0", file: null, mode: "url" });
+    setForm({ imageUrl: "", altText: "", sortOrder: "0" });
     setError("");
     setOpen(false);
   }
 
   async function handleAdd() {
-    if (form.mode === "url" && !form.imageUrl.trim()) { setError("Paste a logo URL first."); return; }
-    if (form.mode === "file" && !form.file) { setError("Pick an image file first."); return; }
+    if (!form.imageUrl.trim()) { setError("Paste a logo URL, or upload / pick an image first."); return; }
     setSaving(true);
     setError("");
     try {
       const fd = new FormData();
-      if (form.mode === "file" && form.file) {
-        fd.append("image", form.file);
-      } else {
-        fd.append("imageUrl", form.imageUrl.trim());
-      }
+      fd.append("imageUrl", form.imageUrl.trim());
       fd.append("altText", form.altText.trim());
       fd.append("sortOrder", form.sortOrder || "0");
       const res = await authFetch(`${API_BASE}/admin/logos`, { method: "POST", body: fd });
@@ -364,55 +357,12 @@ function AddLogoPanel({ onAdd }: { onAdd: (logo: ClientLogo) => void }) {
         <button onClick={reset} style={{ padding: 2, border: "none", background: "transparent", cursor: "pointer", color: "#8A8A8A" }}><X size={14} /></button>
       </div>
 
-      {/* Mode toggle */}
-      <div style={{ display: "flex", gap: 0, borderRadius: 7, overflow: "hidden", border: "1px solid #E5E5E0" }}>
-        {(["url", "file"] as const).map((m) => (
-          <button
-            key={m}
-            onClick={() => setForm((f) => ({ ...f, mode: m, file: null, imageUrl: "" }))}
-            style={{
-              flex: 1, fontSize: 11, fontWeight: 600, padding: "6px 0",
-              background: form.mode === m ? "#1E293B" : "#FAFAF8",
-              color: form.mode === m ? "#FFFFFF" : "#5F5F5F",
-              border: "none", cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
-            }}
-          >
-            {m === "url" ? <><Image size={11} /> URL</> : <><Upload size={11} /> Upload</>}
-          </button>
-        ))}
-      </div>
-
-      {form.mode === "url" ? (
-        <input
-          value={form.imageUrl}
-          onChange={(e) => setForm((f) => ({ ...f, imageUrl: e.target.value }))}
-          placeholder="https://cdn.simpleicons.org/stripe/635BFF or any image URL"
-          style={{ fontSize: 12, padding: "7px 10px", border: "1px solid #E5E5E0", borderRadius: 7, outline: "none", color: "#0A0A0A", width: "100%" }}
-        />
-      ) : (
-        <div>
-          <input ref={fileRef} type="file" accept="image/*,image/svg+xml" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) setForm((prev) => ({ ...prev, file: f })); }} />
-          <button
-            onClick={() => fileRef.current?.click()}
-            style={{
-              width: "100%", fontSize: 12, padding: "7px 10px", border: "1px solid #E5E5E0", borderRadius: 7,
-              background: "#FAFAF8", cursor: "pointer", color: form.file ? "#0A0A0A" : "#8A8A8A",
-              display: "flex", alignItems: "center", gap: 6,
-            }}
-          >
-            <Upload size={13} style={{ color: "#C2A878" }} />
-            {form.file ? form.file.name : "Choose image or SVG…"}
-          </button>
-        </div>
-      )}
-
-      {/* Preview of URL */}
-      {form.mode === "url" && form.imageUrl.trim() && (
-        <div style={{ background: "#F8F8F6", borderRadius: 8, padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "center", minHeight: 52 }}>
-          <img src={form.imageUrl.trim()} alt="preview" style={{ maxHeight: 36, maxWidth: "100%", objectFit: "contain" }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
-        </div>
-      )}
+      <ImageUrlField
+        value={form.imageUrl}
+        onChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))}
+        placeholder="https://cdn.simpleicons.org/stripe/635BFF — or upload / pick from library"
+        previewHeight={52}
+      />
 
       <input
         value={form.altText}

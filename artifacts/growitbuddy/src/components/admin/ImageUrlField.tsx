@@ -2,7 +2,7 @@ import { useRef, useState, useId } from "react";
 import { Upload, Images, X } from "lucide-react";
 import { MediaLibrary } from "./MediaLibrary";
 import { useAdmin } from "@/context/AdminContext";
-import { API_BASE as API } from "@/lib/api";
+import { API_BASE as API, resolveMediaUrl } from "@/lib/api";
 
 interface Props {
   label?: string;
@@ -42,7 +42,7 @@ export function ImageUrlField({
       const res = await authFetch(`${API}/admin/upload`, { method: "POST", body: fd });
       if (res.ok) {
         const { url } = (await res.json()) as { url: string };
-        onChange(url);
+        onChange(resolveMediaUrl(url));
       } else {
         const data = await res.json().catch(() => ({}));
         setUploadError((data as { error?: string }).error ?? `Upload failed (${res.status})`);
@@ -110,7 +110,8 @@ export function ImageUrlField({
           <button
             type="button"
             onClick={() => onChange("")}
-            title="Clear"
+            title="Clear image"
+            aria-label="Clear image"
             className="flex items-center gap-1 text-[12px] font-semibold text-red-400 hover:text-red-600 border border-red-200 hover:border-red-300 px-2.5 rounded-xl transition-colors"
           >
             <X size={13} />
