@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { Card, PageHeader, SectionTitle } from "@/components/admin/AdminField";
+import { ImageUrlField } from "@/components/admin/ImageUrlField";
 import { Plus, Trash2, Edit2, X, Save, Upload, Image } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -112,18 +113,13 @@ function LogoForm({
         </div>
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
-          <div>
-            <label style={{ fontSize: 11, fontWeight: 600, color: "#0B0B0B", opacity: 0.5, textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 4 }}>
-              Image URL (or upload above)
-            </label>
-            <input
-              type="text"
-              value={form.imageUrl}
-              onChange={(e) => { setForm((p) => ({ ...p, imageUrl: e.target.value })); setPreview(e.target.value); setFile(null); }}
-              placeholder="https://example.com/logo.png"
-              style={{ width: "100%", padding: "8px 12px", border: "1.5px solid #E5E5E0", borderRadius: 8, fontSize: 13, outline: "none", background: "#FFFFFF" }}
-            />
-          </div>
+          <ImageUrlField
+            label="Image URL (or upload / pick from library)"
+            value={form.imageUrl}
+            onChange={(url) => { setForm((p) => ({ ...p, imageUrl: url })); setPreview(url); setFile(null); }}
+            placeholder="https://example.com/logo.png"
+            previewHeight={60}
+          />
           <div style={{ display: "flex", gap: 10 }}>
             <div style={{ flex: 2 }}>
               <label style={{ fontSize: 11, fontWeight: 600, color: "#0B0B0B", opacity: 0.5, textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 4 }}>Brand Name</label>
