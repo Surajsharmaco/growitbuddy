@@ -15,9 +15,9 @@ import EcosystemOptIn from "@/components/EcosystemOptIn";
 type CareerType = "full-time" | "internship" | "freelancer";
 
 const TYPE_OPTIONS: { value: CareerType; label: string; sub: string }[] = [
-  { value: "full-time",  label: "Full-Time",      sub: "Join the core team" },
-  { value: "internship", label: "Internship",     sub: "Learn by doing" },
   { value: "freelancer", label: "Talent Network", sub: "Project-based work" },
+  { value: "internship", label: "Internship",     sub: "Learn by doing" },
+  { value: "full-time",  label: "Full-Time",      sub: "Join the core team" },
 ];
 
 const EXPERIENCE_OPTIONS = ["Less than 1 year", "1–2 years", "3–5 years", "5+ years"];
@@ -150,11 +150,11 @@ export default function Career() {
   const [location] = useLocation();
 
   const [type, setType] = useState<CareerType>(() => {
-    if (typeof window === "undefined") return "full-time";
+    if (typeof window === "undefined") return "freelancer";
     const qs = new URLSearchParams(window.location.search);
     const t = qs.get("type");
     if (t === "full-time" || t === "internship" || t === "freelancer") return t;
-    return "full-time";
+    return "freelancer";
   });
 
   // Allow URL ?type= to update selection on navigation
