@@ -304,7 +304,7 @@ export default function Work() {
                         src={resolveMediaUrl(l.imageUrl)}
                         alt={l.altText || "Client"}
                         loading="lazy"
-                        style={{ maxWidth: "80%", maxHeight: 44, objectFit: "contain", opacity: 0.75, transition: "opacity 0.2s" }}
+                        style={{ maxWidth: "80%", maxHeight: 44, objectFit: "contain", opacity: 1, transition: "opacity 0.2s" }}
                         className="logo-img"
                         onError={() => setFailedLogos(prev => new Set(prev).add(l.id))}
                       />
@@ -424,7 +424,7 @@ export default function Work() {
           z-index: 1;
         }
         .logo-cell:hover .logo-img {
-          opacity: 1 !important;
+          opacity: 0.55 !important;
         }
       `}</style>
     </div>
