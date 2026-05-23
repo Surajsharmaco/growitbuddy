@@ -128,17 +128,17 @@ const ARTICLE_CSS = `
 
 /* ── Mobile tightening ── most users read here ── */
 @media (max-width: 640px) {
-  .article-body p, .article-body li { font-size: 16px; line-height: 1.78; color: rgba(11,11,11,0.82); }
-  .article-body p, .article-body .wp-block-paragraph { margin-bottom: 18px; }
-  .article-body figure, .article-body .wp-block-image, .article-body .wp-block-embed { margin: 22px 0; }
+  .article-body p, .article-body li { font-size: 16px; line-height: 1.72; color: rgba(11,11,11,0.82); }
+  .article-body p, .article-body .wp-block-paragraph { margin-bottom: 14px; }
+  .article-body figure, .article-body .wp-block-image, .article-body .wp-block-embed { margin: 18px 0; }
   /* Edge-to-edge images on phones for max impact */
   .article-body figure img, .article-body .wp-block-image img, .article-body img { border-radius: 12px; }
-  .article-body h1, .article-body .wp-block-heading h1 { font-size: 26px; margin-top: 40px; line-height: 1.15; }
-  .article-body h2, .article-body .wp-block-heading h2 { font-size: 21px; margin-top: 36px; margin-bottom: 14px; padding-bottom: 8px; line-height: 1.25; }
-  .article-body h3, .article-body .wp-block-heading h3 { font-size: 17px; margin-top: 24px; margin-bottom: 10px; }
-  .article-body blockquote, .article-body .wp-block-quote { margin: 26px 0; padding: 16px 18px; }
+  .article-body h1, .article-body .wp-block-heading h1 { font-size: 26px; margin-top: 32px; line-height: 1.15; }
+  .article-body h2, .article-body .wp-block-heading h2 { font-size: 21px; margin-top: 28px; margin-bottom: 10px; padding-bottom: 6px; line-height: 1.25; }
+  .article-body h3, .article-body .wp-block-heading h3 { font-size: 17px; margin-top: 20px; margin-bottom: 8px; }
+  .article-body blockquote, .article-body .wp-block-quote { margin: 20px 0; padding: 14px 16px; }
   .article-body blockquote p, .article-body .wp-block-quote p { font-size: 16px; line-height: 1.6; }
-  .article-body pre, .article-body .wp-block-code { padding: 14px 16px; font-size: 13px; margin: 22px 0; border-radius: 10px; }
+  .article-body pre, .article-body .wp-block-code { padding: 12px 14px; font-size: 13px; margin: 18px 0; border-radius: 10px; }
   .article-body .alignleft, .article-body .alignright,
   .article-body .wp-block-image.alignleft, .article-body .wp-block-image.alignright { float: none; margin: 22px auto; max-width: 100%; }
   .article-body .alignwide, .article-body .wp-block-image.alignwide { margin-left: 0; margin-right: 0; max-width: 100%; }
@@ -160,7 +160,9 @@ const ARTICLE_CSS = `
 }
 
 /* ── Reserve bottom space so sticky share bar doesn't cover content ── */
-.gb-article-section { padding-bottom: 120px !important; }
+/* Reserve just enough space at the bottom for the sticky share bar */
+.gb-article-section { padding-bottom: 96px !important; }
+@media (min-width: 900px) { .gb-article-section { padding-bottom: 80px !important; } }
 @media (min-width: 900px) {
   .gb-share-bar { box-shadow: 0 -2px 20px rgba(11,11,11,0.04) !important; }
 }
@@ -555,16 +557,16 @@ export default function InsightDetail() {
         schema={buildPostSchema(post)}
       />
 
-      {/* Hero */}
-      <section style={{ paddingTop: "clamp(72px, 11vw, 96px)", paddingBottom: 0, background: "#FFFFFF" }}>
+      {/* Hero — tight vertical rhythm, white space minimized */}
+      <section style={{ paddingTop: "clamp(56px, 9vw, 80px)", paddingBottom: 0, background: "#FFFFFF" }}>
         <div className="max-w-[760px] mx-auto" style={{ padding: "0 18px" }}>
           <Link href="/blog">
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "#7A7A85", cursor: "pointer", marginBottom: 28, letterSpacing: "0.01em" }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "#7A7A85", cursor: "pointer", marginBottom: 18, letterSpacing: "0.01em" }}>
               <ArrowLeft className="w-3.5 h-3.5" /> All posts
             </span>
           </Link>
 
-          <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 24 }}>
+          <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 16 }}>
             <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", padding: "5px 13px", borderRadius: 100, background: "rgba(30,41,59,0.12)", border: "1px solid rgba(30,41,59,0.25)", color: "var(--gb-accent)" }}>
               {post.tag}
             </span>
@@ -574,7 +576,7 @@ export default function InsightDetail() {
           </div>
 
           {/* Author byline */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
             <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg, #1E293B, #334155)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800, letterSpacing: "0.02em" }}>SS</div>
             <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.25 }}>
               <span style={{ fontSize: 13, fontWeight: 700, color: "#0A0A0A" }}>Suraj Sharma</span>
@@ -586,7 +588,7 @@ export default function InsightDetail() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            style={{ fontWeight: 900, fontSize: "clamp(22px, 5vw, 52px)", letterSpacing: "-0.04em", lineHeight: "1.1", color: "#0A0A0A", marginBottom: 22 }}
+            style={{ fontWeight: 900, fontSize: "clamp(22px, 5vw, 52px)", letterSpacing: "-0.04em", lineHeight: "1.1", color: "#0A0A0A", marginBottom: 14 }}
           >
             {post.title}
           </motion.h1>
@@ -596,7 +598,7 @@ export default function InsightDetail() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              style={{ fontSize: 19, color: "#5F5F5F", lineHeight: "1.7", marginBottom: 40, fontWeight: 400 }}
+              style={{ fontSize: 19, color: "#5F5F5F", lineHeight: "1.7", marginBottom: 24, fontWeight: 400 }}
             >
               {post.excerpt}
             </motion.p>
@@ -625,15 +627,15 @@ export default function InsightDetail() {
           </div>
         )}
 
-        <div style={{ height: 1, background: "rgba(10,10,10,0.03)", marginTop: post.featuredImage ? 32 : 0 }} />
+        <div style={{ height: 1, background: "rgba(10,10,10,0.03)", marginTop: post.featuredImage ? 20 : 0 }} />
       </section>
 
-      {/* Article body */}
-      <section className="gb-article-section" style={{ padding: "clamp(36px, 7vw, 64px) 18px 100px", background: "#FFFFFF" }}>
+      {/* Article body — tighter top padding so "On this page" sits close to the image */}
+      <section className="gb-article-section" style={{ padding: "clamp(20px, 4vw, 36px) 18px 100px", background: "#FFFFFF" }}>
         <div className="max-w-[680px] mx-auto">
           {/* Auto Table of Contents — appears only if the article has 2+ H2 sections */}
           {toc.length >= 2 && (
-            <nav aria-label="On this page" className="article-toc" style={{ padding: "18px 22px", marginBottom: 36, background: "#F8F8F6", border: "1px solid #EFEFEA", borderRadius: 14 }}>
+            <nav aria-label="On this page" className="article-toc" style={{ padding: "16px 20px", marginBottom: 24, background: "#F8F8F6", border: "1px solid #EFEFEA", borderRadius: 14 }}>
               <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.15em", textTransform: "uppercase", color: "#7A7A85", margin: 0, marginBottom: 12, display: "inline-flex", alignItems: "center", gap: 7 }}>
                 <List className="w-3.5 h-3.5" /> On this page
               </p>
@@ -656,9 +658,9 @@ export default function InsightDetail() {
             : renderMarkdown(post.content)
           }
 
-          <div style={{ marginTop: 56, padding: "32px 24px", background: "#EFEFEA", borderRadius: 20, textAlign: "center" }}>
-            <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#8A8A8A", marginBottom: 12 }}>Ready to build your authority?</p>
-            <h3 style={{ fontWeight: 800, fontSize: "clamp(20px, 3vw, 26px)", letterSpacing: "-0.03em", color: "#0A0A0A", marginBottom: 20, lineHeight: 1.25 }}>
+          <div style={{ marginTop: 40, padding: "26px 22px", background: "#EFEFEA", borderRadius: 18, textAlign: "center" }}>
+            <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#8A8A8A", marginBottom: 10 }}>Ready to build your authority?</p>
+            <h3 style={{ fontWeight: 800, fontSize: "clamp(20px, 3vw, 26px)", letterSpacing: "-0.03em", color: "#0A0A0A", marginBottom: 16, lineHeight: 1.25 }}>
               Turn your expertise into consistent inbound demand.
             </h3>
             <Link href="/authority-audit">
@@ -676,10 +678,10 @@ export default function InsightDetail() {
 
       {/* Related posts */}
       {related.length > 0 && (
-        <section style={{ padding: "64px 24px 80px", background: "#F8F8F6", borderTop: "1px solid #E5E5E0" }}>
+        <section style={{ padding: "clamp(36px, 6vw, 56px) 18px clamp(48px, 8vw, 72px)", background: "#F8F8F6", borderTop: "1px solid #E5E5E0" }}>
           <div className="max-w-[1100px] mx-auto">
-            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.15em", textTransform: "uppercase", color: "#7A7A85", marginBottom: 12 }}>Continue reading</p>
-            <h2 style={{ fontWeight: 800, fontSize: "clamp(22px, 3vw, 34px)", letterSpacing: "-0.04em", color: "#0A0A0A", marginBottom: 36 }}>More Insights</h2>
+            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.15em", textTransform: "uppercase", color: "#7A7A85", marginBottom: 10 }}>Continue reading</p>
+            <h2 style={{ fontWeight: 800, fontSize: "clamp(22px, 3vw, 34px)", letterSpacing: "-0.04em", color: "#0A0A0A", marginBottom: 24 }}>More Insights</h2>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 300px), 1fr))", gap: 16 }}>
               {related.map((p, i) => (
                 <motion.div key={p.slug} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4, delay: i * 0.08 }}>

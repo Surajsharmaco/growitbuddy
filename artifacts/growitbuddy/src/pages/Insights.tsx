@@ -49,15 +49,15 @@ export default function Insights() {
         } as Record<string, unknown>}
       />
 
-      {/* Hero */}
-      <section style={{ paddingTop: "clamp(80px, 14vw, 120px)", paddingBottom: "clamp(48px, 9vw, 80px)", paddingLeft: 18, paddingRight: 18, borderBottom: "1px solid #E5E5E0" }}>
+      {/* Hero — tightened vertical rhythm */}
+      <section style={{ paddingTop: "clamp(56px, 11vw, 88px)", paddingBottom: "clamp(28px, 6vw, 48px)", paddingLeft: 18, paddingRight: 18, borderBottom: "1px solid #E5E5E0" }}>
         <div className="max-w-[1100px] mx-auto">
           <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#7A7A85", marginBottom: 16 }}>The Blog</p>
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
-            style={{ fontWeight: 800, fontSize: "clamp(28px, 7vw, 88px)", letterSpacing: "-0.04em", lineHeight: "1.08", color: "#0A0A0A", maxWidth: "18ch", marginBottom: 24 }}
+            style={{ fontWeight: 800, fontSize: "clamp(28px, 7vw, 88px)", letterSpacing: "-0.04em", lineHeight: "1.08", color: "#0A0A0A", maxWidth: "18ch", marginBottom: 16 }}
           >
             Thoughts on building authority.
           </motion.h1>
@@ -73,11 +73,11 @@ export default function Insights() {
       </section>
 
       {/* Tag filter + Posts grid */}
-      <section style={{ padding: "clamp(36px, 7vw, 60px) 18px clamp(56px, 10vw, 100px)", background: "#FFFFFF" }}>
+      <section style={{ padding: "clamp(20px, 4vw, 36px) 18px clamp(48px, 9vw, 80px)", background: "#FFFFFF" }}>
         <div className="max-w-[1100px] mx-auto">
 
           {/* Filter bar — horizontally scrollable on mobile */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 32 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
             {allTags.map(tag => (
               <button
                 key={tag}
