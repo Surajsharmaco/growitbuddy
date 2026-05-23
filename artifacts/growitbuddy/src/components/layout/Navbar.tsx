@@ -439,109 +439,96 @@ export function Navbar() {
               {/* Left — primary links */}
               <nav style={{ display: "flex", flexDirection: "column", gap: "clamp(2px, 0.6vw, 6px)" }}>
                 {(() => {
-                  const items: Array<{ kind: "link"; href: string; label: string } | { kind: "group"; label: string; items: NavDropdownItem[] }> = [];
+                  type FlatItem = { href: string; label: string; subItems?: NavDropdownItem[] };
+                  const items: FlatItem[] = [];
                   NAV_LINKS.forEach((l) => {
-                    if (l.dropdown) items.push({ kind: "group", label: l.label, items: l.dropdown });
-                    else items.push({ kind: "link", href: l.href!, label: l.label });
-                  });
-                  items.push({ kind: "link", href: "/contact", label: "Contact" });
-                  let idx = 0;
-                  return items.map((it) => {
-                    if (it.kind === "link") {
-                      const active = location === it.href;
-                      const i = idx++;
-                      return (
-                        <m.div
-                          key={it.href}
-                          initial={{ opacity: 0, y: 12 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.06 + i * 0.05, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                        >
-                          <Link href={it.href}>
-                            <span
-                              onClick={() => setIsOpen(false)}
-                              className="gb-menu-link"
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                padding: "clamp(6px, 0.9vw, 10px) 0",
-                                fontSize: "clamp(22px, 3.2vw, 34px)",
-                                fontWeight: 700,
-                                letterSpacing: "-0.025em",
-                                lineHeight: 1.1,
-                                color: active ? "#0A0A0A" : "#5F5F5F",
-                                cursor: "pointer",
-                                transition: "color 0.18s",
-                                position: "relative",
-                                borderBottom: "1px solid rgba(10,10,10,0.06)",
-                              }}
-                            >
-                              <span style={{ display: "inline-flex", alignItems: "baseline", gap: 12 }}>
-                                <span style={{
-                                  fontSize: 11,
-                                  fontWeight: 700,
-                                  letterSpacing: "0.18em",
-                                  color: "var(--gb-accent)",
-                                  fontFamily: "'Inter', sans-serif",
-                                  width: 24,
-                                  display: "inline-block",
-                                  transform: "translateY(-3px)",
-                                  opacity: 0.75,
-                                }}>
-                                  {String(i + 1).padStart(2, "0")}
-                                </span>
-                                {it.label}
-                              </span>
-                              <ArrowUpRight className="gb-menu-arrow" style={{ width: 20, height: 20, opacity: 0, transform: "translateX(-10px)", transition: "opacity 0.2s, transform 0.25s", color: "var(--gb-accent)" }} />
-                            </span>
-                          </Link>
-                        </m.div>
-                      );
+                    if (l.dropdown) {
+                      items.push({ href: l.dropdown[0].href, label: l.label, subItems: l.dropdown });
+                    } else {
+                      items.push({ href: l.href!, label: l.label });
                     }
-                    const i = idx++;
+                  });
+                  items.push({ href: "/contact", label: "Contact" });
+                  return items.map((it, i) => {
+                    const active = it.subItems
+                      ? it.subItems.some((s) => location === s.href)
+                      : location === it.href;
                     return (
                       <m.div
                         key={it.label}
-                        initial={{ opacity: 0, y: 12 }}
+                        initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.06 + i * 0.05, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                        style={{ paddingTop: "clamp(10px, 1.4vw, 16px)" }}
+                        transition={{ delay: 0.05 + i * 0.04, duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                        style={{ borderBottom: "1px solid rgba(10,10,10,0.06)" }}
                       >
-                        <p style={{
-                          fontSize: 10, fontWeight: 800, letterSpacing: "0.22em",
-                          textTransform: "uppercase", color: "var(--gb-accent)",
-                          margin: 0, marginBottom: 6, paddingLeft: 36, opacity: 0.75,
-                        }}>{it.label}</p>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-                          {it.items.map((sub) => {
-                            const active = location === sub.href;
-                            return (
-                              <Link key={sub.href} href={sub.href}>
-                                <span
-                                  onClick={() => setIsOpen(false)}
-                                  className="gb-menu-link"
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "space-between",
-                                    padding: "6px 0 6px 36px",
-                                    fontSize: "clamp(15px, 1.6vw, 18px)",
-                                    fontWeight: 500,
-                                    letterSpacing: "-0.01em",
-                                    lineHeight: 1.3,
-                                    color: active ? "#0A0A0A" : "#7A7A85",
-                                    cursor: "pointer",
-                                    transition: "color 0.18s",
-                                  }}
-                                >
-                                  {sub.label}
-                                  <ArrowUpRight className="gb-menu-arrow" style={{ width: 16, height: 16, opacity: 0, transform: "translateX(-8px)", transition: "opacity 0.2s, transform 0.25s", color: "var(--gb-accent)" }} />
-                                </span>
-                              </Link>
-                            );
-                          })}
-                        </div>
+                        <Link href={it.href}>
+                          <span
+                            onClick={() => setIsOpen(false)}
+                            className="gb-menu-link"
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              padding: "clamp(8px, 1vw, 12px) 0 clamp(4px, 0.6vw, 6px)",
+                              fontSize: "clamp(20px, 2.6vw, 28px)",
+                              fontWeight: 600,
+                              letterSpacing: "-0.02em",
+                              lineHeight: 1.1,
+                              color: active ? "#0A0A0A" : "#3F3F46",
+                              cursor: "pointer",
+                              transition: "color 0.18s",
+                            }}
+                          >
+                            <span style={{ display: "inline-flex", alignItems: "baseline", gap: 12 }}>
+                              <span style={{
+                                fontSize: 10,
+                                fontWeight: 700,
+                                letterSpacing: "0.18em",
+                                color: "var(--gb-accent)",
+                                fontFamily: "'Inter', sans-serif",
+                                width: 22,
+                                display: "inline-block",
+                                transform: "translateY(-3px)",
+                                opacity: 0.7,
+                              }}>
+                                {String(i + 1).padStart(2, "0")}
+                              </span>
+                              {it.label}
+                            </span>
+                            <ArrowUpRight className="gb-menu-arrow" style={{ width: 18, height: 18, opacity: 0, transform: "translateX(-8px)", transition: "opacity 0.2s, transform 0.25s", color: "var(--gb-accent)" }} />
+                          </span>
+                        </Link>
+                        {it.subItems && (
+                          <div style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "4px 14px",
+                            paddingLeft: 34,
+                            paddingBottom: "clamp(8px, 1vw, 12px)",
+                          }}>
+                            {it.subItems.map((sub) => {
+                              const subActive = location === sub.href;
+                              return (
+                                <Link key={sub.href} href={sub.href}>
+                                  <span
+                                    onClick={(e) => { e.stopPropagation(); setIsOpen(false); }}
+                                    className="gb-menu-sublink"
+                                    style={{
+                                      fontSize: 13,
+                                      fontWeight: 500,
+                                      color: subActive ? "#0A0A0A" : "#8A8A8A",
+                                      cursor: "pointer",
+                                      letterSpacing: "-0.005em",
+                                      transition: "color 0.15s",
+                                    }}
+                                  >
+                                    {sub.label}
+                                  </span>
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        )}
                       </m.div>
                     );
                   });
@@ -584,28 +571,15 @@ export function Navbar() {
                     </button>
                     <button
                       onClick={() => { setIsOpen(false); goContact("form"); }}
+                      className="gb-btn"
                       style={{
                         width: "100%",
-                        padding: "13px 22px",
+                        padding: "14px 22px",
                         fontSize: 15,
-                        fontWeight: 600,
-                        fontFamily: "'Inter', sans-serif",
-                        color: "#5F5F5F",
-                        background: "transparent",
-                        border: "1px solid rgba(10,10,10,0.1)",
-                        borderRadius: 100,
-                        cursor: "pointer",
-                        display: "inline-flex",
-                        alignItems: "center",
                         justifyContent: "center",
-                        gap: 8,
-                        transition: "color 0.15s, border-color 0.15s",
                       }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--gb-authority)"; (e.currentTarget as HTMLElement).style.color = "var(--gb-authority)"; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(10,10,10,0.1)"; (e.currentTarget as HTMLElement).style.color = "#5F5F5F"; }}
                     >
-                      Get In Touch
-                      <ArrowUpRight className="w-3.5 h-3.5" />
+                      Send a Message
                     </button>
                   </div>
                 </div>
@@ -628,6 +602,7 @@ export function Navbar() {
             <style>{`
               .gb-menu-link:hover { color: #0A0A0A !important; }
               .gb-menu-link:hover .gb-menu-arrow { opacity: 1 !important; transform: translateX(0) !important; }
+              .gb-menu-sublink:hover { color: var(--gb-accent) !important; }
               @media (min-width: 900px) {
                 .gb-menu-grid { grid-template-columns: 1.6fr 1fr !important; }
               }
