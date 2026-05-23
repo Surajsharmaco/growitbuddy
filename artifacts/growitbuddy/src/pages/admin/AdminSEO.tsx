@@ -134,7 +134,7 @@ function validate(seo: PageSEOData, eff: { title: string; description: string })
 
 // ─── Main component ────────────────────────────────────────────────
 export default function AdminSEO() {
-  const { getContent, saveContent } = useAdmin();
+  const { getContent, saveContent, isSuperAdmin } = useAdmin();
   const [selectedSlug, setSelectedSlug] = useState<string>(PAGE_REGISTRY[0].slug);
   const [filter, setFilter] = useState("");
   const [seoBySlug, setSeoBySlug] = useState<Record<string, PageSEOData>>({});
@@ -198,6 +198,20 @@ export default function AdminSEO() {
   const indexOn   = seo.index   !== false;
   const followOn  = seo.follow  !== false;
   const sitemapOn = seo.sitemap !== false;
+
+  if (!isSuperAdmin) {
+    return (
+      <div>
+        <PageHeader title="SEO Control" />
+        <Card>
+          <div className="py-10 text-center">
+            <div className="text-[15px] font-semibold text-[#0B0B0B]">Restricted</div>
+            <div className="text-[13px] text-[#0B0B0B]/50 mt-1">SEO controls are available to super admins only.</div>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div>
