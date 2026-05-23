@@ -93,7 +93,7 @@ const ADMIN_PAGES: AdminPage[] = [
   { url: "/admin/footer",              name: "Footer editor",     what: "Edit footer columns, links, social handles." },
   { url: "/admin/settings",            name: "Site Settings",     what: "Logo, favicon, brand colors, contact info, social links — site-wide." },
   { url: "/admin/page-visibility",     name: "Page Visibility",   what: "Hide/show pages from public (returns 404 to visitors when hidden)." },
-  { url: "/admin/optimize",            name: "Optimizer",         what: "Image optimization & performance tools." },
+  { url: "/admin/optimize",            name: "Optimizer",         what: "Performance toggles + one-click warm-up. Keep DB warm, cache stable public reads (60s/5min), long-cache images, clear caches, run VACUUM ANALYZE. All safe — defaults are OFF, never deletes content." },
 ];
 
 // ── Step-list component ───────────────────────────────────────────────────────

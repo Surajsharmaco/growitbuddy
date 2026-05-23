@@ -3,8 +3,43 @@ import cors from "cors";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import { getOptimizeSettings } from "./routes/admin";
 
 const app: Express = express();
+
+// ──────────────────────────────────────────────────────────────────
+// Optional public-read cache headers, controlled from /admin/optimize.
+//
+// SAFETY RULES (all enforced here):
+//  - Only GET requests.
+//  - Only the explicit allow-list of stable public endpoints below.
+//  - NEVER admin, auth, forms, or write methods.
+//  - Max TTL is 5 minutes — admin edits propagate quickly.
+//  - When the setting is "off" (default), this middleware does nothing.
+// ──────────────────────────────────────────────────────────────────
+const PUBLIC_CACHE_ALLOWLIST: RegExp[] = [
+  /^\/api\/portfolio\/items\/?$/,
+  /^\/api\/seo\/[^/]+\/?$/,
+];
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.method !== "GET") return next();
+  try {
+    const s = getOptimizeSettings();
+    const url = req.url.split("?")[0] ?? req.url;
+
+    // Long-lived headers for media (immutable URLs by ID).
+    if (s.strictImageHeaders && /^\/api\/media\/file\/\d+\/?$/.test(url)) {
+      res.setHeader("Cache-Control", "public, max-age=86400, immutable");
+    } else if (
+      s.publicReadCache !== "off" &&
+      PUBLIC_CACHE_ALLOWLIST.some((re) => re.test(url))
+    ) {
+      const maxAge = s.publicReadCache === "short" ? 60 : 300;
+      res.setHeader("Cache-Control", `public, max-age=${maxAge}, stale-while-revalidate=60`);
+    }
+  } catch { /* fail open — never block a request because of optimization */ }
+  next();
+});
 
 // ── Security headers ──
 app.use((_req: Request, res: Response, next: NextFunction) => {

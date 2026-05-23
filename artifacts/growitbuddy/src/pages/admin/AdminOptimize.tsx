@@ -19,43 +19,26 @@ interface SpeedData { dbResponseMs: number; contentRows: number; leadsRows: numb
 interface IssueData { warnings: string[]; imageCount: number; largeCount: number; totalKb: number; }
 interface LogEntry { ts: number; action: string; detail: string; ok: boolean; }
 
-const PERF_TOGGLES = [
-  {
-    id: "lazyLoad",
-    label: "Lazy Loading",
-    desc: "Images and off-screen content load only when visible in the viewport.",
-    icon: <Layers size={15} />,
-    status: "enabled" as const,
-  },
-  {
-    id: "codeSplit",
-    label: "Code Splitting",
-    desc: "JavaScript is split into chunks and loaded only when each page is visited.",
-    icon: <Cpu size={15} />,
-    status: "enabled" as const,
-  },
-  {
-    id: "preconnect",
-    label: "DNS Preconnect",
-    desc: "Early DNS resolution for external services (Cal.com, Unsplash, Google Fonts).",
-    icon: <TrendingUp size={15} />,
-    status: "enabled" as const,
-  },
-  {
-    id: "hmr",
-    label: "Hot Module Replacement",
-    desc: "Development-only: live updates without full page reload.",
-    icon: <RefreshCw size={15} />,
-    status: "dev-only" as const,
-  },
-  {
-    id: "treeshake",
-    label: "Tree Shaking",
-    desc: "Unused code is removed automatically at build time via Rollup.",
-    icon: <Zap size={15} />,
-    status: "enabled" as const,
-  },
+// Build-time optimizations — baked into the Vite/Rollup build. Always on in production.
+// Shown as read-only status badges (no fake switches).
+const BUILD_TIME_OPTS = [
+  { id: "lazyLoad",   label: "Lazy Loading",     desc: "Images & off-screen content load only when scrolled into view.", icon: <Layers size={15} /> },
+  { id: "codeSplit",  label: "Code Splitting",   desc: "JavaScript is split per route — visitors download only what they need.", icon: <Cpu size={15} /> },
+  { id: "preconnect", label: "DNS Preconnect",   desc: "Early DNS resolution for fonts, calendar, and image CDN.", icon: <TrendingUp size={15} /> },
+  { id: "treeshake",  label: "Tree Shaking",     desc: "Unused code is automatically removed at build time.", icon: <Zap size={15} /> },
 ];
+
+// Runtime toggles — persisted in DB, applied live without redeploy. Safe to flip.
+interface OptimizeSettings {
+  keepDbWarm: boolean;
+  publicReadCache: "off" | "short" | "medium";
+  strictImageHeaders: boolean;
+}
+const DEFAULT_SETTINGS: OptimizeSettings = {
+  keepDbWarm: false,
+  publicReadCache: "off",
+  strictImageHeaders: false,
+};
 
 function fmtUptime(s: number) {
   const h = Math.floor(s / 3600);
@@ -79,6 +62,44 @@ function Toast({ msg, onDone }: { msg: ToastMsg; onDone: () => void }) {
     >
       {msg.ok ? <CheckCircle2 size={15} /> : <XCircle size={15} />}
       {msg.text}
+    </div>
+  );
+}
+
+function ToggleRow({
+  icon, label, desc, enabled, busy, onToggle,
+}: {
+  icon: React.ReactNode; label: string; desc: string;
+  enabled: boolean; busy: boolean; onToggle: (next: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center gap-4 p-4 rounded-2xl border border-[#0B0B0B]/8 bg-white">
+      <div className="w-8 h-8 rounded-xl bg-[#0B0B0B]/6 flex items-center justify-center text-[#0B0B0B]/50 shrink-0">
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-0.5">
+          <p className="text-[13px] font-bold text-[#0B0B0B]">{label}</p>
+          <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
+            enabled ? "bg-emerald-100 text-emerald-700" : "bg-[#0B0B0B]/8 text-[#0B0B0B]/40"
+          }`}>
+            {enabled ? "On" : "Off"}
+          </span>
+        </div>
+        <p className="text-[11.5px] text-[#0B0B0B]/45 leading-snug">{desc}</p>
+      </div>
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => onToggle(!enabled)}
+        aria-pressed={enabled}
+        aria-label={`Toggle ${label}`}
+        className={`w-9 h-5 rounded-full flex items-center px-0.5 shrink-0 transition-colors ${
+          enabled ? "bg-emerald-500 justify-end" : "bg-[#0B0B0B]/15 justify-start"
+        } ${busy ? "opacity-50 cursor-wait" : "cursor-pointer"}`}
+      >
+        <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
+      </button>
     </div>
   );
 }
@@ -139,6 +160,9 @@ export default function AdminOptimize() {
   const [issueData, setIssueData] = useState<IssueData | null>(null);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
+  const [settings, setSettings] = useState<OptimizeSettings>(DEFAULT_SETTINGS);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [savingKey, setSavingKey] = useState<string | null>(null);
   const nextId = useRef(0);
 
   function addToast(ok: boolean, text: string) {
@@ -180,6 +204,46 @@ export default function AdminOptimize() {
   useEffect(() => {
     if (tab === "logs") fetchLogs();
   }, [tab, fetchLogs]);
+
+  // Load optimize settings on mount (and refresh when the user opens the Optimizations tab).
+  const fetchSettings = useCallback(async () => {
+    try {
+      const r = await authFetch(`${API_BASE}/admin/optimize/settings`, { method: "GET" });
+      const data = await r.json() as { ok: boolean; settings?: OptimizeSettings };
+      if (data.ok && data.settings) {
+        setSettings(data.settings);
+        setSettingsLoaded(true);
+      }
+    } catch { /* keep defaults */ }
+  }, [authFetch]);
+
+  useEffect(() => { fetchSettings(); }, [fetchSettings]);
+
+  const saveSettings = useCallback(async (next: OptimizeSettings, key: string) => {
+    setSavingKey(key);
+    const prev = settings;
+    setSettings(next); // optimistic
+    try {
+      const r = await authFetch(`${API_BASE}/admin/optimize/settings`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: next }),
+      });
+      const data = await r.json() as { ok: boolean; detail?: string; settings?: OptimizeSettings };
+      if (data.ok) {
+        if (data.settings) setSettings(data.settings);
+        addToast(true, "Saved");
+      } else {
+        setSettings(prev);
+        addToast(false, data.detail ?? "Could not save");
+      }
+    } catch {
+      setSettings(prev);
+      addToast(false, "Could not reach server");
+    } finally {
+      setSavingKey(null);
+    }
+  }, [authFetch, settings]);
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: "cache",       label: "Cache Controls",    icon: <RotateCcw size={14} /> },
@@ -297,31 +361,133 @@ export default function AdminOptimize() {
       {/* ── PERFORMANCE TAB ── */}
       {tab === "performance" && (
         <div>
-          <p className="text-[12px] font-bold text-[#0B0B0B]/35 uppercase tracking-widest mb-4">Active Optimizations</p>
+          {/* Safety banner */}
+          <div className="flex items-start gap-3 p-4 mb-6 rounded-2xl bg-emerald-50 border border-emerald-200">
+            <ShieldCheck size={18} className="text-emerald-600 shrink-0 mt-0.5" />
+            <div className="text-[12.5px] text-emerald-900 leading-snug">
+              <span className="font-bold">Safe by design.</span> All toggles below default to OFF, take effect instantly,
+              and can be turned back off any time. They never delete or alter your content — they only change
+              how the server caches and warms responses. Max cache TTL is 5 minutes so your edits always show up quickly.
+            </div>
+          </div>
+
+          {/* Warm Up Now — one-click power action */}
+          <Card>
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 shrink-0">
+                <Zap size={16} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13.5px] font-bold text-[#0B0B0B]">Warm Up Site Now</p>
+                <p className="text-[12px] text-[#0B0B0B]/55 mt-0.5 leading-snug">
+                  Pings the database, pre-loads the most-visited page sections (home, about, contact, services,
+                  header, footer), and refreshes the query planner. The very next visitor gets an instant response
+                  instead of paying the cold-start cost.
+                </p>
+              </div>
+            </div>
+            {results["warmup"] && (
+              <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[11.5px] font-medium mb-3 ${
+                results["warmup"].ok ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
+              }`}>
+                {results["warmup"].ok ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
+                {results["warmup"].detail}
+              </div>
+            )}
+            <button
+              onClick={() => callAction("warmup", "warmup", "POST")}
+              disabled={!!busy["warmup"]}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-bold transition-all ${
+                busy["warmup"]
+                  ? "bg-[#0B0B0B]/8 text-[#0B0B0B]/30 cursor-not-allowed"
+                  : "bg-amber-500 hover:bg-amber-600 text-white shadow-sm"
+              }`}
+            >
+              {busy["warmup"] ? <><Loader2 size={13} className="animate-spin" /> Warming up...</> : <><Zap size={13} /> Warm Up Now</>}
+            </button>
+          </Card>
+
+          {/* Runtime toggles (persisted, live) */}
+          <p className="text-[12px] font-bold text-[#0B0B0B]/35 uppercase tracking-widest mb-4 mt-7">Runtime Boosters (live, no redeploy)</p>
           <div className="space-y-2 mb-6">
-            {PERF_TOGGLES.map((t) => (
-              <div key={t.id} className="flex items-center gap-4 p-4 rounded-2xl border border-[#0B0B0B]/8 bg-white">
+            {/* Keep DB Warm */}
+            <ToggleRow
+              icon={<Database size={15} />}
+              label="Keep Database Warm"
+              desc="Sends a tiny SELECT 1 query every 4 minutes so your Neon database never goes cold. First-visitor page loads stay fast around the clock."
+              enabled={settings.keepDbWarm}
+              busy={savingKey === "keepDbWarm" || !settingsLoaded}
+              onToggle={(v) => saveSettings({ ...settings, keepDbWarm: v }, "keepDbWarm")}
+            />
+
+            {/* Strict Image Headers */}
+            <ToggleRow
+              icon={<ImageIcon size={15} />}
+              label="Long-Cache Image URLs"
+              desc="Tells visitors' browsers to keep uploaded images in cache for 24 hours. Each image has a permanent ID, so you'll never see a stale version. Big speed boost on repeat visits."
+              enabled={settings.strictImageHeaders}
+              busy={savingKey === "strictImageHeaders" || !settingsLoaded}
+              onToggle={(v) => saveSettings({ ...settings, strictImageHeaders: v }, "strictImageHeaders")}
+            />
+
+            {/* Public Read Cache — segmented control */}
+            <div className="flex items-start gap-4 p-4 rounded-2xl border border-[#0B0B0B]/8 bg-white">
+              <div className="w-8 h-8 rounded-xl bg-[#0B0B0B]/6 flex items-center justify-center text-[#0B0B0B]/50 shrink-0">
+                <RefreshCw size={15} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                  <p className="text-[13px] font-bold text-[#0B0B0B]">Public Page Cache</p>
+                  <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
+                    settings.publicReadCache === "off"
+                      ? "bg-[#0B0B0B]/8 text-[#0B0B0B]/40"
+                      : "bg-emerald-100 text-emerald-700"
+                  }`}>
+                    {settings.publicReadCache === "off" ? "Off" : settings.publicReadCache === "short" ? "60s" : "5 min"}
+                  </span>
+                </div>
+                <p className="text-[11.5px] text-[#0B0B0B]/45 leading-snug mb-3">
+                  Tells browsers to cache stable public data (portfolio, SEO settings) for a short time.
+                  Admin pages and forms are NEVER cached. Edits show up within the chosen window.
+                </p>
+                <div className="inline-flex gap-1 p-1 bg-[#0B0B0B]/5 rounded-xl">
+                  {(["off", "short", "medium"] as const).map((opt) => (
+                    <button
+                      key={opt}
+                      disabled={savingKey === "publicReadCache" || !settingsLoaded}
+                      onClick={() => saveSettings({ ...settings, publicReadCache: opt }, "publicReadCache")}
+                      className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+                        settings.publicReadCache === opt
+                          ? "bg-white text-[#0B0B0B] shadow-sm"
+                          : "text-[#0B0B0B]/45 hover:text-[#0B0B0B]"
+                      } ${savingKey === "publicReadCache" ? "opacity-50 cursor-wait" : ""}`}
+                    >
+                      {opt === "off" ? "Off" : opt === "short" ? "60 sec" : "5 min"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Always-on (build-time) */}
+          <p className="text-[12px] font-bold text-[#0B0B0B]/35 uppercase tracking-widest mb-4 mt-7">Always-On (built into every deploy)</p>
+          <div className="space-y-2 mb-6">
+            {BUILD_TIME_OPTS.map((t) => (
+              <div key={t.id} className="flex items-center gap-4 p-4 rounded-2xl border border-[#0B0B0B]/8 bg-[#FAFAF7]">
                 <div className="w-8 h-8 rounded-xl bg-[#0B0B0B]/6 flex items-center justify-center text-[#0B0B0B]/50 shrink-0">
                   {t.icon}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
                     <p className="text-[13px] font-bold text-[#0B0B0B]">{t.label}</p>
-                    <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
-                      t.status === "enabled"  ? "bg-emerald-100 text-emerald-700" :
-                      t.status === "dev-only" ? "bg-amber-100 text-amber-700" :
-                                                "bg-[#0B0B0B]/8 text-[#0B0B0B]/40"
-                    }`}>
-                      {t.status === "enabled" ? "Active" : t.status === "dev-only" ? "Dev Only" : "Off"}
+                    <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-700">
+                      Always On
                     </span>
                   </div>
                   <p className="text-[11.5px] text-[#0B0B0B]/45 leading-snug">{t.desc}</p>
                 </div>
-                <div className={`w-9 h-5 rounded-full flex items-center px-0.5 shrink-0 ${
-                  t.status === "enabled" ? "bg-emerald-500 justify-end" : "bg-[#0B0B0B]/15 justify-start"
-                }`}>
-                  <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
-                </div>
+                <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
               </div>
             ))}
           </div>
@@ -329,9 +495,9 @@ export default function AdminOptimize() {
           <Card>
             <p className="text-[11px] font-bold tracking-widest uppercase text-[#0B0B0B]/35 mb-3">What can't be toggled at runtime</p>
             <p className="text-[12.5px] text-[#0B0B0B]/50 leading-relaxed">
-              Options like image compression quality, bundle chunk sizes, and server-side caching
-              are configured at build time. To change them, update the Vite config and redeploy.
-              All current build-time optimizations are active.
+              Image compression quality, JS bundle chunk sizes, and the build-time optimizations above are baked into
+              every deploy. To change them, a developer must update the Vite config and redeploy. The toggles above
+              are everything that can be flipped live without a rebuild.
             </p>
           </Card>
         </div>

@@ -767,6 +767,160 @@ router.post("/optimize/media-audit", authMiddleware, superAdminOnly, async (_req
   }
 });
 
+// ──────────────────────────────────────────────────────────────────
+// Powerful (but safe) runtime optimization settings.
+//
+// These toggles are persisted in site_content under the section
+// "optimize_settings". A tiny in-memory cache (refreshed on PUT and
+// every 60s) avoids hammering the DB on every request. Defaults are
+// all OFF so the live site behaves identically until the owner opts
+// in from /admin/optimize.
+// ──────────────────────────────────────────────────────────────────
+
+export interface OptimizeSettings {
+  keepDbWarm: boolean;          // background SELECT 1 every 4 min — keeps Neon hot
+  publicReadCache: "off" | "short" | "medium";  // Cache-Control on safe public GETs (60s / 300s)
+  strictImageHeaders: boolean;  // long-lived cache headers on /api/media/file/*
+}
+
+const DEFAULT_OPTIMIZE_SETTINGS: OptimizeSettings = {
+  keepDbWarm: false,
+  publicReadCache: "off",
+  strictImageHeaders: false,
+};
+
+const OPTIMIZE_SECTION = "optimize_settings";
+let cachedSettings: OptimizeSettings = { ...DEFAULT_OPTIMIZE_SETTINGS };
+let cachedAt = 0;
+const SETTINGS_TTL_MS = 60_000;
+
+function sanitizeSettings(input: unknown): OptimizeSettings {
+  const s = (input ?? {}) as Partial<OptimizeSettings>;
+  const cacheLevel = s.publicReadCache;
+  return {
+    keepDbWarm: typeof s.keepDbWarm === "boolean" ? s.keepDbWarm : false,
+    publicReadCache:
+      cacheLevel === "short" || cacheLevel === "medium" ? cacheLevel : "off",
+    strictImageHeaders: typeof s.strictImageHeaders === "boolean" ? s.strictImageHeaders : false,
+  };
+}
+
+async function loadOptimizeSettingsFromDb(): Promise<OptimizeSettings> {
+  try {
+    const rows = await db
+      .select()
+      .from(siteContent)
+      .where(eq(siteContent.section, OPTIMIZE_SECTION));
+    if (rows.length === 0) return { ...DEFAULT_OPTIMIZE_SETTINGS };
+    return sanitizeSettings(rows[0].data);
+  } catch {
+    return { ...DEFAULT_OPTIMIZE_SETTINGS };
+  }
+}
+
+/** Cached settings accessor — used by the public cache middleware on every request. */
+export function getOptimizeSettings(): OptimizeSettings {
+  if (Date.now() - cachedAt > SETTINGS_TTL_MS) {
+    // Fire and forget refresh; serve the cached copy this request.
+    loadOptimizeSettingsFromDb().then((s) => {
+      cachedSettings = s;
+      cachedAt = Date.now();
+      applyKeepDbWarm(s.keepDbWarm);
+    }).catch(() => { /* keep current */ });
+  }
+  return cachedSettings;
+}
+
+// Background DB warmup interval (controlled by keepDbWarm setting).
+let warmInterval: NodeJS.Timeout | null = null;
+function applyKeepDbWarm(enabled: boolean) {
+  if (enabled && !warmInterval) {
+    warmInterval = setInterval(() => {
+      pool.query("SELECT 1").catch(() => { /* non-fatal */ });
+    }, 4 * 60 * 1000);
+    // Don't keep the Node event loop alive solely for this.
+    if (typeof warmInterval.unref === "function") warmInterval.unref();
+  } else if (!enabled && warmInterval) {
+    clearInterval(warmInterval);
+    warmInterval = null;
+  }
+}
+
+// Prime the cache & background interval on first import.
+loadOptimizeSettingsFromDb().then((s) => {
+  cachedSettings = s;
+  cachedAt = Date.now();
+  applyKeepDbWarm(s.keepDbWarm);
+}).catch(() => { /* default off */ });
+
+router.get("/optimize/settings", authMiddleware, superAdminOnly, async (_req, res) => {
+  const settings = await loadOptimizeSettingsFromDb();
+  cachedSettings = settings;
+  cachedAt = Date.now();
+  res.json({ ok: true, settings });
+});
+
+router.put("/optimize/settings", authMiddleware, superAdminOnly, async (req, res) => {
+  const next = sanitizeSettings(req.body?.settings);
+  try {
+    await db
+      .insert(siteContent)
+      .values({ section: OPTIMIZE_SECTION, data: next as unknown as Record<string, unknown> })
+      .onConflictDoUpdate({
+        target: siteContent.section,
+        set: { data: next as unknown as Record<string, unknown>, updatedAt: new Date() },
+      });
+    cachedSettings = next;
+    cachedAt = Date.now();
+    applyKeepDbWarm(next.keepDbWarm);
+    await pushLog(
+      "Optimize Settings",
+      `keepDbWarm=${next.keepDbWarm}, publicReadCache=${next.publicReadCache}, strictImageHeaders=${next.strictImageHeaders}`,
+      true,
+    );
+    res.json({ ok: true, settings: next, detail: "Optimization settings saved" });
+  } catch {
+    res.status(500).json({ ok: false, error: "Could not save settings" });
+  }
+});
+
+router.post("/optimize/warmup", authMiddleware, superAdminOnly, async (_req, res) => {
+  const start = Date.now();
+  const results: { task: string; ok: boolean; ms: number }[] = [];
+
+  // 1. DB ping (keeps Neon hot + measures cold-start cost)
+  {
+    const t = Date.now();
+    try { await pool.query("SELECT 1"); results.push({ task: "DB ping", ok: true, ms: Date.now() - t }); }
+    catch { results.push({ task: "DB ping", ok: false, ms: Date.now() - t }); }
+  }
+
+  // 2. Prime the most-requested site_content sections so first visitor gets instant response.
+  const popularSections = ["home", "about", "contact", "services", "header", "footer"];
+  for (const section of popularSections) {
+    const t = Date.now();
+    try {
+      await db.select().from(siteContent).where(eq(siteContent.section, section));
+      results.push({ task: `Prime ${section}`, ok: true, ms: Date.now() - t });
+    } catch {
+      results.push({ task: `Prime ${section}`, ok: false, ms: Date.now() - t });
+    }
+  }
+
+  // 3. Refresh query planner stats (lightweight, non-blocking).
+  {
+    const t = Date.now();
+    try { await pool.query("ANALYZE"); results.push({ task: "Refresh query stats", ok: true, ms: Date.now() - t }); }
+    catch { results.push({ task: "Refresh query stats", ok: false, ms: Date.now() - t }); }
+  }
+
+  const totalMs = Date.now() - start;
+  const okCount = results.filter((r) => r.ok).length;
+  const detail = `Warm-up complete in ${totalMs}ms — ${okCount}/${results.length} tasks ok`;
+  await pushLog("Warm Up", detail, okCount === results.length);
+  res.json({ ok: true, detail, totalMs, results });
+});
+
 // ── Portfolio (public – password protected) ──
 
 router.get("/portfolio/items", async (_req, res) => {
