@@ -230,7 +230,7 @@ function ServiceCard({
 }: { category: string; count: number; previewThumb: string; index: number }) {
   const meta = CATEGORY_META[category];
   return (
-    <Link href={`/portfolio-private/${meta.slug}`}>
+    <Link href={`/portfolio/${meta.slug}`}>
       <motion.a
         initial={{ opacity: 0, y: 28 }}
         animate={{ opacity: 1, y: 0 }}
@@ -246,6 +246,7 @@ function ServiceCard({
           background: meta.accent,
           boxShadow: "0 8px 32px rgba(15,23,42,0.12)",
           transition: "box-shadow 0.3s",
+          textDecoration: "none",
         }}
         className="service-card group hover:shadow-2xl"
       >
@@ -360,7 +361,7 @@ function ServiceCard({
 
 // ── Main Portfolio Page ──
 export default function Portfolio() {
-  const [, params] = useRoute<{ category?: string }>("/portfolio-private/:category");
+  const [, params] = useRoute<{ category?: string }>("/portfolio/:category");
   const categorySlug = params?.category;
   const activeCategory = categorySlug ? slugToCategory(categorySlug) : null;
 
@@ -411,7 +412,7 @@ export default function Portfolio() {
         <div style={{ background: meta.accent, padding: "120px 24px 72px", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #C2A878, #D4BB90)" }} />
           <div style={{ maxWidth: 1180, margin: "0 auto", position: "relative" }}>
-            <Link href="/portfolio-private">
+            <Link href="/portfolio">
               <a
                 style={{
                   display: "inline-flex", alignItems: "center", gap: 6,
@@ -496,7 +497,7 @@ export default function Portfolio() {
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #C2A878, #D4BB90)" }} />
         <div style={{ maxWidth: 1180, margin: "0 auto", position: "relative" }}>
           <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(194,168,120,0.9)", marginBottom: 22 }}>
-            Private Portfolio
+            Portfolio
           </p>
           <h1 style={{ fontWeight: 800, fontSize: "clamp(40px, 7vw, 78px)", letterSpacing: "-0.04em", lineHeight: 1.03, color: "#F8F8F6", marginBottom: 24 }}>
             Our Work, by service.
