@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { Card } from "@/components/admin/AdminField";
-import { Plus, Edit2, Trash2, X, Save, ExternalLink, Play, Eye, EyeOff } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Save, ExternalLink, Play } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { API_BASE } from "@/lib/api";
@@ -26,7 +26,6 @@ interface PortfolioItem {
   youtubeUrl: string;
   description: string | null;
   sortOrder: number;
-  isHidden: boolean;
   createdAt: string;
 }
 
@@ -200,7 +199,6 @@ export default function AdminPortfolio() {
   const [editId, setEditId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<number | null>(null);
-  const [togglingVisibility, setTogglingVisibility] = useState<number | null>(null);
   const [activeCategory, setActiveCategory] = useState("All");
 
   async function loadItems() {
@@ -248,23 +246,6 @@ export default function AdminPortfolio() {
       }
     } finally {
       setSaving(false);
-    }
-  }
-
-  async function handleToggleVisibility(item: PortfolioItem) {
-    setTogglingVisibility(item.id);
-    try {
-      const res = await authFetch(`${API_BASE}/admin/portfolio/${item.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isHidden: !item.isHidden }),
-      });
-      if (res.ok) {
-        const updated = await res.json();
-        setItems((prev) => prev.map((i) => (i.id === item.id ? updated : i)));
-      }
-    } finally {
-      setTogglingVisibility(null);
     }
   }
 
@@ -417,11 +398,8 @@ export default function AdminPortfolio() {
                   </Card>
                 ) : (
                   <div style={{
-                    background: "#fff",
-                    border: item.isHidden ? "1.5px solid #FBBF24" : "1.5px solid #E5E5E0",
-                    borderRadius: 12,
+                    background: "#fff", border: "1.5px solid #E5E5E0", borderRadius: 12,
                     padding: "16px 20px", display: "flex", alignItems: "center", gap: 16,
-                    opacity: item.isHidden ? 0.75 : 1,
                   }}>
                     {/* Thumbnail */}
                     <div style={{ width: 80, height: 52, borderRadius: 8, overflow: "hidden", flexShrink: 0, background: "#EFEFEA", position: "relative" }}>
@@ -443,15 +421,6 @@ export default function AdminPortfolio() {
                           {item.category}
                         </span>
                         <span style={{ fontSize: 11, color: "#8A8A8A" }}>#{item.sortOrder}</span>
-                        {item.isHidden && (
-                          <span style={{
-                            fontSize: 10, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase",
-                            padding: "2px 8px", borderRadius: 100,
-                            background: "#FEF3C7", color: "#92400E",
-                          }}>
-                            Hidden
-                          </span>
-                        )}
                       </div>
                       <p style={{ fontWeight: 600, fontSize: 14, color: "#0A0A0A", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {item.title}
@@ -465,22 +434,6 @@ export default function AdminPortfolio() {
 
                     {/* Actions */}
                     <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-                      <button
-                        onClick={() => handleToggleVisibility(item)}
-                        disabled={togglingVisibility === item.id}
-                        title={item.isHidden ? "Restore to public site" : "Hide from public site"}
-                        style={{
-                          padding: "7px 12px", borderRadius: 7,
-                          border: item.isHidden ? "1.5px solid rgba(34,197,94,0.35)" : "1.5px solid rgba(251,191,36,0.45)",
-                          background: item.isHidden ? "rgba(34,197,94,0.10)" : "rgba(251,191,36,0.12)",
-                          cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
-                          fontSize: 12, fontWeight: 600,
-                          color: item.isHidden ? "#15803D" : "#92400E",
-                        }}
-                      >
-                        {item.isHidden ? <Eye size={13} /> : <EyeOff size={13} />}
-                        {togglingVisibility === item.id ? "…" : item.isHidden ? "Restore" : "Hide"}
-                      </button>
                       <button
                         onClick={() => { setEditId(item.id); setAdding(false); }}
                         style={{ padding: "7px 12px", borderRadius: 7, border: "1.5px solid #E5E5E0", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600, color: "#0A0A0A" }}

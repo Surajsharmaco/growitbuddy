@@ -6,8 +6,7 @@ import { Link } from "wouter";
 import { FadeUp } from "@/components/effects/TextReveal";
 import CountUp from "@/components/effects/CountUp";
 import SEOMeta from "@/components/SEOMeta";
-import { useInlineSection } from "@/hooks/useInlineSection";
-import InlineText from "@/components/admin-inline/InlineText";
+import { usePublicContent } from "@/hooks/usePublicContent";
 import HalftoneDots from "@/components/effects/HalftoneDots";
 
 interface HomeData {
@@ -378,7 +377,7 @@ export default function Home() {
   const BG = "#F8F8F6";
   const TEXT = "#0A0A0A";
 
-  const { data: hm, saveField } = useInlineSection<HomeData>("home", DEFAULTS);
+  const hm = usePublicContent<HomeData>("home", DEFAULTS);
 
   const [mouse, setMouse] = useState({ x: 50, y: 50 });
   const heroRef = useRef<HTMLElement>(null);
@@ -542,12 +541,9 @@ export default function Home() {
             }}
           >
             <Star className="w-3 h-3" style={{ color: "#C2A878", fill: "#C2A878" }} />
-            <InlineText
-              value={hm.heroBadge}
-              onSave={(v) => saveField("heroBadge", v)}
-              ariaLabel="Hero badge"
-              style={{ fontSize: 12, fontWeight: 600, color: "#0A0A0A", letterSpacing: "0.04em" }}
-            />
+            <span style={{ fontSize: 12, fontWeight: 600, color: "#0A0A0A", letterSpacing: "0.04em" }}>
+              {hm.heroBadge}
+            </span>
           </m.div>
 
           <m.h1
@@ -565,18 +561,8 @@ export default function Home() {
               textWrap: "balance" as React.CSSProperties["textWrap"],
             }}
           >
-            <InlineText
-              value={hm.heroHeadline}
-              onSave={(v) => saveField("heroHeadline", v)}
-              ariaLabel="Hero headline"
-              multiline
-            />{" "}
-            <InlineText
-              value={hm.heroHeadlineItalic}
-              onSave={(v) => saveField("heroHeadlineItalic", v)}
-              ariaLabel="Hero headline italic"
-              style={{ fontStyle: "italic" }}
-            />
+            {hm.heroHeadline}{" "}
+            <span style={{ fontStyle: "italic" }}>{hm.heroHeadlineItalic}</span>
           </m.h1>
 
           <m.p
@@ -592,12 +578,7 @@ export default function Home() {
               fontWeight: 400,
             }}
           >
-            <InlineText
-              value={hm.heroSubtext}
-              onSave={(v) => saveField("heroSubtext", v)}
-              ariaLabel="Hero subtext"
-              multiline
-            />
+            {hm.heroSubtext}
           </m.p>
 
           <m.div
@@ -608,21 +589,13 @@ export default function Home() {
           >
             <Link href="/contact?to=cal">
               <span className="gb-btn" style={{ fontSize: 15, padding: "14px 28px" }} data-testid="button-book-demo">
-                <InlineText
-                  value={hm.heroCTAPrimary}
-                  onSave={(v) => saveField("heroCTAPrimary", v)}
-                  ariaLabel="Primary CTA"
-                />
+                {hm.heroCTAPrimary}
                 <ArrowRight className="w-4 h-4" />
               </span>
             </Link>
             <Link href="/work">
               <span className="gb-btn-outline" style={{ fontSize: 15, padding: "13px 28px" }}>
-                <InlineText
-                  value={hm.heroCTASecondary}
-                  onSave={(v) => saveField("heroCTASecondary", v)}
-                  ariaLabel="Secondary CTA"
-                />
+                {hm.heroCTASecondary}
               </span>
             </Link>
           </m.div>

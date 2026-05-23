@@ -495,7 +495,7 @@ router.get("/public/certificate/:certificateId", async (req, res) => {
       .select()
       .from(certificates)
       .where(eq(certificates.certificateId, certificateId));
-    if (rows.length === 0 || rows[0].isHidden) {
+    if (rows.length === 0) {
       res.status(404).json({ error: "Certificate not found" });
       return;
     }
@@ -515,22 +515,6 @@ router.get("/public/certificate/:certificateId", async (req, res) => {
 router.get("/certificates", authMiddleware, async (_req, res) => {
   const rows = await db.select().from(certificates).orderBy(desc(certificates.createdAt));
   res.json(rows);
-});
-
-// Admin lookup by certificateId — returns full record incl. isHidden so the
-// inline-edit overlay on /verify/:id can show hidden/revoked certs to admins.
-router.get("/certificates/by-id/:certificateId", authMiddleware, async (req, res) => {
-  const { certificateId } = req.params;
-  try {
-    const rows = await db
-      .select()
-      .from(certificates)
-      .where(eq(certificates.certificateId, certificateId));
-    if (rows.length === 0) { res.status(404).json({ error: "Certificate not found" }); return; }
-    res.json(rows[0]);
-  } catch {
-    res.status(500).json({ error: "Lookup failed" });
-  }
 });
 
 router.post("/certificates", authMiddleware, async (req, res) => {
@@ -558,17 +542,10 @@ router.post("/certificates", authMiddleware, async (req, res) => {
 router.put("/certificates/:id", authMiddleware, async (req, res) => {
   const id = parseInt(String(req.params.id));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
-  const { name, email, role, issueDate, status, isHidden } = req.body;
-  const update: Record<string, unknown> = { updatedAt: new Date() };
-  if (name !== undefined) update.name = name;
-  if (email !== undefined) update.email = email || null;
-  if (role !== undefined) update.role = role;
-  if (issueDate !== undefined) update.issueDate = issueDate;
-  if (status !== undefined) update.status = status;
-  if (typeof isHidden === "boolean") update.isHidden = isHidden;
+  const { name, email, role, issueDate, status } = req.body;
   const rows = await db
     .update(certificates)
-    .set(update)
+    .set({ name, email: email || null, role, issueDate, status, updatedAt: new Date() })
     .where(eq(certificates.id, id))
     .returning();
   if (rows.length === 0) { res.status(404).json({ error: "Certificate not found" }); return; }
@@ -794,11 +771,7 @@ router.post("/optimize/media-audit", authMiddleware, superAdminOnly, async (_req
 
 router.get("/portfolio/items", async (_req, res) => {
   try {
-    const rows = await db
-      .select()
-      .from(portfolioItems)
-      .where(eq(portfolioItems.isHidden, false))
-      .orderBy(asc(portfolioItems.sortOrder), desc(portfolioItems.createdAt));
+    const rows = await db.select().from(portfolioItems).orderBy(asc(portfolioItems.sortOrder), desc(portfolioItems.createdAt));
     res.json(rows);
   } catch (err) {
     logger.error({ err }, "Failed to list portfolio items");
@@ -840,7 +813,7 @@ router.post("/portfolio", authMiddleware, async (req, res) => {
 router.put("/portfolio/:id", authMiddleware, async (req, res) => {
   const id = parseInt(String(req.params.id));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
-  const { title, category, youtubeUrl, description, sortOrder, isHidden } = req.body;
+  const { title, category, youtubeUrl, description, sortOrder } = req.body;
   try {
     const update: Record<string, unknown> = { updatedAt: new Date() };
     if (title !== undefined) update.title = title;
@@ -848,7 +821,6 @@ router.put("/portfolio/:id", authMiddleware, async (req, res) => {
     if (youtubeUrl !== undefined) update.youtubeUrl = youtubeUrl;
     if (description !== undefined) update.description = description;
     if (sortOrder !== undefined) update.sortOrder = sortOrder;
-    if (typeof isHidden === "boolean") update.isHidden = isHidden;
     const rows = await db.update(portfolioItems).set(update).where(eq(portfolioItems.id, id)).returning();
     if (rows.length === 0) { res.status(404).json({ error: "Item not found" }); return; }
     logger.info({ id }, "Portfolio item updated");
@@ -876,11 +848,7 @@ router.delete("/portfolio/:id", authMiddleware, async (req, res) => {
 
 router.get("/logos/public", async (_req, res) => {
   try {
-    const rows = await db
-      .select()
-      .from(clientLogos)
-      .where(eq(clientLogos.enabled, true))
-      .orderBy(asc(clientLogos.sortOrder), asc(clientLogos.createdAt));
+    const rows = await db.select().from(clientLogos).orderBy(asc(clientLogos.sortOrder), asc(clientLogos.createdAt));
     res.json(rows);
   } catch (err) {
     logger.error({ err }, "Failed to list client logos");

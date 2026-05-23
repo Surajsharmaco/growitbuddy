@@ -1,11 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Play, ArrowLeft, ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRoute, Link, useLocation } from "wouter";
 
 import { API_BASE } from "@/lib/api";
-import { useAdmin } from "@/context/AdminContext";
-import AdminInlineControls from "@/components/AdminInlineControls";
 
 type CategoryType = "video" | "reel" | "case-study";
 
@@ -92,7 +90,6 @@ interface PortfolioItem {
   youtubeUrl: string;
   description: string | null;
   sortOrder: number;
-  isHidden?: boolean;
 }
 
 function getEmbedUrl(url: string): string {
@@ -589,7 +586,6 @@ export default function Portfolio() {
   const categorySlug = params?.category;
   const activeCategory = categorySlug ? slugToCategory(categorySlug) : null;
 
-  const { isAuthenticated, authFetch } = useAdmin();
   const [items, setItems] = useState<PortfolioItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -598,11 +594,7 @@ export default function Portfolio() {
     (async () => {
       setLoading(true);
       try {
-        // Admin sees ALL items (including hidden); visitors see only visible.
-        const url = isAuthenticated
-          ? `${API_BASE}/admin/portfolio`
-          : `${API_BASE}/admin/portfolio/items`;
-        const res = isAuthenticated ? await authFetch(url) : await fetch(url);
+        const res = await fetch(`${API_BASE}/admin/portfolio/items`);
         if (!cancelled && res.ok) {
           setItems(await res.json());
         }
@@ -613,57 +605,7 @@ export default function Portfolio() {
       }
     })();
     return () => { cancelled = true; };
-  }, [isAuthenticated, authFetch]);
-
-  const handleToggleHidden = useCallback(async (item: PortfolioItem) => {
-    const next = !item.isHidden;
-    const prev = items;
-    setItems((p) => p.map((i) => (i.id === item.id ? { ...i, isHidden: next } : i)));
-    try {
-      const r = await authFetch(`${API_BASE}/admin/portfolio/${item.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isHidden: next }),
-      });
-      if (!r.ok) throw new Error(`Update failed (${r.status})`);
-    } catch (e) {
-      setItems(prev);
-      alert(`Could not ${next ? "hide" : "restore"} item. ${e instanceof Error ? e.message : ""}`);
-    }
-  }, [items, authFetch]);
-
-  const handleDelete = useCallback(async (item: PortfolioItem) => {
-    const prev = items;
-    setItems((p) => p.filter((i) => i.id !== item.id));
-    try {
-      const r = await authFetch(`${API_BASE}/admin/portfolio/${item.id}`, { method: "DELETE" });
-      if (!r.ok) throw new Error(`Delete failed (${r.status})`);
-    } catch (e) {
-      setItems(prev);
-      alert(`Could not delete item. ${e instanceof Error ? e.message : ""}`);
-    }
-  }, [items, authFetch]);
-
-  const handleEdit = useCallback((_item: PortfolioItem) => {
-    // Edit happens in the dedicated admin page (full form with all fields).
-    window.location.href = "/admin/portfolio";
   }, []);
-
-  function wrapTile(item: PortfolioItem, node: React.ReactNode) {
-    if (!isAuthenticated) return node;
-    return (
-      <AdminInlineControls
-        key={item.id}
-        itemLabel="portfolio item"
-        isHidden={!!item.isHidden}
-        onEdit={() => handleEdit(item)}
-        onToggleHidden={() => handleToggleHidden(item)}
-        onDelete={() => handleDelete(item)}
-      >
-        {node}
-      </AdminInlineControls>
-    );
-  }
 
   // ── CATEGORY VIEW ──
   if (categorySlug) {
@@ -694,9 +636,9 @@ export default function Portfolio() {
     return (
       <div style={{ minHeight: "100vh", background: "#F8F8F6" }}>
         {/* Hero */}
-        <div className="pf-hero" style={{ background: BRAND_ACCENT, padding: "112px 32px 80px", position: "relative", overflow: "hidden" }}>
+        <div style={{ background: BRAND_ACCENT, padding: "120px 24px 72px", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #C2A878, #D4BB90)" }} />
-          <div style={{ maxWidth: 1240, margin: "0 auto", position: "relative" }}>
+          <div style={{ maxWidth: 1180, margin: "0 auto", position: "relative" }}>
             <Link href="/portfolio">
               <a
                 style={{
@@ -734,7 +676,7 @@ export default function Portfolio() {
         </div>
 
         {/* Collage */}
-        <div style={{ maxWidth: 1240, margin: "0 auto", padding: "72px 32px 96px" }} className="services-wrap">
+        <div style={{ maxWidth: 1240, margin: "0 auto", padding: "64px 32px 112px" }} className="services-wrap">
           {loading ? (
             <div style={{ display: "flex", justifyContent: "center", padding: "80px 0" }}>
               <div style={{ width: 36, height: 36, borderRadius: "50%", border: "3px solid #E5E5E0", borderTopColor: "#1E293B" }} className="animate-spin" />
@@ -755,14 +697,14 @@ export default function Portfolio() {
                 gap: 24,
               }}
             >
-              {categoryItems.map((item) => wrapTile(item, <ReelTile key={item.id} item={item} />))}
+              {categoryItems.map((item) => <ReelTile key={item.id} item={item} />)}
             </div>
           ) : meta.type === "video" ? (
             // ── VIDEO: pattern of [1 big, 2 normal] repeating ──
             <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
               {videoBlocks.map((block, bi) => (
                 <div key={bi} style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-                  {block[0] && wrapTile(block[0], <VideoTile item={block[0]} featured />)}
+                  {block[0] && <VideoTile item={block[0]} featured />}
                   {block.length > 1 && (
                     <div
                       className="video-row"
@@ -772,7 +714,7 @@ export default function Portfolio() {
                         gap: 22,
                       }}
                     >
-                      {block.slice(1).map((item) => wrapTile(item, <VideoTile key={item.id} item={item} />))}
+                      {block.slice(1).map((item) => <VideoTile key={item.id} item={item} />)}
                     </div>
                   )}
                 </div>
@@ -780,20 +722,24 @@ export default function Portfolio() {
             </div>
           ) : (
             // ── CASE STUDY: featured + grid ──
-            <div style={{ display: "flex", flexDirection: "column", gap: 48 }}>
-              {categoryItems[0] && wrapTile(categoryItems[0], <CaseStudyTile item={categoryItems[0]} featured />)}
+            <>
+              {categoryItems[0] && (
+                <div style={{ marginBottom: 28 }}>
+                  <CaseStudyTile item={categoryItems[0]} featured />
+                </div>
+              )}
               {categoryItems.length > 1 && (
                 <div
                   style={{
                     display: "grid",
                     gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                    gap: 36,
+                    gap: 22,
                   }}
                 >
-                  {categoryItems.slice(1).map((item) => wrapTile(item, <CaseStudyTile key={item.id} item={item} />))}
+                  {categoryItems.slice(1).map((item) => <CaseStudyTile key={item.id} item={item} />)}
                 </div>
               )}
-            </div>
+            </>
           )}
         </div>
         <style>{`
@@ -802,11 +748,10 @@ export default function Portfolio() {
           }
           @media (max-width: 768px) {
             .video-row { grid-template-columns: 1fr !important; }
-            .pf-hero { padding: 88px 24px 60px !important; }
-            .services-wrap { padding: 56px 24px 72px !important; }
           }
           @media (max-width: 640px) {
             .reel-grid { grid-template-columns: 1fr !important; }
+            .services-wrap { padding-left: 20px !important; padding-right: 20px !important; }
           }
         `}</style>
       </div>
@@ -819,9 +764,9 @@ export default function Portfolio() {
   return (
     <div style={{ minHeight: "100vh", background: "#F8F8F6" }}>
       {/* Hero */}
-      <div className="pf-hero" style={{ background: "#1E293B", padding: "112px 32px 80px", position: "relative", overflow: "hidden" }}>
+      <div style={{ background: "#1E293B", padding: "128px 24px 88px", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #C2A878, #D4BB90)" }} />
-        <div style={{ maxWidth: 1240, margin: "0 auto", position: "relative" }}>
+        <div style={{ maxWidth: 1180, margin: "0 auto", position: "relative" }}>
           <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(194,168,120,0.9)", marginBottom: 22 }}>
             Portfolio
           </p>
@@ -835,7 +780,7 @@ export default function Portfolio() {
       </div>
 
       {/* Service grid */}
-      <div style={{ maxWidth: 1240, margin: "0 auto", padding: "72px 32px 96px" }} className="services-wrap">
+      <div style={{ maxWidth: 1240, margin: "0 auto", padding: "72px 32px 112px" }} className="services-wrap">
         {loading ? (
           <div style={{ display: "flex", justifyContent: "center", padding: "80px 0" }}>
             <div style={{ width: 36, height: 36, borderRadius: "50%", border: "3px solid #E5E5E0", borderTopColor: "#1E293B" }} className="animate-spin" />
@@ -870,10 +815,6 @@ export default function Portfolio() {
         @media (max-width: 1100px) {
           .service-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .reel-grid { grid-template-columns: repeat(2, 1fr) !important; }
-        }
-        @media (max-width: 768px) {
-          .pf-hero { padding: 88px 24px 60px !important; }
-          .services-wrap { padding: 56px 24px 72px !important; }
         }
         @media (max-width: 640px) {
           .service-grid { grid-template-columns: 1fr !important; gap: 18px !important; }
