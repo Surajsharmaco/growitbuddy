@@ -262,6 +262,49 @@ export default function Services() {
           .svc-flow-step { padding-right: 0; }
           .svc-flow-step p { max-width: none !important; }
         }
+        .svc-cta-btn { position: relative; overflow: hidden; isolation: isolate; }
+        .svc-cta-btn::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border-radius: 100px;
+          padding: 1.5px;
+          background: linear-gradient(135deg, rgba(255,255,255,0.55), rgba(255,255,255,0.05) 45%, rgba(255,255,255,0.35));
+          -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          -webkit-mask-composite: xor;
+                  mask-composite: exclude;
+          pointer-events: none;
+          opacity: 0.85;
+          transition: opacity 0.25s ease;
+          z-index: 1;
+        }
+        .svc-cta-btn::after {
+          content: "";
+          position: absolute;
+          top: 0; bottom: 0;
+          left: -120%;
+          width: 60%;
+          background: linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.28) 50%, transparent 100%);
+          transform: skewX(-18deg);
+          transition: left 0.7s ease;
+          pointer-events: none;
+          z-index: 2;
+        }
+        .svc-cta-btn:hover {
+          background: var(--gb-accent-hover) !important;
+          border-color: rgba(255,255,255,0.32) !important;
+          transform: translateY(-2px);
+          box-shadow:
+            0 1px 0 rgba(255,255,255,0.25) inset,
+            0 18px 40px -12px rgba(0,0,0,0.7),
+            0 0 0 4px rgba(255,255,255,0.06) !important;
+        }
+        .svc-cta-btn:hover::before { opacity: 1; }
+        .svc-cta-btn:hover::after { left: 130%; }
+        .svc-cta-btn:active { transform: translateY(0); }
+        .svc-cta-btn > * { position: relative; z-index: 3; }
+        .svc-cta-btn__arrow { transition: transform 0.25s ease; }
+        .svc-cta-btn:hover .svc-cta-btn__arrow { transform: translateX(4px); }
       `}</style>
 
       <SEOMeta
@@ -615,19 +658,21 @@ export default function Services() {
             </p>
             <Link href="/contact">
               <span
+                className="svc-cta-btn"
                 style={{
-                  display: "inline-flex", alignItems: "center", gap: 8,
-                  padding: "15px 32px", borderRadius: 100,
+                  display: "inline-flex", alignItems: "center", gap: 10,
+                  padding: "16px 34px", borderRadius: 100,
                   background: "var(--gb-accent)", color: "#FFFFFF",
                   fontSize: 15, fontWeight: 700, cursor: "pointer",
                   fontFamily: "'Inter', sans-serif",
-                  transition: "background 0.2s",
+                  border: "1.5px solid rgba(255,255,255,0.18)",
+                  boxShadow: "0 1px 0 rgba(255,255,255,0.18) inset, 0 10px 30px -10px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04)",
+                  transition: "transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, border-color 0.25s ease",
+                  willChange: "transform",
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--gb-accent-hover)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "var(--gb-accent)"; }}
               >
                 Book a strategy call
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 svc-cta-btn__arrow" />
               </span>
             </Link>
           </motion.div>
