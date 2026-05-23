@@ -337,9 +337,19 @@ export default function AdminLogos() {
                               setLogos((list) => list.map((l) => l.id === logo.id ? { ...l, enabled: !prev } : l));
                               const fd = new FormData();
                               fd.append("enabled", String(!prev));
-                              const res = await fetch(`${API_BASE}/admin/logos/${logo.id}`, { method: "PUT", headers: { Authorization: `Bearer ${token}` }, body: fd });
-                              if (res.ok) { const updated = await res.json(); setLogos(list => list.map(l => l.id === updated.id ? updated : l)); }
-                              else setLogos((list) => list.map((l) => l.id === logo.id ? { ...l, enabled: prev } : l));
+                              try {
+                                const res = await fetch(`${API_BASE}/admin/logos/${logo.id}`, { method: "PUT", headers: { Authorization: `Bearer ${token}` }, body: fd });
+                                if (res.ok) {
+                                  const updated = await res.json();
+                                  setLogos((list) => list.map((l) => l.id === updated.id ? updated : l));
+                                } else {
+                                  setLogos((list) => list.map((l) => l.id === logo.id ? { ...l, enabled: prev } : l));
+                                  alert("Failed to update logo visibility");
+                                }
+                              } catch {
+                                setLogos((list) => list.map((l) => l.id === logo.id ? { ...l, enabled: prev } : l));
+                                alert("Network error — visibility not changed");
+                              }
                             }}
                             style={{
                               padding: "3px 6px", border: "1px solid",
