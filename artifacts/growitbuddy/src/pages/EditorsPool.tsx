@@ -3,7 +3,7 @@ import TalentPoolPage, { type PoolConfig } from "./TalentPoolPage";
 const config: PoolConfig = {
   sectionKey: "pool-editors",
   poolType: "editors",
-  formVariant: "motion",
+  formVariant: "editors",
   defaults: {
     eyebrow: "VIDEO EDITORS NETWORK",
     headline: "Edit content that builds creator authority.",

@@ -97,6 +97,12 @@ const CONTEXT_COPY: Record<string, ContextCopy> = {
     subtext: "Receive platform strategy updates, growth frameworks, and ecosystem opportunities from GrowitBuddy.",
     tag: "social_manager",
   },
+  "meme-designer": {
+    label: "Creator Updates",
+    heading: "Stay Connected With The Meme & Culture Network",
+    subtext: "Get meme formats, brand humor breakdowns, viral references, and creator collaboration opportunities from GrowitBuddy.",
+    tag: "meme_designer",
+  },
   blog: {
     label: "Growth Insights",
     heading: "Get Weekly Growth Insights",

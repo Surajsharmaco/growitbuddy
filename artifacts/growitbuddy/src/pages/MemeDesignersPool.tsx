@@ -3,7 +3,7 @@ import TalentPoolPage, { type PoolConfig } from "./TalentPoolPage";
 const config: PoolConfig = {
   sectionKey: "pool-meme-designers",
   poolType: "meme-designers",
-  formVariant: "ugc",
+  formVariant: "meme",
   defaults: {
     eyebrow: "MEME DESIGNERS NETWORK",
     headline: "Create memes that actually spread.",

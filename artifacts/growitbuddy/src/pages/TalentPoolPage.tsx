@@ -14,9 +14,11 @@ const VARIANT_TO_CONTEXT: Record<string, string> = {
   motion:     "motion-designer",
   ai:         "ai-creator",
   ugc:        "ugc-creator",
+  editors:    "editor",
+  meme:       "meme-designer",
 };
 
-export type FormVariant = "designers" | "thumbnail" | "writers" | "social" | "motion" | "ai" | "ugc";
+export type FormVariant = "designers" | "thumbnail" | "writers" | "social" | "motion" | "ai" | "ugc" | "editors" | "meme";
 
 export interface ResourceCard { id: string; title: string; desc: string; link: string; btnLabel: string; }
 export interface Step { number: string; title: string; desc: string; }
@@ -170,6 +172,8 @@ function PoolForm({ d, formVariant, poolType, submitLabel }: PoolFormProps) {
     motion:     "Reel received — welcome to the motion network.",
     ai:         "AI project received — we'll review and reach out.",
     ugc:        "Content received — you're part of the UGC network.",
+    editors:    "Reel received — welcome to the video editor network.",
+    meme:       "Memes received — you're part of the culture network.",
   };
 
   const inp = (label: string, val: string, onChange: (v: string) => void, type = "text", placeholder = "", required = true) => (
@@ -211,6 +215,16 @@ function PoolForm({ d, formVariant, poolType, submitLabel }: PoolFormProps) {
       {inp("Instagram / TikTok Handle", extra.social ?? "", v => se("social", v), "text", "@yourhandle")}
       {inp("Content Sample Link", extra.sample ?? "", v => se("sample", v), "text", "Drive / Dropbox / Link")}
       {inp("Brand Types / Niches", extra.niche ?? "", v => se("niche", v), "text", "e.g. Skincare, Tech, Food", false)}
+    </>),
+    editors: (<>
+      {inp("Editing Software", extra.tools ?? "", v => se("tools", v), "text", "e.g. Premiere Pro, DaVinci, Final Cut, CapCut")}
+      {inp("Reel / Showreel Link", extra.reel ?? "", v => se("reel", v), "text", "https://...")}
+      {inp("Sample Edit (Long-form or Shorts)", extra.sample ?? "", v => se("sample", v), "text", "Drive / YouTube / Frame.io link", false)}
+    </>),
+    meme: (<>
+      {inp("Instagram / X Handle", extra.social ?? "", v => se("social", v), "text", "@yourhandle")}
+      {inp("Meme Portfolio Link", extra.portfolio ?? "", v => se("portfolio", v), "text", "Drive / page / IG profile")}
+      {inp("Niches You Cover", extra.niche ?? "", v => se("niche", v), "text", "e.g. Finance, Tech, Pop culture", false)}
     </>),
   };
 
