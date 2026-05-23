@@ -7,13 +7,14 @@ interface WPPost {
   id: number;
   slug: string;
   date: string;
+  modified?: string;
   title: { rendered: string };
   excerpt: { rendered: string };
   content: { rendered: string };
   featured_media: number;
   categories: number[];
   _embedded?: {
-    "wp:featuredmedia"?: Array<{ source_url: string }>;
+    "wp:featuredmedia"?: Array<{ source_url: string; media_details?: { width?: number; height?: number } }>;
     "wp:term"?: Array<Array<{ name: string }>>;
   };
 }
@@ -58,6 +59,8 @@ export function wpPostToBlogPost(wp: WPPost): BlogPost {
     excerpt: stripHtml(wp.excerpt.rendered).slice(0, 200).trim(),
     content: cleanContent,
     date: formatDate(wp.date),
+    isoDate: wp.date,
+    modifiedIsoDate: wp.modified ?? wp.date,
     tag,
     featuredImage,
     readTime: estimateReadTime(wp.content.rendered),

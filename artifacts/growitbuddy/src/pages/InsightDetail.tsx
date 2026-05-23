@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useParams } from "wouter";
-import { ArrowLeft, ArrowRight, Calendar } from "lucide-react";
+import { ArrowLeft, ArrowRight, Calendar, Share2, Twitter, Linkedin, Link2, Check, Sparkles, List } from "lucide-react";
 import { blogPosts as DEFAULT_POSTS, defaultSeo, type BlogPost } from "@/data/blogPosts";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import { useWordPressPosts, fetchWpPostBySlug } from "@/hooks/useWordPressPosts";
@@ -126,16 +126,43 @@ const ARTICLE_CSS = `
 .article-body .wp-block-button { margin: 28px 0; }
 .article-body .wp-block-button__link { display: inline-block; background: #1E293B; color: #fff !important; text-decoration: none !important; font-weight: 700; padding: 12px 26px; border-radius: 100px; font-size: 14px; }
 
-/* ── Mobile tightening ── */
+/* ── Mobile tightening ── most users read here ── */
 @media (max-width: 640px) {
-  .article-body p, .article-body li { font-size: 16px; line-height: 1.78; }
-  .article-body figure, .article-body .wp-block-image, .article-body .wp-block-embed { margin: 24px 0; }
-  .article-body figure img, .article-body .wp-block-image img, .article-body img { border-radius: 10px; }
-  .article-body h2, .article-body .wp-block-heading h2 { margin-top: 40px; }
-  .article-body h3, .article-body .wp-block-heading h3 { margin-top: 28px; }
+  .article-body p, .article-body li { font-size: 16px; line-height: 1.78; color: rgba(11,11,11,0.82); }
+  .article-body p, .article-body .wp-block-paragraph { margin-bottom: 18px; }
+  .article-body figure, .article-body .wp-block-image, .article-body .wp-block-embed { margin: 22px 0; }
+  /* Edge-to-edge images on phones for max impact */
+  .article-body figure img, .article-body .wp-block-image img, .article-body img { border-radius: 12px; }
+  .article-body h1, .article-body .wp-block-heading h1 { font-size: 26px; margin-top: 40px; line-height: 1.15; }
+  .article-body h2, .article-body .wp-block-heading h2 { font-size: 21px; margin-top: 36px; margin-bottom: 14px; padding-bottom: 8px; line-height: 1.25; }
+  .article-body h3, .article-body .wp-block-heading h3 { font-size: 17px; margin-top: 24px; margin-bottom: 10px; }
+  .article-body blockquote, .article-body .wp-block-quote { margin: 26px 0; padding: 16px 18px; }
+  .article-body blockquote p, .article-body .wp-block-quote p { font-size: 16px; line-height: 1.6; }
+  .article-body pre, .article-body .wp-block-code { padding: 14px 16px; font-size: 13px; margin: 22px 0; border-radius: 10px; }
   .article-body .alignleft, .article-body .alignright,
-  .article-body .wp-block-image.alignleft, .article-body .wp-block-image.alignright { float: none; margin: 24px auto; max-width: 100%; }
+  .article-body .wp-block-image.alignleft, .article-body .wp-block-image.alignright { float: none; margin: 22px auto; max-width: 100%; }
   .article-body .alignwide, .article-body .wp-block-image.alignwide { margin-left: 0; margin-right: 0; max-width: 100%; }
+  .article-body .wp-block-columns { gap: 18px; }
+  .article-body table, .article-body .wp-block-table table { font-size: 14px; }
+  .article-body th, .article-body td { padding: 10px 12px; }
+  /* TL;DR + TOC become more compact on mobile */
+  .article-tldr { padding: 14px 16px !important; gap: 12px !important; margin-bottom: 26px !important; border-radius: 14px !important; }
+  .article-tldr p:last-child { font-size: 14px !important; line-height: 1.55 !important; }
+  .article-toc { padding: 14px 16px !important; margin-bottom: 28px !important; }
+  .article-toc li { font-size: 13px !important; }
+}
+
+/* ── Hero image on phones: edge-to-edge & taller for more impact ── */
+@media (max-width: 640px) {
+  .gb-hero-img { padding: 0 !important; }
+  .gb-hero-img > div { border-radius: 0 !important; box-shadow: none !important; }
+  .gb-hero-img img { aspect-ratio: 4/3 !important; }
+}
+
+/* ── Reserve bottom space so sticky share bar doesn't cover content ── */
+.gb-article-section { padding-bottom: 120px !important; }
+@media (min-width: 900px) {
+  .gb-share-bar { box-shadow: 0 -2px 20px rgba(11,11,11,0.04) !important; }
 }
 `;
 
@@ -251,22 +278,101 @@ function renderMarkdown(text: string): React.ReactElement[] {
 
 const SITE = "https://growitbuddy.com";
 
+/** Convert any post.date format (ISO or "10 April 2026") into ISO 8601 for schema.org. */
+function toIsoDate(post: BlogPost): string {
+  if (post.isoDate) return post.isoDate;
+  const d = new Date(post.date);
+  if (!isNaN(d.getTime())) return d.toISOString();
+  return new Date().toISOString();
+}
+
+/** Count words in HTML or markdown content (for schema wordCount + AEO signal). */
+function countWords(content: string): number {
+  return content.replace(/<[^>]*>/g, " ").replace(/[#*_>`-]/g, " ").split(/\s+/).filter(Boolean).length;
+}
+
+/** Inject loading="lazy", decoding="async", and proper sizing on every image/iframe in WP HTML.
+ *  Also adds `fetchpriority="high"` to the FIRST image (LCP optimization). */
+function enhanceWpHtml(html: string): string {
+  let first = true;
+  return html
+    .replace(/<img\b([^>]*)>/gi, (_m, attrs: string) => {
+      const hasLoading = /\bloading\s*=/.test(attrs);
+      const hasDecoding = /\bdecoding\s*=/.test(attrs);
+      const hasFetchPri = /\bfetchpriority\s*=/.test(attrs);
+      const extra: string[] = [];
+      if (!hasLoading) extra.push(first ? 'loading="eager"' : 'loading="lazy"');
+      if (!hasDecoding) extra.push('decoding="async"');
+      if (first && !hasFetchPri) extra.push('fetchpriority="high"');
+      first = false;
+      return `<img${attrs} ${extra.join(" ")}>`;
+    })
+    .replace(/<iframe\b([^>]*)>/gi, (_m, attrs: string) => {
+      const hasLoading = /\bloading\s*=/.test(attrs);
+      return hasLoading ? `<iframe${attrs}>` : `<iframe${attrs} loading="lazy">`;
+    });
+}
+
+/** Pull H2 headings out of the rendered article (HTML or markdown) for the auto-TOC. */
+function extractToc(content: string): Array<{ id: string; text: string }> {
+  const items: Array<{ id: string; text: string }> = [];
+  const slugify = (s: string) => s.toLowerCase().replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 60);
+  // HTML <h2>
+  const htmlRe = /<h2\b[^>]*>([\s\S]*?)<\/h2>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = htmlRe.exec(content)) !== null) {
+    const text = m[1].replace(/<[^>]*>/g, "").trim();
+    if (text) items.push({ id: slugify(text), text });
+  }
+  // Markdown ## headings (only if no HTML matched)
+  if (items.length === 0) {
+    for (const line of content.split("\n")) {
+      const t = line.trim();
+      if (t.startsWith("## ") && !t.startsWith("### ")) {
+        const text = t.slice(3).trim();
+        if (text) items.push({ id: slugify(text), text });
+      }
+    }
+  }
+  return items;
+}
+
+/** Inject id="..." onto h2s in HTML content so TOC anchor links work. */
+function addHeadingIds(html: string): string {
+  const slugify = (s: string) => s.toLowerCase().replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 60);
+  return html.replace(/<h2\b([^>]*)>([\s\S]*?)<\/h2>/gi, (_m, attrs: string, inner: string) => {
+    if (/\bid\s*=/.test(attrs)) return _m;
+    const text = inner.replace(/<[^>]*>/g, "").trim();
+    return `<h2${attrs} id="${slugify(text)}">${inner}</h2>`;
+  });
+}
+
 function buildPostSchema(post: BlogPost): Record<string, unknown>[] {
   const seo = { ...defaultSeo(), ...post.seo };
   const schemaType = seo.schemaType || "Article";
+  const isoDate = toIsoDate(post);
+  const modIsoDate = post.modifiedIsoDate ?? isoDate;
+  const wordCount = countWords(post.content);
+  const url = `${SITE}/blog/${post.slug}`;
+  const imageUrl = post.featuredImage || seo.ogImage || `${SITE}/opengraph.jpg`;
 
   const base: Record<string, unknown> = {
     "headline": seo.seoTitle || post.title,
     "description": seo.metaDescription || post.excerpt,
-    "url": `${SITE}/blog/${post.slug}`,
-    "datePublished": post.date,
-    "image": post.featuredImage || `${SITE}/opengraph.jpg`,
-    "author": { "@type": "Person", "@id": `${SITE}/#suraj-sharma`, "name": "Suraj Sharma" },
-    "publisher": { "@type": "Organization", "@id": `${SITE}/#organization`, "name": "GrowitBuddy" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": `${SITE}/blog/${post.slug}` },
+    "url": url,
+    "datePublished": isoDate,
+    "dateModified": modIsoDate,
+    "image": { "@type": "ImageObject", "url": imageUrl, "width": 1200, "height": 630 },
+    "author": { "@type": "Person", "@id": `${SITE}/#suraj-sharma`, "name": "Suraj Sharma", "url": `${SITE}/about` },
+    "publisher": { "@type": "Organization", "@id": `${SITE}/#organization`, "name": "GrowitBuddy", "logo": { "@type": "ImageObject", "url": `${SITE}/logo.png` } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": url },
     "keywords": [seo.focusKeyword, seo.secondaryKeywords].filter(Boolean).join(", ") || post.tag,
     "articleSection": post.tag,
     "inLanguage": "en-US",
+    "wordCount": wordCount,
+    "isAccessibleForFree": true,
+    // Speakable — voice assistants & AI overviews can read these aloud
+    "speakable": { "@type": "SpeakableSpecification", "cssSelector": [".article-tldr", ".article-body h2", ".article-body p"] },
   };
 
   const schemas: Record<string, unknown>[] = [];
@@ -275,7 +381,7 @@ function buildPostSchema(post: BlogPost): Record<string, unknown>[] {
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Home", "item": SITE },
       { "@type": "ListItem", "position": 2, "name": "Blog", "item": `${SITE}/blog` },
-      { "@type": "ListItem", "position": 3, "name": post.title, "item": `${SITE}/blog/${post.slug}` },
+      { "@type": "ListItem", "position": 3, "name": post.title, "item": url },
     ],
   });
 
@@ -288,6 +394,40 @@ function buildPostSchema(post: BlogPost): Record<string, unknown>[] {
   }
 
   return schemas;
+}
+
+/** Sticky share bar — visible at the bottom on mobile, side rail on desktop. */
+function ShareBar({ url, title }: { url: string; title: string }) {
+  const [copied, setCopied] = useState(false);
+  const enc = (s: string) => encodeURIComponent(s);
+  const onCopy = async () => {
+    try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { /* noop */ }
+  };
+  const Btn = ({ href, label, onClick, children }: { href?: string; label: string; onClick?: () => void; children: React.ReactNode }) => {
+    const style: React.CSSProperties = { width: 44, height: 44, borderRadius: 12, display: "inline-flex", alignItems: "center", justifyContent: "center", background: "#fff", border: "1.5px solid rgba(11,11,11,0.10)", color: "#1E293B", cursor: "pointer", transition: "all .15s" };
+    return href
+      ? <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label} style={style}>{children}</a>
+      : <button type="button" onClick={onClick} aria-label={label} style={{ ...style, fontFamily: "inherit" }}>{children}</button>;
+  };
+  return (
+    <div className="gb-share-bar" style={{ position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 50, padding: "10px 14px", background: "rgba(255,255,255,0.94)", backdropFilter: "blur(14px)", borderTop: "1px solid rgba(11,11,11,0.08)", boxShadow: "0 -4px 24px rgba(11,11,11,0.06)" }}>
+      <div style={{ maxWidth: 680, margin: "0 auto", display: "flex", alignItems: "center", gap: 10, justifyContent: "space-between" }}>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, color: "#1E293B", textTransform: "uppercase", letterSpacing: "0.12em" }}>
+          <Share2 className="w-3.5 h-3.5" /> Share
+        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Btn href={`https://twitter.com/intent/tweet?url=${enc(url)}&text=${enc(title)}`} label="Share on X / Twitter"><Twitter className="w-4 h-4" /></Btn>
+          <Btn href={`https://www.linkedin.com/sharing/share-offsite/?url=${enc(url)}`} label="Share on LinkedIn"><Linkedin className="w-4 h-4" /></Btn>
+          <Btn href={`https://api.whatsapp.com/send?text=${enc(title + " " + url)}`} label="Share on WhatsApp">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.2-1.8-.9-2.1-1s-.5-.2-.7.2c-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.2-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1s0-.4.1-.5c.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5s0-.4 0-.5-.7-1.7-1-2.3c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4s-1 1-1 2.5 1.1 2.9 1.2 3.1c.2.2 2.2 3.3 5.3 4.7.7.3 1.3.5 1.8.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.5.3-.7.3-1.4.2-1.5-.1-.1-.3-.2-.6-.3z"/><path d="M20.5 3.5C18.2 1.2 15.2 0 12 0 5.4 0 0 5.4 0 12c0 2.1.5 4.2 1.6 6L0 24l6.2-1.6c1.7 1 3.8 1.4 5.8 1.4 6.6 0 12-5.4 12-12 0-3.2-1.2-6.2-3.5-8.3zM12 21.8c-1.8 0-3.6-.5-5.2-1.4l-.4-.2-3.7 1 1-3.6-.2-.4C2.5 15.6 2 13.8 2 12 2 6.5 6.5 2 12 2c2.7 0 5.2 1 7.1 2.9C21 6.8 22 9.3 22 12c0 5.5-4.5 9.8-10 9.8z"/></svg>
+          </Btn>
+          <Btn label="Copy link" onClick={onCopy}>
+            {copied ? <Check className="w-4 h-4" style={{ color: "#16a34a" }} /> : <Link2 className="w-4 h-4" />}
+          </Btn>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function ReadingProgress() {
@@ -348,6 +488,14 @@ export default function InsightDetail() {
   const post: BlogPost | undefined = isWp ? (wpPost ?? undefined) : allPosts.find((p) => p.slug === slug);
   const related = allPosts.filter((p) => p.slug !== slug).slice(0, 3);
 
+  // Pre-compute heavy derived values once per post change.
+  const toc = useMemo(() => post ? extractToc(post.content) : [], [post]);
+  const enhancedContent = useMemo(() => {
+    if (!post) return "";
+    return isHtml(post.content) ? addHeadingIds(enhanceWpHtml(post.content)) : post.content;
+  }, [post]);
+  const shareUrl = post ? `${SITE}/blog/${post.slug}` : SITE;
+
   if (wpLoading) {
     return (
       <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', sans-serif" }}>
@@ -385,11 +533,11 @@ export default function InsightDetail() {
       />
 
       {/* Hero */}
-      <section style={{ paddingTop: 96, paddingBottom: 0, background: "#FFFFFF" }}>
-        <div className="max-w-[760px] mx-auto px-6">
+      <section style={{ paddingTop: "clamp(72px, 11vw, 96px)", paddingBottom: 0, background: "#FFFFFF" }}>
+        <div className="max-w-[760px] mx-auto" style={{ padding: "0 18px" }}>
           <Link href="/blog">
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "#7A7A85", cursor: "pointer", marginBottom: 36, letterSpacing: "0.01em" }}>
-              <ArrowLeft className="w-3.5 h-3.5" /> All Insights
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "#7A7A85", cursor: "pointer", marginBottom: 28, letterSpacing: "0.01em" }}>
+              <ArrowLeft className="w-3.5 h-3.5" /> All posts
             </span>
           </Link>
 
@@ -433,30 +581,72 @@ export default function InsightDetail() {
         </div>
 
         {post.featuredImage && (
-          <div className="max-w-[900px] mx-auto px-6" style={{ paddingBottom: 0 }}>
+          <div className="gb-hero-img max-w-[900px] mx-auto" style={{ padding: "0 18px" }}>
             <motion.div
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.7, delay: 0.15 }}
-              style={{ borderRadius: 20, overflow: "hidden", background: "#e8e8e6", aspectRatio: "16/7", boxShadow: "0 4px 40px rgba(11,11,11,0.10)" }}
+              style={{ borderRadius: 20, overflow: "hidden", background: "#e8e8e6", boxShadow: "0 4px 40px rgba(11,11,11,0.10)" }}
             >
-              <img src={post.featuredImage} alt={post.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+              <img
+                src={post.featuredImage}
+                alt={post.title}
+                width={1600}
+                height={900}
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
+                style={{ width: "100%", height: "auto", display: "block", aspectRatio: "16/9", objectFit: "cover" }}
+              />
             </motion.div>
           </div>
         )}
 
-        <div style={{ height: 1, background: "rgba(10,10,10,0.03)", marginTop: post.featuredImage ? 40 : 0 }} />
+        <div style={{ height: 1, background: "rgba(10,10,10,0.03)", marginTop: post.featuredImage ? 32 : 0 }} />
       </section>
 
       {/* Article body */}
-      <section style={{ padding: "64px 24px 80px", background: "#FFFFFF" }}>
-        <div className="article-body max-w-[680px] mx-auto">
+      <section className="gb-article-section" style={{ padding: "clamp(36px, 7vw, 64px) 18px 100px", background: "#FFFFFF" }}>
+        <div className="max-w-[680px] mx-auto">
+          {/* TL;DR — Key takeaways for users + AI Overview / Speakable target */}
+          {post.excerpt && (
+            <aside className="article-tldr" aria-label="Key takeaway" style={{ display: "flex", gap: 14, padding: "18px 20px", marginBottom: 32, background: "linear-gradient(135deg, #FFF7E6 0%, #FFEFD1 100%)", borderRadius: 16, border: "1px solid rgba(194,168,120,0.35)" }}>
+              <div style={{ flexShrink: 0, width: 32, height: 32, borderRadius: 10, background: "#C2A878", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: "#8B6F2E", margin: 0, marginBottom: 4 }}>Key takeaway</p>
+                <p style={{ fontSize: 15, color: "#3F2F12", lineHeight: 1.6, margin: 0, fontWeight: 500 }}>{post.excerpt}</p>
+              </div>
+            </aside>
+          )}
+
+          {/* Auto Table of Contents — appears only if the article has 2+ H2 sections */}
+          {toc.length >= 2 && (
+            <nav aria-label="On this page" className="article-toc" style={{ padding: "18px 22px", marginBottom: 36, background: "#F8F8F6", border: "1px solid #EFEFEA", borderRadius: 14 }}>
+              <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.15em", textTransform: "uppercase", color: "#7A7A85", margin: 0, marginBottom: 12, display: "inline-flex", alignItems: "center", gap: 7 }}>
+                <List className="w-3.5 h-3.5" /> On this page
+              </p>
+              <ol style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8, counterReset: "toc" }}>
+                {toc.map((h) => (
+                  <li key={h.id} style={{ counterIncrement: "toc", fontSize: 14, lineHeight: 1.45 }}>
+                    <a href={`#${h.id}`} style={{ color: "#1E293B", textDecoration: "none", display: "inline-flex", alignItems: "baseline", gap: 8 }}>
+                      <span style={{ fontVariantNumeric: "tabular-nums", color: "#A0A0A8", fontSize: 12, fontWeight: 700, minWidth: 18 }}>{String(toc.indexOf(h) + 1).padStart(2, "0")}</span>
+                      <span style={{ fontWeight: 500 }}>{h.text}</span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          )}
+
+        <div className="article-body">
           {isHtml(post.content)
-            ? <div dangerouslySetInnerHTML={{ __html: post.content }} />
+            ? <div dangerouslySetInnerHTML={{ __html: enhancedContent }} />
             : renderMarkdown(post.content)
           }
 
-          <div style={{ marginTop: 64, padding: "36px 40px", background: "#EFEFEA", borderRadius: 20, textAlign: "center" }}>
+          <div style={{ marginTop: 56, padding: "32px 24px", background: "#EFEFEA", borderRadius: 20, textAlign: "center" }}>
             <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#8A8A8A", marginBottom: 12 }}>Ready to build your authority?</p>
             <h3 style={{ fontWeight: 800, fontSize: "clamp(20px, 3vw, 26px)", letterSpacing: "-0.03em", color: "#0A0A0A", marginBottom: 20, lineHeight: 1.25 }}>
               Turn your expertise into consistent inbound demand.
@@ -468,7 +658,11 @@ export default function InsightDetail() {
             </Link>
           </div>
         </div>
+        </div>
       </section>
+
+      {/* Mobile-first sticky share bar */}
+      <ShareBar url={shareUrl} title={post.title} />
 
       {/* Related posts */}
       {related.length > 0 && (

@@ -29,6 +29,10 @@ export interface BlogPost {
   title: string;
   excerpt: string;
   date: string;
+  /** ISO 8601 date string for schema.org / Google */
+  isoDate?: string;
+  /** ISO 8601 last-modified date for schema.org */
+  modifiedIsoDate?: string;
   tag: string;
   readTime?: string;
   content: string;

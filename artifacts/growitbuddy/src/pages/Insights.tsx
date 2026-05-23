@@ -50,7 +50,7 @@ export default function Insights() {
       />
 
       {/* Hero */}
-      <section style={{ paddingTop: 120, paddingBottom: 80, paddingLeft: 24, paddingRight: 24, borderBottom: "1px solid #E5E5E0" }}>
+      <section style={{ paddingTop: "clamp(80px, 14vw, 120px)", paddingBottom: "clamp(48px, 9vw, 80px)", paddingLeft: 18, paddingRight: 18, borderBottom: "1px solid #E5E5E0" }}>
         <div className="max-w-[1100px] mx-auto">
           <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#7A7A85", marginBottom: 16 }}>The Blog</p>
           <motion.h1
@@ -73,11 +73,11 @@ export default function Insights() {
       </section>
 
       {/* Tag filter + Posts grid */}
-      <section style={{ padding: "60px 24px 100px", background: "#FFFFFF" }}>
+      <section style={{ padding: "clamp(36px, 7vw, 60px) 18px clamp(56px, 10vw, 100px)", background: "#FFFFFF" }}>
         <div className="max-w-[1100px] mx-auto">
 
-          {/* Filter bar */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 40 }}>
+          {/* Filter bar — horizontally scrollable on mobile */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 32 }}>
             {allTags.map(tag => (
               <button
                 key={tag}
@@ -101,8 +101,8 @@ export default function Insights() {
             ))}
           </div>
 
-          {/* Grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
+          {/* Grid — single column on mobile, multi-column on tablet/desktop */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 300px), 1fr))", gap: 14 }}>
             {filtered.map((post, i) => {
               const featured = i === 0 && activeTag === "All";
               return (
@@ -129,10 +129,12 @@ export default function Insights() {
                       className="hover:-translate-y-1 hover:shadow-lg"
                     >
                       {post.featuredImage && (
-                        <div style={{ height: 180, overflow: "hidden", flexShrink: 0 }}>
+                        <div style={{ aspectRatio: "16/10", overflow: "hidden", flexShrink: 0, background: "#e8e8e6" }}>
                           <img
                             src={post.featuredImage}
                             alt={post.title}
+                            loading={i < 3 ? "eager" : "lazy"}
+                            decoding="async"
                             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                           />
                         </div>
