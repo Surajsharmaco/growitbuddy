@@ -82,10 +82,11 @@ export function ImagePickerField({ value, onChange, label, shape = "circle", siz
 
       <div className="flex flex-col gap-1.5 min-w-0">
         {label && <p className="text-[11px] font-semibold text-[#0B0B0B]/50">{label}</p>}
-        <div className="flex gap-1.5 flex-wrap">
+        <div className="flex gap-1.5 flex-wrap items-center">
           <button
             onClick={() => { setUploadError(null); fileRef.current?.click(); }}
             disabled={uploading}
+            title={hint}
             className="flex items-center gap-1 text-[11px] font-semibold text-[#0B0B0B]/55 hover:text-[#0B0B0B] border border-[#0B0B0B]/12 hover:border-[#0B0B0B]/30 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-40"
           >
             <Upload size={11} />
@@ -105,13 +106,13 @@ export function ImagePickerField({ value, onChange, label, shape = "circle", siz
               <X size={11} /> Remove
             </button>
           )}
+          {hint && !uploadError && (
+            <span className="text-[10px] text-[#0B0B0B]/55 font-medium leading-tight">{hint}</span>
+          )}
         {uploadError && (
           <p className="text-[10px] text-red-600 mt-1">{uploadError}</p>
         )}
         </div>
-        {hint && !uploadError && (
-          <p className="text-[10px] text-[#0B0B0B]/45 mt-0.5">{hint}</p>
-        )}
       </div>
     </div>
   );

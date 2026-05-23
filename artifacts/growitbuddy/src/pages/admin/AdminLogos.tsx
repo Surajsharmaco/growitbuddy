@@ -91,25 +91,30 @@ function LogoForm({
     <div style={{ padding: "24px", background: "#F8F8F6", borderRadius: 12, border: "1.5px solid #E5E5E0" }}>
       <div style={{ display: "flex", gap: 20 }}>
         {/* Image preview / upload zone */}
-        <div
-          style={{ flexShrink: 0, width: 120, height: 80, background: "#FFFFFF", border: "1.5px dashed #E5E5E0", borderRadius: 10, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", overflow: "hidden", position: "relative" }}
-          onClick={() => fileRef.current?.click()}
-        >
-          {preview ? (
-            <img src={preview} alt="preview" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-          ) : (
-            <>
-              <Upload size={18} style={{ color: "#8A8A8A", marginBottom: 4 }} />
-              <span style={{ fontSize: 11, color: "#8A8A8A" }}>Upload</span>
-            </>
-          )}
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            style={{ display: "none" }}
-            onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
-          />
+        <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", gap: 4 }}>
+          <div
+            style={{ width: 120, height: 80, background: "#FFFFFF", border: "1.5px dashed #E5E5E0", borderRadius: 10, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", overflow: "hidden", position: "relative" }}
+            onClick={() => fileRef.current?.click()}
+            title="Recommended: 240 × 80 px • PNG with transparent background"
+          >
+            {preview ? (
+              <img src={preview} alt="preview" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+            ) : (
+              <>
+                <Upload size={18} style={{ color: "#8A8A8A", marginBottom: 2 }} />
+                <span style={{ fontSize: 11, color: "#8A8A8A", fontWeight: 600 }}>Upload</span>
+                <span style={{ fontSize: 9, color: "#8A8A8A", marginTop: 1 }}>240 × 80 px</span>
+              </>
+            )}
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
+            />
+          </div>
+          <p style={{ fontSize: 9, color: "#8A8A8A", textAlign: "center", lineHeight: 1.3, width: 120 }}>PNG transparent</p>
         </div>
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>

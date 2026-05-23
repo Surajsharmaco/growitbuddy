@@ -244,9 +244,13 @@ export function ImageCropUploader({ value, onChange, hint }: Props) {
             <input id={inputId} type="file" accept="image/*" className="hidden"
               onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileSelect(f); e.currentTarget.value = ""; }} />
             <Upload size={20} className="text-[#0B0B0B]/30" />
-            <div className="text-center">
+            <div className="text-center px-4">
               <p className="text-[13px] font-semibold text-[#0B0B0B]/50">Click to upload or drag & drop</p>
-              <p className="text-[10px] text-[#0B0B0B]/30 mt-0.5">PNG, JPG, WebP · max 8 MB</p>
+              {hint ? (
+                <p className="text-[10px] text-[#0B0B0B]/55 mt-1 leading-snug font-medium">{hint}</p>
+              ) : (
+                <p className="text-[10px] text-[#0B0B0B]/30 mt-0.5">PNG, JPG, WebP · max 8 MB</p>
+              )}
             </div>
           </div>
           <button
@@ -255,7 +259,6 @@ export function ImageCropUploader({ value, onChange, hint }: Props) {
           >
             <Images size={13} /> Choose from library
           </button>
-          {hint && <p className="text-[11px] text-[#0B0B0B]/45">{hint}</p>}
         </div>
       )}
 
@@ -279,7 +282,6 @@ export function ImageCropUploader({ value, onChange, hint }: Props) {
             </div>
           </div>
           <p className="text-[10px] text-[#0B0B0B]/35 text-center">Hover to re-crop, pick from library, or remove</p>
-          {hint && <p className="text-[11px] text-[#0B0B0B]/45 text-center">{hint}</p>}
         </div>
       )}
 

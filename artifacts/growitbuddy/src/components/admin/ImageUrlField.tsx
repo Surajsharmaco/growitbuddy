@@ -90,7 +90,7 @@ export function ImageUrlField({
           type="button"
           onClick={() => { setUploadError(null); fileRef.current?.click(); }}
           disabled={uploading}
-          title="Upload image"
+          title={hint ? `Upload image • ${hint}` : "Upload image"}
           data-testid="button-upload-image"
           className="flex items-center gap-1.5 text-[12px] font-semibold text-[#0B0B0B]/70 hover:text-[#0B0B0B] border border-[#0B0B0B]/12 hover:border-[#0B0B0B]/30 px-3 rounded-xl transition-colors disabled:opacity-40 whitespace-nowrap"
         >
@@ -134,7 +134,12 @@ export function ImageUrlField({
       )}
 
       {uploadError && <p className="text-[11px] text-red-600">{uploadError}</p>}
-      {hint && !uploadError && <p className="text-[11px] text-[#0B0B0B]/45">{hint}</p>}
+      {hint && !uploadError && (
+        <p className="text-[11px] text-[#0B0B0B]/55 font-medium flex items-center gap-1.5">
+          <Upload size={10} className="text-[#0B0B0B]/40 shrink-0" />
+          <span>{hint}</span>
+        </p>
+      )}
     </div>
   );
 }
