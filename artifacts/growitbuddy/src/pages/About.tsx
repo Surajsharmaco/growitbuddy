@@ -104,7 +104,7 @@ export default function About() {
             transition={{ duration: 0.7 }}
             style={{ fontWeight: 800, fontSize: "clamp(28px, 6.5vw, 80px)", letterSpacing: "-0.04em", lineHeight: "1.08", color: "#0A0A0A", maxWidth: "20ch", marginBottom: 24 }}
           >
-            We build authority systems for founders and creators who are serious about growth.
+            We build authority systems for founders and creators.
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 10 }}
@@ -112,7 +112,7 @@ export default function About() {
             transition={{ delay: 0.1 }}
             style={{ fontSize: "clamp(15px, 4.5vw, 18px)", color: "#5F5F5F", lineHeight: "1.75", maxWidth: "55ch", marginBottom: 56 }}
           >
-            A team of strategists, writers, and editors who believe deep expertise deserves a much wider audience.
+            Content, positioning, and distribution designed to compound attention into inbound demand.
           </motion.p>
 
           {/* Stats strip */}
