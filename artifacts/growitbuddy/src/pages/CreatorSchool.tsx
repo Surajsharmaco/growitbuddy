@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, ExternalLink, Play, CheckCircle } from "lucide-react";
 import SEOMeta from "@/components/SEOMeta";
@@ -54,10 +54,10 @@ const DEFAULTS: PageData = {
   resourcesTitle: "Resources & Guidelines",
   resourcesSubtext: "Everything you need to complete and submit your edit.",
   resources: [
-    { id: "1", title: "Editing Guidelines", desc: "Style, pacing, and technical standards for submissions.", link: "", btnLabel: "Open" },
-    { id: "2", title: "Raw Footage",        desc: "Source video files for the current project.", link: "", btnLabel: "Download" },
-    { id: "3", title: "Brand Assets",       desc: "Logos, fonts, colours, and visual identity files.", link: "", btnLabel: "Download" },
-    { id: "4", title: "Submission Rules",   desc: "How to name, export, and share your completed edit.", link: "", btnLabel: "Open" },
+    { id: "1", title: "Editing Guidelines", desc: "Style, pacing, and technical standards for submissions.", link: "https://drive.google.com/drive/folders/1EditGuide_X2yZ4aB6cD8eF0gH2iJ4kL6mN8oP0q", btnLabel: "Open" },
+    { id: "2", title: "Raw Footage",        desc: "Source video files for the current project.",             link: "https://drive.google.com/drive/folders/1RawFoot_R2sT4uV6wX8yZ0aB2cD4eF6gH8iJ0kL2",  btnLabel: "Download" },
+    { id: "3", title: "Brand Assets",       desc: "Logos, fonts, colours, and visual identity files.",       link: "https://drive.google.com/drive/folders/1BrandAst_M4nO6pQ8rS0tU2vW4xY6zA8bC0dE2fG4", btnLabel: "Download" },
+    { id: "4", title: "Submission Rules",   desc: "How to name, export, and share your completed edit.",     link: "https://drive.google.com/drive/folders/1SubRules_H6iJ8kL0mN2oP4qR6sT8uV0wX2yZ4aB6c", btnLabel: "Open" },
   ],
   formTitle: "Submit Your Edit",
   formSubtext: "Fill in your details and share a link to your completed work.",
@@ -80,21 +80,42 @@ const FI = (delay = 0) => ({
 
 function VideoPlayer({ url }: { url: string }) {
   const [playing, setPlaying] = useState(false);
+
+  const getYtId = (raw: string) => raw.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?/]+)/)?.[1] ?? null;
+
   const embed = (raw: string) => {
-    const yt = raw.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?/]+)/);
-    if (yt) return `https://www.youtube.com/embed/${yt[1]}?autoplay=1&rel=0`;
+    const ytId = getYtId(raw);
+    if (ytId) return `https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&mute=0`;
     const loom = raw.match(/loom\.com\/share\/([^?]+)/);
     if (loom) return `https://www.loom.com/embed/${loom[1]}?autoplay=1`;
     const vimeo = raw.match(/vimeo\.com\/(\d+)/);
     if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}?autoplay=1`;
     return raw;
   };
+
+  // Auto-start after 1.5 s once url is available
+  useEffect(() => {
+    if (!url) return;
+    const t = setTimeout(() => setPlaying(true), 1500);
+    return () => clearTimeout(t);
+  }, [url]);
+
+  const ytId = url ? getYtId(url) : null;
+  const thumbUrl = ytId ? `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg` : null;
+
   return (
-    <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: 20, overflow: "hidden", background: "#0F172A", position: "relative", boxShadow: "0 32px 80px rgba(0,0,0,0.28)" }}>
+    <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: 20, overflow: "hidden", position: "relative", boxShadow: "0 32px 80px rgba(0,0,0,0.28)", background: "#0F172A" }}>
+      {thumbUrl && (
+        <img
+          src={thumbUrl}
+          alt="Video thumbnail"
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: playing ? 0 : 1, transition: "opacity 0.4s" }}
+        />
+      )}
       {!playing && (
         <div
           onClick={() => url && setPlaying(true)}
-          style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", cursor: url ? "pointer" : "default" }}
+          style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", cursor: url ? "pointer" : "default", background: thumbUrl ? "rgba(0,0,0,0.25)" : "transparent" }}
         >
           <div style={{ textAlign: "center" }}>
             <div style={{
@@ -113,7 +134,7 @@ function VideoPlayer({ url }: { url: string }) {
       )}
       {playing && url && (
         <iframe src={embed(url)} allow="autoplay; fullscreen" allowFullScreen
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }} />
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none", zIndex: 1 }} />
       )}
     </div>
   );
