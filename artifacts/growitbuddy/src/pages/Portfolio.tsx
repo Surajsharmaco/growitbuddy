@@ -1,47 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
-import { Play, ArrowLeft, ArrowUpRight, Trash2, RotateCcw } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Play, ArrowLeft, ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRoute, Link, useLocation } from "wouter";
 
 import { API_BASE } from "@/lib/api";
-import { useAdmin } from "@/context/AdminContext";
-
-// ── Soft-hide store (admin-only action; non-admins never see hidden items) ──
-const HIDDEN_KEY = "gb_hidden_portfolio_items";
-function loadHiddenIds(): number[] {
-  try {
-    const raw = localStorage.getItem(HIDDEN_KEY);
-    if (!raw) return [];
-    const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr.filter((x) => typeof x === "number") : [];
-  } catch { return []; }
-}
-function saveHiddenIds(ids: number[]) {
-  try { localStorage.setItem(HIDDEN_KEY, JSON.stringify(ids)); } catch { /* noop */ }
-}
-function useHiddenPortfolio() {
-  const [hidden, setHidden] = useState<Set<number>>(() => new Set(loadHiddenIds()));
-  useEffect(() => {
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === HIDDEN_KEY) setHidden(new Set(loadHiddenIds()));
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
-  const hide = useCallback((id: number) => {
-    setHidden((prev) => {
-      if (prev.has(id)) return prev;
-      const next = new Set(prev); next.add(id); saveHiddenIds([...next]); return next;
-    });
-  }, []);
-  const restore = useCallback((id: number) => {
-    setHidden((prev) => {
-      if (!prev.has(id)) return prev;
-      const next = new Set(prev); next.delete(id); saveHiddenIds([...next]); return next;
-    });
-  }, []);
-  return { hidden, hide, restore };
-}
 
 type CategoryType = "video" | "reel" | "case-study";
 
@@ -163,14 +125,10 @@ function getHiResThumbnail(url: string): string {
 }
 
 // ── Video Tile (16:9) — long-form ──
-function VideoTile({ item, featured = false, hidden = false, onHide, onRestore }: { item: PortfolioItem; featured?: boolean; hidden?: boolean; onHide?: (id: number) => void; onRestore?: (id: number) => void }) {
+function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?: boolean }) {
   const [playing, setPlaying] = useState(false);
-  const { isAuthenticated } = useAdmin();
   const embedUrl = getEmbedUrl(item.youtubeUrl);
   const thumb = featured ? getHiResThumbnail(item.youtubeUrl) : getThumbnail(item.youtubeUrl);
-
-  const handleHide = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); onHide?.(item.id); };
-  const handleRestore = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); onRestore?.(item.id); };
 
   return (
     <motion.div
@@ -188,35 +146,7 @@ function VideoTile({ item, featured = false, hidden = false, onHide, onRestore }
       }}
       className="hover:-translate-y-1 hover:shadow-2xl hover:border-[#C2A878]"
     >
-      <div style={{ position: "relative", aspectRatio: "16/9", background: "#0A0A0A", opacity: hidden ? 0.45 : 1, transition: "opacity 0.25s" }}>
-        {isAuthenticated && (
-          <>
-            {hidden && (
-              <div style={{
-                position: "absolute", top: 12, left: 12, zIndex: 10,
-                fontSize: 10, fontWeight: 800, letterSpacing: "0.18em", textTransform: "uppercase",
-                padding: "5px 11px", borderRadius: 100,
-                background: "rgba(0,0,0,0.85)", color: "#FBBF24",
-              }}>Hidden</div>
-            )}
-            <button
-              type="button"
-              onClick={hidden ? handleRestore : handleHide}
-              title={hidden ? "Restore this item" : "Hide this item (admin only)"}
-              style={{
-                position: "absolute", top: 12, right: 12, zIndex: 10,
-                width: 38, height: 38, borderRadius: "50%",
-                background: hidden ? "rgba(34,197,94,0.95)" : "rgba(220,38,38,0.95)",
-                color: "#fff", border: "none", cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
-              }}
-              className="hover:scale-110"
-            >
-              {hidden ? <RotateCcw size={16} /> : <Trash2 size={16} />}
-            </button>
-          </>
-        )}
+      <div style={{ position: "relative", aspectRatio: "16/9", background: "#0A0A0A" }}>
         {playing && embedUrl ? (
           <iframe
             src={`${embedUrl}&autoplay=1`}
@@ -299,14 +229,10 @@ function VideoTile({ item, featured = false, hidden = false, onHide, onRestore }
 }
 
 // ── Reel Tile (9:16) — short-form, aligned grid ──
-function ReelTile({ item, hidden = false, onHide, onRestore }: { item: PortfolioItem; hidden?: boolean; onHide?: (id: number) => void; onRestore?: (id: number) => void }) {
+function ReelTile({ item }: { item: PortfolioItem }) {
   const [playing, setPlaying] = useState(false);
-  const { isAuthenticated } = useAdmin();
   const embedUrl = getEmbedUrl(item.youtubeUrl);
   const thumb = getHiResThumbnail(item.youtubeUrl);
-
-  const handleHide = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); onHide?.(item.id); };
-  const handleRestore = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); onRestore?.(item.id); };
 
   return (
     <motion.div
@@ -324,35 +250,7 @@ function ReelTile({ item, hidden = false, onHide, onRestore }: { item: Portfolio
       }}
       className="hover:-translate-y-1 hover:shadow-2xl hover:border-[#C2A878]"
     >
-      <div style={{ position: "relative", aspectRatio: "9/16", background: "#0A0A0A", opacity: hidden ? 0.45 : 1, transition: "opacity 0.25s" }}>
-        {isAuthenticated && (
-          <>
-            {hidden && (
-              <div style={{
-                position: "absolute", top: 12, left: 12, zIndex: 10,
-                fontSize: 10, fontWeight: 800, letterSpacing: "0.18em", textTransform: "uppercase",
-                padding: "4px 10px", borderRadius: 100,
-                background: "rgba(0,0,0,0.85)", color: "#FBBF24",
-              }}>Hidden</div>
-            )}
-            <button
-              type="button"
-              onClick={hidden ? handleRestore : handleHide}
-              title={hidden ? "Restore this reel" : "Hide this reel (admin only)"}
-              style={{
-                position: "absolute", top: 12, right: 12, zIndex: 10,
-                width: 36, height: 36, borderRadius: "50%",
-                background: hidden ? "rgba(34,197,94,0.95)" : "rgba(220,38,38,0.95)",
-                color: "#fff", border: "none", cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
-              }}
-              className="hover:scale-110"
-            >
-              {hidden ? <RotateCcw size={14} /> : <Trash2 size={14} />}
-            </button>
-          </>
-        )}
+      <div style={{ position: "relative", aspectRatio: "9/16", background: "#0A0A0A" }}>
         {playing && embedUrl ? (
           <iframe
             src={`${embedUrl}&autoplay=1`}
@@ -429,9 +327,8 @@ function caseHeroImage(item: PortfolioItem, w: number, h: number) {
 }
 
 // ── Case Study Tile — image only, title separated below as highlighted heading ──
-function CaseStudyTile({ item, featured = false, hidden = false, onHide, onRestore }: { item: PortfolioItem; featured?: boolean; hidden?: boolean; onHide?: (id: number) => void; onRestore?: (id: number) => void }) {
+function CaseStudyTile({ item, featured = false }: { item: PortfolioItem; featured?: boolean }) {
   const [, setLocation] = useLocation();
-  const { isAuthenticated } = useAdmin();
   const meta = CATEGORY_META[item.category];
   const href = meta ? `/portfolio/${meta.slug}/case/${item.id}` : "#";
   const dim = featured ? { w: 1400, h: 800 } : { w: 800, h: 600 };
@@ -444,15 +341,12 @@ function CaseStudyTile({ item, featured = false, hidden = false, onHide, onResto
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
   };
 
-  const handleHide = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); onHide?.(item.id); };
-  const handleRestore = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); onRestore?.(item.id); };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      style={{ display: "flex", flexDirection: "column", gap: 18, opacity: hidden ? 0.5 : 1, transition: "opacity 0.25s" }}
+      style={{ display: "flex", flexDirection: "column", gap: 18 }}
       className="group"
     >
       {/* Image-only card */}
@@ -499,36 +393,6 @@ function CaseStudyTile({ item, featured = false, hidden = false, onHide, onResto
         >
           Case Study
         </div>
-        {isAuthenticated && (
-          <>
-            {hidden && (
-              <div style={{
-                position: "absolute", top: 14, right: 60, zIndex: 5,
-                fontSize: 10, fontWeight: 800, letterSpacing: "0.18em", textTransform: "uppercase",
-                padding: "5px 11px", borderRadius: 100,
-                background: "rgba(0,0,0,0.85)", color: "#FBBF24",
-              }}>Hidden</div>
-            )}
-            <button
-              type="button"
-              onClick={hidden ? handleRestore : handleHide}
-              title={hidden ? "Restore this case study" : "Hide this case study (admin only)"}
-              style={{
-                position: "absolute", top: 12, right: 12,
-                width: 38, height: 38, borderRadius: "50%",
-                background: hidden ? "rgba(34,197,94,0.95)" : "rgba(220,38,38,0.95)",
-                color: "#fff", border: "none", cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
-                transition: "transform 0.2s, background 0.2s",
-                zIndex: 5,
-              }}
-              className="hover:scale-110"
-            >
-              {hidden ? <RotateCcw size={16} /> : <Trash2 size={16} />}
-            </button>
-          </>
-        )}
         <div
           style={{
             position: "absolute", bottom: 14, right: 14,
@@ -724,8 +588,6 @@ export default function Portfolio() {
 
   const [items, setItems] = useState<PortfolioItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const { isAuthenticated } = useAdmin();
-  const { hidden: hiddenIds, hide: hideItem, restore: restoreItem } = useHiddenPortfolio();
 
   useEffect(() => {
     let cancelled = false;
@@ -760,13 +622,8 @@ export default function Portfolio() {
       );
     }
 
-    const allCategoryItems = items.filter((i) => i.category === activeCategory);
-    // Admins see everything (with hidden ones dimmed); public visitors never see hidden items.
-    const categoryItems = isAuthenticated
-      ? allCategoryItems
-      : allCategoryItems.filter((i) => !hiddenIds.has(i.id));
+    const categoryItems = items.filter((i) => i.category === activeCategory);
     const meta = CATEGORY_META[activeCategory];
-    const hiddenCount = allCategoryItems.filter((i) => hiddenIds.has(i.id)).length;
 
     // Chunk video items into [1 big, 2 normal] repeating blocks
     const videoBlocks: PortfolioItem[][] = [];
@@ -804,30 +661,17 @@ export default function Portfolio() {
             <p style={{ fontSize: 16, color: "rgba(255,255,255,0.72)", lineHeight: 1.65, maxWidth: "54ch", marginBottom: 26 }}>
               {meta.tagline}
             </p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
-              <span
-                style={{
-                  fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase",
-                  padding: "7px 14px", borderRadius: 100,
-                  background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)",
-                  color: "#fff",
-                }}
-              >
-                {categoryItems.length} {categoryItems.length === 1 ? "project" : "projects"}
-              </span>
-              {isAuthenticated && hiddenCount > 0 && (
-                <span
-                  style={{
-                    fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase",
-                    padding: "7px 14px", borderRadius: 100,
-                    background: "rgba(251,191,36,0.18)", border: "1px solid rgba(251,191,36,0.45)",
-                    color: "#FBBF24",
-                  }}
-                >
-                  {hiddenCount} hidden · admin only
-                </span>
-              )}
-            </div>
+            <span
+              style={{
+                fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase",
+                padding: "7px 14px", borderRadius: 100,
+                background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)",
+                color: "#fff",
+                display: "inline-block",
+              }}
+            >
+              {categoryItems.length} {categoryItems.length === 1 ? "project" : "projects"}
+            </span>
           </div>
         </div>
 
@@ -853,14 +697,14 @@ export default function Portfolio() {
                 gap: 24,
               }}
             >
-              {categoryItems.map((item) => <ReelTile key={item.id} item={item} hidden={hiddenIds.has(item.id)} onHide={hideItem} onRestore={restoreItem} />)}
+              {categoryItems.map((item) => <ReelTile key={item.id} item={item} />)}
             </div>
           ) : meta.type === "video" ? (
             // ── VIDEO: pattern of [1 big, 2 normal] repeating ──
             <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
               {videoBlocks.map((block, bi) => (
                 <div key={bi} style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-                  {block[0] && <VideoTile item={block[0]} featured hidden={hiddenIds.has(block[0].id)} onHide={hideItem} onRestore={restoreItem} />}
+                  {block[0] && <VideoTile item={block[0]} featured />}
                   {block.length > 1 && (
                     <div
                       className="video-row"
@@ -870,7 +714,7 @@ export default function Portfolio() {
                         gap: 22,
                       }}
                     >
-                      {block.slice(1).map((item) => <VideoTile key={item.id} item={item} hidden={hiddenIds.has(item.id)} onHide={hideItem} onRestore={restoreItem} />)}
+                      {block.slice(1).map((item) => <VideoTile key={item.id} item={item} />)}
                     </div>
                   )}
                 </div>
@@ -879,7 +723,7 @@ export default function Portfolio() {
           ) : (
             // ── CASE STUDY: featured + grid ──
             <div style={{ display: "flex", flexDirection: "column", gap: 48 }}>
-              {categoryItems[0] && <CaseStudyTile item={categoryItems[0]} featured hidden={hiddenIds.has(categoryItems[0].id)} onHide={hideItem} onRestore={restoreItem} />}
+              {categoryItems[0] && <CaseStudyTile item={categoryItems[0]} featured />}
               {categoryItems.length > 1 && (
                 <div
                   style={{
@@ -888,7 +732,7 @@ export default function Portfolio() {
                     gap: 36,
                   }}
                 >
-                  {categoryItems.slice(1).map((item) => <CaseStudyTile key={item.id} item={item} hidden={hiddenIds.has(item.id)} onHide={hideItem} onRestore={restoreItem} />)}
+                  {categoryItems.slice(1).map((item) => <CaseStudyTile key={item.id} item={item} />)}
                 </div>
               )}
             </div>
