@@ -133,6 +133,9 @@ function validate(seo: PageSEOData, eff: { title: string; description: string })
   return out;
 }
 
+const GLOBAL_SECTION = "seo-global";
+interface GlobalSEO { siteIndexable?: boolean }
+
 // ─── Main component ────────────────────────────────────────────────
 export default function AdminSEO() {
   const { getContent, saveContent, isSuperAdmin } = useAdmin();
@@ -143,6 +146,48 @@ export default function AdminSEO() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [dirty, setDirty] = useState(false);
+
+  // ─── Global master switch ────────────────────────────────────────
+  const [siteIndexable, setSiteIndexable] = useState<boolean>(true);
+  const [globalLoaded, setGlobalLoaded] = useState(false);
+  const [globalSaving, setGlobalSaving] = useState(false);
+  const [globalSaved, setGlobalSaved] = useState(false);
+
+  useEffect(() => {
+    if (!isSuperAdmin) return;
+    getContent(GLOBAL_SECTION)
+      .then((d) => {
+        const data = (d as GlobalSEO | null) ?? {};
+        setSiteIndexable(data.siteIndexable !== false);
+      })
+      .catch(() => setSiteIndexable(true))
+      .finally(() => setGlobalLoaded(true));
+  }, [isSuperAdmin, getContent]);
+
+  async function toggleSiteIndexable(next: boolean) {
+    if (!next) {
+      const ok = confirm(
+        "Turn OFF indexing for the ENTIRE website?\n\n" +
+        "Every page will be served with <meta name=\"robots\" content=\"noindex,nofollow\">, " +
+        "and the sitemap will be emptied. Search engines will gradually drop the site from results.\n\n" +
+        "Continue?",
+      );
+      if (!ok) return;
+    }
+    setGlobalSaving(true); setGlobalSaved(false);
+    const prev = siteIndexable;
+    setSiteIndexable(next);
+    try {
+      await saveContent(GLOBAL_SECTION, { siteIndexable: next });
+      setGlobalSaved(true);
+      setTimeout(() => setGlobalSaved(false), 2500);
+    } catch {
+      setSiteIndexable(prev);
+      alert("Failed to save global indexing setting. Please try again.");
+    } finally {
+      setGlobalSaving(false);
+    }
+  }
 
   const entry: PageRegistryEntry = findEntryBySlug(selectedSlug) ?? PAGE_REGISTRY[0];
   const seo: PageSEOData = seoBySlug[selectedSlug] ?? {};
@@ -226,6 +271,45 @@ export default function AdminSEO() {
           </>
         }
       />
+
+      {/* ── Global master switch ─────────────────────────────────────── */}
+      <Card className={`mb-5 border-2 ${siteIndexable ? "border-emerald-200 bg-emerald-50/30" : "border-red-300 bg-red-50/40"}`}>
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <Globe size={16} className={siteIndexable ? "text-emerald-700" : "text-red-700"} />
+              <div className="text-[14px] font-bold text-[#0B0B0B]">Global Site Indexing</div>
+              {siteIndexable
+                ? <span className="text-[10px] font-bold uppercase text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">Live · Indexable</span>
+                : <span className="text-[10px] font-bold uppercase text-red-700 bg-red-100 px-2 py-0.5 rounded">Hidden from search</span>}
+              {globalSaving && <span className="text-[11px] text-[#0B0B0B]/45">Saving…</span>}
+              {globalSaved && <span className="text-[11px] text-emerald-700 inline-flex items-center gap-1"><Check size={12}/> Saved</span>}
+            </div>
+            <p className="text-[12px] text-[#0B0B0B]/60 mt-1.5 leading-relaxed">
+              Master switch for the <strong>entire website</strong>. When OFF, every public page is served with
+              <code className="px-1 mx-1 bg-[#0B0B0B]/8 rounded text-[11px]">noindex,nofollow</code>
+              and the sitemap is emptied — search engines will stop showing the site in results.
+              When ON, each page falls back to its own per-page indexability setting below.
+            </p>
+            {!siteIndexable && (
+              <div className="mt-2 flex items-start gap-1.5 text-[11px] text-red-700 bg-red-50 border border-red-200 rounded-lg px-2.5 py-1.5">
+                <AlertTriangle size={12} className="mt-0.5 shrink-0" />
+                <span>The whole website is currently hidden from Google, Bing and other search engines.</span>
+              </div>
+            )}
+          </div>
+          <button
+            type="button"
+            disabled={!globalLoaded || globalSaving}
+            onClick={() => toggleSiteIndexable(!siteIndexable)}
+            className={`relative inline-flex h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-50 ${siteIndexable ? "bg-emerald-600" : "bg-red-500"}`}
+            aria-pressed={siteIndexable}
+            aria-label="Toggle global site indexing"
+          >
+            <span className={`inline-block h-6 w-6 mt-0.5 rounded-full bg-white shadow transition-transform ${siteIndexable ? "translate-x-[22px]" : "translate-x-0.5"}`} />
+          </button>
+        </div>
+      </Card>
 
       <div className="grid grid-cols-[260px_1fr] gap-5">
         {/* ── LEFT: page list ───────────────────────────────────── */}

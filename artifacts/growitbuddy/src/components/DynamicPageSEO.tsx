@@ -73,13 +73,14 @@ function setOrRemoveSchema(json: string | undefined) {
   }
 }
 
-function applySEO(entry: PageRegistryEntry, seo: PageSEOData, pathname: string) {
+function applySEO(entry: PageRegistryEntry, seo: PageSEOData, pathname: string, globalIndexable: boolean) {
   const title       = seo.title       ?? entry.defaults.title;
   const description = seo.description ?? entry.defaults.description;
 
-  // Indexability — admin value > registry default > true
-  const indexResolved  = seo.index  ?? entry.defaults.index  ?? true;
-  const followResolved = seo.follow ?? true;
+  // Indexability — global master switch overrides everything when OFF.
+  // Otherwise: admin per-page value > registry default > true.
+  const indexResolved  = globalIndexable ? (seo.index  ?? entry.defaults.index  ?? true) : false;
+  const followResolved = globalIndexable ? (seo.follow ?? true)                          : false;
   const indexDirective  = indexResolved  ? "index"  : "noindex";
   const followDirective = followResolved ? "follow" : "nofollow";
   const robots = `${indexDirective},${followDirective}`;
@@ -151,20 +152,32 @@ export default function DynamicPageSEO() {
     if (!entry) return;
     let cancelled = false;
 
+    async function loadGlobalIndexable(): Promise<boolean> {
+      try {
+        const r = await fetch(
+          `${API_BASE}/admin/public/content/seo-global?t=${Date.now()}`,
+          { cache: "no-store" },
+        );
+        if (!r.ok) return true;
+        const body = (await r.json()) as { data: { siteIndexable?: boolean } | null };
+        return body?.data?.siteIndexable !== false;
+      } catch { return true; }
+    }
+
     async function load() {
       const myId = ++loadId;
       try {
-        const r = await fetch(
-          `${API_BASE}/seo/${encodeURIComponent(entry!.slug)}?t=${Date.now()}`,
-          { cache: "no-store" },
-        );
+        const [r, globalIndexable] = await Promise.all([
+          fetch(`${API_BASE}/seo/${encodeURIComponent(entry!.slug)}?t=${Date.now()}`, { cache: "no-store" }),
+          loadGlobalIndexable(),
+        ]);
         if (cancelled || myId !== loadId) return;
-        if (!r.ok) { applySEO(entry!, {}, location); return; }
+        if (!r.ok) { applySEO(entry!, {}, location, globalIndexable); return; }
         const body = (await r.json()) as { data: PageSEOData | null };
         if (cancelled || myId !== loadId) return;
-        applySEO(entry!, body.data ?? {}, location);
+        applySEO(entry!, body.data ?? {}, location, globalIndexable);
       } catch {
-        if (!cancelled && myId === loadId) applySEO(entry!, {}, location);
+        if (!cancelled && myId === loadId) applySEO(entry!, {}, location, true);
       }
     }
 
@@ -178,8 +191,9 @@ export default function DynamicPageSEO() {
       const sec = parseBroadcastSection(e.newValue);
       if (!sec) return;
       // SEO sections have keys like "seo:home"; refresh when the SEO record
-      // for the current page slug changes.
-      if (sec === `seo:${entry!.slug}`) load();
+      // for the current page slug changes, or when the global master switch
+      // ("seo-global") changes.
+      if (sec === `seo:${entry!.slug}` || sec === "seo-global") load();
     }
     // Re-validate when the tab regains focus — covers the case where the
     // user edited in another window and switches back to the public tab.

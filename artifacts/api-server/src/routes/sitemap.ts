@@ -57,6 +57,19 @@ interface SEOData {
  * and excludes pages where index=false or sitemap=false.
  */
 sitemapRouter.get("/sitemap.xml", async (_req: Request, res: Response) => {
+  // Master global switch: if siteIndexable === false, return empty sitemap
+  // so search engines have nothing to discover.
+  let globalIndexable = true;
+  try {
+    const g = await db
+      .select({ data: siteContent.data })
+      .from(siteContent)
+      .where(eq(siteContent.section, "seo-global"))
+      .limit(1);
+    const gd = g[0]?.data as { siteIndexable?: boolean } | undefined;
+    if (gd && gd.siteIndexable === false) globalIndexable = false;
+  } catch { /* ignore — default to allowed */ }
+
   // Fetch ALL seo:* rows in one query
   let seoMap = new Map<string, SEOData>();
   try {
@@ -69,12 +82,14 @@ sitemapRouter.get("/sitemap.xml", async (_req: Request, res: Response) => {
 
   const today = new Date().toISOString().split("T")[0];
   const urls: string[] = [];
-  for (const page of REGISTERED_PAGES) {
-    const seo = seoMap.get(page.slug);
-    if (seo && (seo.index === false || seo.sitemap === false)) continue;
-    urls.push(
-      `  <url>\n    <loc>${SITE}${page.path}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${page.changefreq}</changefreq>\n    <priority>${page.priority.toFixed(1)}</priority>\n  </url>`,
-    );
+  if (globalIndexable) {
+    for (const page of REGISTERED_PAGES) {
+      const seo = seoMap.get(page.slug);
+      if (seo && (seo.index === false || seo.sitemap === false)) continue;
+      urls.push(
+        `  <url>\n    <loc>${SITE}${page.path}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${page.changefreq}</changefreq>\n    <priority>${page.priority.toFixed(1)}</priority>\n  </url>`,
+      );
+    }
   }
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>`;
@@ -85,6 +100,26 @@ sitemapRouter.get("/sitemap.xml", async (_req: Request, res: Response) => {
 
 sitemapRouter.get("/sitemap-blog.xml", async (_req: Request, res: Response) => {
   const urls: string[] = [];
+
+  // Master global switch — return empty blog sitemap when site is hidden.
+  let globalIndexable = true;
+  try {
+    const g = await db
+      .select({ data: siteContent.data })
+      .from(siteContent)
+      .where(eq(siteContent.section, "seo-global"))
+      .limit(1);
+    const gd = g[0]?.data as { siteIndexable?: boolean } | undefined;
+    if (gd && gd.siteIndexable === false) globalIndexable = false;
+  } catch { /* ignore */ }
+
+  if (!globalIndexable) {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n</urlset>`;
+    res.setHeader("Content-Type", "application/xml; charset=utf-8");
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+    res.send(xml);
+    return;
+  }
 
   try {
     const wpRes = await fetch(
