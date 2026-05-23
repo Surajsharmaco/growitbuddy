@@ -43,7 +43,11 @@ function setLink(rel: string, href: string) {
 }
 
 function setOrRemoveSchema(json: string | undefined) {
-  const id = "gb-admin-jsonld";
+  // Use the SAME script id ("gb-jsonld") that SEOMeta writes to, so admin
+  // overrides REPLACE the page-level schema instead of coexisting with it.
+  // Also defensively remove any legacy admin-id script in case of leftovers.
+  const id = "gb-jsonld";
+  document.getElementById("gb-admin-jsonld")?.remove();
   const existing = document.getElementById(id) as HTMLScriptElement | null;
   if (!json || !json.trim()) {
     existing?.remove();
