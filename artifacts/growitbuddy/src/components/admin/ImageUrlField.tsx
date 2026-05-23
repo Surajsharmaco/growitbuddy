@@ -1,6 +1,7 @@
 import { useRef, useState, useId } from "react";
 import { Upload, Images, X } from "lucide-react";
 import { MediaLibrary } from "./MediaLibrary";
+import { CropModal, type AspectKey } from "./CropModal";
 import { useAdmin } from "@/context/AdminContext";
 import { API_BASE as API, resolveMediaUrl } from "@/lib/api";
 
@@ -11,6 +12,7 @@ interface Props {
   placeholder?: string;
   hint?: string;
   previewHeight?: number;
+  cropAspect?: AspectKey;
 }
 
 export function ImageUrlField({
@@ -20,6 +22,7 @@ export function ImageUrlField({
   placeholder = "https://...  (or upload / pick from library)",
   hint,
   previewHeight = 80,
+  cropAspect = "free",
 }: Props) {
   const { authFetch } = useAdmin();
   const uid = useId();
@@ -28,17 +31,23 @@ export function ImageUrlField({
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [showLibrary, setShowLibrary] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
-  async function handleFile(file: File) {
+  function handleFile(file: File) {
     if (!file.type.startsWith("image/")) {
       setUploadError("Please select an image file.");
       return;
     }
+    setUploadError(null);
+    setPendingFile(file);
+  }
+
+  async function uploadBlob(blob: Blob, filename: string) {
     setUploading(true);
     setUploadError(null);
     try {
       const fd = new FormData();
-      fd.append("file", file);
+      fd.append("file", blob, filename);
       const res = await authFetch(`${API}/admin/upload`, { method: "POST", body: fd });
       if (res.ok) {
         const { url } = (await res.json()) as { url: string };
@@ -66,6 +75,21 @@ export function ImageUrlField({
         <MediaLibrary
           onSelect={(url) => { onChange(url); setShowLibrary(false); }}
           onClose={() => setShowLibrary(false)}
+        />
+      )}
+
+      {pendingFile && (
+        <CropModal
+          file={pendingFile}
+          defaultAspect={cropAspect}
+          title={label ? `Crop ${label.toLowerCase()}` : "Crop image"}
+          hint={hint}
+          onComplete={async (blob) => {
+            const fname = pendingFile.name.replace(/\.[^.]+$/, "") + ".png";
+            setPendingFile(null);
+            await uploadBlob(blob, fname);
+          }}
+          onCancel={() => setPendingFile(null)}
         />
       )}
 

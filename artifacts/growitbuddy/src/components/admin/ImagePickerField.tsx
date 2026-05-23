@@ -1,6 +1,7 @@
 import { useRef, useState, useId } from "react";
 import { Upload, Images, X, UserCircle2 } from "lucide-react";
 import { MediaLibrary } from "./MediaLibrary";
+import { CropModal } from "./CropModal";
 import { useAdmin } from "@/context/AdminContext";
 import { API_BASE as API, resolveMediaUrl } from "@/lib/api";
 
@@ -21,17 +22,23 @@ export function ImagePickerField({ value, onChange, label, shape = "circle", siz
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [showLibrary, setShowLibrary] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
-  async function handleFile(file: File) {
+  function handleFile(file: File) {
     if (!file.type.startsWith("image/")) {
       setUploadError("Please select an image file.");
       return;
     }
+    setUploadError(null);
+    setPendingFile(file);
+  }
+
+  async function uploadBlob(blob: Blob, filename: string) {
     setUploading(true);
     setUploadError(null);
     try {
       const fd = new FormData();
-      fd.append("file", file);
+      fd.append("file", blob, filename);
       const res = await authFetch(`${API}/admin/upload`, {
         method: "POST",
         body: fd,
@@ -67,6 +74,22 @@ export function ImagePickerField({ value, onChange, label, shape = "circle", siz
         <MediaLibrary
           onSelect={(url) => { onChange(url); setShowLibrary(false); }}
           onClose={() => setShowLibrary(false)}
+        />
+      )}
+
+      {pendingFile && (
+        <CropModal
+          file={pendingFile}
+          defaultAspect="1:1"
+          defaultRoundness={shape === "circle" ? 50 : 0}
+          title={label ? `Crop ${label.toLowerCase()}` : "Crop image"}
+          hint={hint}
+          onComplete={async (blob) => {
+            const fname = pendingFile.name.replace(/\.[^.]+$/, "") + ".png";
+            setPendingFile(null);
+            await uploadBlob(blob, fname);
+          }}
+          onCancel={() => setPendingFile(null)}
         />
       )}
 

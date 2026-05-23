@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { Card, PageHeader, SectionTitle } from "@/components/admin/AdminField";
 import { ImageUrlField } from "@/components/admin/ImageUrlField";
+import { CropModal } from "@/components/admin/CropModal";
 import { Plus, Trash2, Edit2, X, Save, Upload, Image } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -43,12 +44,13 @@ function LogoForm({
   const [preview, setPreview] = useState<string>(initial?.imageUrl ?? "");
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   function handleFile(f: File) {
-    setFile(f);
-    setPreview(URL.createObjectURL(f));
-    setForm((p) => ({ ...p, imageUrl: "" }));
+    if (!f.type.startsWith("image/")) { setErr("Please select an image file."); return; }
+    setErr("");
+    setPendingFile(f);
   }
 
   async function handleSubmit() {
@@ -89,6 +91,23 @@ function LogoForm({
 
   return (
     <div style={{ padding: "24px", background: "#F8F8F6", borderRadius: 12, border: "1.5px solid #E5E5E0" }}>
+      {pendingFile && (
+        <CropModal
+          file={pendingFile}
+          defaultAspect="3:1"
+          title="Crop logo"
+          hint="Recommended: 240 × 80 px (3:1) • PNG with transparent background"
+          onComplete={(blob) => {
+            const fname = pendingFile.name.replace(/\.[^.]+$/, "") + ".png";
+            const cropped = new File([blob], fname, { type: blob.type || "image/png" });
+            setFile(cropped);
+            setPreview(URL.createObjectURL(cropped));
+            setForm((p) => ({ ...p, imageUrl: "" }));
+            setPendingFile(null);
+          }}
+          onCancel={() => setPendingFile(null)}
+        />
+      )}
       <div style={{ display: "flex", gap: 20 }}>
         {/* Image preview / upload zone */}
         <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", gap: 4 }}>
