@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Settings, Users, FileText, Briefcase,
   Home, Layers, Menu as MenuIcon, AlignLeft, Info, LogOut,
   ChevronRight, Inbox, Mail, GitBranch, UserPlus, Building2, Network, Image,
-  Share2, Scan, BookOpen, ShieldCheck, UserCog, Zap, Play, TrendingUp, EyeOff,
+  Share2, Scan, BookOpen, ShieldCheck, UserCog, Zap, Play, TrendingUp, EyeOff, Search,
 } from "lucide-react";
 import { useState } from "react";
 import type { ReactNode } from "react";
@@ -77,6 +77,7 @@ const navGroups: NavGroup[] = [
       { label: "Navbar", path: "/admin/navbar", icon: <MenuIcon size={15} />, permission: "navbar" },
       { label: "Footer", path: "/admin/footer", icon: <AlignLeft size={15} />, permission: "footer" },
       { label: "Page Visibility", path: "/admin/page-visibility", icon: <EyeOff size={15} />, superOnly: true },
+      { label: "SEO Control", path: "/admin/seo", icon: <Search size={15} />, superOnly: true },
       { label: "Settings", path: "/admin/settings", icon: <Settings size={15} />, permission: "settings" },
       { label: "Optimize", path: "/admin/optimize", icon: <Zap size={15} />, superOnly: true },
     ],
