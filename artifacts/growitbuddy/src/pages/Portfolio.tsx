@@ -636,9 +636,9 @@ export default function Portfolio() {
     return (
       <div style={{ minHeight: "100vh", background: "#F8F8F6" }}>
         {/* Hero */}
-        <div style={{ background: BRAND_ACCENT, padding: "120px 24px 72px", position: "relative", overflow: "hidden" }}>
+        <div className="pf-hero" style={{ background: BRAND_ACCENT, padding: "112px 32px 80px", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #C2A878, #D4BB90)" }} />
-          <div style={{ maxWidth: 1180, margin: "0 auto", position: "relative" }}>
+          <div style={{ maxWidth: 1240, margin: "0 auto", position: "relative" }}>
             <Link href="/portfolio">
               <a
                 style={{
@@ -676,7 +676,7 @@ export default function Portfolio() {
         </div>
 
         {/* Collage */}
-        <div style={{ maxWidth: 1240, margin: "0 auto", padding: "64px 32px 112px" }} className="services-wrap">
+        <div style={{ maxWidth: 1240, margin: "0 auto", padding: "72px 32px 96px" }} className="services-wrap">
           {loading ? (
             <div style={{ display: "flex", justifyContent: "center", padding: "80px 0" }}>
               <div style={{ width: 36, height: 36, borderRadius: "50%", border: "3px solid #E5E5E0", borderTopColor: "#1E293B" }} className="animate-spin" />
@@ -722,24 +722,20 @@ export default function Portfolio() {
             </div>
           ) : (
             // ── CASE STUDY: featured + grid ──
-            <>
-              {categoryItems[0] && (
-                <div style={{ marginBottom: 28 }}>
-                  <CaseStudyTile item={categoryItems[0]} featured />
-                </div>
-              )}
+            <div style={{ display: "flex", flexDirection: "column", gap: 48 }}>
+              {categoryItems[0] && <CaseStudyTile item={categoryItems[0]} featured />}
               {categoryItems.length > 1 && (
                 <div
                   style={{
                     display: "grid",
                     gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                    gap: 22,
+                    gap: 36,
                   }}
                 >
                   {categoryItems.slice(1).map((item) => <CaseStudyTile key={item.id} item={item} />)}
                 </div>
               )}
-            </>
+            </div>
           )}
         </div>
         <style>{`
@@ -748,10 +744,11 @@ export default function Portfolio() {
           }
           @media (max-width: 768px) {
             .video-row { grid-template-columns: 1fr !important; }
+            .pf-hero { padding: 88px 24px 60px !important; }
+            .services-wrap { padding: 56px 24px 72px !important; }
           }
           @media (max-width: 640px) {
             .reel-grid { grid-template-columns: 1fr !important; }
-            .services-wrap { padding-left: 20px !important; padding-right: 20px !important; }
           }
         `}</style>
       </div>
@@ -764,9 +761,9 @@ export default function Portfolio() {
   return (
     <div style={{ minHeight: "100vh", background: "#F8F8F6" }}>
       {/* Hero */}
-      <div style={{ background: "#1E293B", padding: "128px 24px 88px", position: "relative", overflow: "hidden" }}>
+      <div className="pf-hero" style={{ background: "#1E293B", padding: "112px 32px 80px", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #C2A878, #D4BB90)" }} />
-        <div style={{ maxWidth: 1180, margin: "0 auto", position: "relative" }}>
+        <div style={{ maxWidth: 1240, margin: "0 auto", position: "relative" }}>
           <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(194,168,120,0.9)", marginBottom: 22 }}>
             Portfolio
           </p>
@@ -780,7 +777,7 @@ export default function Portfolio() {
       </div>
 
       {/* Service grid */}
-      <div style={{ maxWidth: 1240, margin: "0 auto", padding: "72px 32px 112px" }} className="services-wrap">
+      <div style={{ maxWidth: 1240, margin: "0 auto", padding: "72px 32px 96px" }} className="services-wrap">
         {loading ? (
           <div style={{ display: "flex", justifyContent: "center", padding: "80px 0" }}>
             <div style={{ width: 36, height: 36, borderRadius: "50%", border: "3px solid #E5E5E0", borderTopColor: "#1E293B" }} className="animate-spin" />
@@ -815,6 +812,10 @@ export default function Portfolio() {
         @media (max-width: 1100px) {
           .service-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .reel-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        @media (max-width: 768px) {
+          .pf-hero { padding: 88px 24px 60px !important; }
+          .services-wrap { padding: 56px 24px 72px !important; }
         }
         @media (max-width: 640px) {
           .service-grid { grid-template-columns: 1fr !important; gap: 18px !important; }
