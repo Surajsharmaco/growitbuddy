@@ -219,7 +219,9 @@ export default function AdminSEO() {
         title="SEO Control"
         description={
           <>Manage indexing, meta, social previews, and structured data for every public page.{" "}
-            <a href="https://growitbuddy.com/api/sitemap.xml" target="_blank" rel="noopener noreferrer" className="underline">View live sitemap</a>
+            <a href="/seo-guide" target="_blank" rel="noopener noreferrer" className="underline">Read the team guide</a>
+            {" · "}
+            <a href="https://growitbuddy-api.onrender.com/api/sitemap.xml" target="_blank" rel="noopener noreferrer" className="underline">View live sitemap</a>
           </>
         }
       />
