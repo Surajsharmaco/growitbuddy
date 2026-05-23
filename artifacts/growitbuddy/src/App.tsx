@@ -28,6 +28,7 @@ const JoinNetwork          = lazy(() => import("@/pages/JoinNetwork"));
 const PageOwnerApply       = lazy(() => import("@/pages/PageOwnerApply"));
 const AuthorityAudit       = lazy(() => import("@/pages/AuthorityAudit"));
 const Portfolio            = lazy(() => import("@/pages/Portfolio"));
+const CaseStudy            = lazy(() => import("@/pages/CaseStudy"));
 const Resources            = lazy(() => import("@/pages/Resources"));
 const About                = lazy(() => import("@/pages/About"));
 const Contact              = lazy(() => import("@/pages/Contact"));
@@ -249,6 +250,7 @@ function App() {
                       <Route path="/internship">{() => <Redirect to="/career?type=internship" />}</Route>
                       <Route path="/authority-audit">{() => <PageGate slug="authority-audit"><AuthorityAudit /></PageGate>}</Route>
                       <Route path="/portfolio" component={Portfolio} />
+                      <Route path="/portfolio/:category/case/:id" component={CaseStudy} />
                       <Route path="/portfolio/:category" component={Portfolio} />
                       {/* Back-compat for old links */}
                       <Route path="/portfolio-private">{() => <Redirect to="/portfolio" />}</Route>
