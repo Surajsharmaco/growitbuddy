@@ -1,28 +1,39 @@
-import { useEffect, useState } from "react";
-import { useParams, useLocation } from "wouter";
+import { useEffect, useState, useCallback } from "react";
+import { useParams } from "wouter";
 import { motion } from "framer-motion";
 import { ShieldCheck, ShieldX, AlertCircle, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 import SEOMeta from "@/components/SEOMeta";
 import { API_BASE } from "@/lib/api";
+import { useAdmin } from "@/context/AdminContext";
+import AdminInlineControls from "@/components/AdminInlineControls";
 
 interface CertResult {
+  id?: number;
   certificateId: string;
   name: string;
   role: string;
   issueDate: string;
   status: "verified" | "revoked";
+  isHidden?: boolean;
 }
 
 export default function VerifyCertificate() {
   const params = useParams<{ id: string }>();
   const id = params.id || "";
+  const { isAuthenticated, authFetch } = useAdmin();
   const [result, setResult] = useState<CertResult | null | "not_found" | "error">(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!id) { setResult("not_found"); setLoading(false); return; }
-    fetch(`${API_BASE}/admin/public/certificate/${encodeURIComponent(id.toUpperCase())}`)
+    const upper = encodeURIComponent(id.toUpperCase());
+    // Admin uses authenticated lookup so hidden/revoked certs are still visible for editing.
+    const url = isAuthenticated
+      ? `${API_BASE}/admin/certificates/by-id/${upper}`
+      : `${API_BASE}/admin/public/certificate/${upper}`;
+    const doFetch = isAuthenticated ? authFetch(url) : fetch(url);
+    doFetch
       .then(async (res) => {
         if (res.status === 404) return setResult("not_found");
         if (!res.ok) return setResult("error");
@@ -30,7 +41,42 @@ export default function VerifyCertificate() {
       })
       .catch(() => setResult("error"))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, isAuthenticated, authFetch]);
+
+  const cert0 = result && result !== "not_found" && result !== "error" ? result : null;
+
+  const toggleHidden = useCallback(async () => {
+    if (!cert0?.id) return;
+    const next = !cert0.isHidden;
+    const prev = cert0;
+    setResult({ ...cert0, isHidden: next });
+    try {
+      const r = await authFetch(`${API_BASE}/admin/certificates/${cert0.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isHidden: next }),
+      });
+      if (!r.ok) throw new Error(`Update failed (${r.status})`);
+    } catch (e) {
+      setResult(prev);
+      alert(`Could not ${next ? "hide" : "restore"} certificate. ${e instanceof Error ? e.message : ""}`);
+    }
+  }, [cert0, authFetch]);
+
+  const deleteCert = useCallback(async () => {
+    if (!cert0?.id) return;
+    try {
+      const r = await authFetch(`${API_BASE}/admin/certificates/${cert0.id}`, { method: "DELETE" });
+      if (!r.ok) throw new Error(`Delete failed (${r.status})`);
+      setResult("not_found");
+    } catch (e) {
+      alert(`Could not delete certificate. ${e instanceof Error ? e.message : ""}`);
+    }
+  }, [cert0, authFetch]);
+
+  const editCert = useCallback(() => {
+    window.location.href = "/admin/certificates";
+  }, []);
 
   const isVerified = result && result !== "not_found" && result !== "error" && result.status === "verified";
   const isRevoked = result && result !== "not_found" && result !== "error" && result.status === "revoked";
@@ -93,6 +139,14 @@ export default function VerifyCertificate() {
           )}
 
           {!loading && cert && (
+            <AdminInlineControls
+              itemLabel="certificate"
+              isHidden={!!cert.isHidden}
+              onEdit={editCert}
+              onToggleHidden={toggleHidden}
+              onDelete={deleteCert}
+              wrapperStyle={{ borderRadius: 20 }}
+            >
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -228,6 +282,7 @@ export default function VerifyCertificate() {
                 </div>
               </div>
             </motion.div>
+            </AdminInlineControls>
           )}
 
           {!loading && result === "not_found" && (
