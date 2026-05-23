@@ -194,45 +194,46 @@ export function Navbar() {
                           }}
                         >
                           {link.dropdown.map((item) => (
-                            <a
-                              key={item.href}
-                              href={item.href}
-                              style={{
-                                display: "block",
-                                padding: item.subtitle ? "10px 14px 10px 14px" : "10px 14px",
-                                borderRadius: 9,
-                                textDecoration: "none",
-                                background: "transparent",
-                                fontFamily: "'Inter', sans-serif",
-                                cursor: "pointer",
-                                transition: "background 0.12s",
-                              }}
-                              onMouseEnter={e => (e.currentTarget.style.background = "rgba(30,41,59,0.04)")}
-                              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-                            >
-                              {item.subtitle && (
+                            <Link key={item.href} href={item.href}>
+                              <span
+                                onClick={() => setOpenDropdown(null)}
+                                onMouseEnter={e => (e.currentTarget.style.background = "rgba(30,41,59,0.04)")}
+                                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                                style={{
+                                  display: "block",
+                                  padding: item.subtitle ? "10px 14px 10px 14px" : "10px 14px",
+                                  borderRadius: 9,
+                                  textDecoration: "none",
+                                  background: "transparent",
+                                  fontFamily: "'Inter', sans-serif",
+                                  cursor: "pointer",
+                                  transition: "background 0.12s",
+                                }}
+                              >
+                                {item.subtitle && (
+                                  <span style={{
+                                    display: "block",
+                                    fontSize: 10,
+                                    fontWeight: 700,
+                                    letterSpacing: "0.08em",
+                                    color: "#C2A878",
+                                    marginBottom: 3,
+                                    textTransform: "uppercase",
+                                  }}>
+                                    {item.subtitle}
+                                  </span>
+                                )}
                                 <span style={{
                                   display: "block",
-                                  fontSize: 10,
-                                  fontWeight: 700,
-                                  letterSpacing: "0.08em",
-                                  color: "#C2A878",
-                                  marginBottom: 3,
-                                  textTransform: "uppercase",
+                                  fontSize: 14,
+                                  fontWeight: 600,
+                                  color: "#1E293B",
+                                  whiteSpace: "nowrap",
                                 }}>
-                                  {item.subtitle}
+                                  {item.label}
                                 </span>
-                              )}
-                              <span style={{
-                                display: "block",
-                                fontSize: 14,
-                                fontWeight: 600,
-                                color: "#1E293B",
-                                whiteSpace: "nowrap",
-                              }}>
-                                {item.label}
                               </span>
-                            </a>
+                            </Link>
                           ))}
                         </m.div>
                       )}

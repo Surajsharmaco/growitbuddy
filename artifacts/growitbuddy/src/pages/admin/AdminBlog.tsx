@@ -425,7 +425,7 @@ function yoastChecks(post: BlogPost, content: string, seo: PostSeo, allPosts: Bl
         pass: hasImages, warn: false,
         fix: hasImages ? undefined : {
           tip: `Posts with images get far more readers and stay higher in search results. Use the image button (the mountain icon in the toolbar above the editor) to upload a photo. Even one image makes a big difference.`,
-          copy: `<img src="/uploads/your-image.jpg" alt="${kwSuggested} guide" width="800" height="450" />`,
+          copy: `<img src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=450&fit=crop" alt="${kwSuggested} guide" width="800" height="450" />`,
         },
       },
       {
@@ -463,7 +463,7 @@ function yoastChecks(post: BlogPost, content: string, seo: PostSeo, allPosts: Bl
         pass: hasInternal, warn: false,
         fix: hasInternal ? undefined : {
           tip: `Linking to your other blog posts keeps readers on your site longer and helps Google discover all your content. Select some text in your post, then use the link button in the toolbar to add a link to another one of your posts.`,
-          copy: `<a href="/blog/related-post-slug">Learn more about this topic</a>`,
+          copy: `<a href="/insights/your-post-slug">Learn more about this topic</a>`,
         },
       },
       {

@@ -1,3 +1,4 @@
+import { Link } from "wouter";
 import { usePublicContent } from "@/hooks/usePublicContent";
 
 interface FooterLink { label: string; path: string; }
@@ -95,7 +96,8 @@ export function Footer() {
           }}
         >
           <div className="footer-brand" style={{ gridColumn: "span 2" }}>
-            <a href="/" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, textDecoration: "none", cursor: "pointer" }}>
+            <Link href="/">
+              <span style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, textDecoration: "none", cursor: "pointer" }}>
                 <span
                   style={{
                     width: 36, height: 36,
@@ -125,7 +127,8 @@ export function Footer() {
                 >
                   GrowitBuddy
                 </span>
-            </a>
+              </span>
+            </Link>
             <p
               style={{
                 fontFamily: "'Inter', sans-serif",
@@ -193,23 +196,31 @@ export function Footer() {
                 {col.title}
               </h4>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {col.links.map((l, li) => (
-                  <a
-                    key={li}
-                    href={l.path}
-                    style={{
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: 14,
-                      color: "rgba(255,255,255,0.55)",
-                      display: "block",
-                      textDecoration: "none",
-                      transition: "color 0.15s",
-                    }}
-                    className="hover:!text-white"
-                  >
-                    {l.label}
-                  </a>
-                ))}
+                {col.links.map((l, li) => {
+                  const isExternal = /^https?:\/\//i.test(l.path) || l.path.startsWith("mailto:") || l.path.startsWith("tel:");
+                  const linkStyle = {
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 14,
+                    color: "rgba(255,255,255,0.55)",
+                    display: "block",
+                    textDecoration: "none",
+                    transition: "color 0.15s",
+                  } as const;
+                  if (isExternal) {
+                    return (
+                      <a key={li} href={l.path} style={linkStyle} className="hover:!text-white" target="_blank" rel="noopener noreferrer">
+                        {l.label}
+                      </a>
+                    );
+                  }
+                  return (
+                    <Link key={li} href={l.path}>
+                      <span style={{ ...linkStyle, cursor: "pointer" }} className="hover:!text-white">
+                        {l.label}
+                      </span>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -236,15 +247,21 @@ export function Footer() {
             &copy; {data.legalText}
           </p>
           <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
-            <a href="/verify" style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "none", transition: "color 0.15s" }} className="hover:!text-white/60">
-              Verify Certificate
-            </a>
-            <a href="/privacy" style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "none", transition: "color 0.15s" }} className="hover:!text-white/60">
-              Privacy
-            </a>
-            <a href="/terms" style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "none", transition: "color 0.15s" }} className="hover:!text-white/60">
-              Terms
-            </a>
+            <Link href="/verify">
+              <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "none", transition: "color 0.15s", cursor: "pointer" }} className="hover:!text-white/60">
+                Verify Certificate
+              </span>
+            </Link>
+            <Link href="/privacy">
+              <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "none", transition: "color 0.15s", cursor: "pointer" }} className="hover:!text-white/60">
+                Privacy
+              </span>
+            </Link>
+            <Link href="/terms">
+              <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "none", transition: "color 0.15s", cursor: "pointer" }} className="hover:!text-white/60">
+                Terms
+              </span>
+            </Link>
           </div>
         </div>
       </div>
