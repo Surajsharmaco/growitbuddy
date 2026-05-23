@@ -321,61 +321,66 @@ function ReelTile({ item }: { item: PortfolioItem }) {
   );
 }
 
-// ── Case Study Tile — no play button, hero image + title + description ──
+// Stable picsum dummy image per case-study item
+function caseHeroImage(item: PortfolioItem, w: number, h: number) {
+  return `https://picsum.photos/seed/cs-${item.id}/${w}/${h}`;
+}
+
+// ── Case Study Tile — image only, title separated below as highlighted heading ──
 function CaseStudyTile({ item, featured = false }: { item: PortfolioItem; featured?: boolean }) {
-  const thumb = featured ? getHiResThumbnail(item.youtubeUrl) : getThumbnail(item.youtubeUrl);
+  const [, setLocation] = useLocation();
+  const meta = CATEGORY_META[item.category];
+  const href = meta ? `/portfolio/${meta.slug}/case/${item.id}` : "#";
+  const dim = featured ? { w: 1400, h: 800 } : { w: 800, h: 600 };
+  const img = caseHeroImage(item, dim.w, dim.h);
+
+  const go = (e: React.MouseEvent) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
+    e.preventDefault();
+    setLocation(href);
+    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+  };
 
   return (
-    <motion.a
-      href={item.youtubeUrl}
-      target="_blank"
-      rel="noopener noreferrer"
+    <motion.div
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      style={{
-        background: "#fff",
-        border: "1.5px solid #E5E5E0",
-        borderRadius: 18,
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-        transition: "transform 0.25s, box-shadow 0.25s, border-color 0.25s",
-        textDecoration: "none",
-        color: "inherit",
-      }}
-      className="group hover:-translate-y-1 hover:shadow-2xl hover:border-[#C2A878]"
+      style={{ display: "flex", flexDirection: "column", gap: 18 }}
+      className="group"
     >
-      <div
+      {/* Image-only card */}
+      <a
+        href={href}
+        onClick={go}
         style={{
           position: "relative",
+          display: "block",
           aspectRatio: featured ? "16/9" : "4/3",
-          background: BRAND_ACCENT,
+          borderRadius: 18,
           overflow: "hidden",
+          background: BRAND_ACCENT,
+          border: "1.5px solid #E5E5E0",
+          transition: "transform 0.3s, box-shadow 0.3s, border-color 0.3s",
+          textDecoration: "none",
         }}
+        className="hover:-translate-y-1 hover:shadow-2xl hover:border-[#C2A878]"
       >
-        {thumb && (
-          <img
-            src={thumb}
-            alt={item.title}
-            style={{
-              position: "absolute", inset: 0, width: "100%", height: "100%",
-              objectFit: "cover",
-              transition: "transform 0.6s",
-            }}
-            loading="lazy"
-            className="group-hover:scale-105"
-            onError={(e) => {
-              const el = e.currentTarget as HTMLImageElement;
-              const fallback = getThumbnail(item.youtubeUrl);
-              if (el.src !== fallback) el.src = fallback;
-            }}
-          />
-        )}
+        <img
+          src={img}
+          alt={item.title}
+          loading="lazy"
+          style={{
+            position: "absolute", inset: 0, width: "100%", height: "100%",
+            objectFit: "cover",
+            transition: "transform 0.6s",
+          }}
+          className="group-hover:scale-105"
+        />
         <div
           style={{
             position: "absolute", inset: 0,
-            background: "linear-gradient(180deg, rgba(15,23,42,0) 50%, rgba(15,23,42,0.6) 100%)",
+            background: "linear-gradient(180deg, rgba(15,23,42,0) 55%, rgba(15,23,42,0.5) 100%)",
           }}
         />
         <div
@@ -388,48 +393,51 @@ function CaseStudyTile({ item, featured = false }: { item: PortfolioItem; featur
         >
           Case Study
         </div>
-      </div>
-
-      <div style={{ padding: featured ? "28px 28px 30px" : "22px", flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
-        <span
+        <div
           style={{
-            fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase",
-            color: "#8A8A8A",
+            position: "absolute", bottom: 14, right: 14,
+            width: 42, height: 42, borderRadius: "50%",
+            background: "rgba(255,255,255,0.95)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
+            transition: "transform 0.25s, background 0.25s",
+          }}
+          className="group-hover:scale-110 group-hover:!bg-[#C2A878]"
+        >
+          <ArrowUpRight size={18} style={{ color: "#0A0A0A" }} />
+        </div>
+      </a>
+
+      {/* Separated, highlighted title below the card */}
+      <a
+        href={href}
+        onClick={go}
+        style={{ textDecoration: "none", display: "block" }}
+      >
+        <p
+          style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase",
+            color: "#C2A878", margin: 0, marginBottom: 8,
           }}
         >
           {item.category}
-        </span>
+        </p>
         <h3
           style={{
             fontWeight: 800,
-            fontSize: featured ? 26 : 18,
-            letterSpacing: "-0.025em",
+            fontSize: featured ? "clamp(26px, 3vw, 34px)" : "clamp(18px, 2vw, 22px)",
+            letterSpacing: "-0.03em",
             color: "#0A0A0A",
-            lineHeight: 1.25,
+            lineHeight: 1.2,
             margin: 0,
+            transition: "color 0.2s",
           }}
+          className="group-hover:!text-[#1E293B]"
         >
           {item.title}
         </h3>
-        {item.description && (
-          <p style={{ fontSize: featured ? 15 : 13.5, color: "#5F5F5F", lineHeight: 1.6, margin: 0 }}>
-            {item.description}
-          </p>
-        )}
-        <div
-          style={{
-            marginTop: 6,
-            display: "inline-flex", alignItems: "center", gap: 6,
-            fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
-            color: "#1E293B",
-            transition: "color 0.2s",
-          }}
-          className="group-hover:text-[#C2A878]"
-        >
-          View case study <ArrowUpRight size={14} />
-        </div>
-      </div>
-    </motion.a>
+      </a>
+    </motion.div>
   );
 }
 
