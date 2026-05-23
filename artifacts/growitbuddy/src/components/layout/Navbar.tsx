@@ -365,16 +365,16 @@ export function Navbar() {
               position: "fixed",
               inset: 0,
               zIndex: 55,
-              background: "#0A0A0A",
-              color: "#FFFFFF",
+              background: "#F8F8F6",
+              color: "#0A0A0A",
               overflowY: "auto",
               fontFamily: "'Inter', sans-serif",
             }}
           >
-            {/* Subtle radial glow + grain for depth */}
+            {/* Soft brand-aligned glow — same cream/gold palette as the rest of the site */}
             <div aria-hidden style={{
               position: "absolute", inset: 0, pointerEvents: "none",
-              background: "radial-gradient(ellipse 80% 60% at 20% 0%, rgba(194,168,120,0.10), transparent 60%), radial-gradient(ellipse 60% 60% at 100% 100%, rgba(30,41,59,0.6), transparent 70%)",
+              background: "radial-gradient(ellipse 70% 50% at 10% 0%, rgba(194,168,120,0.10), transparent 60%), radial-gradient(ellipse 60% 60% at 100% 100%, rgba(30,41,59,0.06), transparent 70%)",
             }} />
 
             {/* Top bar — logo + close, matches navbar height */}
@@ -399,7 +399,7 @@ export function Navbar() {
                     alt="GrowitBuddy"
                     style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover" }}
                   />
-                  <span style={{ fontSize: 18, fontWeight: 800, color: "#FFFFFF", letterSpacing: "-0.03em" }}>
+                  <span style={{ fontSize: 18, fontWeight: 800, color: "#0A0A0A", letterSpacing: "-0.03em" }}>
                     {navbar.logo}
                   </span>
                 </span>
@@ -409,19 +409,19 @@ export function Navbar() {
                 aria-label="Close menu"
                 style={{
                   width: 42, height: 42, borderRadius: 12,
-                  background: "rgba(255,255,255,0.06)",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  color: "#FFFFFF",
+                  background: "rgba(10,10,10,0.04)",
+                  border: "1px solid rgba(10,10,10,0.1)",
+                  color: "#0A0A0A",
                   cursor: "pointer",
                   display: "inline-flex", alignItems: "center", justifyContent: "center",
                   transition: "background 0.15s, border-color 0.15s",
                 }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.12)"; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(10,10,10,0.08)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(10,10,10,0.04)"; }}
               >
                 <span style={{ position: "relative", width: 16, height: 16, display: "inline-block" }} aria-hidden>
-                  <span style={{ position: "absolute", left: 0, right: 0, top: 7, height: 2, borderRadius: 2, background: "#FFF", transform: "rotate(45deg)" }} />
-                  <span style={{ position: "absolute", left: 0, right: 0, top: 7, height: 2, borderRadius: 2, background: "#FFF", transform: "rotate(-45deg)" }} />
+                  <span style={{ position: "absolute", left: 0, right: 0, top: 7, height: 2, borderRadius: 2, background: "#0A0A0A", transform: "rotate(45deg)" }} />
+                  <span style={{ position: "absolute", left: 0, right: 0, top: 7, height: 2, borderRadius: 2, background: "#0A0A0A", transform: "rotate(-45deg)" }} />
                 </span>
               </button>
             </div>
@@ -466,32 +466,34 @@ export function Navbar() {
                                 alignItems: "center",
                                 justifyContent: "space-between",
                                 padding: "clamp(8px, 1.4vw, 14px) 0",
-                                fontSize: "clamp(32px, 6.5vw, 64px)",
+                                fontSize: "clamp(30px, 5.6vw, 56px)",
                                 fontWeight: 800,
                                 letterSpacing: "-0.04em",
                                 lineHeight: 1.05,
-                                color: active ? "#FFFFFF" : "rgba(255,255,255,0.55)",
+                                color: active ? "#0A0A0A" : "#8A8A8A",
                                 cursor: "pointer",
                                 transition: "color 0.18s",
                                 position: "relative",
+                                borderBottom: "1px solid rgba(10,10,10,0.06)",
                               }}
                             >
                               <span style={{ display: "inline-flex", alignItems: "baseline", gap: 14 }}>
                                 <span style={{
-                                  fontSize: "clamp(11px, 1.2vw, 13px)",
+                                  fontSize: "clamp(11px, 1.1vw, 12px)",
                                   fontWeight: 700,
                                   letterSpacing: "0.18em",
-                                  color: "rgba(194,168,120,0.65)",
+                                  color: "var(--gb-accent)",
                                   fontFamily: "'Inter', sans-serif",
                                   width: 28,
                                   display: "inline-block",
-                                  transform: "translateY(-2px)",
+                                  transform: "translateY(-4px)",
+                                  opacity: 0.7,
                                 }}>
                                   {String(i + 1).padStart(2, "0")}
                                 </span>
                                 {it.label}
                               </span>
-                              <ArrowUpRight className="gb-menu-arrow" style={{ width: 28, height: 28, opacity: 0, transform: "translateX(-12px)", transition: "opacity 0.2s, transform 0.25s", color: "#C2A878" }} />
+                              <ArrowUpRight className="gb-menu-arrow" style={{ width: 26, height: 26, opacity: 0, transform: "translateX(-12px)", transition: "opacity 0.2s, transform 0.25s", color: "var(--gb-accent)" }} />
                             </span>
                           </Link>
                         </m.div>
@@ -508,8 +510,8 @@ export function Navbar() {
                       >
                         <p style={{
                           fontSize: 11, fontWeight: 800, letterSpacing: "0.22em",
-                          textTransform: "uppercase", color: "rgba(194,168,120,0.7)",
-                          margin: 0, marginBottom: 8, paddingLeft: 42,
+                          textTransform: "uppercase", color: "var(--gb-accent)",
+                          margin: 0, marginBottom: 8, paddingLeft: 42, opacity: 0.7,
                         }}>{it.label}</p>
                         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                           {it.items.map((sub) => {
@@ -524,17 +526,17 @@ export function Navbar() {
                                     alignItems: "center",
                                     justifyContent: "space-between",
                                     padding: "clamp(6px, 1vw, 10px) 0 clamp(6px, 1vw, 10px) 42px",
-                                    fontSize: "clamp(22px, 4.5vw, 38px)",
+                                    fontSize: "clamp(20px, 3.6vw, 32px)",
                                     fontWeight: 700,
                                     letterSpacing: "-0.03em",
                                     lineHeight: 1.1,
-                                    color: active ? "#FFFFFF" : "rgba(255,255,255,0.5)",
+                                    color: active ? "#0A0A0A" : "#8A8A8A",
                                     cursor: "pointer",
                                     transition: "color 0.18s",
                                   }}
                                 >
                                   {sub.label}
-                                  <ArrowUpRight className="gb-menu-arrow" style={{ width: 22, height: 22, opacity: 0, transform: "translateX(-12px)", transition: "opacity 0.2s, transform 0.25s", color: "#C2A878" }} />
+                                  <ArrowUpRight className="gb-menu-arrow" style={{ width: 20, height: 20, opacity: 0, transform: "translateX(-12px)", transition: "opacity 0.2s, transform 0.25s", color: "var(--gb-accent)" }} />
                                 </span>
                               </Link>
                             );
@@ -554,62 +556,53 @@ export function Navbar() {
                 style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 32 }}
                 className="gb-menu-side"
               >
-                <div>
-                  <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(194,168,120,0.7)", margin: 0, marginBottom: 16 }}>
+                <div style={{
+                  background: "#FFFFFF",
+                  border: "1px solid rgba(10,10,10,0.06)",
+                  borderRadius: 20,
+                  padding: "clamp(24px, 3vw, 36px)",
+                  boxShadow: "0 12px 40px rgba(10,10,10,0.04)",
+                }}>
+                  <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase", color: "var(--gb-accent)", margin: 0, marginBottom: 14, opacity: 0.85 }}>
                     Ready to grow?
                   </p>
-                  <p style={{ fontSize: "clamp(18px, 2vw, 22px)", fontWeight: 500, lineHeight: 1.5, color: "rgba(255,255,255,0.9)", margin: 0, marginBottom: 24, letterSpacing: "-0.01em" }}>
+                  <p style={{ fontSize: "clamp(18px, 1.8vw, 22px)", fontWeight: 500, lineHeight: 1.45, color: "#1E293B", margin: 0, marginBottom: 24, letterSpacing: "-0.015em" }}>
                     Let's turn your expertise into the kind of authority that compounds.
                   </p>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     <button
                       onClick={() => { setIsOpen(false); goContact("cal"); }}
+                      className="gb-btn"
                       style={{
                         width: "100%",
-                        padding: "16px 22px",
+                        padding: "14px 22px",
                         fontSize: 15,
-                        fontWeight: 700,
-                        fontFamily: "'Inter', sans-serif",
-                        color: "#0A0A0A",
-                        background: "linear-gradient(135deg, #C2A878 0%, #B8975F 100%)",
-                        border: "none",
-                        borderRadius: 100,
-                        cursor: "pointer",
-                        letterSpacing: "-0.01em",
-                        display: "inline-flex",
-                        alignItems: "center",
                         justifyContent: "center",
-                        gap: 8,
-                        boxShadow: "0 10px 28px rgba(194,168,120,0.28)",
-                        transition: "transform 0.18s, box-shadow 0.18s",
                       }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)"; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}
                     >
                       {navbar.ctaLabel}
-                      <ArrowUpRight className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => { setIsOpen(false); goContact("form"); }}
                       style={{
                         width: "100%",
-                        padding: "15px 22px",
+                        padding: "13px 22px",
                         fontSize: 15,
                         fontWeight: 600,
                         fontFamily: "'Inter', sans-serif",
-                        color: "#FFFFFF",
-                        background: "rgba(255,255,255,0.04)",
-                        border: "1px solid rgba(255,255,255,0.18)",
+                        color: "#5F5F5F",
+                        background: "transparent",
+                        border: "1px solid rgba(10,10,10,0.1)",
                         borderRadius: 100,
                         cursor: "pointer",
                         display: "inline-flex",
                         alignItems: "center",
                         justifyContent: "center",
                         gap: 8,
-                        transition: "background 0.15s, border-color 0.15s",
+                        transition: "color 0.15s, border-color 0.15s",
                       }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.1)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.3)"; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.18)"; }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--gb-authority)"; (e.currentTarget as HTMLElement).style.color = "var(--gb-authority)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(10,10,10,0.1)"; (e.currentTarget as HTMLElement).style.color = "#5F5F5F"; }}
                     >
                       Get In Touch
                       <ArrowUpRight className="w-3.5 h-3.5" />
@@ -617,14 +610,14 @@ export function Navbar() {
                   </div>
                 </div>
 
-                <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 24, display: "flex", flexDirection: "column", gap: 10 }}>
-                  <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", margin: 0 }}>
+                <div style={{ borderTop: "1px solid rgba(10,10,10,0.08)", paddingTop: 22, display: "flex", flexDirection: "column", gap: 8 }}>
+                  <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase", color: "#8A8A8A", margin: 0 }}>
                     Get in touch
                   </p>
-                  <a href="mailto:hello@growitbuddy.com" style={{ fontSize: 17, fontWeight: 600, color: "#FFFFFF", textDecoration: "none", letterSpacing: "-0.01em" }}>
+                  <a href="mailto:hello@growitbuddy.com" style={{ fontSize: 16, fontWeight: 600, color: "#0A0A0A", textDecoration: "none", letterSpacing: "-0.01em" }}>
                     hello@growitbuddy.com
                   </a>
-                  <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: 0 }}>
+                  <p style={{ fontSize: 12, color: "#8A8A8A", margin: 0, marginTop: 4 }}>
                     © {new Date().getFullYear()} GrowitBuddy
                   </p>
                 </div>
@@ -633,7 +626,7 @@ export function Navbar() {
 
             {/* Hover-state CSS for big menu links */}
             <style>{`
-              .gb-menu-link:hover { color: #FFFFFF !important; }
+              .gb-menu-link:hover { color: #0A0A0A !important; }
               .gb-menu-link:hover .gb-menu-arrow { opacity: 1 !important; transform: translateX(0) !important; }
               @media (min-width: 900px) {
                 .gb-menu-grid { grid-template-columns: 1.6fr 1fr !important; }
