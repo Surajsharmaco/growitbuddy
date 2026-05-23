@@ -129,16 +129,18 @@ function EditProvider({ itemId, children }: { itemId: number; children: ReactNod
   const value = useMemo<EditCtx>(
     () => ({
       isAdmin: isAuthenticated,
-      isHidden: (k) => data.hidden.includes(k),
+      // Overrides are admin-only previews. Non-admin visitors always see the original,
+      // even if localStorage has data from a previous admin session in the same browser.
+      isHidden: (k) => (isAuthenticated ? data.hidden.includes(k) : false),
       hide: (k) => persist({ ...data, hidden: Array.from(new Set([...data.hidden, k])) }),
       restore: (k) => persist({ ...data, hidden: data.hidden.filter((x) => x !== k) }),
-      getText: (k, fallback) => data.text[k] ?? fallback,
+      getText: (k, fallback) => (isAuthenticated ? (data.text[k] ?? fallback) : fallback),
       setText: (k, v) => {
         const trimmed = v.replace(/\s+$/g, "");
         const next = { ...data, text: { ...data.text, [k]: trimmed } };
         persist(next);
       },
-      hiddenList: data.hidden,
+      hiddenList: isAuthenticated ? data.hidden : [],
       resetAll: () => persist({ hidden: [], text: {} }),
     }),
     [data, isAuthenticated, persist],
