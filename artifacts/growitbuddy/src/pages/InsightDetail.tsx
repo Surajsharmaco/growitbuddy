@@ -400,9 +400,6 @@ export default function InsightDetail() {
             <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, color: "#7A7A85", fontWeight: 500 }}>
               <Calendar className="w-3 h-3" /> {post.date}
             </span>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, color: "#7A7A85", fontWeight: 500 }}>
-              · {post.readTime ?? "5 min read"}
-            </span>
           </div>
 
           {/* Author byline */}
