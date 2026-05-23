@@ -6,17 +6,33 @@ import { useRoute, Link } from "wouter";
 import { API_BASE } from "@/lib/api";
 
 const CATEGORIES = [
+  "Personal Branding",
+  "Content Creation",
   "Video Editing",
   "Reels / Shorts",
   "Graphics",
   "Social Media Management",
+  "Distribution & Growth",
+  "Web & Funnel Systems",
+  "AI Automation",
+  "Digital Products & Growth",
 ] as const;
 
 const CATEGORY_META: Record<string, { slug: string; tagline: string; accent: string }> = {
+  "Personal Branding": {
+    slug: "personal-branding",
+    tagline: "Positioning and authority systems for founders, creators, and operators.",
+    accent: "linear-gradient(135deg, #1E293B 0%, #0F172A 100%)",
+  },
+  "Content Creation": {
+    slug: "content-creation",
+    tagline: "High-signal content production engineered for trust and consistency at scale.",
+    accent: "linear-gradient(135deg, #2D3F50 0%, #1A2733 100%)",
+  },
   "Video Editing": {
     slug: "video-editing",
     tagline: "Cinematic long-form edits crafted to convert attention into authority.",
-    accent: "linear-gradient(135deg, #1E293B 0%, #0F172A 100%)",
+    accent: "linear-gradient(135deg, #0F172A 0%, #020617 100%)",
   },
   "Reels / Shorts": {
     slug: "reels-shorts",
@@ -31,7 +47,27 @@ const CATEGORY_META: Record<string, { slug: string; tagline: string; accent: str
   "Social Media Management": {
     slug: "social-media-management",
     tagline: "End-to-end social systems that turn channels into engines.",
-    accent: "linear-gradient(135deg, #2D3F50 0%, #1A2733 100%)",
+    accent: "linear-gradient(135deg, #334155 0%, #1E293B 100%)",
+  },
+  "Distribution & Growth": {
+    slug: "distribution-growth",
+    tagline: "Amplification networks and performance systems that push content to the right audiences.",
+    accent: "linear-gradient(135deg, #6B2B4F 0%, #3D1830 100%)",
+  },
+  "Web & Funnel Systems": {
+    slug: "web-funnel-systems",
+    tagline: "Digital infrastructure — sites and funnels engineered to convert.",
+    accent: "linear-gradient(135deg, #1F4068 0%, #0F2540 100%)",
+  },
+  "AI Automation": {
+    slug: "ai-automation",
+    tagline: "AI-powered authority systems that compound output without scaling headcount.",
+    accent: "linear-gradient(135deg, #2A4A3B 0%, #142C22 100%)",
+  },
+  "Digital Products & Growth": {
+    slug: "digital-products-growth",
+    tagline: "Monetization systems — products, offers, and funnels built to grow.",
+    accent: "linear-gradient(135deg, #8A6A2E 0%, #50401C 100%)",
   },
 };
 
@@ -372,15 +408,15 @@ export default function Portfolio() {
     return (
       <div style={{ minHeight: "100vh", background: "#F8F8F6" }}>
         {/* Hero */}
-        <div style={{ background: meta.accent, padding: "56px 24px 64px", position: "relative", overflow: "hidden" }}>
+        <div style={{ background: meta.accent, padding: "120px 24px 72px", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #C2A878, #D4BB90)" }} />
-          <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative" }}>
+          <div style={{ maxWidth: 1180, margin: "0 auto", position: "relative" }}>
             <Link href="/portfolio-private">
               <a
                 style={{
                   display: "inline-flex", alignItems: "center", gap: 6,
                   color: "rgba(255,255,255,0.7)", fontSize: 13, fontWeight: 600,
-                  marginBottom: 28, textDecoration: "none",
+                  marginBottom: 36, textDecoration: "none",
                   transition: "color 0.2s",
                 }}
                 className="hover:!text-white"
@@ -388,13 +424,13 @@ export default function Portfolio() {
                 <ArrowLeft size={15} /> All services
               </a>
             </Link>
-            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(194,168,120,0.9)", marginBottom: 14 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(194,168,120,0.9)", marginBottom: 18 }}>
               Portfolio · Collection
             </p>
-            <h1 style={{ fontWeight: 800, fontSize: "clamp(36px, 7vw, 72px)", letterSpacing: "-0.04em", lineHeight: 1.04, color: "#fff", marginBottom: 18 }}>
+            <h1 style={{ fontWeight: 800, fontSize: "clamp(36px, 7vw, 72px)", letterSpacing: "-0.04em", lineHeight: 1.04, color: "#fff", marginBottom: 22 }}>
               {activeCategory}
             </h1>
-            <p style={{ fontSize: 16, color: "rgba(255,255,255,0.7)", lineHeight: 1.6, maxWidth: "52ch", marginBottom: 22 }}>
+            <p style={{ fontSize: 16, color: "rgba(255,255,255,0.72)", lineHeight: 1.65, maxWidth: "54ch", marginBottom: 26 }}>
               {meta.tagline}
             </p>
             <span
@@ -412,7 +448,7 @@ export default function Portfolio() {
         </div>
 
         {/* Collage */}
-        <div style={{ maxWidth: 1180, margin: "0 auto", padding: "56px 24px 96px" }}>
+        <div style={{ maxWidth: 1240, margin: "0 auto", padding: "64px 32px 112px" }} className="services-wrap">
           {loading ? (
             <div style={{ display: "flex", justifyContent: "center", padding: "80px 0" }}>
               <div style={{ width: 36, height: 36, borderRadius: "50%", border: "3px solid #E5E5E0", borderTopColor: "#1E293B" }} className="animate-spin" />
@@ -456,23 +492,23 @@ export default function Portfolio() {
   return (
     <div style={{ minHeight: "100vh", background: "#F8F8F6" }}>
       {/* Hero */}
-      <div style={{ background: "#1E293B", padding: "70px 24px 60px", position: "relative", overflow: "hidden" }}>
+      <div style={{ background: "#1E293B", padding: "128px 24px 88px", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #C2A878, #D4BB90)" }} />
-        <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative" }}>
-          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(194,168,120,0.9)", marginBottom: 18 }}>
+        <div style={{ maxWidth: 1180, margin: "0 auto", position: "relative" }}>
+          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(194,168,120,0.9)", marginBottom: 22 }}>
             Private Portfolio
           </p>
-          <h1 style={{ fontWeight: 800, fontSize: "clamp(40px, 7vw, 78px)", letterSpacing: "-0.04em", lineHeight: 1.03, color: "#F8F8F6", marginBottom: 20 }}>
+          <h1 style={{ fontWeight: 800, fontSize: "clamp(40px, 7vw, 78px)", letterSpacing: "-0.04em", lineHeight: 1.03, color: "#F8F8F6", marginBottom: 24 }}>
             Our Work, by service.
           </h1>
-          <p style={{ fontSize: 17, color: "rgba(248,248,246,0.62)", lineHeight: 1.65, maxWidth: "52ch" }}>
+          <p style={{ fontSize: 17, color: "rgba(248,248,246,0.65)", lineHeight: 1.7, maxWidth: "54ch" }}>
             A curated look at what we build — pick a service to explore the full collection.
           </p>
         </div>
       </div>
 
       {/* Service grid */}
-      <div style={{ maxWidth: 1180, margin: "0 auto", padding: "56px 24px 96px" }}>
+      <div style={{ maxWidth: 1240, margin: "0 auto", padding: "72px 32px 112px" }} className="services-wrap">
         {loading ? (
           <div style={{ display: "flex", justifyContent: "center", padding: "80px 0" }}>
             <div style={{ width: 36, height: 36, borderRadius: "50%", border: "3px solid #E5E5E0", borderTopColor: "#1E293B" }} className="animate-spin" />
@@ -482,8 +518,8 @@ export default function Portfolio() {
             className="service-grid"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
-              gap: 24,
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: 26,
             }}
           >
             {CATEGORIES.map((cat, i) => {
@@ -504,8 +540,12 @@ export default function Portfolio() {
       </div>
 
       <style>{`
-        @media (max-width: 760px) {
-          .service-grid { grid-template-columns: 1fr !important; }
+        @media (max-width: 1100px) {
+          .service-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        @media (max-width: 640px) {
+          .service-grid { grid-template-columns: 1fr !important; gap: 18px !important; }
+          .services-wrap { padding-left: 20px !important; padding-right: 20px !important; }
         }
         .service-card a, .service-card { text-decoration: none; }
       `}</style>
