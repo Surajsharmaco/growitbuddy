@@ -28,6 +28,10 @@ A premium content authority & marketing website with full admin panel, blog, inf
 - **`artifacts/api-server`** — Express API server, served at `/api`
 - **`artifacts/mockup-sandbox`** — Design prototyping sandbox, served at `/__mockup`
 
+## User preferences
+
+- **Always keep `/guide` in sync with the codebase.** The owner-facing site guide lives at `artifacts/growitbuddy/src/pages/SiteGuide.tsx` (route `/guide`). Whenever a change is made that affects: a public page, an admin page, a form, the CRM/Leads system, SEO controls, the email/notification flow, the talent-pool system, the media library, the tech stack, or any FAQ-worthy behavior — update the corresponding section in `SiteGuide.tsx` in the same commit. Do not wait for the user to ask. The guide is the user's single source of truth; if it drifts from reality, the guide is broken.
+
 ## API Routes
 
 - `GET  /api/healthz` — health check
