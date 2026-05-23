@@ -15,8 +15,10 @@ export interface SEOMetaProps {
   schema?:   Record<string, unknown> | Record<string, unknown>[];
 }
 
+/** Skip writing if the existing tag was set by DynamicPageSEO (admin override). */
 function setMeta(selector: string, keyAttr: string, keyVal: string, content: string) {
   let el = document.querySelector(selector) as HTMLMetaElement | null;
+  if (el && el.getAttribute("data-gb-admin") === "1") return; // admin owns this tag
   if (!el) {
     el = document.createElement("meta");
     el.setAttribute(keyAttr, keyVal);
@@ -27,6 +29,7 @@ function setMeta(selector: string, keyAttr: string, keyVal: string, content: str
 
 function setLink(rel: string, href: string) {
   let el = document.querySelector(`link[rel="${rel}"]`) as HTMLLinkElement | null;
+  if (el && el.getAttribute("data-gb-admin") === "1") return;
   if (!el) {
     el = document.createElement("link");
     el.setAttribute("rel", rel);
@@ -50,7 +53,10 @@ export default function SEOMeta({
     : DEFAULT_IMAGE;
 
   useEffect(() => {
-    document.title = title;
+    // If admin SEO is active for this page, don't overwrite the title
+    if (document.querySelector("title")?.getAttribute("data-gb-admin") !== "1") {
+      document.title = title;
+    }
 
     setMeta('meta[name="description"]',         "name",     "description",     description);
     setMeta('meta[name="robots"]',              "name",     "robots",          robots);
@@ -75,7 +81,9 @@ export default function SEOMeta({
 
     const schemaId = "gb-jsonld";
     let script = document.getElementById(schemaId) as HTMLScriptElement | null;
-    if (schema) {
+    if (script && script.getAttribute("data-gb-admin") === "1") {
+      // admin schema is in control — leave it alone
+    } else if (schema) {
       if (!script) {
         script = document.createElement("script");
         script.id   = schemaId;
