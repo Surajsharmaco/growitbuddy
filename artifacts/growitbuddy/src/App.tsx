@@ -11,6 +11,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import { AdminProvider, useAdmin } from "@/context/AdminContext";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { PageGate } from "@/components/PageGate";
+import DynamicPageSEO from "@/components/DynamicPageSEO";
 
 // ── Lazy-loaded public pages ──────────────────────────────────────────────────
 // Home stays eager (it's the LCP page). Everything else loads on demand.
@@ -81,6 +82,7 @@ const AdminLogos              = lazy(() => import("@/pages/admin/AdminLogos"));
 const AdminCreatorSchool      = lazy(() => import("@/pages/admin/AdminCreatorSchool"));
 const AdminTalentPool         = lazy(() => import("@/pages/admin/AdminTalentPool"));
 const AdminPageVisibility     = lazy(() => import("@/pages/admin/AdminPageVisibility"));
+const AdminSEO                = lazy(() => import("@/pages/admin/AdminSEO"));
 
 // ── Minimal spinner (no layout shift, no external deps) ──────────────────────
 function PageSpinner() {
@@ -155,6 +157,7 @@ function AdminRoutes() {
       <Route path="/admin/pool-meme-designers">{() => <AdminGuard><AdminTalentPool poolKey="pool-meme-designers" label="Meme Designers Pool" description="Manage the /meme-designers landing page." pageUrl="/meme-designers" /></AdminGuard>}</Route>
       <Route path="/admin/pool-editors">{() => <AdminGuard><AdminTalentPool poolKey="pool-editors" label="Video Editors Pool" description="Manage the /video-editors landing page." pageUrl="/video-editors" /></AdminGuard>}</Route>
       <Route path="/admin/page-visibility">{() => <AdminGuard><AdminPageVisibility /></AdminGuard>}</Route>
+      <Route path="/admin/seo">{() => <AdminGuard><AdminSEO /></AdminGuard>}</Route>
       <Route path="/admin">{() => <AdminGuard><AdminDashboard /></AdminGuard>}</Route>
     </Switch>
   );
@@ -200,6 +203,7 @@ function App() {
       <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
       <AdminProvider>
         <FaviconInjector />
+        <DynamicPageSEO />
         <ScrollToTop />
         <CustomCursor />
         <Switch>
