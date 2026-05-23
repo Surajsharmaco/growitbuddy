@@ -12,6 +12,7 @@ import { AdminProvider, useAdmin } from "@/context/AdminContext";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { PageGate } from "@/components/PageGate";
 import DynamicPageSEO from "@/components/DynamicPageSEO";
+import AdminPageBar from "@/components/admin-inline/AdminPageBar";
 
 // ── Lazy-loaded public pages ──────────────────────────────────────────────────
 // Home stays eager (it's the LCP page). Everything else loads on demand.
@@ -229,6 +230,7 @@ function App() {
             {() => (
               <>
                 <PageIntro />
+                <AdminPageBar />
                 <Layout>
                   <Suspense fallback={<PageSpinner />}>
                     <Switch>
