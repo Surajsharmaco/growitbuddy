@@ -240,7 +240,7 @@ export default function AdminSEO() {
           </div>
           <Card className="!p-0 overflow-hidden">
             <div className="max-h-[70vh] overflow-y-auto">
-              {(["Core", "Services", "Network", "Pools"] as const).map((group) => {
+              {(["Core", "Services", "Network", "Pools", "Legal", "Utility"] as const).map((group) => {
                 const items = filteredRegistry.filter((p) => p.group === group);
                 if (!items.length) return null;
                 return (
@@ -279,7 +279,13 @@ export default function AdminSEO() {
               <div className="text-[11px] uppercase tracking-wider text-[#0B0B0B]/40 font-semibold">Editing</div>
               <div className="flex items-center gap-2 mt-0.5">
                 <h2 className="text-[18px] font-bold text-[#0B0B0B] truncate">{entry.label}</h2>
-                <a href={entry.path} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#0B0B0B]/50 hover:text-[#0B0B0B] inline-flex items-center gap-1">
+                <a
+                  href={`${entry.path}${entry.path.includes("?") ? "&" : "?"}_seoPreview=${Date.now()}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Open the live page in a new tab (cache-busted)"
+                  className="text-[12px] text-[#0B0B0B]/50 hover:text-[#0B0B0B] inline-flex items-center gap-1"
+                >
                   {entry.path} <ExternalLink size={11} />
                 </a>
               </div>
