@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useParams } from "wouter";
-import { ArrowLeft, ArrowRight, Calendar, Share2, Twitter, Linkedin, Link2, Check, Sparkles, List } from "lucide-react";
+import { ArrowLeft, ArrowRight, Calendar, Share2, Twitter, Linkedin, Link2, Check, List } from "lucide-react";
 import { blogPosts as DEFAULT_POSTS, defaultSeo, type BlogPost } from "@/data/blogPosts";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import { useWordPressPosts, fetchWpPostBySlug } from "@/hooks/useWordPressPosts";
@@ -334,16 +334,6 @@ function hasInlineToc(html: string): boolean {
   return false;
 }
 
-/** Detect whether the WP-authored HTML already contains its own TL;DR / summary /
- *  key-takeaway block, so we don't show ours on top of theirs. */
-function hasInlineTldr(html: string): boolean {
-  if (!html) return false;
-  const head = html.slice(0, 2000);
-  if (/<h[1-4][^>]*>\s*(?:🔑|💡|⚡)?\s*(?:tl;?dr|key\s+takeaways?|key\s+points?|summary|in\s+short|the\s+gist|सारांश|मुख्य\s+बिंदु)\s*[:?]?\s*<\/h[1-4]>/i.test(head)) return true;
-  if (/class\s*=\s*["'][^"']*(?:tldr|key-takeaway|key-points|callout-summary|article-summary)[^"']*["']/i.test(head)) return true;
-  return false;
-}
-
 /** Pull H2 headings out of the rendered article (HTML or markdown) for the auto-TOC. */
 function extractToc(content: string): Array<{ id: string; text: string }> {
   const items: Array<{ id: string; text: string }> = [];
@@ -403,7 +393,7 @@ function buildPostSchema(post: BlogPost): Record<string, unknown>[] {
     "wordCount": wordCount,
     "isAccessibleForFree": true,
     // Speakable — voice assistants & AI overviews can read these aloud
-    "speakable": { "@type": "SpeakableSpecification", "cssSelector": [".article-tldr", ".article-body h2", ".article-body p"] },
+    "speakable": { "@type": "SpeakableSpecification", "cssSelector": [".article-body h2", ".article-body p"] },
   };
 
   const schemas: Record<string, unknown>[] = [];
@@ -520,10 +510,8 @@ export default function InsightDetail() {
   const related = allPosts.filter((p) => p.slug !== slug).slice(0, 3);
 
   // Pre-compute heavy derived values once per post change.
-  // Suppress our auto TOC + auto TL;DR when the WP content already has its own,
-  // so we never render a duplicate.
+  // Suppress our auto TOC when the WP content already has its own, so we never duplicate.
   const wpHasToc = useMemo(() => post ? hasInlineToc(post.content) : false, [post]);
-  const wpHasTldr = useMemo(() => post ? hasInlineTldr(post.content) : false, [post]);
   const toc = useMemo(() => (post && !wpHasToc) ? extractToc(post.content) : [], [post, wpHasToc]);
   const enhancedContent = useMemo(() => {
     if (!post) return "";
@@ -643,21 +631,6 @@ export default function InsightDetail() {
       {/* Article body */}
       <section className="gb-article-section" style={{ padding: "clamp(36px, 7vw, 64px) 18px 100px", background: "#FFFFFF" }}>
         <div className="max-w-[680px] mx-auto">
-          {/* TL;DR — Key takeaways for users + AI Overview / Speakable target.
-              Skipped automatically when the WP post already has its own summary
-              block (e.g. "Key Takeaways" H2) so we never duplicate. */}
-          {post.excerpt && !wpHasTldr && (
-            <aside className="article-tldr" aria-label="Key takeaway" style={{ display: "flex", gap: 14, padding: "18px 20px", marginBottom: 32, background: "linear-gradient(135deg, #FFF7E6 0%, #FFEFD1 100%)", borderRadius: 16, border: "1px solid rgba(194,168,120,0.35)" }}>
-              <div style={{ flexShrink: 0, width: 32, height: 32, borderRadius: 10, background: "#C2A878", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Sparkles className="w-4 h-4" />
-              </div>
-              <div style={{ minWidth: 0 }}>
-                <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: "#8B6F2E", margin: 0, marginBottom: 4 }}>Key takeaway</p>
-                <p style={{ fontSize: 15, color: "#3F2F12", lineHeight: 1.6, margin: 0, fontWeight: 500 }}>{post.excerpt}</p>
-              </div>
-            </aside>
-          )}
-
           {/* Auto Table of Contents — appears only if the article has 2+ H2 sections */}
           {toc.length >= 2 && (
             <nav aria-label="On this page" className="article-toc" style={{ padding: "18px 22px", marginBottom: 36, background: "#F8F8F6", border: "1px solid #EFEFEA", borderRadius: 14 }}>
