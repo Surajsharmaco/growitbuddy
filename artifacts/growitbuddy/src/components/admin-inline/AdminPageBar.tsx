@@ -70,10 +70,14 @@ export default function AdminPageBar() {
   });
 
   // Reflect preview mode on <body> so consumers (InlineText etc.) can hide chrome.
+  // Cleanup on unmount is critical: navigating to /admin unmounts this component,
+  // and a leaked data-gb-preview would silently disable inline editing forever
+  // until the next manual toggle.
   useEffect(() => {
     if (previewMode) document.body.setAttribute("data-gb-preview", "1");
     else document.body.removeAttribute("data-gb-preview");
     try { sessionStorage.setItem(PREVIEW_KEY, previewMode ? "1" : "0"); } catch { /* noop */ }
+    return () => { document.body.removeAttribute("data-gb-preview"); };
   }, [previewMode]);
 
   if (!isAuthenticated) return null;
