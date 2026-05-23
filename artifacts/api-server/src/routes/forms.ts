@@ -38,10 +38,15 @@ setInterval(() => {
 const formLimit = rateLimit(5, 60_000);
 const newsletterLimit = rateLimit(20, 60_000);
 
-const FROM = "GrowitBuddy <onboarding@resend.dev>";
+// FROM address — override with EMAIL_FROM env var after verifying a custom
+// domain in Resend. Default uses Resend's shared sender, which works out of
+// the box but ONLY delivers to the email tied to your Resend account.
+const FROM = process.env.EMAIL_FROM || "GrowitBuddy <onboarding@resend.dev>";
 
 // ── Email routing ──
-const GENERAL_EMAIL = process.env.NOTIFY_EMAIL || "hello@growitbuddy.com";
+// Default to cs.growitbuddy@gmail.com so notifications work even if Render
+// env vars haven't been set yet. Override via NOTIFY_EMAIL / CAREERS_EMAIL.
+const GENERAL_EMAIL = process.env.NOTIFY_EMAIL || "cs.growitbuddy@gmail.com";
 const CAREERS_EMAIL = process.env.CAREERS_EMAIL || GENERAL_EMAIL;
 
 // Newsletter sources → careers/network bucket
@@ -94,7 +99,11 @@ function nowIST(): string {
 async function sendEmail(to: string, subject: string, html: string, replyTo?: string): Promise<void> {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
-    logger.warn("RESEND_API_KEY not set — skipping email notification");
+    logger.error(
+      { to, subject, from: FROM },
+      "RESEND_API_KEY not set on the server — form notification email NOT sent. " +
+      "Set RESEND_API_KEY in Render → Environment to enable email delivery.",
+    );
     return;
   }
   try {
@@ -105,12 +114,18 @@ async function sendEmail(to: string, subject: string, html: string, replyTo?: st
       ...(replyTo ? { replyTo } : {}),
     });
     if (result.error) {
-      logger.error({ resendError: result.error, to, subject }, "Resend rejected email");
+      logger.error(
+        { resendError: result.error, to, from: FROM, subject },
+        "Resend rejected email. Common cause: when using the shared sender " +
+        "(onboarding@resend.dev) Resend only delivers to the email address " +
+        "that owns the Resend account. Fix: log in to resend.com with the " +
+        "recipient's Gmail, OR verify a custom domain and set EMAIL_FROM.",
+      );
     } else {
-      logger.info({ resendId: result.data?.id, to, subject }, "Email sent via Resend");
+      logger.info({ resendId: result.data?.id, to, from: FROM, subject }, "Email sent via Resend");
     }
   } catch (err) {
-    logger.error(err, "Resend error");
+    logger.error({ err, to, from: FROM, subject }, "Resend transport error");
   }
 }
 
