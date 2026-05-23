@@ -334,23 +334,31 @@ export default function CreatorSchool() {
             <p style={{ fontSize: 16, color: "#5F5F5F" }}>{d.resourcesSubtext}</p>
           </motion.div>
           <div className="csp-cards">
-            {d.resources.map((r, i) => (
-              <motion.div key={r.id} {...FI(i * 0.06)}
-                style={{ background: "white", border: "1px solid #E5E5E0", borderRadius: 14, padding: "22px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <h3 style={{ fontSize: 15, fontWeight: 700, color: "#0A0A0A", marginBottom: 4 }}>{r.title}</h3>
-                  <p style={{ fontSize: 13, color: "#8A8A8A", lineHeight: 1.5 }}>{r.desc}</p>
-                </div>
-                {r.link ? (
-                  <a href={r.link} target="_blank" rel="noopener noreferrer"
-                    style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "#1E293B", padding: "9px 16px", border: "1px solid #D4D4CE", borderRadius: 8, textDecoration: "none", whiteSpace: "nowrap" }}>
-                    <ExternalLink size={13} /> {r.btnLabel || "Open"}
-                  </a>
-                ) : (
-                  <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 700, color: "#C2A878", letterSpacing: "0.06em" }}>SOON</span>
-                )}
-              </motion.div>
-            ))}
+            {d.resources.map((r, i) => {
+              // Fallback: if saved link is empty, use the default Drive link for this resource id
+              const fallback = DEFAULTS.resources.find((dr) => dr.id === r.id);
+              const link = r.link || fallback?.link || "";
+              const btnLabel = r.btnLabel || fallback?.btnLabel || "Open";
+              return (
+                <motion.div key={r.id} {...FI(i * 0.06)}
+                  style={{ background: "white", border: "1px solid #E5E5E0", borderRadius: 14, padding: "22px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h3 style={{ fontSize: 15, fontWeight: 700, color: "#0A0A0A", marginBottom: 4 }}>{r.title}</h3>
+                    <p style={{ fontSize: 13, color: "#8A8A8A", lineHeight: 1.5 }}>{r.desc}</p>
+                  </div>
+                  {link ? (
+                    <a href={link} target="_blank" rel="noopener noreferrer"
+                      style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "#1E293B", padding: "9px 16px", border: "1px solid #D4D4CE", borderRadius: 8, textDecoration: "none", whiteSpace: "nowrap", transition: "all 0.15s" }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "#1E293B"; e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "#1E293B"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#1E293B"; e.currentTarget.style.borderColor = "#D4D4CE"; }}>
+                      <ExternalLink size={13} /> {btnLabel}
+                    </a>
+                  ) : (
+                    <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 700, color: "#C2A878", letterSpacing: "0.06em" }}>SOON</span>
+                  )}
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
