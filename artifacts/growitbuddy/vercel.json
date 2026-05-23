@@ -4,6 +4,7 @@
   "installCommand": "cd ../.. && pnpm install",
   "framework": null,
   "rewrites": [
+    { "source": "/blog/:slug", "destination": "/api/blog?slug=:slug" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
