@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Play, ArrowLeft, ArrowUpRight } from "lucide-react";
+import { Play, ArrowLeft, ArrowUpRight, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRoute, Link, useLocation } from "wouter";
 
 import { API_BASE } from "@/lib/api";
+import { useAdmin } from "@/context/AdminContext";
 
 type CategoryType = "video" | "reel" | "case-study";
 
@@ -125,10 +126,28 @@ function getHiResThumbnail(url: string): string {
 }
 
 // ── Video Tile (16:9) — long-form ──
-function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?: boolean }) {
+function VideoTile({ item, featured = false, onDeleted }: { item: PortfolioItem; featured?: boolean; onDeleted?: (id: number) => void }) {
   const [playing, setPlaying] = useState(false);
+  const { isAuthenticated, authFetch } = useAdmin();
+  const [deleting, setDeleting] = useState(false);
   const embedUrl = getEmbedUrl(item.youtubeUrl);
   const thumb = featured ? getHiResThumbnail(item.youtubeUrl) : getThumbnail(item.youtubeUrl);
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (deleting) return;
+    if (!confirm(`Permanently delete "${item.title}"?\n\nThis removes it from the database and cannot be undone.`)) return;
+    setDeleting(true);
+    try {
+      const res = await authFetch(`${API_BASE}/admin/portfolio/${item.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error(`Delete failed (${res.status})`);
+      onDeleted?.(item.id);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Delete failed");
+      setDeleting(false);
+    }
+  };
 
   return (
     <motion.div
@@ -147,6 +166,25 @@ function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?:
       className="hover:-translate-y-1 hover:shadow-2xl hover:border-[#C2A878]"
     >
       <div style={{ position: "relative", aspectRatio: "16/9", background: "#0A0A0A" }}>
+        {isAuthenticated && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={deleting}
+            title="Delete this item (admin only)"
+            style={{
+              position: "absolute", top: 12, right: 12, zIndex: 10,
+              width: 38, height: 38, borderRadius: "50%",
+              background: deleting ? "rgba(220,38,38,0.6)" : "rgba(220,38,38,0.95)",
+              color: "#fff", border: "none", cursor: deleting ? "wait" : "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+            }}
+            className="hover:scale-110"
+          >
+            <Trash2 size={16} />
+          </button>
+        )}
         {playing && embedUrl ? (
           <iframe
             src={`${embedUrl}&autoplay=1`}
@@ -229,10 +267,28 @@ function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?:
 }
 
 // ── Reel Tile (9:16) — short-form, aligned grid ──
-function ReelTile({ item }: { item: PortfolioItem }) {
+function ReelTile({ item, onDeleted }: { item: PortfolioItem; onDeleted?: (id: number) => void }) {
   const [playing, setPlaying] = useState(false);
+  const { isAuthenticated, authFetch } = useAdmin();
+  const [deleting, setDeleting] = useState(false);
   const embedUrl = getEmbedUrl(item.youtubeUrl);
   const thumb = getHiResThumbnail(item.youtubeUrl);
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (deleting) return;
+    if (!confirm(`Permanently delete "${item.title}"?\n\nThis removes it from the database and cannot be undone.`)) return;
+    setDeleting(true);
+    try {
+      const res = await authFetch(`${API_BASE}/admin/portfolio/${item.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error(`Delete failed (${res.status})`);
+      onDeleted?.(item.id);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Delete failed");
+      setDeleting(false);
+    }
+  };
 
   return (
     <motion.div
@@ -251,6 +307,25 @@ function ReelTile({ item }: { item: PortfolioItem }) {
       className="hover:-translate-y-1 hover:shadow-2xl hover:border-[#C2A878]"
     >
       <div style={{ position: "relative", aspectRatio: "9/16", background: "#0A0A0A" }}>
+        {isAuthenticated && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={deleting}
+            title="Delete this reel (admin only)"
+            style={{
+              position: "absolute", top: 12, right: 12, zIndex: 10,
+              width: 36, height: 36, borderRadius: "50%",
+              background: deleting ? "rgba(220,38,38,0.6)" : "rgba(220,38,38,0.95)",
+              color: "#fff", border: "none", cursor: deleting ? "wait" : "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+            }}
+            className="hover:scale-110"
+          >
+            <Trash2 size={14} />
+          </button>
+        )}
         {playing && embedUrl ? (
           <iframe
             src={`${embedUrl}&autoplay=1`}
@@ -327,8 +402,10 @@ function caseHeroImage(item: PortfolioItem, w: number, h: number) {
 }
 
 // ── Case Study Tile — image only, title separated below as highlighted heading ──
-function CaseStudyTile({ item, featured = false }: { item: PortfolioItem; featured?: boolean }) {
+function CaseStudyTile({ item, featured = false, onDeleted }: { item: PortfolioItem; featured?: boolean; onDeleted?: (id: number) => void }) {
   const [, setLocation] = useLocation();
+  const { isAuthenticated, authFetch } = useAdmin();
+  const [deleting, setDeleting] = useState(false);
   const meta = CATEGORY_META[item.category];
   const href = meta ? `/portfolio/${meta.slug}/case/${item.id}` : "#";
   const dim = featured ? { w: 1400, h: 800 } : { w: 800, h: 600 };
@@ -339,6 +416,25 @@ function CaseStudyTile({ item, featured = false }: { item: PortfolioItem; featur
     e.preventDefault();
     setLocation(href);
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+  };
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (deleting) return;
+    if (!confirm(`Permanently delete "${item.title}"?\n\nThis removes it from the database and cannot be undone.`)) return;
+    setDeleting(true);
+    try {
+      const res = await authFetch(`${API_BASE}/admin/portfolio/${item.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as { error?: string }).error ?? `Delete failed (${res.status})`);
+      }
+      onDeleted?.(item.id);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Delete failed");
+      setDeleting(false);
+    }
   };
 
   return (
@@ -393,6 +489,27 @@ function CaseStudyTile({ item, featured = false }: { item: PortfolioItem; featur
         >
           Case Study
         </div>
+        {isAuthenticated && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={deleting}
+            title="Delete this case study (admin only)"
+            style={{
+              position: "absolute", top: 12, right: 12,
+              width: 38, height: 38, borderRadius: "50%",
+              background: deleting ? "rgba(220,38,38,0.6)" : "rgba(220,38,38,0.95)",
+              color: "#fff", border: "none", cursor: deleting ? "wait" : "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+              transition: "transform 0.2s, background 0.2s",
+              zIndex: 5,
+            }}
+            className="hover:scale-110"
+          >
+            <Trash2 size={16} />
+          </button>
+        )}
         <div
           style={{
             position: "absolute", bottom: 14, right: 14,
@@ -697,14 +814,14 @@ export default function Portfolio() {
                 gap: 24,
               }}
             >
-              {categoryItems.map((item) => <ReelTile key={item.id} item={item} />)}
+              {categoryItems.map((item) => <ReelTile key={item.id} item={item} onDeleted={(id) => setItems((prev) => prev.filter((x) => x.id !== id))} />)}
             </div>
           ) : meta.type === "video" ? (
             // ── VIDEO: pattern of [1 big, 2 normal] repeating ──
             <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
               {videoBlocks.map((block, bi) => (
                 <div key={bi} style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-                  {block[0] && <VideoTile item={block[0]} featured />}
+                  {block[0] && <VideoTile item={block[0]} featured onDeleted={(id) => setItems((prev) => prev.filter((x) => x.id !== id))} />}
                   {block.length > 1 && (
                     <div
                       className="video-row"
@@ -714,7 +831,7 @@ export default function Portfolio() {
                         gap: 22,
                       }}
                     >
-                      {block.slice(1).map((item) => <VideoTile key={item.id} item={item} />)}
+                      {block.slice(1).map((item) => <VideoTile key={item.id} item={item} onDeleted={(id) => setItems((prev) => prev.filter((x) => x.id !== id))} />)}
                     </div>
                   )}
                 </div>
@@ -723,7 +840,7 @@ export default function Portfolio() {
           ) : (
             // ── CASE STUDY: featured + grid ──
             <div style={{ display: "flex", flexDirection: "column", gap: 48 }}>
-              {categoryItems[0] && <CaseStudyTile item={categoryItems[0]} featured />}
+              {categoryItems[0] && <CaseStudyTile item={categoryItems[0]} featured onDeleted={(id) => setItems((prev) => prev.filter((x) => x.id !== id))} />}
               {categoryItems.length > 1 && (
                 <div
                   style={{
@@ -732,7 +849,7 @@ export default function Portfolio() {
                     gap: 36,
                   }}
                 >
-                  {categoryItems.slice(1).map((item) => <CaseStudyTile key={item.id} item={item} />)}
+                  {categoryItems.slice(1).map((item) => <CaseStudyTile key={item.id} item={item} onDeleted={(id) => setItems((prev) => prev.filter((x) => x.id !== id))} />)}
                 </div>
               )}
             </div>
