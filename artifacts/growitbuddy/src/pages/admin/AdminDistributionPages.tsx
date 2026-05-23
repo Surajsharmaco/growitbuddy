@@ -267,6 +267,7 @@ export default function AdminDistributionPages() {
   const [countries, setCountries] = useState<string[]>([...DISTRIBUTION_COUNTRIES]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [search, setSearch] = useState("");
   const [nicheFilter, setNicheFilter] = useState("All");
   const [countryFilter, setCountryFilter] = useState("All");
@@ -275,12 +276,14 @@ export default function AdminDistributionPages() {
   const [listsOpen, setListsOpen] = useState(false);
 
   useEffect(() => {
-    getContent("distribution-pages").then((d) => {
-      if (!d) return;
-      if (d.items) setItems(d.items as DistPage[]);
-      if (d.niches) setNiches(d.niches as string[]);
-      if (d.countries) setCountries(d.countries as string[]);
-    });
+    getContent("distribution-pages")
+      .then((d) => {
+        if (!d) return;
+        if (d.items) setItems(d.items as DistPage[]);
+        if (d.niches) setNiches(d.niches as string[]);
+        if (d.countries) setCountries(d.countries as string[]);
+      })
+      .finally(() => setLoaded(true));
   }, [getContent]);
 
   function handleChange(i: number, val: DistPage) {
@@ -384,6 +387,15 @@ export default function AdminDistributionPages() {
   const liveCount = items.filter((p) => p.profileEnabled !== false).length;
   const hiddenCount = items.length - liveCount;
   const highEngagementCount = items.filter((p) => p.highEngagement).length;
+
+  if (!loaded) {
+    return (
+      <div>
+        <PageHeader title="Distribution Pages" description="Loading…" />
+        <div className="flex items-center justify-center py-24 text-[13px] text-[#0B0B0B]/40">Loading content…</div>
+      </div>
+    );
+  }
 
   return (
     <div>

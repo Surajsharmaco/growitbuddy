@@ -498,6 +498,7 @@ export default function AdminInfluencers() {
   const [countries, setCountries] = useState<string[]>([...COUNTRIES]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [search, setSearch] = useState("");
   const [nicheFilter, setNicheFilter] = useState("All");
   const [countryFilter, setCountryFilter] = useState("All");
@@ -507,12 +508,14 @@ export default function AdminInfluencers() {
   const topRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    getContent("influencers").then((d) => {
-      if (!d) return;
-      if (d.items) setItems(d.items as Influencer[]);
-      if (d.genres) setGenres(d.genres as string[]);
-      if (d.countries) setCountries(d.countries as string[]);
-    });
+    getContent("influencers")
+      .then((d) => {
+        if (!d) return;
+        if (d.items) setItems(d.items as Influencer[]);
+        if (d.genres) setGenres(d.genres as string[]);
+        if (d.countries) setCountries(d.countries as string[]);
+      })
+      .finally(() => setLoaded(true));
   }, [getContent]);
 
   function handleChange(i: number, val: Influencer) {
@@ -713,6 +716,15 @@ export default function AdminInfluencers() {
 
   const liveCount = items.filter((inf) => inf.profileEnabled !== false).length;
   const hiddenCount = items.length - liveCount;
+
+  if (!loaded) {
+    return (
+      <div ref={topRef}>
+        <PageHeader title="Influencers" description="Loading…" />
+        <div className="flex items-center justify-center py-24 text-[13px] text-[#0B0B0B]/40">Loading content…</div>
+      </div>
+    );
+  }
 
   return (
     <div ref={topRef}>

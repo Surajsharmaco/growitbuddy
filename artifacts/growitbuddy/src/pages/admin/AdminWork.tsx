@@ -478,15 +478,18 @@ export default function AdminWork() {
   const [headline, setHeadline] = useState("Proof of authority at scale.");
   const [subtext, setSubtext] = useState("Real systems. Real execution. Real outcomes.");
   const [heroStats, setHeroStats] = useState<HeroStat[]>(DEFAULT_STATS);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    getContent("work").then((d) => {
-      if (!d) return;
-      if (d.items) setItems(d.items as WorkItem[]);
-      if (d.headline) setHeadline(d.headline as string);
-      if (d.subtext) setSubtext(d.subtext as string);
-      if (d.heroStats) setHeroStats(d.heroStats as HeroStat[]);
-    });
+    getContent("work")
+      .then((d) => {
+        if (!d) return;
+        if (d.items) setItems(d.items as WorkItem[]);
+        if (d.headline) setHeadline(d.headline as string);
+        if (d.subtext) setSubtext(d.subtext as string);
+        if (d.heroStats) setHeroStats(d.heroStats as HeroStat[]);
+      })
+      .finally(() => setLoaded(true));
   }, [getContent]);
 
   async function handleSave() {
@@ -502,6 +505,15 @@ export default function AdminWork() {
   function setStat(i: number, patch: Partial<HeroStat>) {
     setSaved(false);
     setHeroStats((p) => p.map((s, si) => si === i ? { ...s, ...patch } : s));
+  }
+
+  if (!loaded) {
+    return (
+      <div>
+        <PageHeader title="Work / Portfolio" description="Manage the work page hero, stats, client logos, and case studies." />
+        <div className="flex items-center justify-center py-24 text-[13px] text-[#0B0B0B]/40">Loading content…</div>
+      </div>
+    );
   }
 
   return (

@@ -2546,11 +2546,14 @@ export default function AdminBlog() {
   const { getContent, saveContent } = useAdmin();
   const [posts, setPosts] = useState<BlogPost[]>(DEFAULT_POSTS);
   const [editing, setEditing] = useState<{ post: BlogPost; isNew: boolean } | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    getContent("blog").then((d) => {
-      if (d?.posts) setPosts(d.posts as BlogPost[]);
-    });
+    getContent("blog")
+      .then((d) => {
+        if (d?.posts) setPosts(d.posts as BlogPost[]);
+      })
+      .finally(() => setLoaded(true));
   }, [getContent]);
 
   async function persist(updated: BlogPost[]) {
@@ -2585,6 +2588,12 @@ export default function AdminBlog() {
         onSave={handleSave}
         allPosts={posts}
       />
+    );
+  }
+
+  if (!loaded) {
+    return (
+      <div className="flex items-center justify-center py-24 text-[13px] text-[#0B0B0B]/40">Loading content…</div>
     );
   }
 

@@ -45,11 +45,14 @@ export default function AdminAbout() {
   const [data, setData] = useState<AboutData>(DEFAULTS);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    getContent("about").then((d) => {
-      if (d) setData({ ...DEFAULTS, ...(d as Partial<AboutData>) });
-    });
+    getContent("about")
+      .then((d) => {
+        if (d) setData({ ...DEFAULTS, ...(d as Partial<AboutData>) });
+      })
+      .finally(() => setLoaded(true));
   }, [getContent]);
 
   function set<K extends keyof AboutData>(key: K, val: AboutData[K]) {
@@ -65,6 +68,15 @@ export default function AdminAbout() {
     } finally {
       setSaving(false);
     }
+  }
+
+  if (!loaded) {
+    return (
+      <div>
+        <PageHeader title="About Page" description="Edit the founder section, mission, team, and values." />
+        <div className="flex items-center justify-center py-24 text-[13px] text-[#0B0B0B]/40">Loading content…</div>
+      </div>
+    );
   }
 
   return (

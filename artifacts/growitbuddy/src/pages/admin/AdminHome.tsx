@@ -190,11 +190,14 @@ export default function AdminHome() {
   const [data, setData] = useState<HomeData>(DEFAULTS);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    getContent("home").then((d) => {
-      if (d) setData({ ...DEFAULTS, ...(d as Partial<HomeData>) });
-    });
+    getContent("home")
+      .then((d) => {
+        if (d) setData({ ...DEFAULTS, ...(d as Partial<HomeData>) });
+      })
+      .finally(() => setLoaded(true));
   }, [getContent]);
 
   function set<K extends keyof HomeData>(key: K, val: HomeData[K]) {
@@ -210,6 +213,15 @@ export default function AdminHome() {
     } finally {
       setSaving(false);
     }
+  }
+
+  if (!loaded) {
+    return (
+      <div>
+        <PageHeader title="Home Page" description="Edit every section of the landing page." />
+        <div className="flex items-center justify-center py-24 text-[13px] text-[#0B0B0B]/40">Loading content…</div>
+      </div>
+    );
   }
 
   return (

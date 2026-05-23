@@ -62,11 +62,14 @@ export default function AdminSettings() {
   const [data, setData] = useState<Settings>(DEFAULTS);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    getContent("settings").then((d) => {
-      if (d) setData({ ...DEFAULTS, ...(d as Partial<Settings>) });
-    });
+    getContent("settings")
+      .then((d) => {
+        if (d) setData({ ...DEFAULTS, ...(d as Partial<Settings>) });
+      })
+      .finally(() => setLoaded(true));
   }, [getContent]);
 
   const set = useCallback(<K extends keyof Settings>(key: K, val: Settings[K]) => {
@@ -82,6 +85,15 @@ export default function AdminSettings() {
     } finally {
       setSaving(false);
     }
+  }
+
+  if (!loaded) {
+    return (
+      <div>
+        <PageHeader title="Site Settings" description="Global configuration, branding, and design for the entire website." />
+        <div className="flex items-center justify-center py-24 text-[13px] text-[#0B0B0B]/40">Loading content…</div>
+      </div>
+    );
   }
 
   return (
