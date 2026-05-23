@@ -1,22 +1,87 @@
-import { Router, type Request, type Response } from "express";
+import { Router, type Request, type Response, type IRouter } from "express";
 import { db, siteContent } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq, like } from "drizzle-orm";
 
-const sitemapRouter = Router();
+const sitemapRouter: IRouter = Router();
 
 const SITE = "https://growitbuddy.com";
 const WP_API = "https://blog.growitbuddy.com/wp-json/wp/v2";
 
-interface WPPost {
-  slug: string;
-  date: string;
-  modified: string;
+interface WPPost { slug: string; date: string; modified: string; }
+
+/**
+ * Public pages registered for the main sitemap.
+ * Keep in sync with `artifacts/growitbuddy/src/lib/pageRegistry.ts`.
+ * `priority` and `changefreq` are coarse SEO hints.
+ */
+interface RegisteredPage { slug: string; path: string; priority: number; changefreq: string; }
+
+const REGISTERED_PAGES: RegisteredPage[] = [
+  { slug: "home",                  path: "/",                       priority: 1.0, changefreq: "weekly"  },
+  { slug: "about",                 path: "/about",                  priority: 0.7, changefreq: "monthly" },
+  { slug: "contact",               path: "/contact",                priority: 0.7, changefreq: "monthly" },
+  { slug: "insights",              path: "/insights",               priority: 0.8, changefreq: "weekly"  },
+  { slug: "services",              path: "/services",               priority: 0.9, changefreq: "monthly" },
+  { slug: "work",                  path: "/work",                   priority: 0.8, changefreq: "monthly" },
+  { slug: "framework",             path: "/framework",              priority: 0.7, changefreq: "monthly" },
+  { slug: "authority-audit",       path: "/authority-audit",        priority: 0.8, changefreq: "monthly" },
+  { slug: "influencers",           path: "/influencers",            priority: 0.7, changefreq: "weekly"  },
+  { slug: "distribution",          path: "/distribution",           priority: 0.7, changefreq: "monthly" },
+  { slug: "join",                  path: "/join",                   priority: 0.7, changefreq: "monthly" },
+  { slug: "creators",              path: "/creators",               priority: 0.7, changefreq: "monthly" },
+  { slug: "freelancers",           path: "/freelancers",            priority: 0.7, changefreq: "monthly" },
+  { slug: "full-time",             path: "/full-time",              priority: 0.6, changefreq: "monthly" },
+  { slug: "creator-school",        path: "/editors-pool",           priority: 0.7, changefreq: "monthly" },
+  { slug: "video-editors",         path: "/video-editors",          priority: 0.7, changefreq: "monthly" },
+  { slug: "designers-pool",        path: "/designers-pool",         priority: 0.7, changefreq: "monthly" },
+  { slug: "thumbnail-designers",   path: "/thumbnail-designers",    priority: 0.7, changefreq: "monthly" },
+  { slug: "writers-pool",          path: "/writers-pool",           priority: 0.7, changefreq: "monthly" },
+  { slug: "social-media-managers", path: "/social-media-managers",  priority: 0.7, changefreq: "monthly" },
+  { slug: "motion-designers",      path: "/motion-designers",       priority: 0.7, changefreq: "monthly" },
+  { slug: "ai-creators",           path: "/ai-creators",            priority: 0.7, changefreq: "monthly" },
+  { slug: "ugc-creators",          path: "/ugc-creators",           priority: 0.7, changefreq: "monthly" },
+  { slug: "meme-designers",        path: "/meme-designers",         priority: 0.7, changefreq: "monthly" },
+];
+
+interface SEOData {
+  index?: boolean;
+  sitemap?: boolean;
 }
 
-sitemapRouter.get("/sitemap-blog.xml", async (req: Request, res: Response) => {
+/**
+ * Main sitemap.xml — pulls per-page SEO overrides from siteContent (section "seo:<slug>")
+ * and excludes pages where index=false or sitemap=false.
+ */
+sitemapRouter.get("/sitemap.xml", async (_req: Request, res: Response) => {
+  // Fetch ALL seo:* rows in one query
+  let seoMap = new Map<string, SEOData>();
+  try {
+    const rows = await db
+      .select({ section: siteContent.section, data: siteContent.data, updatedAt: siteContent.updatedAt })
+      .from(siteContent)
+      .where(like(siteContent.section, "seo:%"));
+    seoMap = new Map(rows.map((r: { section: string; data: unknown }) => [r.section.replace(/^seo:/, ""), r.data as SEOData]));
+  } catch { /* DB down — fall through with empty map (all pages included by default) */ }
+
+  const today = new Date().toISOString().split("T")[0];
+  const urls: string[] = [];
+  for (const page of REGISTERED_PAGES) {
+    const seo = seoMap.get(page.slug);
+    if (seo && (seo.index === false || seo.sitemap === false)) continue;
+    urls.push(
+      `  <url>\n    <loc>${SITE}${page.path}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${page.changefreq}</changefreq>\n    <priority>${page.priority.toFixed(1)}</priority>\n  </url>`,
+    );
+  }
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>`;
+  res.setHeader("Content-Type", "application/xml; charset=utf-8");
+  res.setHeader("Cache-Control", "public, max-age=600, stale-while-revalidate=3600");
+  res.send(xml);
+});
+
+sitemapRouter.get("/sitemap-blog.xml", async (_req: Request, res: Response) => {
   const urls: string[] = [];
 
-  // Fetch WordPress posts (server-side — no JS rendering needed for Googlebot)
   try {
     const wpRes = await fetch(
       `${WP_API}/posts?per_page=100&status=publish&_fields=slug,date,modified`,
@@ -33,7 +98,6 @@ sitemapRouter.get("/sitemap-blog.xml", async (req: Request, res: Response) => {
     }
   } catch { /* WP unreachable — skip gracefully */ }
 
-  // Fetch CMS blog posts from database
   try {
     const rows = await db
       .select({ data: siteContent.data, updatedAt: siteContent.updatedAt })
