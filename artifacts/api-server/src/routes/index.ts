@@ -4,7 +4,7 @@ import formsRouter from "./forms";
 import adminRouter from "./admin";
 import aiSeoRouter from "./ai-seo";
 import sitemapRouter from "./sitemap";
-import { db, mediaFiles } from "@workspace/db";
+import { db, mediaFiles, siteContent } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
 const router: IRouter = Router();
@@ -32,6 +32,29 @@ router.get("/media/file/:id", async (req: Request, res: Response) => {
     res.end(buf);
   } catch {
     res.status(500).end();
+  }
+});
+
+// ── Public SEO record (no auth) ──
+// Returns admin-configured SEO overrides for a given page slug.
+// Storage: siteContent where section = `seo:<slug>`.
+router.get("/seo/:slug", async (req: Request, res: Response) => {
+  const slug = String(req.params.slug);
+  if (!/^[a-z0-9-]+$/i.test(slug)) {
+    res.status(400).json({ error: "invalid slug" });
+    return;
+  }
+  try {
+    const rows = await db
+      .select({ data: siteContent.data, updatedAt: siteContent.updatedAt })
+      .from(siteContent)
+      .where(eq(siteContent.section, `seo:${slug}`))
+      .limit(1);
+    res.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=3600");
+    if (!rows.length) { res.json({ slug, data: null }); return; }
+    res.json({ slug, data: rows[0].data, updatedAt: rows[0].updatedAt });
+  } catch {
+    res.status(500).json({ error: "failed" });
   }
 });
 
