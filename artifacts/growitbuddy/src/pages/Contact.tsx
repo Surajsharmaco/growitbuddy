@@ -74,7 +74,14 @@ function CalEmbed({ calLink }: { calLink: string }) {
       w.Cal.ns[CAL_NS]("ui", {
         hideEventTypeDetails: false,
         layout: "month_view",
-        styles: { branding: { brandColor: "#EFEFEA" } },
+        // Match the site's primary CTA (burnt rust, hsl(17 70% 32%) ≈ #8B3918)
+        // so the selected date / time slot is clearly visible. The previous
+        // off-white (#EFEFEA) was invisible on the cal.com white surface.
+        styles: { branding: { brandColor: "#8B3918" } },
+        cssVarsPerTheme: {
+          light: { "cal-brand": "#8B3918" },
+          dark:  { "cal-brand": "#B45A33" },
+        },
       });
 
       w[doneKey] = true;
