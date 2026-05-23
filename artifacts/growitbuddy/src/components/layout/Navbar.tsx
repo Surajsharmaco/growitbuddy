@@ -38,7 +38,7 @@ const NAV_LINKS: NavLink[] = [
   {
     label: "More",
     dropdown: [
-      { href: "/insights",        label: "Blog",            subtitle: "" },
+      { href: "/blog",        label: "Blog",            subtitle: "" },
       { href: "/authority-audit", label: "Authority Audit", subtitle: "" },
       { href: "/contact",         label: "Contact",         subtitle: "" },
     ],

@@ -38,7 +38,7 @@ const DEFAULTS: FooterData = {
         { label: "About", path: "/about" },
         { label: "Work", path: "/work" },
         { label: "Framework", path: "/framework" },
-        { label: "Blog", path: "/insights" },
+        { label: "Blog", path: "/blog" },
         { label: "Resources", path: "/resources" },
         { label: "Contact", path: "/contact" },
       ],

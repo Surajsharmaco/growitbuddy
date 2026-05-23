@@ -45,7 +45,7 @@ const PUBLIC_PAGES: Page[] = [
   { path: "/services",      name: "Services",              what: "Detailed services offered (content production, distribution, authority building)." },
   { path: "/work",          name: "Work / Portfolio",      what: "Case studies and client logos. Showcases past work." },
   { path: "/framework",     name: "Framework",             what: "Your 4-step methodology: Positioning → Production → Distribution → Inbound Demand." },
-  { path: "/insights",      name: "Blog / Insights",       what: "All blog posts. Each post has its own /insights/:slug URL." },
+  { path: "/blog",      name: "Blog / Insights",       what: "All blog posts. Each post has its own /blog/:slug URL." },
   { path: "/about",         name: "About",                 what: "Founder story, team, mission." },
   { path: "/contact",       name: "Contact",               what: "Contact form — submissions land in your inbox + Admin Leads." },
   { path: "/creators",      name: "Creator Network",       what: "Sign-up form for content creators wanting to join your network." },
@@ -614,7 +614,7 @@ export default function SiteGuide() {
             },
             {
               q: "How do I add a new blog post?",
-              a: "Open /admin/blog → 'Add New Post' → fill in title, slug, cover image, body (rich text), tags → Save. It appears at /insights immediately, with its own URL /insights/your-slug.",
+              a: "Open /admin/blog → 'Add New Post' → fill in title, slug, cover image, body (rich text), tags → Save. It appears at /blog immediately, with its own URL /blog/your-slug.",
             },
             {
               q: "Where do form submissions go if Resend isn't set up?",

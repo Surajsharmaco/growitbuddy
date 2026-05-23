@@ -463,7 +463,7 @@ function yoastChecks(post: BlogPost, content: string, seo: PostSeo, allPosts: Bl
         pass: hasInternal, warn: false,
         fix: hasInternal ? undefined : {
           tip: `Linking to your other blog posts keeps readers on your site longer and helps Google discover all your content. Select some text in your post, then use the link button in the toolbar to add a link to another one of your posts.`,
-          copy: `<a href="/insights/your-post-slug">Learn more about this topic</a>`,
+          copy: `<a href="/blog/your-post-slug">Learn more about this topic</a>`,
         },
       },
       {
@@ -1002,7 +1002,7 @@ function PostEditor({
       await onSave(finalPost);
       setSaved(true);
       if (mode === "publish") {
-        showToast(`Published! View at /insights/${slug}`, "success");
+        showToast(`Published! View at /blog/${slug}`, "success");
       } else {
         showToast("Draft saved.", "info");
       }
@@ -2344,9 +2344,9 @@ function generateSchema(post: BlogPost, seo: PostSeo) {
     "datePublished": post.date,
     "headline": seo.seoTitle || post.title,
     "description": seo.metaDescription || post.excerpt,
-    "url": `${SITE}/insights/${post.slug}`,
+    "url": `${SITE}/blog/${post.slug}`,
     "image": post.featuredImage || `${SITE}/opengraph.jpg`,
-    "mainEntityOfPage": { "@type": "WebPage", "@id": `${SITE}/insights/${post.slug}` },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": `${SITE}/blog/${post.slug}` },
   };
   if (seo.schemaType === "FAQ") {
     return {

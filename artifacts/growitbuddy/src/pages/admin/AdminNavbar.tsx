@@ -20,7 +20,7 @@ const DEFAULTS: NavbarData = {
     { label: "Services", path: "/services" },
     { label: "Work", path: "/work" },
     { label: "Framework", path: "/framework" },
-    { label: "Insights", path: "/insights" },
+    { label: "Insights", path: "/blog" },
     { label: "Influencers", path: "/influencers" },
     { label: "About", path: "/about" },
   ],

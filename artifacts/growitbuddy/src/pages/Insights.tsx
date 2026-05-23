@@ -37,12 +37,13 @@ export default function Insights() {
   return (
     <div style={{ background: "#F8F8F6", fontFamily: "'Inter', sans-serif" }}>
       <SEOMeta
-        title="Insights | Authority Building, Content Strategy & Distribution | GrowitBuddy"
+        title="Blog | Authority Building, Content Strategy & Distribution | GrowitBuddy"
         description="Frameworks, strategies, and strong opinions on content marketing, personal branding, and distribution systems - for founders and creators building inbound authority."
+        canonical="https://growitbuddy.com/blog"
         schema={{
           "@type": "Blog",
-          "name": "GrowitBuddy Insights",
-          "url": "https://growitbuddy.com/insights",
+          "name": "GrowitBuddy Blog",
+          "url": "https://growitbuddy.com/blog",
           "description": "Frameworks, strategies, and strong opinions on content marketing, personal branding, and distribution systems for founders and creators.",
           "publisher": { "@id": "https://growitbuddy.com/#organization" }
         } as Record<string, unknown>}
@@ -51,7 +52,7 @@ export default function Insights() {
       {/* Hero */}
       <section style={{ paddingTop: 120, paddingBottom: 80, paddingLeft: 24, paddingRight: 24, borderBottom: "1px solid #E5E5E0" }}>
         <div className="max-w-[1100px] mx-auto">
-          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#7A7A85", marginBottom: 16 }}>Insights</p>
+          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#7A7A85", marginBottom: 16 }}>The Blog</p>
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -112,7 +113,7 @@ export default function Insights() {
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.05, duration: 0.45 }}
                 >
-                  <Link href={`/insights/${post.slug}`}>
+                  <Link href={`/blog/${post.slug}`}>
                     <div
                       style={{
                         background: featured ? "#1E293B" : "#F8F8F6",
@@ -146,11 +147,6 @@ export default function Insights() {
                           }}>
                             {post.tag}
                           </span>
-                          {post.source === "wordpress" && (
-                            <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: featured ? "rgba(248,248,246,0.4)" : "rgba(11,11,11,0.3)" }}>
-                              WordPress
-                            </span>
-                          )}
                         </div>
                         <h2 style={{
                           fontWeight: 800, fontSize: "clamp(20px, 2.5vw, 26px)", letterSpacing: "-0.03em",

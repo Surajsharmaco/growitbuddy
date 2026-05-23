@@ -237,8 +237,11 @@ function App() {
                       <Route path="/services">{() => <PageGate slug="services"><Services /></PageGate>}</Route>
                       <Route path="/work">{() => <PageGate slug="work"><Work /></PageGate>}</Route>
                       <Route path="/framework">{() => <PageGate slug="framework"><Framework /></PageGate>}</Route>
-                      <Route path="/insights">{() => <PageGate slug="insights"><Insights /></PageGate>}</Route>
-                      <Route path="/insights/:slug">{() => <PageGate slug="insights"><InsightDetail /></PageGate>}</Route>
+                      <Route path="/blog">{() => <PageGate slug="insights"><Insights /></PageGate>}</Route>
+                      <Route path="/blog/:slug">{() => <PageGate slug="insights"><InsightDetail /></PageGate>}</Route>
+                      {/* Back-compat — old /insights URLs permanently redirect to /blog */}
+                      <Route path="/insights">{() => <Redirect to="/blog" />}</Route>
+                      <Route path="/insights/:slug">{(params) => <Redirect to={`/blog/${params.slug}`} />}</Route>
                       <Route path="/influencers">{() => <PageGate slug="influencers"><InfluencerExplore /></PageGate>}</Route>
                       <Route path="/distribution">{() => <PageGate slug="distribution"><DistributionNetwork /></PageGate>}</Route>
                       <Route path="/join">{() => <PageGate slug="join"><JoinNetwork /></PageGate>}</Route>

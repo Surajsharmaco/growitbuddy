@@ -22,7 +22,7 @@ const PAGES: { slug: string; label: string; url: string }[] = [
   { slug: "services",              label: "Services",                url: "/services"               },
   { slug: "work",                  label: "Work / Portfolio",        url: "/work"                   },
   { slug: "framework",             label: "Framework",               url: "/framework"              },
-  { slug: "insights",              label: "Blog / Insights",         url: "/insights"               },
+  { slug: "insights",              label: "Blog / Insights",         url: "/blog"               },
   { slug: "about",                 label: "About",                   url: "/about"                  },
   { slug: "contact",               label: "Contact",                 url: "/contact"                },
   { slug: "resources",             label: "Resources",               url: "/resources"              },

@@ -26,7 +26,7 @@ export const PAGE_REGISTRY: PageRegistryEntry[] = [
   { slug: "home",             path: "/",                 label: "Home",                group: "Core",     defaults: { title: "GrowitBuddy — Premium Creator Agency",                              description: "We help creators and brands grow with content, distribution, and authority systems." } },
   { slug: "about",            path: "/about",            label: "About",               group: "Core",     defaults: { title: "About GrowitBuddy",                                                 description: "Learn about the GrowitBuddy team, mission, and how we help creators scale." } },
   { slug: "contact",          path: "/contact",          label: "Contact",             group: "Core",     defaults: { title: "Contact GrowitBuddy",                                               description: "Get in touch with the GrowitBuddy team." } },
-  { slug: "insights",         path: "/insights",         label: "Insights / Blog",     group: "Core",     defaults: { title: "GrowitBuddy Insights",                                              description: "Strategies, frameworks, and lessons from running a modern creator agency." } },
+  { slug: "insights",         path: "/blog",         label: "Insights / Blog",     group: "Core",     defaults: { title: "GrowitBuddy Insights",                                              description: "Strategies, frameworks, and lessons from running a modern creator agency." } },
 
   // Services
   { slug: "services",         path: "/services",         label: "Services",            group: "Services", defaults: { title: "Services — GrowitBuddy",                                            description: "Content, distribution, and growth services for creators and brands." } },

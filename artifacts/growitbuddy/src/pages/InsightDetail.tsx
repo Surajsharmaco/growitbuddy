@@ -11,28 +11,38 @@ const ARTICLE_CSS = `
 /* ── Base ── */
 .article-body { font-family: Inter, sans-serif; }
 
-/* ── First child: no top margin/spacing ── */
-.article-body > *:first-child { margin-top: 0 !important; }
+/* ── First & last child margin reset (kills phantom whitespace at top/bottom) ── */
+.article-body > *:first-child,
+.article-body > *:first-child > *:first-child { margin-top: 0 !important; padding-top: 0 !important; }
+.article-body > *:last-child { margin-bottom: 0 !important; }
 
 /* ── Paragraphs ── */
 .article-body p,
-.article-body .wp-block-paragraph { font-size: 17px; color: rgba(11,11,11,0.72); line-height: 1.9; margin-top: 0; margin-bottom: 20px; }
-.article-body p:empty { display: none; }
+.article-body .wp-block-paragraph { font-size: 17px; color: rgba(11,11,11,0.78); line-height: 1.85; margin: 0 0 22px; }
+.article-body p:empty,
+.article-body p:has(br:only-child) { display: none; }
+/* WP often wraps a lone image in a <p> — strip its bottom margin so it sits flush */
+.article-body p:has(> img:only-child) { margin: 0; }
 
 /* ── Headings ── */
 .article-body h1,
-.article-body .wp-block-heading h1 { font-weight: 900; font-size: clamp(28px, 4vw, 42px); letter-spacing: -0.04em; color: #0A0A0A; margin-top: 56px; margin-bottom: 20px; line-height: 1.1; }
+.article-body .wp-block-heading h1 { font-weight: 900; font-size: clamp(28px, 4vw, 42px); letter-spacing: -0.04em; color: #0A0A0A; margin: 56px 0 20px; line-height: 1.1; }
 .article-body h2,
-.article-body .wp-block-heading h2 { font-weight: 800; font-size: clamp(22px, 3vw, 28px); letter-spacing: -0.03em; color: #0A0A0A; margin-top: 56px; margin-bottom: 20px; line-height: 1.25; padding-bottom: 12px; border-bottom: 2px solid rgba(11,11,11,0.08); }
+.article-body .wp-block-heading h2 { font-weight: 800; font-size: clamp(22px, 3vw, 28px); letter-spacing: -0.03em; color: #0A0A0A; margin: 56px 0 20px; line-height: 1.25; padding-bottom: 12px; border-bottom: 2px solid rgba(11,11,11,0.08); }
 .article-body h3,
-.article-body .wp-block-heading h3 { font-weight: 700; font-size: clamp(17px, 2vw, 21px); letter-spacing: -0.02em; color: #0A0A0A; margin-top: 36px; margin-bottom: 12px; line-height: 1.35; }
+.article-body .wp-block-heading h3 { font-weight: 700; font-size: clamp(17px, 2vw, 21px); letter-spacing: -0.02em; color: #0A0A0A; margin: 40px 0 12px; line-height: 1.35; }
 .article-body h4,
-.article-body .wp-block-heading h4 { font-weight: 700; font-size: 17px; color: #0A0A0A; margin-top: 28px; margin-bottom: 10px; }
-.article-body h5, .article-body h6 { font-weight: 700; font-size: 15px; color: #0A0A0A; margin-top: 24px; margin-bottom: 8px; }
+.article-body .wp-block-heading h4 { font-weight: 700; font-size: 17px; color: #0A0A0A; margin: 28px 0 10px; }
+.article-body h5, .article-body h6 { font-weight: 700; font-size: 15px; color: #0A0A0A; margin: 24px 0 8px; }
+/* Heading immediately after image — tighten the gap (image already provides air below) */
+.article-body figure + h2,
+.article-body .wp-block-image + h2,
+.article-body figure + h3,
+.article-body .wp-block-image + h3 { margin-top: 32px; }
 
 /* ── Blockquote ── */
 .article-body blockquote,
-.article-body .wp-block-quote { margin: 32px 0; padding: 20px 24px; border-left: 3px solid #1E293B; background: rgba(11,11,11,0.03); border-radius: 0 12px 12px 0; }
+.article-body .wp-block-quote { margin: 36px 0; padding: 22px 26px; border-left: 3px solid #1E293B; background: rgba(11,11,11,0.03); border-radius: 0 12px 12px 0; }
 .article-body blockquote p,
 .article-body .wp-block-quote p { font-size: 18px; font-weight: 600; color: #1E293B; line-height: 1.7; font-style: italic; margin: 0; }
 .article-body .wp-block-quote cite,
@@ -40,11 +50,13 @@ const ARTICLE_CSS = `
 
 /* ── Lists ── */
 .article-body ul,
-.article-body .wp-block-list ul { margin: 24px 0; padding-left: 22px; list-style: disc; }
+.article-body .wp-block-list ul { margin: 22px 0; padding-left: 22px; list-style: disc; }
 .article-body ol,
-.article-body .wp-block-list ol { margin: 24px 0; padding-left: 22px; list-style: decimal; }
-.article-body li { font-size: 17px; color: rgba(11,11,11,0.72); line-height: 1.8; margin-bottom: 10px; padding-left: 4px; }
+.article-body .wp-block-list ol { margin: 22px 0; padding-left: 22px; list-style: decimal; }
+.article-body li { font-size: 17px; color: rgba(11,11,11,0.78); line-height: 1.8; margin-bottom: 8px; padding-left: 4px; }
 .article-body li:last-child { margin-bottom: 0; }
+.article-body li > p { margin: 0 0 8px; }
+.article-body li > ul, .article-body li > ol { margin: 8px 0 0; }
 
 /* ── Inline ── */
 .article-body strong, .article-body b { font-weight: 700; color: #0A0A0A; }
@@ -55,40 +67,76 @@ const ARTICLE_CSS = `
 
 /* ── Separator / HR ── */
 .article-body hr,
-.article-body .wp-block-separator { border: none; border-top: 1.5px solid rgba(11,11,11,0.1); margin: 40px 0; }
+.article-body .wp-block-separator { border: none; border-top: 1.5px solid rgba(11,11,11,0.1); margin: 44px 0; }
 
 /* ── Images & Figures ── */
 .article-body figure,
-.article-body .wp-block-image { margin: 32px 0; }
+.article-body .wp-block-image,
+.article-body .wp-block-embed { margin: 36px 0; padding: 0; max-width: 100%; }
 .article-body figure img,
-.article-body .wp-block-image img { width: 100%; border-radius: 12px; display: block; }
+.article-body .wp-block-image img,
+.article-body img { max-width: 100%; height: auto; width: 100%; border-radius: 14px; display: block; margin: 0 auto; box-shadow: 0 1px 3px rgba(11,11,11,0.04); }
+/* Inline images sitting bare inside a paragraph */
+.article-body p > img { margin: 28px auto; }
 .article-body figcaption,
-.article-body .wp-block-image figcaption { font-size: 13px; color: rgba(11,11,11,0.4); text-align: center; margin-top: 8px; }
+.article-body .wp-block-image figcaption { font-size: 13px; color: rgba(11,11,11,0.5); text-align: center; margin: 12px 0 0; font-style: italic; line-height: 1.5; }
+/* Two figures back-to-back — collapse the gap so they don't double-margin */
+.article-body figure + figure,
+.article-body .wp-block-image + .wp-block-image { margin-top: 12px; }
+/* WP alignment classes */
+.article-body .alignleft, .article-body .wp-block-image.alignleft { float: left; margin: 8px 24px 16px 0; max-width: 50%; }
+.article-body .alignright, .article-body .wp-block-image.alignright { float: right; margin: 8px 0 16px 24px; max-width: 50%; }
+.article-body .aligncenter, .article-body .wp-block-image.aligncenter { margin-left: auto; margin-right: auto; }
+.article-body .alignwide, .article-body .wp-block-image.alignwide { margin-left: -40px; margin-right: -40px; max-width: calc(100% + 80px); }
+.article-body .alignfull, .article-body .wp-block-image.alignfull img { border-radius: 0; }
+/* iframes / embeds (YouTube etc.) */
+.article-body iframe,
+.article-body .wp-block-embed iframe { width: 100%; aspect-ratio: 16/9; height: auto; border: none; border-radius: 14px; display: block; }
+/* Gallery */
+.article-body .wp-block-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 36px 0; }
+.article-body .wp-block-gallery figure { margin: 0; }
 
 /* ── Code block ── */
 .article-body pre,
-.article-body .wp-block-code { background: #1E293B; color: #e2e8f0; font-family: 'Fira Code', monospace; font-size: 14px; line-height: 1.7; padding: 20px 24px; border-radius: 12px; overflow-x: auto; margin: 28px 0; }
+.article-body .wp-block-code { background: #1E293B; color: #e2e8f0; font-family: 'Fira Code', monospace; font-size: 14px; line-height: 1.7; padding: 20px 24px; border-radius: 12px; overflow-x: auto; margin: 30px 0; }
 .article-body pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
 
 /* ── Gutenberg Group / Cover ── */
 .article-body .wp-block-group { margin: 24px 0; }
-.article-body .wp-block-cover { margin: 32px 0; border-radius: 12px; overflow: hidden; }
+.article-body .wp-block-cover { margin: 36px 0; border-radius: 14px; overflow: hidden; }
 
 /* ── Columns ── */
-.article-body .wp-block-columns { display: flex; gap: 24px; margin: 28px 0; }
-.article-body .wp-block-column { flex: 1; min-width: 0; }
+.article-body .wp-block-columns { display: flex; flex-wrap: wrap; gap: 28px; margin: 32px 0; }
+.article-body .wp-block-column { flex: 1; min-width: 220px; }
 
 /* ── Table ── */
 .article-body table,
-.article-body .wp-block-table table { width: 100%; border-collapse: collapse; margin: 28px 0; font-size: 15px; }
-.article-body th { background: rgba(11,11,11,0.05); font-weight: 700; color: #0A0A0A; padding: 10px 14px; border: 1px solid rgba(11,11,11,0.1); text-align: left; }
-.article-body td { padding: 10px 14px; border: 1px solid rgba(11,11,11,0.1); color: rgba(11,11,11,0.72); }
+.article-body .wp-block-table table { width: 100%; border-collapse: collapse; margin: 30px 0; font-size: 15px; }
+.article-body .wp-block-table { overflow-x: auto; margin: 30px 0; }
+.article-body th { background: rgba(11,11,11,0.05); font-weight: 700; color: #0A0A0A; padding: 12px 14px; border: 1px solid rgba(11,11,11,0.1); text-align: left; }
+.article-body td { padding: 12px 14px; border: 1px solid rgba(11,11,11,0.1); color: rgba(11,11,11,0.78); }
 .article-body tr:nth-child(even) td { background: rgba(11,11,11,0.02); }
 
 /* ── Pullquote ── */
-.article-body .wp-block-pullquote { border-top: 3px solid #C2A878; border-bottom: 3px solid #C2A878; padding: 28px 0; margin: 36px 0; text-align: center; }
-.article-body .wp-block-pullquote blockquote { border: none; background: none; padding: 0; }
+.article-body .wp-block-pullquote { border-top: 3px solid #C2A878; border-bottom: 3px solid #C2A878; padding: 32px 0; margin: 40px 0; text-align: center; }
+.article-body .wp-block-pullquote blockquote { border: none; background: none; padding: 0; margin: 0; }
 .article-body .wp-block-pullquote p { font-size: 22px; font-weight: 700; color: #1E293B; font-style: italic; letter-spacing: -0.02em; margin: 0; }
+
+/* ── Buttons (WP) ── */
+.article-body .wp-block-button { margin: 28px 0; }
+.article-body .wp-block-button__link { display: inline-block; background: #1E293B; color: #fff !important; text-decoration: none !important; font-weight: 700; padding: 12px 26px; border-radius: 100px; font-size: 14px; }
+
+/* ── Mobile tightening ── */
+@media (max-width: 640px) {
+  .article-body p, .article-body li { font-size: 16px; line-height: 1.78; }
+  .article-body figure, .article-body .wp-block-image, .article-body .wp-block-embed { margin: 24px 0; }
+  .article-body figure img, .article-body .wp-block-image img, .article-body img { border-radius: 10px; }
+  .article-body h2, .article-body .wp-block-heading h2 { margin-top: 40px; }
+  .article-body h3, .article-body .wp-block-heading h3 { margin-top: 28px; }
+  .article-body .alignleft, .article-body .alignright,
+  .article-body .wp-block-image.alignleft, .article-body .wp-block-image.alignright { float: none; margin: 24px auto; max-width: 100%; }
+  .article-body .alignwide, .article-body .wp-block-image.alignwide { margin-left: 0; margin-right: 0; max-width: 100%; }
+}
 `;
 
 function isHtml(text: string): boolean {
@@ -210,12 +258,12 @@ function buildPostSchema(post: BlogPost): Record<string, unknown>[] {
   const base: Record<string, unknown> = {
     "headline": seo.seoTitle || post.title,
     "description": seo.metaDescription || post.excerpt,
-    "url": `${SITE}/insights/${post.slug}`,
+    "url": `${SITE}/blog/${post.slug}`,
     "datePublished": post.date,
     "image": post.featuredImage || `${SITE}/opengraph.jpg`,
     "author": { "@type": "Person", "@id": `${SITE}/#suraj-sharma`, "name": "Suraj Sharma" },
     "publisher": { "@type": "Organization", "@id": `${SITE}/#organization`, "name": "GrowitBuddy" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": `${SITE}/insights/${post.slug}` },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": `${SITE}/blog/${post.slug}` },
     "keywords": [seo.focusKeyword, seo.secondaryKeywords].filter(Boolean).join(", ") || post.tag,
     "articleSection": post.tag,
     "inLanguage": "en-US",
@@ -226,8 +274,8 @@ function buildPostSchema(post: BlogPost): Record<string, unknown>[] {
     "@type": "BreadcrumbList",
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Home", "item": SITE },
-      { "@type": "ListItem", "position": 2, "name": "Insights", "item": `${SITE}/insights` },
-      { "@type": "ListItem", "position": 3, "name": post.title, "item": `${SITE}/insights/${post.slug}` },
+      { "@type": "ListItem", "position": 2, "name": "Blog", "item": `${SITE}/blog` },
+      { "@type": "ListItem", "position": 3, "name": post.title, "item": `${SITE}/blog/${post.slug}` },
     ],
   });
 
@@ -313,7 +361,7 @@ export default function InsightDetail() {
       <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', sans-serif" }}>
         <div style={{ textAlign: "center" }}>
           <h1 style={{ fontWeight: 800, fontSize: 40, letterSpacing: "-0.04em", color: "#0A0A0A", marginBottom: 12 }}>Post not found</h1>
-          <Link href="/insights">
+          <Link href="/blog">
             <span style={{ fontSize: 15, fontWeight: 600, color: "#0A0A0A", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
               <ArrowLeft className="w-4 h-4" /> Back to Insights
             </span>
@@ -339,7 +387,7 @@ export default function InsightDetail() {
       {/* Hero */}
       <section style={{ paddingTop: 96, paddingBottom: 0, background: "#FFFFFF" }}>
         <div className="max-w-[760px] mx-auto px-6">
-          <Link href="/insights">
+          <Link href="/blog">
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "#7A7A85", cursor: "pointer", marginBottom: 36, letterSpacing: "0.01em" }}>
               <ArrowLeft className="w-3.5 h-3.5" /> All Insights
             </span>
@@ -352,23 +400,30 @@ export default function InsightDetail() {
             <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, color: "#7A7A85", fontWeight: 500 }}>
               <Calendar className="w-3 h-3" /> {post.date}
             </span>
-            {post.source === "wordpress" && (
-              <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(11,11,11,0.3)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                via WordPress
-              </span>
-            )}
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, color: "#7A7A85", fontWeight: 500 }}>
+              · {post.readTime ?? "5 min read"}
+            </span>
+          </div>
+
+          {/* Author byline */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28 }}>
+            <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg, #1E293B, #334155)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800, letterSpacing: "0.02em" }}>SS</div>
+            <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.25 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#0A0A0A" }}>Suraj Sharma</span>
+              <span style={{ fontSize: 11, color: "#7A7A85", fontWeight: 500 }}>Founder, GrowitBuddy</span>
+            </div>
           </div>
 
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            style={{ fontWeight: 900, fontSize: "clamp(22px, 5vw, 52px)", letterSpacing: "-0.04em", lineHeight: "1.1", color: "#0A0A0A", marginBottom: post.source === "wordpress" ? 0 : 22 }}
+            style={{ fontWeight: 900, fontSize: "clamp(22px, 5vw, 52px)", letterSpacing: "-0.04em", lineHeight: "1.1", color: "#0A0A0A", marginBottom: 22 }}
           >
             {post.title}
           </motion.h1>
 
-          {post.source !== "wordpress" && post.excerpt && (
+          {post.excerpt && (
             <motion.p
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -393,11 +448,11 @@ export default function InsightDetail() {
           </div>
         )}
 
-        <div style={{ height: 1, background: "rgba(10,10,10,0.03)", marginTop: post.featuredImage ? (post.source === "wordpress" ? 24 : 40) : 0 }} />
+        <div style={{ height: 1, background: "rgba(10,10,10,0.03)", marginTop: post.featuredImage ? 40 : 0 }} />
       </section>
 
       {/* Article body */}
-      <section style={{ padding: `${post.source === "wordpress" ? "40px" : "64px"} 24px 80px`, background: "#FFFFFF" }}>
+      <section style={{ padding: "64px 24px 80px", background: "#FFFFFF" }}>
         <div className="article-body max-w-[680px] mx-auto">
           {isHtml(post.content)
             ? <div dangerouslySetInnerHTML={{ __html: post.content }} />
@@ -427,7 +482,7 @@ export default function InsightDetail() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 300px), 1fr))", gap: 16 }}>
               {related.map((p, i) => (
                 <motion.div key={p.slug} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4, delay: i * 0.08 }}>
-                  <Link href={`/insights/${p.slug}`}>
+                  <Link href={`/blog/${p.slug}`}>
                     <div
                       style={{ background: "#FFFFFF", border: "1.5px solid #E5E5E0", borderRadius: 18, overflow: "hidden", cursor: "pointer", transition: "transform 0.2s, box-shadow 0.2s", height: "100%", display: "flex", flexDirection: "column" }}
                       className="hover:-translate-y-1 hover:shadow-md"
