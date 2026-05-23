@@ -517,6 +517,22 @@ router.get("/certificates", authMiddleware, async (_req, res) => {
   res.json(rows);
 });
 
+// Admin lookup by certificateId — returns full record incl. isHidden so the
+// inline-edit overlay on /verify/:id can show hidden/revoked certs to admins.
+router.get("/certificates/by-id/:certificateId", authMiddleware, async (req, res) => {
+  const { certificateId } = req.params;
+  try {
+    const rows = await db
+      .select()
+      .from(certificates)
+      .where(eq(certificates.certificateId, certificateId));
+    if (rows.length === 0) { res.status(404).json({ error: "Certificate not found" }); return; }
+    res.json(rows[0]);
+  } catch {
+    res.status(500).json({ error: "Lookup failed" });
+  }
+});
+
 router.post("/certificates", authMiddleware, async (req, res) => {
   const { certificateId, name, email, role, issueDate, status } = req.body;
   if (!certificateId || !name || !role || !issueDate) {
