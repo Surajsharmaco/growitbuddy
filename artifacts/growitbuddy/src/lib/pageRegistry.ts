@@ -62,7 +62,7 @@ export const PAGE_REGISTRY: PageRegistryEntry[] = [
   { slug: "terms",                path: "/terms",                 label: "Terms of Service",    group: "Legal",    defaults: { title: "Terms of Service — GrowitBuddy",                                description: "GrowitBuddy terms of service." } },
 
   // Utility — default noindex (not meant for search)
-  { slug: "portfolio-private",    path: "/portfolio-private",     label: "Private Portfolio",   group: "Utility",  defaults: { title: "Private Portfolio — GrowitBuddy",                               description: "Private client portfolio.", index: false, sitemap: false } },
+  { slug: "portfolio",            path: "/portfolio",             label: "Portfolio",           group: "Utility",  defaults: { title: "Portfolio — GrowitBuddy",                                       description: "Client portfolio.", index: false, sitemap: false } },
   { slug: "verify",               path: "/verify",                label: "Verify Certificate",  group: "Utility",  defaults: { title: "Verify Certificate — GrowitBuddy",                              description: "Verify a GrowitBuddy certificate.", index: false, sitemap: false } },
   { slug: "verify-id",            path: "/verify/:id",            label: "Verify Detail",       group: "Utility",  defaults: { title: "Certificate Verification — GrowitBuddy",                        description: "Verify a specific certificate.", index: false, sitemap: false } },
 ];
