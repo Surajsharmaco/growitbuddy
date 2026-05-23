@@ -38,6 +38,7 @@ const Privacy              = lazy(() => import("@/pages/Privacy"));
 const Terms                = lazy(() => import("@/pages/Terms"));
 const NotFound             = lazy(() => import("@/pages/not-found"));
 const SEOGuide             = lazy(() => import("@/pages/SEOGuide"));
+const SiteGuide            = lazy(() => import("@/pages/SiteGuide"));
 const CreatorSchool        = lazy(() => import("@/pages/CreatorSchool"));
 const DesignersPool        = lazy(() => import("@/pages/DesignersPool"));
 const ThumbnailDesignersPool = lazy(() => import("@/pages/ThumbnailDesignersPool"));
@@ -256,6 +257,7 @@ function App() {
                       <Route path="/portfolio-private">{() => <Redirect to="/portfolio" />}</Route>
                       <Route path="/portfolio-private/:category">{(p) => <Redirect to={`/portfolio/${p.category}`} />}</Route>
                       <Route path="/resources">{() => <PageGate slug="resources"><Resources /></PageGate>}</Route>
+                      <Route path="/guide">{() => <SiteGuide />}</Route>
                       <Route path="/about">{() => <PageGate slug="about"><About /></PageGate>}</Route>
                       <Route path="/contact">{() => <PageGate slug="contact"><Contact /></PageGate>}</Route>
                       <Route path="/verify/:id">{() => <PageGate slug="verify"><VerifyCertificate /></PageGate>}</Route>

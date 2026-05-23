@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, ExternalLink, Play, CheckCircle, ChevronRight } from "lucide-react";
 import SEOMeta from "@/components/SEOMeta";
