@@ -230,8 +230,7 @@ export default function Career() {
           <div
             role="tablist"
             aria-label="Choose application type"
-            className="grid grid-cols-3 gap-1.5 sm:gap-2 w-full sm:w-auto sm:inline-flex sm:flex-wrap"
-            style={{ background: "#FFFFFF", border: "1px solid #E5E5E0", borderRadius: 14, padding: 6 }}
+            className="career-tablist"
           >
             {TYPE_OPTIONS.map((opt) => {
               const active = type === opt.value;
@@ -242,37 +241,91 @@ export default function Career() {
                   aria-selected={active}
                   onClick={() => switchType(opt.value)}
                   data-testid={`career-tab-${opt.value}`}
-                  className="career-tab-btn"
-                  style={{
-                    borderRadius: 10,
-                    border: "none",
-                    background: active ? "#1E293B" : "transparent",
-                    color: active ? "#FFFFFF" : "#5F5F5F",
-                    fontFamily: "'Inter', sans-serif",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    transition: "all 0.18s",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-start",
-                    gap: 2,
-                    width: "100%",
-                  }}
+                  className={`career-tab-btn${active ? " is-active" : ""}`}
                 >
                   <span className="career-tab-label">{opt.label}</span>
-                  <span className="career-tab-sub" style={{ opacity: active ? 0.85 : 0.65 }}>{opt.sub}</span>
+                  <span className="career-tab-sub">{opt.sub}</span>
+                  <span className="career-tab-arrow" aria-hidden="true">→</span>
                 </button>
               );
             })}
           </div>
           <style>{`
-            .career-tab-btn { padding: 8px 10px; }
-            .career-tab-label { font-size: 13px; font-weight: 700; line-height: 1.2; }
-            .career-tab-sub { font-size: 10.5px; font-weight: 500; line-height: 1.2; }
+            .career-tablist {
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+              width: 100%;
+              background: #FFFFFF;
+              border: 1px solid #E5E5E0;
+              border-radius: 16px;
+              padding: 8px;
+            }
+            .career-tab-btn {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              width: 100%;
+              padding: 14px 16px;
+              border: none;
+              border-radius: 12px;
+              background: transparent;
+              color: #5F5F5F;
+              font-family: 'Inter', sans-serif;
+              font-weight: 600;
+              cursor: pointer;
+              transition: background 0.18s, color 0.18s;
+              text-align: left;
+            }
+            .career-tab-btn:hover { background: #F5F5F0; }
+            .career-tab-btn.is-active { background: #1E293B; color: #FFFFFF; }
+            .career-tab-btn.is-active:hover { background: #1E293B; }
+            .career-tab-label {
+              font-size: 15px;
+              font-weight: 700;
+              line-height: 1.2;
+              flex-shrink: 0;
+            }
+            .career-tab-sub {
+              font-size: 13px;
+              font-weight: 500;
+              opacity: 0.7;
+              line-height: 1.2;
+              flex: 1;
+            }
+            .career-tab-arrow {
+              font-size: 16px;
+              opacity: 0;
+              transform: translateX(-4px);
+              transition: opacity 0.18s, transform 0.18s;
+            }
+            .career-tab-btn.is-active .career-tab-arrow {
+              opacity: 1;
+              transform: translateX(0);
+            }
             @media (min-width: 640px) {
-              .career-tab-btn { padding: 10px 18px; min-width: 140px; width: auto !important; }
+              .career-tablist {
+                display: inline-flex;
+                flex-direction: row;
+                flex-wrap: wrap;
+                width: auto;
+                gap: 6px;
+                padding: 6px;
+                border-radius: 14px;
+              }
+              .career-tab-btn {
+                width: auto;
+                min-width: 150px;
+                padding: 10px 18px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 2px;
+                border-radius: 10px;
+              }
               .career-tab-label { font-size: 14px; }
-              .career-tab-sub { font-size: 11px; }
+              .career-tab-sub { font-size: 11px; opacity: 0.65; flex: none; }
+              .career-tab-btn.is-active .career-tab-sub { opacity: 0.85; }
+              .career-tab-arrow { display: none; }
             }
           `}</style>
         </div>
