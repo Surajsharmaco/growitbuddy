@@ -303,12 +303,11 @@ export function Navbar() {
           </div>
 
           <button
-            className="lg:hidden"
             style={{
               color: "#0A0A0A",
-              background: isOpen ? "rgba(30,41,59,0.06)" : "transparent",
+              background: isOpen ? "rgba(30,41,59,0.08)" : "transparent",
               border: "1px solid",
-              borderColor: isOpen ? "rgba(30,41,59,0.12)" : "rgba(10,10,10,0.06)",
+              borderColor: isOpen ? "rgba(30,41,59,0.18)" : "rgba(10,10,10,0.08)",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
@@ -319,10 +318,12 @@ export function Navbar() {
               flexShrink: 0,
               transition: "all 0.18s",
               position: "relative",
+              marginLeft: 8,
+              zIndex: 60,
             }}
             onClick={() => setIsOpen(!isOpen)}
             data-testid="button-mobile-menu"
-            aria-label="Toggle menu"
+            aria-label={isOpen ? "Close menu" : "Open menu"}
             aria-expanded={isOpen}
           >
             <span style={{ position: "relative", width: 18, height: 14, display: "inline-block" }}>
@@ -351,42 +352,93 @@ export function Navbar() {
 
       <AnimatePresence>
         {isOpen && (
-          <>
-            {/* Backdrop — taps anywhere outside the panel closes it */}
-            <m.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
-              onClick={() => setIsOpen(false)}
-              style={{ position: "fixed", top: 72, left: 0, right: 0, bottom: 0, zIndex: 39, background: "rgba(10,10,10,0.35)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }}
-              aria-hidden
-            />
-            {/* Sheet — drops down from the navbar with a subtle spring */}
-            <m.div
-              initial={{ opacity: 0, y: -16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              role="dialog"
-              aria-label="Mobile navigation"
-              className="lg:hidden"
-              style={{
-                position: "fixed",
-                top: 72,
-                left: 0,
-                right: 0,
-                zIndex: 40,
-                background: "#FFFFFF",
-                borderBottom: "1px solid #E5E5E0",
-                borderBottomLeftRadius: 24,
-                borderBottomRightRadius: 24,
-                boxShadow: "0 24px 60px rgba(10,10,10,0.12)",
-                maxHeight: "calc(100vh - 72px - 16px)",
-                overflowY: "auto",
-                padding: "20px 18px 24px",
-              }}
-            >
-              <nav style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <m.div
+            key="gb-fullscreen-menu"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Site navigation"
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 55,
+              background: "#0A0A0A",
+              color: "#FFFFFF",
+              overflowY: "auto",
+              fontFamily: "'Inter', sans-serif",
+            }}
+          >
+            {/* Subtle radial glow + grain for depth */}
+            <div aria-hidden style={{
+              position: "absolute", inset: 0, pointerEvents: "none",
+              background: "radial-gradient(ellipse 80% 60% at 20% 0%, rgba(194,168,120,0.10), transparent 60%), radial-gradient(ellipse 60% 60% at 100% 100%, rgba(30,41,59,0.6), transparent 70%)",
+            }} />
+
+            {/* Top bar — logo + close, matches navbar height */}
+            <div style={{
+              position: "relative",
+              height: 72,
+              padding: "0 20px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              maxWidth: 1400,
+              margin: "0 auto",
+              width: "100%",
+            }}>
+              <Link href="/">
+                <span
+                  onClick={() => setIsOpen(false)}
+                  className="inline-flex items-center gap-2 cursor-pointer"
+                >
+                  <img
+                    src={`${import.meta.env.BASE_URL}logo-circle.png`}
+                    alt="GrowitBuddy"
+                    style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover" }}
+                  />
+                  <span style={{ fontSize: 18, fontWeight: 800, color: "#FFFFFF", letterSpacing: "-0.03em" }}>
+                    {navbar.logo}
+                  </span>
+                </span>
+              </Link>
+              <button
+                onClick={() => setIsOpen(false)}
+                aria-label="Close menu"
+                style={{
+                  width: 42, height: 42, borderRadius: 12,
+                  background: "rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  color: "#FFFFFF",
+                  cursor: "pointer",
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  transition: "background 0.15s, border-color 0.15s",
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.12)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}
+              >
+                <span style={{ position: "relative", width: 16, height: 16, display: "inline-block" }} aria-hidden>
+                  <span style={{ position: "absolute", left: 0, right: 0, top: 7, height: 2, borderRadius: 2, background: "#FFF", transform: "rotate(45deg)" }} />
+                  <span style={{ position: "absolute", left: 0, right: 0, top: 7, height: 2, borderRadius: 2, background: "#FFF", transform: "rotate(-45deg)" }} />
+                </span>
+              </button>
+            </div>
+
+            {/* Main content — two columns on desktop, stacked on mobile */}
+            <div style={{
+              position: "relative",
+              maxWidth: 1400,
+              margin: "0 auto",
+              padding: "clamp(16px, 4vw, 56px) 20px clamp(40px, 6vw, 80px)",
+              display: "grid",
+              gridTemplateColumns: "1fr",
+              gap: "clamp(24px, 4vw, 56px)",
+            }} className="gb-menu-grid">
+              {/* Left — primary links */}
+              <nav style={{ display: "flex", flexDirection: "column", gap: "clamp(2px, 0.6vw, 6px)" }}>
                 {(() => {
-                  // Flatten: simple links inline; dropdowns rendered as a labelled group.
                   const items: Array<{ kind: "link"; href: string; label: string } | { kind: "group"; label: string; items: NavDropdownItem[] }> = [];
                   NAV_LINKS.forEach((l) => {
                     if (l.dropdown) items.push({ kind: "group", label: l.label, items: l.dropdown });
@@ -401,35 +453,45 @@ export function Navbar() {
                       return (
                         <m.div
                           key={it.href}
-                          initial={{ opacity: 0, x: -8 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.04 + i * 0.03, duration: 0.25, ease: "easeOut" }}
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.06 + i * 0.05, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                         >
                           <Link href={it.href}>
                             <span
                               onClick={() => setIsOpen(false)}
+                              className="gb-menu-link"
                               style={{
-                                fontFamily: "'Inter', sans-serif",
-                                fontSize: 17,
-                                fontWeight: active ? 700 : 600,
-                                color: active ? "#0A0A0A" : "#1E293B",
-                                cursor: "pointer",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "space-between",
-                                letterSpacing: "-0.015em",
-                                padding: "14px 16px",
-                                borderRadius: 12,
-                                background: active ? "rgba(30,41,59,0.06)" : "transparent",
+                                padding: "clamp(8px, 1.4vw, 14px) 0",
+                                fontSize: "clamp(32px, 6.5vw, 64px)",
+                                fontWeight: 800,
+                                letterSpacing: "-0.04em",
+                                lineHeight: 1.05,
+                                color: active ? "#FFFFFF" : "rgba(255,255,255,0.55)",
+                                cursor: "pointer",
+                                transition: "color 0.18s",
                                 position: "relative",
-                                transition: "background 0.15s",
                               }}
                             >
-                              <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-                                {active && <span style={{ width: 4, height: 18, borderRadius: 4, background: "var(--gb-accent)" }} aria-hidden />}
+                              <span style={{ display: "inline-flex", alignItems: "baseline", gap: 14 }}>
+                                <span style={{
+                                  fontSize: "clamp(11px, 1.2vw, 13px)",
+                                  fontWeight: 700,
+                                  letterSpacing: "0.18em",
+                                  color: "rgba(194,168,120,0.65)",
+                                  fontFamily: "'Inter', sans-serif",
+                                  width: 28,
+                                  display: "inline-block",
+                                  transform: "translateY(-2px)",
+                                }}>
+                                  {String(i + 1).padStart(2, "0")}
+                                </span>
                                 {it.label}
                               </span>
-                              <ArrowUpRight className="w-4 h-4" style={{ opacity: active ? 0.7 : 0.35, color: "#1E293B" }} />
+                              <ArrowUpRight className="gb-menu-arrow" style={{ width: 28, height: 28, opacity: 0, transform: "translateX(-12px)", transition: "opacity 0.2s, transform 0.25s", color: "#C2A878" }} />
                             </span>
                           </Link>
                         </m.div>
@@ -439,21 +501,15 @@ export function Navbar() {
                     return (
                       <m.div
                         key={it.label}
-                        initial={{ opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.04 + i * 0.03, duration: 0.25, ease: "easeOut" }}
-                        style={{ padding: "10px 4px 6px" }}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.06 + i * 0.05, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                        style={{ paddingTop: "clamp(10px, 1.4vw, 16px)" }}
                       >
                         <p style={{
-                          fontFamily: "'Inter', sans-serif",
-                          fontSize: 10,
-                          fontWeight: 800,
-                          letterSpacing: "0.18em",
-                          textTransform: "uppercase",
-                          color: "#A0A0A8",
-                          margin: 0,
-                          marginBottom: 4,
-                          paddingLeft: 12,
+                          fontSize: 11, fontWeight: 800, letterSpacing: "0.22em",
+                          textTransform: "uppercase", color: "rgba(194,168,120,0.7)",
+                          margin: 0, marginBottom: 8, paddingLeft: 42,
                         }}>{it.label}</p>
                         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                           {it.items.map((sub) => {
@@ -462,26 +518,23 @@ export function Navbar() {
                               <Link key={sub.href} href={sub.href}>
                                 <span
                                   onClick={() => setIsOpen(false)}
+                                  className="gb-menu-link"
                                   style={{
-                                    fontFamily: "'Inter', sans-serif",
-                                    fontSize: 16,
-                                    fontWeight: active ? 700 : 500,
-                                    color: active ? "#0A0A0A" : "#5F5F5F",
-                                    cursor: "pointer",
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "space-between",
-                                    padding: "11px 16px",
-                                    borderRadius: 10,
-                                    background: active ? "rgba(30,41,59,0.06)" : "transparent",
-                                    transition: "background 0.15s",
+                                    padding: "clamp(6px, 1vw, 10px) 0 clamp(6px, 1vw, 10px) 42px",
+                                    fontSize: "clamp(22px, 4.5vw, 38px)",
+                                    fontWeight: 700,
+                                    letterSpacing: "-0.03em",
+                                    lineHeight: 1.1,
+                                    color: active ? "#FFFFFF" : "rgba(255,255,255,0.5)",
+                                    cursor: "pointer",
+                                    transition: "color 0.18s",
                                   }}
                                 >
-                                  <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-                                    {active && <span style={{ width: 4, height: 14, borderRadius: 4, background: "var(--gb-accent)" }} aria-hidden />}
-                                    {sub.label}
-                                  </span>
-                                  <ArrowUpRight className="w-3.5 h-3.5" style={{ opacity: active ? 0.7 : 0.3, color: "#1E293B" }} />
+                                  {sub.label}
+                                  <ArrowUpRight className="gb-menu-arrow" style={{ width: 22, height: 22, opacity: 0, transform: "translateX(-12px)", transition: "opacity 0.2s, transform 0.25s", color: "#C2A878" }} />
                                 </span>
                               </Link>
                             );
@@ -491,62 +544,102 @@ export function Navbar() {
                     );
                   });
                 })()}
-
-                {/* Soft divider */}
-                <div style={{ height: 1, background: "linear-gradient(to right, transparent, rgba(10,10,10,0.08), transparent)", margin: "14px 4px 12px" }} />
-
-                {/* CTAs */}
-                <m.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22, duration: 0.25 }} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <button
-                    onClick={() => { setIsOpen(false); goContact("cal"); }}
-                    style={{
-                      width: "100%",
-                      padding: "15px 18px",
-                      fontSize: 15,
-                      fontWeight: 700,
-                      fontFamily: "'Inter', sans-serif",
-                      color: "#FFFFFF",
-                      background: "linear-gradient(135deg, #1E293B 0%, #334155 100%)",
-                      border: "none",
-                      borderRadius: 14,
-                      cursor: "pointer",
-                      letterSpacing: "-0.01em",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 8,
-                      boxShadow: "0 8px 24px rgba(30,41,59,0.18)",
-                    }}
-                  >
-                    {navbar.ctaLabel}
-                    <ArrowUpRight className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => { setIsOpen(false); goContact("form"); }}
-                    style={{
-                      width: "100%",
-                      padding: "14px 18px",
-                      fontSize: 15,
-                      fontWeight: 600,
-                      fontFamily: "'Inter', sans-serif",
-                      color: "#1E293B",
-                      background: "transparent",
-                      border: "1.5px solid rgba(30,41,59,0.18)",
-                      borderRadius: 14,
-                      cursor: "pointer",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 8,
-                    }}
-                  >
-                    Get In Touch
-                    <ArrowUpRight className="w-3.5 h-3.5" />
-                  </button>
-                </m.div>
               </nav>
-            </m.div>
-          </>
+
+              {/* Right — meta: CTAs, contact, year */}
+              <m.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 32 }}
+                className="gb-menu-side"
+              >
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(194,168,120,0.7)", margin: 0, marginBottom: 16 }}>
+                    Ready to grow?
+                  </p>
+                  <p style={{ fontSize: "clamp(18px, 2vw, 22px)", fontWeight: 500, lineHeight: 1.5, color: "rgba(255,255,255,0.9)", margin: 0, marginBottom: 24, letterSpacing: "-0.01em" }}>
+                    Let's turn your expertise into the kind of authority that compounds.
+                  </p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    <button
+                      onClick={() => { setIsOpen(false); goContact("cal"); }}
+                      style={{
+                        width: "100%",
+                        padding: "16px 22px",
+                        fontSize: 15,
+                        fontWeight: 700,
+                        fontFamily: "'Inter', sans-serif",
+                        color: "#0A0A0A",
+                        background: "linear-gradient(135deg, #C2A878 0%, #B8975F 100%)",
+                        border: "none",
+                        borderRadius: 100,
+                        cursor: "pointer",
+                        letterSpacing: "-0.01em",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 8,
+                        boxShadow: "0 10px 28px rgba(194,168,120,0.28)",
+                        transition: "transform 0.18s, box-shadow 0.18s",
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}
+                    >
+                      {navbar.ctaLabel}
+                      <ArrowUpRight className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => { setIsOpen(false); goContact("form"); }}
+                      style={{
+                        width: "100%",
+                        padding: "15px 22px",
+                        fontSize: 15,
+                        fontWeight: 600,
+                        fontFamily: "'Inter', sans-serif",
+                        color: "#FFFFFF",
+                        background: "rgba(255,255,255,0.04)",
+                        border: "1px solid rgba(255,255,255,0.18)",
+                        borderRadius: 100,
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 8,
+                        transition: "background 0.15s, border-color 0.15s",
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.1)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.3)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.18)"; }}
+                    >
+                      Get In Touch
+                      <ArrowUpRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 24, display: "flex", flexDirection: "column", gap: 10 }}>
+                  <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", margin: 0 }}>
+                    Get in touch
+                  </p>
+                  <a href="mailto:hello@growitbuddy.com" style={{ fontSize: 17, fontWeight: 600, color: "#FFFFFF", textDecoration: "none", letterSpacing: "-0.01em" }}>
+                    hello@growitbuddy.com
+                  </a>
+                  <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: 0 }}>
+                    © {new Date().getFullYear()} GrowitBuddy
+                  </p>
+                </div>
+              </m.div>
+            </div>
+
+            {/* Hover-state CSS for big menu links */}
+            <style>{`
+              .gb-menu-link:hover { color: #FFFFFF !important; }
+              .gb-menu-link:hover .gb-menu-arrow { opacity: 1 !important; transform: translateX(0) !important; }
+              @media (min-width: 900px) {
+                .gb-menu-grid { grid-template-columns: 1.6fr 1fr !important; }
+              }
+            `}</style>
+          </m.div>
         )}
       </AnimatePresence>
     </>
