@@ -313,6 +313,37 @@ function enhanceWpHtml(html: string): string {
     });
 }
 
+/** Detect whether the WP-authored HTML already contains its own Table of Contents,
+ *  so we don't render a duplicate one. Covers the major WP TOC plugins + native
+ *  Gutenberg block + manual TOCs (a heading like "Table of Contents" followed by
+ *  an anchor-link list). */
+function hasInlineToc(html: string): boolean {
+  if (!html) return false;
+  // Known plugin / Gutenberg class hooks
+  const pluginRe = /class\s*=\s*["'][^"']*(?:ez-toc|lwptoc|wp-block-table-of-contents|toc_container|kb-table-of-content|rank-math-toc|rmp-toc|ultimate-blocks\/table-of-contents)[^"']*["']/i;
+  if (pluginRe.test(html)) return true;
+  // Element ids commonly used by TOC plugins
+  if (/id\s*=\s*["'](?:ez-toc-container|lwptoc|toc-container|table-of-contents)["']/i.test(html)) return true;
+  // Manual TOC: a heading like "Table of Contents" / "On this page" / "Contents" / "In this article"
+  // Look only in the first ~2500 chars to keep it cheap and intent-focused (TOCs live at the top).
+  const head = html.slice(0, 2500);
+  if (/<h[1-4][^>]*>\s*(?:📋\s*)?(?:table\s+of\s+contents?|contents|on\s+this\s+page|in\s+this\s+article|jump\s+to)\s*[:?]?\s*<\/h[1-4]>/i.test(head)) return true;
+  // Density heuristic: 3+ in-page anchor links clustered near the top
+  const anchorMatches = head.match(/<a\b[^>]*href\s*=\s*["']#[^"']+["']/gi);
+  if (anchorMatches && anchorMatches.length >= 3) return true;
+  return false;
+}
+
+/** Detect whether the WP-authored HTML already contains its own TL;DR / summary /
+ *  key-takeaway block, so we don't show ours on top of theirs. */
+function hasInlineTldr(html: string): boolean {
+  if (!html) return false;
+  const head = html.slice(0, 2000);
+  if (/<h[1-4][^>]*>\s*(?:🔑|💡|⚡)?\s*(?:tl;?dr|key\s+takeaways?|key\s+points?|summary|in\s+short|the\s+gist|सारांश|मुख्य\s+बिंदु)\s*[:?]?\s*<\/h[1-4]>/i.test(head)) return true;
+  if (/class\s*=\s*["'][^"']*(?:tldr|key-takeaway|key-points|callout-summary|article-summary)[^"']*["']/i.test(head)) return true;
+  return false;
+}
+
 /** Pull H2 headings out of the rendered article (HTML or markdown) for the auto-TOC. */
 function extractToc(content: string): Array<{ id: string; text: string }> {
   const items: Array<{ id: string; text: string }> = [];
@@ -489,7 +520,11 @@ export default function InsightDetail() {
   const related = allPosts.filter((p) => p.slug !== slug).slice(0, 3);
 
   // Pre-compute heavy derived values once per post change.
-  const toc = useMemo(() => post ? extractToc(post.content) : [], [post]);
+  // Suppress our auto TOC + auto TL;DR when the WP content already has its own,
+  // so we never render a duplicate.
+  const wpHasToc = useMemo(() => post ? hasInlineToc(post.content) : false, [post]);
+  const wpHasTldr = useMemo(() => post ? hasInlineTldr(post.content) : false, [post]);
+  const toc = useMemo(() => (post && !wpHasToc) ? extractToc(post.content) : [], [post, wpHasToc]);
   const enhancedContent = useMemo(() => {
     if (!post) return "";
     return isHtml(post.content) ? addHeadingIds(enhanceWpHtml(post.content)) : post.content;
@@ -608,8 +643,10 @@ export default function InsightDetail() {
       {/* Article body */}
       <section className="gb-article-section" style={{ padding: "clamp(36px, 7vw, 64px) 18px 100px", background: "#FFFFFF" }}>
         <div className="max-w-[680px] mx-auto">
-          {/* TL;DR — Key takeaways for users + AI Overview / Speakable target */}
-          {post.excerpt && (
+          {/* TL;DR — Key takeaways for users + AI Overview / Speakable target.
+              Skipped automatically when the WP post already has its own summary
+              block (e.g. "Key Takeaways" H2) so we never duplicate. */}
+          {post.excerpt && !wpHasTldr && (
             <aside className="article-tldr" aria-label="Key takeaway" style={{ display: "flex", gap: 14, padding: "18px 20px", marginBottom: 32, background: "linear-gradient(135deg, #FFF7E6 0%, #FFEFD1 100%)", borderRadius: 16, border: "1px solid rgba(194,168,120,0.35)" }}>
               <div style={{ flexShrink: 0, width: 32, height: 32, borderRadius: 10, background: "#C2A878", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Sparkles className="w-4 h-4" />
