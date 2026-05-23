@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type ElementType } from "react";
 import { useAdmin } from "@/context/AdminContext";
+import { usePreviewMode } from "@/hooks/usePreviewMode";
 
 interface InlineTextProps {
   value: string;
@@ -28,6 +29,7 @@ export default function InlineText({
   ariaLabel,
 }: InlineTextProps) {
   const { isAuthenticated } = useAdmin();
+  const preview = usePreviewMode();
   const ref = useRef<HTMLElement | null>(null);
   const originalRef = useRef<string>(value);
   const [editing, setEditing] = useState(false);
@@ -40,7 +42,9 @@ export default function InlineText({
     }
   }, [value, editing]);
 
-  if (!isAuthenticated) {
+  // Visitors AND admins-in-preview-mode see plain text — the entire point of
+  // preview mode is to remove every trace of editing chrome.
+  if (!isAuthenticated || preview) {
     const Tag = (as ?? "span") as ElementType;
     return (
       <Tag style={style} className={className}>
