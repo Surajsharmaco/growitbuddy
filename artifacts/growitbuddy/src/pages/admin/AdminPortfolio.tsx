@@ -252,7 +252,7 @@ export default function AdminPortfolio() {
   const allCategories = ["All", ...CATEGORIES];
   const filtered = activeCategory === "All" ? items : items.filter((i) => i.category === activeCategory);
 
-  const portfolioUrl = window.location.origin + import.meta.env.BASE_URL.replace(/\/$/, "") + "/portfolio-private";
+  const portfolioUrl = window.location.origin + import.meta.env.BASE_URL.replace(/\/$/, "") + "/portfolio";
 
   return (
     <div style={{ maxWidth: 960, margin: "0 auto", padding: "40px 24px 80px" }}>
