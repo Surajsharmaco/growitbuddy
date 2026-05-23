@@ -8,8 +8,8 @@ Disallow: /admin/
 # Verification routes
 Disallow: /verify/
 
-# Static pages sitemap
-Sitemap: https://growitbuddy.com/sitemap.xml
+# Main pages sitemap (dynamic — admin-managed, respects per-page index toggles)
+Sitemap: https://growitbuddy.com/api/sitemap.xml
 
 # Blog posts sitemap (dynamic — WordPress + CMS, updated hourly)
 Sitemap: https://growitbuddy.com/api/sitemap-blog.xml
