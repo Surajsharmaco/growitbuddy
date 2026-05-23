@@ -6,7 +6,7 @@ import CountUp from "@/components/effects/CountUp";
 import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
 
-import { API_BASE } from "@/lib/api";
+import { API_BASE, resolveMediaUrl } from "@/lib/api";
 
 interface WorkItem {
   id: string;
@@ -301,7 +301,7 @@ export default function Work() {
                       </span>
                     ) : (
                       <img
-                        src={l.imageUrl}
+                        src={resolveMediaUrl(l.imageUrl)}
                         alt={l.altText || "Client"}
                         loading="lazy"
                         style={{ maxWidth: "80%", maxHeight: 44, objectFit: "contain", opacity: 0.75, transition: "opacity 0.2s" }}

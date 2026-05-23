@@ -78,7 +78,7 @@ export default function AdminAbout() {
             <Input label="Name" value={data.founderName} onChange={(e) => set("founderName", e.target.value)} />
             <Input label="Role / Title" value={data.founderRole} onChange={(e) => set("founderRole", e.target.value)} />
             <div className="col-span-2">
-              <ImagePickerField label="Photo" value={data.founderPhoto} onChange={(url) => set("founderPhoto", url)} shape="circle" size={72} />
+              <ImagePickerField label="Photo" value={data.founderPhoto} onChange={(url) => set("founderPhoto", url)} shape="circle" size={72} hint="Recommended: 400 × 400 px (square) • JPG or PNG • Face centered" />
             </div>
             <Textarea label="Bio" value={data.founderBio} onChange={(e) => set("founderBio", e.target.value)} rows={4} className="col-span-2" />
             <Input label="LinkedIn URL" value={data.founderLinkedin} onChange={(e) => set("founderLinkedin", e.target.value)} placeholder="https://linkedin.com/in/..." />
@@ -120,7 +120,7 @@ export default function AdminAbout() {
                   <Input value={m.name} onChange={(e) => { const tm = [...data.team]; tm[i] = { ...m, name: e.target.value }; set("team", tm); }} placeholder="Name" />
                   <Input value={m.role} onChange={(e) => { const tm = [...data.team]; tm[i] = { ...m, role: e.target.value }; set("team", tm); }} placeholder="Role" />
                   <div className="col-span-2">
-                    <ImagePickerField value={m.photo} onChange={(url) => { const tm = [...data.team]; tm[i] = { ...m, photo: url }; set("team", tm); }} shape="circle" />
+                    <ImagePickerField value={m.photo} onChange={(url) => { const tm = [...data.team]; tm[i] = { ...m, photo: url }; set("team", tm); }} shape="circle" hint="Recommended: 400 × 400 px (square)" />
                   </div>
                 </div>
                 <button onClick={() => set("team", data.team.filter((_, ti) => ti !== i))} className="p-1.5 text-[#0B0B0B]/25 hover:text-red-500 shrink-0"><Trash2 size={13} /></button>

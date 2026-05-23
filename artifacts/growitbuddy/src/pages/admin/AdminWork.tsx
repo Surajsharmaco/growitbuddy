@@ -105,7 +105,7 @@ function WorkRow({
             <Input label="Category" value={item.category} onChange={(e) => set({ category: e.target.value })} placeholder="Founder Brand" />
             <div className="col-span-2">
               <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-2 uppercase tracking-wider">Case Study Image</label>
-              <ImageCropUploader value={item.imageUrl} onChange={(url) => set({ imageUrl: url })} />
+              <ImageCropUploader value={item.imageUrl} onChange={(url) => set({ imageUrl: url })} hint="Recommended: 1200 × 800 px • JPG or PNG • Use 3:2 ratio so the image isn't cropped on cards" />
             </div>
             <Input label="Key Metric" value={item.metric} onChange={(e) => set({ metric: e.target.value })} placeholder="10x" />
             <Input label="Metric Label" value={item.metricLabel} onChange={(e) => set({ metricLabel: e.target.value })} placeholder="inbound leads in 90 days" />

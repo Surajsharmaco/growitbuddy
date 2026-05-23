@@ -133,14 +133,14 @@ export default function AdminSettings() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
             <div>
               <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-3 uppercase tracking-wider">Logo Image</label>
-              <ImageCropUploader value={data.logoUrl} onChange={(url) => set("logoUrl", url)} />
+              <ImageCropUploader value={data.logoUrl} onChange={(url) => set("logoUrl", url)} hint="Recommended: 240 × 80 px • PNG with transparent background • Shows in the navbar at ~32px tall" />
               {data.logoUrl && (
                 <p className="text-[10px] text-[#0B0B0B]/35 mt-1.5">Logo is saved and will be used site-wide once wired into the navbar</p>
               )}
             </div>
             <div>
               <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-3 uppercase tracking-wider">Favicon</label>
-              <ImageCropUploader value={data.faviconUrl} onChange={(url) => set("faviconUrl", url)} />
+              <ImageCropUploader value={data.faviconUrl} onChange={(url) => set("faviconUrl", url)} hint="Recommended: 64 × 64 px (square) • PNG or ICO • Shows in the browser tab" />
               <p className="text-[10px] text-[#0B0B0B]/35 mt-1.5">Upload a square PNG or ICO (32×32 or 64×64 recommended). Changes apply after saving.</p>
             </div>
           </div>

@@ -2,7 +2,7 @@ import { useRef, useState, useId } from "react";
 import { Upload, Images, X, UserCircle2 } from "lucide-react";
 import { MediaLibrary } from "./MediaLibrary";
 import { useAdmin } from "@/context/AdminContext";
-import { API_BASE as API } from "@/lib/api";
+import { API_BASE as API, resolveMediaUrl } from "@/lib/api";
 
 interface Props {
   value: string;
@@ -10,9 +10,10 @@ interface Props {
   label?: string;
   shape?: "square" | "circle";
   size?: number;
+  hint?: string;
 }
 
-export function ImagePickerField({ value, onChange, label, shape = "circle", size = 56 }: Props) {
+export function ImagePickerField({ value, onChange, label, shape = "circle", size = 56, hint }: Props) {
   const { authFetch } = useAdmin();
   const uid = useId();
   const inputId = `imgpick_${uid.replace(/:/g, "")}`;
@@ -37,7 +38,7 @@ export function ImagePickerField({ value, onChange, label, shape = "circle", siz
       });
       if (res.ok) {
         const { url } = await res.json() as { url: string };
-        onChange(url);
+        onChange(resolveMediaUrl(url));
       } else {
         const data = await res.json().catch(() => ({}));
         setUploadError((data as { error?: string }).error ?? `Upload failed (${res.status})`);
@@ -73,7 +74,7 @@ export function ImagePickerField({ value, onChange, label, shape = "circle", siz
         style={{ width: size, height: size, borderRadius: radius, flexShrink: 0, border: "1.5px solid rgba(11,11,11,0.1)", overflow: "hidden", background: "#f5f5f5", display: "flex", alignItems: "center", justifyContent: "center" }}
       >
         {value ? (
-          <img src={value} alt={label ?? "photo"} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <img src={resolveMediaUrl(value)} alt={label ?? "photo"} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         ) : (
           <UserCircle2 size={size * 0.45} style={{ color: "rgba(11,11,11,0.2)" }} />
         )}
@@ -108,6 +109,9 @@ export function ImagePickerField({ value, onChange, label, shape = "circle", siz
           <p className="text-[10px] text-red-600 mt-1">{uploadError}</p>
         )}
         </div>
+        {hint && !uploadError && (
+          <p className="text-[10px] text-[#0B0B0B]/45 mt-0.5">{hint}</p>
+        )}
       </div>
     </div>
   );

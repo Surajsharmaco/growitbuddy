@@ -439,7 +439,7 @@ export default function AdminSEO() {
                     <ImageUrlField label="OG Image" value={seo.ogImage ?? ""}
                       placeholder="/opengraph.jpg or https://..."
                       onChange={(url) => update("ogImage", url)}
-                      hint="Recommended 1200×630px. Paste a URL, upload a file, or pick from the Media Library. Leave empty to use site default." />
+                      hint="Recommended: 1200 × 630 px • JPG or PNG • Shown when this page is shared on Facebook, LinkedIn, WhatsApp, etc. Leave empty to use site default." />
                     <Field label="OG Type">
                       <select value={seo.ogType ?? "website"} onChange={(e) => update("ogType", e.target.value as "website" | "article")}
                         className="w-full border border-[#0B0B0B]/12 rounded-xl px-3.5 py-2.5 text-[14px] bg-white outline-none focus:border-[#0B0B0B]/40">
@@ -474,7 +474,7 @@ export default function AdminSEO() {
                     <ImageUrlField label="Twitter Image" value={seo.twitterImage ?? ""}
                       placeholder="Leave empty to use OG image"
                       onChange={(url) => update("twitterImage", url)}
-                      hint="Paste a URL, upload a file, or pick from the Media Library." />
+                      hint="Recommended: 1200 × 630 px • JPG or PNG • Shown when this page is shared on Twitter / X. Leave empty to use OG image." />
                   </div>
                   <div>
                     <div className="text-[10px] uppercase tracking-wider text-[#0B0B0B]/40 mb-2 font-semibold">Preview</div>

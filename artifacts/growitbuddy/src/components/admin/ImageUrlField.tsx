@@ -125,7 +125,7 @@ export function ImageUrlField({
           style={{ height: previewHeight }}
         >
           <img
-            src={value}
+            src={resolveMediaUrl(value)}
             alt={label ?? "preview"}
             className="w-full h-full object-cover"
             onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}

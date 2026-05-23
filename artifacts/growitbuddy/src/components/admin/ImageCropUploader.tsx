@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useId } from "react";
 import { Upload, X, RotateCcw, Check, Crop, Images } from "lucide-react";
 import { MediaLibrary } from "./MediaLibrary";
 import { useAdmin } from "@/context/AdminContext";
-import { API_BASE as API } from "@/lib/api";
+import { API_BASE as API, resolveMediaUrl } from "@/lib/api";
 
 type Handle = "tl" | "tr" | "bl" | "br" | "move" | "new";
 type AspectKey = "free" | "16:9" | "4:3" | "1:1" | "3:4";
@@ -33,9 +33,9 @@ function roundedRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w:
   ctx.closePath();
 }
 
-interface Props { value: string; onChange: (url: string) => void; }
+interface Props { value: string; onChange: (url: string) => void; hint?: string; }
 
-export function ImageCropUploader({ value, onChange }: Props) {
+export function ImageCropUploader({ value, onChange, hint }: Props) {
   const { authFetch } = useAdmin();
   const uid = useId();
   const inputId = `img_upload_${uid.replace(/:/g, "")}`;
@@ -255,13 +255,14 @@ export function ImageCropUploader({ value, onChange }: Props) {
           >
             <Images size={13} /> Choose from library
           </button>
+          {hint && <p className="text-[11px] text-[#0B0B0B]/45">{hint}</p>}
         </div>
       )}
 
       {stage === "done" && (
         <div className="space-y-2">
           <div className="relative rounded-xl overflow-hidden group" style={{ height: 150 }}>
-            <img src={finalSrc} alt="Featured" className="w-full h-full object-cover" />
+            <img src={resolveMediaUrl(finalSrc)} alt="Featured" className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
               <button onClick={() => setStage("crop")}
                 className="bg-white text-[#0B0B0B] text-[11px] font-semibold px-3 py-1.5 rounded-lg hover:bg-[#f5f5f5] flex items-center gap-1">
@@ -278,6 +279,7 @@ export function ImageCropUploader({ value, onChange }: Props) {
             </div>
           </div>
           <p className="text-[10px] text-[#0B0B0B]/35 text-center">Hover to re-crop, pick from library, or remove</p>
+          {hint && <p className="text-[11px] text-[#0B0B0B]/45 text-center">{hint}</p>}
         </div>
       )}
 

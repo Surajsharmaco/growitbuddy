@@ -173,6 +173,9 @@ export default function AdminMediaLibrary() {
             {uploading ? "Uploading..." : dragging ? "Drop to upload" : "Click or drag images here to upload"}
           </p>
           <p className="text-[11px] text-[#0B0B0B]/30">PNG, JPG, WebP, GIF, SVG</p>
+          <p className="text-[10px] text-[#0B0B0B]/35 mt-1 max-w-[420px]">
+            Tip: Upload at the recommended size for each use. Hero / OG / featured: <b>1200 × 630</b>. Avatars: <b>400 × 400</b>. Client logos: <b>240 × 80 PNG transparent</b>. Favicons: <b>64 × 64</b>.
+          </p>
         </div>
       </div>
 

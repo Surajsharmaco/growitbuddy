@@ -182,6 +182,7 @@ function InfluencerRow({
                   onChange={(url) => set({ photo: url })}
                   shape="circle"
                   size={80}
+                  hint="Recommended: 400 × 400 px (square) • Face centered"
                 />
               </div>
               <div className="flex-1 grid grid-cols-2 gap-3">
@@ -359,6 +360,7 @@ function NewInfluencerForm({
                 onChange={(url) => set({ photo: url })}
                 shape="circle"
                 size={80}
+                hint="Recommended: 400 × 400 px (square) • Face centered"
               />
             </div>
             <div className="flex-1 grid grid-cols-2 gap-3">

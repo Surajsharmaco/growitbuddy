@@ -470,7 +470,7 @@ export default function AdminHome() {
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-[#0B0B0B]/45 mb-2 uppercase tracking-widest">Founder Photo</label>
-              <ImagePickerField label="" value={data.founderPhoto} onChange={(url) => set("founderPhoto", url)} shape="square" size={72} />
+              <ImagePickerField label="" value={data.founderPhoto} onChange={(url) => set("founderPhoto", url)} shape="square" size={72} hint="Recommended: 400 × 400 px (square) • JPG or PNG • Face centered" />
             </div>
             <Input label="Name" value={data.founderName} onChange={(e) => set("founderName", e.target.value)} />
             <Textarea label="Quote" value={data.founderQuote} onChange={(e) => set("founderQuote", e.target.value)} rows={3} />

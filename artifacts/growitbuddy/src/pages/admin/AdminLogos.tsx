@@ -5,7 +5,7 @@ import { ImageUrlField } from "@/components/admin/ImageUrlField";
 import { Plus, Trash2, Edit2, X, Save, Upload, Image } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { API_BASE } from "@/lib/api";
+import { API_BASE, resolveMediaUrl } from "@/lib/api";
 
 interface ClientLogo {
   id: number;
@@ -119,6 +119,7 @@ function LogoForm({
             onChange={(url) => { setForm((p) => ({ ...p, imageUrl: url })); setPreview(url); setFile(null); }}
             placeholder="https://example.com/logo.png"
             previewHeight={60}
+            hint="Recommended: 240 × 80 px • PNG with transparent background • Logos display at ~44px tall on the Work page"
           />
           <div style={{ display: "flex", gap: 10 }}>
             <div style={{ flex: 2 }}>
@@ -309,7 +310,7 @@ export default function AdminLogos() {
                     <>
                       <div style={{ padding: "16px 12px", display: "flex", alignItems: "center", justifyContent: "center", minHeight: 64, background: logo.enabled ? "#FFFFFF" : "#F8F8F6", position: "relative", opacity: logo.enabled ? 1 : 0.5 }}>
                         <img
-                          src={logo.imageUrl}
+                          src={resolveMediaUrl(logo.imageUrl)}
                           alt={logo.altText || "Logo"}
                           style={{ maxWidth: "100%", maxHeight: 40, objectFit: "contain" }}
                         />

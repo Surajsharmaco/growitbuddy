@@ -1207,6 +1207,7 @@ function PostEditor({
               {/* Upload area */}
               <div>
                 <p className="text-[11px] font-bold text-[#0B0B0B]/40 uppercase tracking-widest mb-2">Upload New Image</p>
+                <p className="text-[10px] text-[#0B0B0B]/40 mb-2">Recommended: <b>800 × 450 px</b> (16:9) for in-post images so they don't get cut off.</p>
                 <input
                   ref={imgFileInputRef}
                   type="file"
@@ -2212,7 +2213,7 @@ function PostEditor({
               </div>
               <div>
                 <label className="block text-[10px] font-semibold text-[#0B0B0B]/45 mb-2 uppercase tracking-widest">OG Image</label>
-                <ImagePickerField label="" value={seo.ogImage} onChange={(url) => setSeoField("ogImage", url)} shape="square" size={56} />
+                <ImagePickerField label="" value={seo.ogImage} onChange={(url) => setSeoField("ogImage", url)} shape="square" size={56} hint="Recommended: 1200 × 630 px • Shown when post is shared on social media" />
               </div>
               {(seo.ogImage || seo.ogTitle || seo.ogDescription) && (
                 <div className="rounded-xl overflow-hidden border border-[#0B0B0B]/10 mt-2">
@@ -2321,6 +2322,7 @@ function PostEditor({
             <ImageCropUploader
               value={data.featuredImage ?? ""}
               onChange={(url) => setField("featuredImage", url)}
+              hint="Recommended: 1200 × 630 px • JPG or PNG • Shown at the top of the post and on the blog listing"
             />
           </SidePanel>
         </div>
