@@ -59,6 +59,7 @@ export const portfolioItems = pgTable("portfolio_items", {
   youtubeUrl: text("youtube_url").notNull(),
   description: text("description"),
   sortOrder: integer("sort_order").notNull().default(0),
+  isHidden: boolean("is_hidden").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
