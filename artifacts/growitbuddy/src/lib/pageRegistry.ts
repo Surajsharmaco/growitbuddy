@@ -11,10 +11,13 @@ export interface PageRegistryEntry {
   slug: string;
   path: string;
   label: string;
-  group: "Core" | "Services" | "Network" | "Pools" | "Legal";
+  group: "Core" | "Services" | "Network" | "Pools" | "Legal" | "Utility";
   defaults: {
     title: string;
     description: string;
+    /** Override DEFAULT indexability. Most pages index, but utility pages default to noindex. */
+    index?: boolean;
+    sitemap?: boolean;
   };
 }
 
@@ -50,6 +53,20 @@ export const PAGE_REGISTRY: PageRegistryEntry[] = [
   { slug: "ai-creators",          path: "/ai-creators",           label: "AI Creators",         group: "Pools", defaults: { title: "AI Creators Pool — GrowitBuddy",                                description: "Join the GrowitBuddy AI creators talent pool." } },
   { slug: "ugc-creators",         path: "/ugc-creators",          label: "UGC Creators",        group: "Pools", defaults: { title: "UGC Creators Pool — GrowitBuddy",                               description: "Join the GrowitBuddy UGC creators talent pool." } },
   { slug: "meme-designers",       path: "/meme-designers",        label: "Meme Designers",      group: "Pools", defaults: { title: "Meme Designers Pool — GrowitBuddy",                             description: "Join the GrowitBuddy meme designers talent pool." } },
+
+  // Additional public pages
+  { slug: "resources",            path: "/resources",             label: "Resources",           group: "Core",     defaults: { title: "Resources — GrowitBuddy",                                       description: "Free guides, templates, and resources for creators and brands." } },
+  { slug: "internship",           path: "/internship",            label: "Internship",          group: "Network",  defaults: { title: "Internships — GrowitBuddy",                                     description: "Apply for internships at GrowitBuddy." } },
+  { slug: "join-page-owner",      path: "/join/page-owner",       label: "Join · Page Owner",   group: "Network",  defaults: { title: "Join as a Page Owner — GrowitBuddy",                            description: "Apply to join the GrowitBuddy distribution network as a page owner." } },
+
+  // Legal — indexed by default (trust signal); admin can flip
+  { slug: "privacy",              path: "/privacy",               label: "Privacy Policy",      group: "Legal",    defaults: { title: "Privacy Policy — GrowitBuddy",                                  description: "GrowitBuddy privacy policy and how we handle your data." } },
+  { slug: "terms",                path: "/terms",                 label: "Terms of Service",    group: "Legal",    defaults: { title: "Terms of Service — GrowitBuddy",                                description: "GrowitBuddy terms of service." } },
+
+  // Utility — default noindex (not meant for search)
+  { slug: "portfolio-private",    path: "/portfolio-private",     label: "Private Portfolio",   group: "Utility",  defaults: { title: "Private Portfolio — GrowitBuddy",                               description: "Private client portfolio.", index: false, sitemap: false } },
+  { slug: "verify",               path: "/verify",                label: "Verify Certificate",  group: "Utility",  defaults: { title: "Verify Certificate — GrowitBuddy",                              description: "Verify a GrowitBuddy certificate.", index: false, sitemap: false } },
+  { slug: "verify-id",            path: "/verify/:id",            label: "Verify Detail",       group: "Utility",  defaults: { title: "Certificate Verification — GrowitBuddy",                        description: "Verify a specific certificate.", index: false, sitemap: false } },
 ];
 
 /** Match an actual URL pathname → registry entry (handles dynamic /insights/:slug). */
@@ -59,6 +76,8 @@ export function findEntryByPath(pathname: string): PageRegistryEntry | null {
   if (exact) return exact;
   // insights detail pages share insights SEO defaults
   if (pathname.startsWith("/insights/")) return PAGE_REGISTRY.find((p) => p.slug === "insights") ?? null;
+  // /verify/:id → verify-id entry
+  if (/^\/verify\/[^/]+$/.test(pathname)) return PAGE_REGISTRY.find((p) => p.slug === "verify-id") ?? null;
   return null;
 }
 
