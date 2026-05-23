@@ -149,12 +149,13 @@ function EditProvider({ itemId, children }: { itemId: number; children: ReactNod
   return <EditContext.Provider value={value}>{children}</EditContext.Provider>;
 }
 
-function Section({ k, children, style }: { k: string; children: ReactNode; style?: CSSProperties }) {
+function Section({ k, children, style, className }: { k: string; children: ReactNode; style?: CSSProperties; className?: string }) {
   const { isAdmin, isHidden, hide } = useEdit();
   if (isHidden(k)) return null;
-  if (!isAdmin) return <div style={style}>{children}</div>;
+  const sectionClass = `cs-sec ${className ?? ""}`.trim();
+  if (!isAdmin) return <div style={style} className={sectionClass}>{children}</div>;
   return (
-    <div style={{ position: "relative", ...style }} className="group/sec">
+    <div style={{ position: "relative", ...style }} className={`${sectionClass} group/sec`}>
       <div
         style={{
           position: "absolute", inset: 0, pointerEvents: "none",
@@ -421,9 +422,9 @@ function CaseStudyBody({
   return (
     <div style={{ minHeight: "100vh", background: "#F8F8F6" }}>
       {/* ── HERO (title always shown — never hidden) ── */}
-      <div style={{ background: BRAND_ACCENT, padding: "120px 24px 0", position: "relative", overflow: "hidden" }}>
+      <div className="cs-hero" style={{ background: BRAND_ACCENT, padding: "112px 32px 0", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #C2A878, #D4BB90)" }} />
-        <div style={{ maxWidth: 1180, margin: "0 auto", position: "relative" }}>
+        <div style={{ maxWidth: 1240, margin: "0 auto", position: "relative" }}>
           <a
             href={`/portfolio/${categorySlug}`}
             onClick={(e) => go(e, `/portfolio/${categorySlug}`)}
@@ -478,7 +479,7 @@ function CaseStudyBody({
       <div style={{ height: 60 }} />
 
       {/* ── METRICS STRIP ── */}
-      <Section k="metrics-strip" style={{ maxWidth: 1180, margin: "0 auto", padding: "72px 24px 24px" }}>
+      <Section k="metrics-strip" style={{ maxWidth: 1240, margin: "0 auto", padding: "72px 32px 0" }}>
         <div
           className="metrics-grid"
           style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 18 }}
@@ -509,7 +510,7 @@ function CaseStudyBody({
       </Section>
 
       {/* ── OVERVIEW / CHALLENGE ── */}
-      <Section k="overview" style={{ maxWidth: 1180, margin: "0 auto", padding: "56px 24px" }}>
+      <Section k="overview" style={{ maxWidth: 1240, margin: "0 auto", padding: "64px 32px 0" }}>
         <div className="two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 48 }}>
           <div>
             <EditableText k="overview-eyebrow" as="p" fallback="Overview"
@@ -527,7 +528,7 @@ function CaseStudyBody({
       </Section>
 
       {/* ── IMAGE GALLERY ── */}
-      <Section k="gallery" style={{ maxWidth: 1180, margin: "0 auto", padding: "16px 24px" }}>
+      <Section k="gallery" style={{ maxWidth: 1240, margin: "0 auto", padding: "32px 32px 0" }}>
         <div className="gallery-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 22 }}>
           <img src={picsum(`${seeds[1]}-${item.id}`, 900, 600)} alt="" loading="lazy"
             style={{ width: "100%", aspectRatio: "3/2", objectFit: "cover", borderRadius: 16, border: "1.5px solid #E5E5E0" }} />
@@ -537,7 +538,7 @@ function CaseStudyBody({
       </Section>
 
       {/* ── APPROACH ── */}
-      <Section k="approach" style={{ maxWidth: 1180, margin: "0 auto", padding: "72px 24px 24px" }}>
+      <Section k="approach" style={{ maxWidth: 1240, margin: "0 auto", padding: "72px 32px 0" }}>
         <div className="two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 48 }}>
           <div>
             <EditableText k="approach-eyebrow" as="p" fallback="Approach"
@@ -562,7 +563,7 @@ function CaseStudyBody({
 
       {/* ── EMBEDDED VIDEO ── */}
       {embedUrl && (
-        <Section k="video" style={{ maxWidth: 1180, margin: "0 auto", padding: "48px 24px" }}>
+        <Section k="video" style={{ maxWidth: 1240, margin: "0 auto", padding: "72px 32px 0" }}>
           <EditableText k="video-eyebrow" as="p" fallback="Project Walkthrough"
             style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "#C2A878", marginBottom: 14, textAlign: "center", marginTop: 0 }} />
           <div style={{ borderRadius: 20, overflow: "hidden", border: "1.5px solid #E5E5E0", background: "#0A0A0A", boxShadow: "0 20px 60px rgba(15,23,42,0.18)" }}>
@@ -581,7 +582,7 @@ function CaseStudyBody({
       )}
 
       {/* ── SOLUTION + STACK ── */}
-      <Section k="solution" style={{ maxWidth: 1180, margin: "0 auto", padding: "48px 24px" }}>
+      <Section k="solution" style={{ maxWidth: 1240, margin: "0 auto", padding: "72px 32px 0" }}>
         <div className="two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 48 }}>
           <div>
             <EditableText k="solution-eyebrow" as="p" fallback="Solution"
@@ -614,7 +615,7 @@ function CaseStudyBody({
       </Section>
 
       {/* ── TESTIMONIAL ── */}
-      <Section k="testimonial" style={{ maxWidth: 1180, margin: "0 auto", padding: "64px 24px" }}>
+      <Section k="testimonial" style={{ maxWidth: 1240, margin: "0 auto", padding: "80px 32px 0" }}>
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -641,7 +642,7 @@ function CaseStudyBody({
       </Section>
 
       {/* ── CTA ── */}
-      <Section k="cta" style={{ maxWidth: 1180, margin: "0 auto", padding: "32px 24px 112px", textAlign: "center" }}>
+      <Section k="cta" style={{ maxWidth: 1240, margin: "0 auto", padding: "80px 32px 120px", textAlign: "center" }}>
         <EditableText k="cta-heading" as="h3" fallback="Want results like these?"
           style={{ fontWeight: 800, fontSize: "clamp(26px, 3.6vw, 40px)", letterSpacing: "-0.03em", color: "#0A0A0A", marginBottom: 16, marginTop: 0 }} />
         <EditableText
@@ -674,6 +675,14 @@ function CaseStudyBody({
           .metrics-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .two-col { grid-template-columns: 1fr !important; gap: 24px !important; }
           .gallery-2 { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 768px) {
+          .cs-hero { padding: 88px 24px 0 !important; }
+          .cs-sec { padding-left: 24px !important; padding-right: 24px !important; }
+        }
+        @media (max-width: 480px) {
+          .cs-hero { padding-left: 20px !important; padding-right: 20px !important; }
+          .cs-sec { padding-left: 20px !important; padding-right: 20px !important; }
         }
       `}</style>
     </div>
