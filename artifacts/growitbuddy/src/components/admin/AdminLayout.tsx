@@ -44,8 +44,7 @@ const navGroups: NavGroup[] = [
       { label: "Distribution Pages", path: "/admin/distribution-pages", icon: <Network size={15} />, permission: "distribution-pages" },
       { label: "Authority Audit", path: "/admin/authority-audit", icon: <Scan size={15} />, permission: "authority-audit" },
       { label: "Join Network", path: "/admin/join-network", icon: <Network size={15} />, permission: "join-network" },
-      { label: "Freelancers Page", path: "/admin/freelancers-page", icon: <UserPlus size={15} />, permission: "freelancers" },
-      { label: "Full-Time Page", path: "/admin/full-time-page", icon: <Building2 size={15} />, permission: "full-time" },
+      { label: "Careers Page", path: "/admin/career", icon: <Briefcase size={15} />, permission: "freelancers" },
     ],
   },
   {

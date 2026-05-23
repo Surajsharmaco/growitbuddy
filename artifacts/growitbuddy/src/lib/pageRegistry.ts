@@ -39,8 +39,7 @@ export const PAGE_REGISTRY: PageRegistryEntry[] = [
   { slug: "distribution",     path: "/distribution",     label: "Distribution Network",group: "Network",  defaults: { title: "Distribution Network — GrowitBuddy",                                description: "Our owned distribution network of pages and creators." } },
   { slug: "join",             path: "/join",             label: "Join Network",        group: "Network",  defaults: { title: "Join the Network — GrowitBuddy",                                    description: "Join the GrowitBuddy creator and page-owner network." } },
   { slug: "creators",         path: "/creators",         label: "Creators",            group: "Network",  defaults: { title: "Creators — GrowitBuddy",                                            description: "Resources and opportunities for creators with GrowitBuddy." } },
-  { slug: "freelancers",      path: "/freelancers",      label: "Freelancers",         group: "Network",  defaults: { title: "Freelancers — GrowitBuddy",                                         description: "Join the GrowitBuddy freelancer network." } },
-  { slug: "full-time",        path: "/full-time",        label: "Full-Time Roles",     group: "Network",  defaults: { title: "Full-Time Careers — GrowitBuddy",                                   description: "Full-time positions at GrowitBuddy." } },
+  { slug: "career",           path: "/career",           label: "Careers (Unified)",   group: "Network",  defaults: { title: "Careers — GrowitBuddy",                                             description: "Join GrowitBuddy as a full-time team member, intern, or talent network member." } },
 
   // Talent Pools
   { slug: "creator-school",       path: "/editors-pool",          label: "Editors Pool",        group: "Pools", defaults: { title: "Video Editors Pool — GrowitBuddy",                              description: "Join the GrowitBuddy editors pool. Watch the demo, access resources, and submit your work." } },
@@ -56,7 +55,6 @@ export const PAGE_REGISTRY: PageRegistryEntry[] = [
 
   // Additional public pages
   { slug: "resources",            path: "/resources",             label: "Resources",           group: "Core",     defaults: { title: "Resources — GrowitBuddy",                                       description: "Free guides, templates, and resources for creators and brands." } },
-  { slug: "internship",           path: "/internship",            label: "Internship",          group: "Network",  defaults: { title: "Internships — GrowitBuddy",                                     description: "Apply for internships at GrowitBuddy." } },
   { slug: "join-page-owner",      path: "/join/page-owner",       label: "Join · Page Owner",   group: "Network",  defaults: { title: "Join as a Page Owner — GrowitBuddy",                            description: "Apply to join the GrowitBuddy distribution network as a page owner." } },
 
   // Legal — indexed by default (trust signal); admin can flip

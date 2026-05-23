@@ -21,18 +21,16 @@ const Framework            = lazy(() => import("@/pages/Framework"));
 const Insights             = lazy(() => import("@/pages/Insights"));
 const InsightDetail        = lazy(() => import("@/pages/InsightDetail"));
 const Creators             = lazy(() => import("@/pages/Creators"));
-const Freelancers          = lazy(() => import("@/pages/Freelancers"));
+const Career               = lazy(() => import("@/pages/Career"));
 const InfluencerExplore    = lazy(() => import("@/pages/InfluencerExplore"));
 const DistributionNetwork  = lazy(() => import("@/pages/DistributionNetwork"));
 const JoinNetwork          = lazy(() => import("@/pages/JoinNetwork"));
 const PageOwnerApply       = lazy(() => import("@/pages/PageOwnerApply"));
-const FullTime             = lazy(() => import("@/pages/FullTime"));
 const AuthorityAudit       = lazy(() => import("@/pages/AuthorityAudit"));
 const Portfolio            = lazy(() => import("@/pages/Portfolio"));
 const Resources            = lazy(() => import("@/pages/Resources"));
 const About                = lazy(() => import("@/pages/About"));
 const Contact              = lazy(() => import("@/pages/Contact"));
-const Internship           = lazy(() => import("@/pages/Internship"));
 const Verify               = lazy(() => import("@/pages/Verify"));
 const VerifyCertificate    = lazy(() => import("@/pages/VerifyCertificate"));
 const Privacy              = lazy(() => import("@/pages/Privacy"));
@@ -67,8 +65,7 @@ const AdminTalentPoolLeads    = lazy(() => import("@/pages/admin/AdminTalentPool
 const AdminCertificates       = lazy(() => import("@/pages/admin/AdminCertificates"));
 const AdminContact            = lazy(() => import("@/pages/admin/AdminContact"));
 const AdminJoinNetwork        = lazy(() => import("@/pages/admin/AdminJoinNetwork"));
-const AdminFreelancers        = lazy(() => import("@/pages/admin/AdminFreelancers"));
-const AdminFullTime           = lazy(() => import("@/pages/admin/AdminFullTime"));
+const AdminCareer             = lazy(() => import("@/pages/admin/AdminCareer"));
 const AdminFramework          = lazy(() => import("@/pages/admin/AdminFramework"));
 const AdminDistributionNetwork = lazy(() => import("@/pages/admin/AdminDistributionNetwork"));
 const AdminDistributionPages  = lazy(() => import("@/pages/admin/AdminDistributionPages"));
@@ -134,8 +131,10 @@ function AdminRoutes() {
       <Route path="/admin/certificates">{() => <AdminGuard><AdminCertificates /></AdminGuard>}</Route>
       <Route path="/admin/contact">{() => <AdminGuard><AdminContact /></AdminGuard>}</Route>
       <Route path="/admin/join-network">{() => <AdminGuard><AdminJoinNetwork /></AdminGuard>}</Route>
-      <Route path="/admin/freelancers-page">{() => <AdminGuard><AdminFreelancers /></AdminGuard>}</Route>
-      <Route path="/admin/full-time-page">{() => <AdminGuard><AdminFullTime /></AdminGuard>}</Route>
+      <Route path="/admin/career">{() => <AdminGuard><AdminCareer /></AdminGuard>}</Route>
+      {/* Back-compat redirects for old admin URLs */}
+      <Route path="/admin/freelancers-page">{() => <Redirect to="/admin/career" />}</Route>
+      <Route path="/admin/full-time-page">{() => <Redirect to="/admin/career" />}</Route>
       <Route path="/admin/framework">{() => <AdminGuard><AdminFramework /></AdminGuard>}</Route>
       <Route path="/admin/distribution-network">{() => <AdminGuard><AdminDistributionNetwork /></AdminGuard>}</Route>
       <Route path="/admin/distribution-pages">{() => <AdminGuard><AdminDistributionPages /></AdminGuard>}</Route>
@@ -166,7 +165,7 @@ function AdminRoutes() {
 
 const ALL_SECTIONS = [
   "home", "about", "contact", "framework", "services", "work",
-  "resources", "joinnetwork", "freelancers", "fulltime",
+  "resources", "joinnetwork", "freelancers", "fulltime", "internship",
   "influencer-explore", "authority-audit", "distribution-network",
   "distribution-pages", "blog", "creator-school", "settings",
   "pool-designers", "pool-thumbnail-designers", "pool-writers",
@@ -232,14 +231,16 @@ function App() {
                       <Route path="/join">{() => <PageGate slug="join"><JoinNetwork /></PageGate>}</Route>
                       <Route path="/join/page-owner">{() => <PageGate slug="join-page-owner"><PageOwnerApply /></PageGate>}</Route>
                       <Route path="/creators">{() => <PageGate slug="creators"><Creators /></PageGate>}</Route>
-                      <Route path="/freelancers">{() => <PageGate slug="freelancers"><Freelancers /></PageGate>}</Route>
-                      <Route path="/full-time">{() => <PageGate slug="full-time"><FullTime /></PageGate>}</Route>
+                      <Route path="/career">{() => <PageGate slug="career"><Career /></PageGate>}</Route>
+                      {/* Back-compat — old career URLs preselect the right tab */}
+                      <Route path="/freelancers">{() => <Redirect to="/career?type=freelancer" />}</Route>
+                      <Route path="/full-time">{() => <Redirect to="/career?type=full-time" />}</Route>
+                      <Route path="/internship">{() => <Redirect to="/career?type=internship" />}</Route>
                       <Route path="/authority-audit">{() => <PageGate slug="authority-audit"><AuthorityAudit /></PageGate>}</Route>
                       <Route path="/portfolio-private" component={Portfolio} />
                       <Route path="/resources">{() => <PageGate slug="resources"><Resources /></PageGate>}</Route>
                       <Route path="/about">{() => <PageGate slug="about"><About /></PageGate>}</Route>
                       <Route path="/contact">{() => <PageGate slug="contact"><Contact /></PageGate>}</Route>
-                      <Route path="/internship">{() => <PageGate slug="internship"><Internship /></PageGate>}</Route>
                       <Route path="/verify/:id">{() => <PageGate slug="verify"><VerifyCertificate /></PageGate>}</Route>
                       <Route path="/verify">{() => <PageGate slug="verify"><Verify /></PageGate>}</Route>
                       <Route path="/privacy" component={Privacy} />

@@ -29,8 +29,7 @@ const REGISTERED_PAGES: RegisteredPage[] = [
   { slug: "distribution",          path: "/distribution",           priority: 0.7, changefreq: "monthly" },
   { slug: "join",                  path: "/join",                   priority: 0.7, changefreq: "monthly" },
   { slug: "creators",              path: "/creators",               priority: 0.7, changefreq: "monthly" },
-  { slug: "freelancers",           path: "/freelancers",            priority: 0.7, changefreq: "monthly" },
-  { slug: "full-time",             path: "/full-time",              priority: 0.6, changefreq: "monthly" },
+  { slug: "career",                path: "/career",                 priority: 0.7, changefreq: "monthly" },
   { slug: "creator-school",        path: "/editors-pool",           priority: 0.7, changefreq: "monthly" },
   { slug: "video-editors",         path: "/video-editors",          priority: 0.7, changefreq: "monthly" },
   { slug: "designers-pool",        path: "/designers-pool",         priority: 0.7, changefreq: "monthly" },
@@ -43,7 +42,6 @@ const REGISTERED_PAGES: RegisteredPage[] = [
   { slug: "meme-designers",        path: "/meme-designers",         priority: 0.7, changefreq: "monthly" },
   // Additional public pages
   { slug: "resources",             path: "/resources",              priority: 0.7, changefreq: "weekly"  },
-  { slug: "internship",            path: "/internship",             priority: 0.6, changefreq: "monthly" },
   { slug: "join-page-owner",       path: "/join/page-owner",        priority: 0.6, changefreq: "monthly" },
   { slug: "privacy",               path: "/privacy",                priority: 0.3, changefreq: "yearly"  },
   { slug: "terms",                 path: "/terms",                  priority: 0.3, changefreq: "yearly"  },

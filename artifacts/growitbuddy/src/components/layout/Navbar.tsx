@@ -34,14 +34,7 @@ const NAV_LINKS: NavLink[] = [
     ],
   },
   { href: "/about", label: "About" },
-  {
-    label: "Careers",
-    dropdown: [
-      { href: "/freelancers", label: "Talent Network", subtitle: "" },
-      { href: "/full-time",   label: "Full Time",      subtitle: "" },
-      { href: "/internship",  label: "Internship",     subtitle: "" },
-    ],
-  },
+  { href: "/career", label: "Careers" },
   {
     label: "More",
     dropdown: [
