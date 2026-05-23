@@ -9,7 +9,7 @@ Disallow: /admin/
 Disallow: /verify/
 
 # Main pages sitemap (dynamic — admin-managed, respects per-page index toggles)
-Sitemap: https://growitbuddy.com/api/sitemap.xml
+Sitemap: https://growitbuddy-api.onrender.com/api/sitemap.xml
 
 # Blog posts sitemap (dynamic — WordPress + CMS, updated hourly)
-Sitemap: https://growitbuddy.com/api/sitemap-blog.xml
+Sitemap: https://growitbuddy-api.onrender.com/api/sitemap-blog.xml
