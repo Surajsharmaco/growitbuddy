@@ -328,6 +328,12 @@ router.delete("/team/:id", authMiddleware, superAdminOnly, async (req, res) => {
 // ── Public (no-auth) read endpoint for public site ──
 router.get("/public/content/:section", async (req, res) => {
   const { section } = req.params;
+  // Never cache — every page load must see the latest admin edits.
+  // Without this, browsers and intermediaries may serve a stale copy for
+  // a few seconds after the admin saves a change.
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
   try {
     const rows = await db.select().from(siteContent).where(eq(siteContent.section, section));
     if (rows.length === 0) { res.json({ section, data: null }); return; }

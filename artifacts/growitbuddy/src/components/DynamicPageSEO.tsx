@@ -156,7 +156,33 @@ export default function DynamicPageSEO() {
     }
 
     load();
-    return () => { cancelled = true; };
+
+    // Cross-tab live update: when the admin saves SEO (sections are stored
+    // under "seo:<slug>"), reload so the public tab reflects the change
+    // without the user needing to refresh.
+    function onStorage(e: StorageEvent) {
+      if (e.key !== "gb-content-updated" || !e.newValue) return;
+      const sec = e.newValue.split(":")[0];
+      // SEO sections have keys like "seo:home"; refresh on any seo:* change
+      // for the current slug, or any non-seo section (defaults may have moved).
+      if (sec.startsWith("seo:")) {
+        const slug = sec.slice(4);
+        if (slug === entry!.slug) load();
+      }
+    }
+    // Re-validate when the tab regains focus — covers the case where the
+    // user edited in another window and switches back to the public tab.
+    function onVisible() {
+      if (document.visibilityState === "visible") load();
+    }
+
+    window.addEventListener("storage", onStorage);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("storage", onStorage);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [location]);
 
   return null;

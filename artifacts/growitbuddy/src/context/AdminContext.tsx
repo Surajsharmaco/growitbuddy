@@ -189,6 +189,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         const body = await r.json().catch(() => ({}));
         throw new Error((body as { error?: string }).error ?? `Save failed (${r.status})`);
       }
+      // Ping every other tab in this browser so public pages re-fetch and
+      // never show stale content. Public SPA tabs listen via the `storage`
+      // event in usePublicContent and DynamicPageSEO.
+      try {
+        localStorage.setItem("gb-content-updated", `${section}:${Date.now()}`);
+      } catch { /* localStorage may be unavailable */ }
     },
     [authFetch],
   );

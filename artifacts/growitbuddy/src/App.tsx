@@ -190,12 +190,12 @@ function FaviconInjector() {
 
 function App() {
   useEffect(() => {
-    // Delay prefetch to avoid competing with LCP rendering on initial load
-    const t = setTimeout(() => {
-      prefetchSections(ALL_SECTIONS);
-      prefetchInfluencers();
-    }, 1500);
-    return () => clearTimeout(t);
+    // Kick off content prefetch immediately so first paint already has the
+    // latest admin-edited copy. The previous 1500ms delay was the main cause
+    // of the "old content flash" — pages rendered hardcoded defaults during
+    // that window before the real content arrived.
+    prefetchSections(ALL_SECTIONS);
+    prefetchInfluencers();
   }, []);
 
   return (
