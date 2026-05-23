@@ -248,8 +248,11 @@ function App() {
                       <Route path="/full-time">{() => <Redirect to="/career?type=full-time" />}</Route>
                       <Route path="/internship">{() => <Redirect to="/career?type=internship" />}</Route>
                       <Route path="/authority-audit">{() => <PageGate slug="authority-audit"><AuthorityAudit /></PageGate>}</Route>
-                      <Route path="/portfolio-private" component={Portfolio} />
-                      <Route path="/portfolio-private/:category" component={Portfolio} />
+                      <Route path="/portfolio" component={Portfolio} />
+                      <Route path="/portfolio/:category" component={Portfolio} />
+                      {/* Back-compat for old links */}
+                      <Route path="/portfolio-private">{() => <Redirect to="/portfolio" />}</Route>
+                      <Route path="/portfolio-private/:category">{(p) => <Redirect to={`/portfolio/${p.category}`} />}</Route>
                       <Route path="/resources">{() => <PageGate slug="resources"><Resources /></PageGate>}</Route>
                       <Route path="/about">{() => <PageGate slug="about"><About /></PageGate>}</Route>
                       <Route path="/contact">{() => <PageGate slug="contact"><Contact /></PageGate>}</Route>
