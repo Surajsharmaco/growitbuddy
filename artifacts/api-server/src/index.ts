@@ -1,6 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
-import { db } from "@workspace/db";
+import { db, pool } from "@workspace/db";
 import { siteContent } from "@workspace/db/schema";
 import { eq } from "drizzle-orm";
 
@@ -42,6 +42,13 @@ const CORRECT_FRAMEWORK_STEPS = [
 ];
 
 async function runStartupMigrations() {
+  // Idempotent column add for soft-hide on portfolio items
+  try {
+    await pool.query(`ALTER TABLE portfolio_items ADD COLUMN IF NOT EXISTS is_hidden boolean NOT NULL DEFAULT false`);
+    logger.info("Startup migration: portfolio_items.is_hidden column ensured.");
+  } catch (err) {
+    logger.error({ err }, "Startup migration: failed to ensure portfolio_items.is_hidden column.");
+  }
   try {
     const rows = await db.select().from(siteContent).where(eq(siteContent.section, "home"));
     if (rows.length === 0) {
