@@ -38,6 +38,7 @@ const VerifyCertificate    = lazy(() => import("@/pages/VerifyCertificate"));
 const Privacy              = lazy(() => import("@/pages/Privacy"));
 const Terms                = lazy(() => import("@/pages/Terms"));
 const NotFound             = lazy(() => import("@/pages/not-found"));
+const SEOGuide             = lazy(() => import("@/pages/SEOGuide"));
 const CreatorSchool        = lazy(() => import("@/pages/CreatorSchool"));
 const DesignersPool        = lazy(() => import("@/pages/DesignersPool"));
 const ThumbnailDesignersPool = lazy(() => import("@/pages/ThumbnailDesignersPool"));
@@ -209,6 +210,9 @@ function App() {
         <Switch>
           <Route path="/admin/:rest*" component={AdminRoutes} />
           <Route path="/admin" component={AdminRoutes} />
+
+          {/* Internal SEO guide — standalone (no layout chrome), permanently noindex via the page itself */}
+          <Route path="/seo-guide">{() => <Suspense fallback={<PageSpinner />}><SEOGuide /></Suspense>}</Route>
 
           <Route>
             {() => (
