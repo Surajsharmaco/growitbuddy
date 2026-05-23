@@ -249,6 +249,7 @@ function App() {
                       <Route path="/internship">{() => <Redirect to="/career?type=internship" />}</Route>
                       <Route path="/authority-audit">{() => <PageGate slug="authority-audit"><AuthorityAudit /></PageGate>}</Route>
                       <Route path="/portfolio-private" component={Portfolio} />
+                      <Route path="/portfolio-private/:category" component={Portfolio} />
                       <Route path="/resources">{() => <PageGate slug="resources"><Resources /></PageGate>}</Route>
                       <Route path="/about">{() => <PageGate slug="about"><About /></PageGate>}</Route>
                       <Route path="/contact">{() => <PageGate slug="contact"><Contact /></PageGate>}</Route>
