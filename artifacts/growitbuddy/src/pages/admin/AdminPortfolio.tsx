@@ -202,6 +202,7 @@ export default function AdminPortfolio() {
   const [deleting, setDeleting] = useState<number | null>(null);
   const [togglingVisibility, setTogglingVisibility] = useState<number | null>(null);
   const [activeCategory, setActiveCategory] = useState("All");
+  const [visibilityFilter, setVisibilityFilter] = useState<"all" | "visible" | "hidden">("all");
 
   async function loadItems() {
     setLoading(true);
@@ -280,7 +281,12 @@ export default function AdminPortfolio() {
   }
 
   const allCategories = ["All", ...CATEGORIES];
-  const filtered = activeCategory === "All" ? items : items.filter((i) => i.category === activeCategory);
+  let filtered = activeCategory === "All" ? items : items.filter((i) => i.category === activeCategory);
+  if (visibilityFilter === "visible") filtered = filtered.filter((i) => !i.isHidden);
+  else if (visibilityFilter === "hidden") filtered = filtered.filter((i) => i.isHidden);
+
+  const totalCount = items.length;
+  const hiddenCount = items.filter((i) => i.isHidden).length;
 
   const portfolioUrl = window.location.origin + import.meta.env.BASE_URL.replace(/\/$/, "") + "/portfolio";
 
@@ -357,8 +363,35 @@ export default function AdminPortfolio() {
         )}
       </AnimatePresence>
 
+      {/* Visibility Filter */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", margin: "28px 0 12px" }}>
+        <span style={{ fontSize: 10, fontWeight: 700, color: "#8A8A8A", letterSpacing: "0.12em", textTransform: "uppercase", marginRight: 4 }}>
+          Visibility:
+        </span>
+        {([
+          { key: "all", label: `All (${totalCount})`, activeBg: "#1E293B" },
+          { key: "visible", label: `Visible (${totalCount - hiddenCount})`, activeBg: "#1E293B" },
+          { key: "hidden", label: `Hidden (${hiddenCount})`, activeBg: "#F59E0B" },
+        ] as const).map(({ key, label, activeBg }) => (
+          <button
+            key={key}
+            onClick={() => setVisibilityFilter(key)}
+            style={{
+              padding: "6px 14px", borderRadius: 100, fontSize: 12, fontWeight: 600,
+              border: "1.5px solid",
+              borderColor: visibilityFilter === key ? activeBg : "#E5E5E0",
+              background: visibilityFilter === key ? activeBg : "#fff",
+              color: visibilityFilter === key ? "#fff" : "#0A0A0A",
+              cursor: "pointer", transition: "all 0.15s",
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       {/* Category Filter */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, margin: "28px 0 20px" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, margin: "0 0 20px" }}>
         {allCategories.map((cat) => (
           <button
             key={cat}
