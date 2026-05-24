@@ -52,21 +52,6 @@ const DEFAULTS: FooterData = {
       ],
     },
     {
-      title: "Talent Pool",
-      links: [
-        { label: "Creator School", path: "/editors-pool" },
-        { label: "Video Editors", path: "/video-editors" },
-        { label: "Designers", path: "/designers-pool" },
-        { label: "Thumbnail Designers", path: "/thumbnail-designers" },
-        { label: "Writers", path: "/writers-pool" },
-        { label: "Social Media Managers", path: "/social-media-managers" },
-        { label: "Motion Designers", path: "/motion-designers" },
-        { label: "AI Creators", path: "/ai-creators" },
-        { label: "UGC Creators", path: "/ugc-creators" },
-        { label: "Meme Designers", path: "/meme-designers" },
-      ],
-    },
-    {
       title: "Careers",
       links: [
         { label: "Full-time Jobs", path: "/career?type=full-time" },
