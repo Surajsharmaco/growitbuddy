@@ -484,3 +484,70 @@ section {
   max-width: 100vw;
   box-sizing: border-box;
 }
+
+/* ─────────────────────────────────────────────────────────────
+   MOBILE SPACING OPTIMIZATION
+   Site-wide hero/section padding shrinks on smaller viewports.
+   Targets inline-styled sections via attribute selectors so we
+   don't need to touch each page. Higher specificity + !important
+   needed to beat inline styles.
+   ───────────────────────────────────────────────────────────── */
+
+/* Tablet & below */
+@media (max-width: 900px) {
+  /* Hero paddingTop overrides */
+  section[style*="padding-top: 140px"] { padding-top: 88px !important; }
+  section[style*="padding-top: 128px"] { padding-top: 84px !important; }
+  section[style*="padding-top: 120px"] { padding-top: 80px !important; }
+  section[style*="padding-top: 100px"] { padding-top: 72px !important; }
+  section[style*="padding-top: 88px"]  { padding-top: 68px !important; }
+
+  /* Hero paddingBottom overrides */
+  section[style*="padding-bottom: 96px"] { padding-bottom: 56px !important; }
+  section[style*="padding-bottom: 88px"] { padding-bottom: 52px !important; }
+  section[style*="padding-bottom: 80px"] { padding-bottom: 48px !important; }
+  section[style*="padding-bottom: 72px"] { padding-bottom: 44px !important; }
+  section[style*="padding-bottom: 64px"] { padding-bottom: 40px !important; }
+
+  /* Shorthand "padding: 96px 24px" / "80px 24px" / "64px 24px" */
+  section[style*="padding: 96px"] { padding-top: 56px !important; padding-bottom: 56px !important; }
+  section[style*="padding: 88px"] { padding-top: 52px !important; padding-bottom: 52px !important; }
+  section[style*="padding: 80px"] { padding-top: 48px !important; padding-bottom: 48px !important; }
+  section[style*="padding: 72px"] { padding-top: 44px !important; padding-bottom: 44px !important; }
+  section[style*="padding: 64px"] { padding-top: 40px !important; padding-bottom: 40px !important; }
+
+  /* Class-based pads used in pool/network/school pages */
+  .csp-pad, .tp-pad, .jn-pad { padding-top: 56px !important; padding-bottom: 56px !important; }
+}
+
+/* Phones */
+@media (max-width: 600px) {
+  section[style*="padding-top: 140px"] { padding-top: 72px !important; }
+  section[style*="padding-top: 128px"] { padding-top: 68px !important; }
+  section[style*="padding-top: 120px"] { padding-top: 64px !important; }
+  section[style*="padding-top: 100px"] { padding-top: 56px !important; }
+  section[style*="padding-top: 88px"]  { padding-top: 52px !important; }
+
+  section[style*="padding-bottom: 96px"] { padding-bottom: 44px !important; }
+  section[style*="padding-bottom: 88px"] { padding-bottom: 40px !important; }
+  section[style*="padding-bottom: 80px"] { padding-bottom: 36px !important; }
+  section[style*="padding-bottom: 72px"] { padding-bottom: 32px !important; }
+  section[style*="padding-bottom: 64px"] { padding-bottom: 28px !important; }
+
+  section[style*="padding: 96px"] { padding-top: 44px !important; padding-bottom: 44px !important; }
+  section[style*="padding: 88px"] { padding-top: 40px !important; padding-bottom: 40px !important; }
+  section[style*="padding: 80px"] { padding-top: 36px !important; padding-bottom: 36px !important; }
+  section[style*="padding: 72px"] { padding-top: 32px !important; padding-bottom: 32px !important; }
+  section[style*="padding: 64px"] { padding-top: 28px !important; padding-bottom: 28px !important; }
+
+  .csp-pad, .tp-pad, .jn-pad { padding-top: 44px !important; padding-bottom: 44px !important; }
+
+  /* Tighter horizontal padding on phones — was 24px almost everywhere */
+  section[style*="padding-left: 24px"] { padding-left: 18px !important; }
+  section[style*="padding-right: 24px"] { padding-right: 18px !important; }
+  section[style*="padding: 96px 24px"],
+  section[style*="padding: 88px 24px"],
+  section[style*="padding: 80px 24px"],
+  section[style*="padding: 72px 24px"],
+  section[style*="padding: 64px 24px"] { padding-left: 18px !important; padding-right: 18px !important; }
+}
