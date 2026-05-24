@@ -46,19 +46,32 @@ const DEFAULTS: FooterData = {
     {
       title: "Network",
       links: [
-        { label: "Influencer Directory", path: "/influencers" },
+        { label: "Influencer Network", path: "/influencers" },
         { label: "Distribution Network", path: "/distribution" },
-        { label: "Creator Onboarding", path: "/creators" },
-        { label: "Join Network", path: "/join" },
+        { label: "Join Our Network", path: "/join" },
+      ],
+    },
+    {
+      title: "Talent Pool",
+      links: [
         { label: "Creator School", path: "/editors-pool" },
+        { label: "Video Editors", path: "/video-editors" },
+        { label: "Designers", path: "/designers-pool" },
+        { label: "Thumbnail Designers", path: "/thumbnail-designers" },
+        { label: "Writers", path: "/writers-pool" },
+        { label: "Social Media Managers", path: "/social-media-managers" },
+        { label: "Motion Designers", path: "/motion-designers" },
+        { label: "AI Creators", path: "/ai-creators" },
+        { label: "UGC Creators", path: "/ugc-creators" },
+        { label: "Meme Designers", path: "/meme-designers" },
       ],
     },
     {
       title: "Careers",
       links: [
-        { label: "Talent Network", path: "/freelancers" },
-        { label: "Full-time Jobs", path: "/full-time" },
-        { label: "Internship", path: "/internship" },
+        { label: "Full-time Jobs", path: "/career?type=full-time" },
+        { label: "Freelance Work", path: "/career?type=freelancer" },
+        { label: "Internship", path: "/career?type=internship" },
         { label: "Authority Audit", path: "/authority-audit" },
       ],
     },
