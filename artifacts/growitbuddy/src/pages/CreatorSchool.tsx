@@ -385,17 +385,64 @@ export default function CreatorSchool() {
       </section>
 
       {/* ─── 05 FINAL CTA ────────────────────────────────── */}
-      <section className="csp-pad">
-        <div style={{ maxWidth: 560, margin: "0 auto", padding: "0 20px", textAlign: "center" }}>
-          <motion.div {...FI()}>
-            <h2 style={{ fontSize: "clamp(20px, 3.5vw, 46px)", fontWeight: 800, color: "#0A0A0A", letterSpacing: "-0.03em", marginBottom: 16 }}>
-              {d.finalHeadline}
-            </h2>
-            <p style={{ fontSize: 16, color: "#5F5F5F", lineHeight: 1.65, marginBottom: 36 }}>{d.finalSubtext}</p>
-            <div className="csp-btns">
-              <a href="#submit" className="gb-btn" style={{ fontSize: 15, padding: "14px 28px" }}>
-                {d.finalCtaPrimary} <ArrowRight size={14} style={{ marginLeft: 7, display: "inline" }} />
-              </a>
+      <section className="csp-pad" style={{ background: "#F8F8F6" }}>
+        <div style={{ maxWidth: 880, margin: "0 auto", padding: "0 20px" }}>
+          <motion.div
+            {...FI()}
+            style={{
+              position: "relative",
+              background: "#EFEFEA",
+              border: "1px solid rgba(30,41,59,0.10)",
+              borderRadius: 24,
+              padding: "clamp(40px, 6vw, 72px) clamp(24px, 5vw, 56px)",
+              textAlign: "center",
+              overflow: "hidden",
+              boxShadow: "0 1px 0 rgba(255,255,255,0.6) inset, 0 24px 60px -32px rgba(30,41,59,0.25)",
+            }}
+          >
+            {/* decorative dotted grid corners — palette only */}
+            <span aria-hidden style={{
+              position: "absolute", top: 20, left: 20, width: 72, height: 72, opacity: 0.35,
+              backgroundImage: "radial-gradient(circle, rgba(30,41,59,0.35) 1px, transparent 1px)",
+              backgroundSize: "8px 8px",
+              maskImage: "radial-gradient(circle at top left, black, transparent 70%)",
+              WebkitMaskImage: "radial-gradient(circle at top left, black, transparent 70%)",
+              pointerEvents: "none",
+            }} />
+            <span aria-hidden style={{
+              position: "absolute", bottom: 20, right: 20, width: 72, height: 72, opacity: 0.35,
+              backgroundImage: "radial-gradient(circle, rgba(30,41,59,0.35) 1px, transparent 1px)",
+              backgroundSize: "8px 8px",
+              maskImage: "radial-gradient(circle at bottom right, black, transparent 70%)",
+              WebkitMaskImage: "radial-gradient(circle at bottom right, black, transparent 70%)",
+              pointerEvents: "none",
+            }} />
+            {/* gold accent line */}
+            <span aria-hidden style={{
+              position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)",
+              width: 64, height: 3, background: "var(--gb-gold)", borderRadius: "0 0 6px 6px",
+            }} />
+
+            <div style={{ position: "relative", maxWidth: 560, margin: "0 auto" }}>
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
+                fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase",
+                color: "var(--gb-gold)", marginBottom: 20,
+              }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--gb-gold)" }} />
+                Get started
+              </span>
+              <h2 style={{ fontSize: "clamp(24px, 4vw, 46px)", fontWeight: 800, color: "#0A0A0A", letterSpacing: "-0.04em", marginBottom: 16, lineHeight: 1.08 }}>
+                {d.finalHeadline}
+              </h2>
+              <p style={{ fontSize: 16, color: "#5F5F5F", lineHeight: 1.7, marginBottom: 36, maxWidth: "44ch", margin: "0 auto 36px" }}>
+                {d.finalSubtext}
+              </p>
+              <div className="csp-btns" style={{ display: "flex", justifyContent: "center" }}>
+                <a href="#submit" className="gb-btn">
+                  {d.finalCtaPrimary} <ArrowRight size={16} />
+                </a>
+              </div>
             </div>
           </motion.div>
         </div>

@@ -438,24 +438,48 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
       </section>
 
       {/* ─── 05 FINAL CTA ────────────────────────────────── */}
-      <section className="tp-pad" style={{ background: "#1E293B", borderTop: "1px solid #1E293B" }}>
-        <div style={{ maxWidth: 540, margin: "0 auto", padding: "0 20px", textAlign: "center" }}>
+      <section className="tp-pad" style={{ background: "#1E293B", borderTop: "1px solid #1E293B", position: "relative", overflow: "hidden" }}>
+        {/* decorative dotted grid (palette-safe) */}
+        <span aria-hidden style={{
+          position: "absolute", top: 24, left: 24, width: 120, height: 120, opacity: 0.18,
+          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.5) 1px, transparent 1px)",
+          backgroundSize: "10px 10px",
+          maskImage: "radial-gradient(circle at top left, black, transparent 70%)",
+          WebkitMaskImage: "radial-gradient(circle at top left, black, transparent 70%)",
+          pointerEvents: "none",
+        }} />
+        <span aria-hidden style={{
+          position: "absolute", bottom: 24, right: 24, width: 120, height: 120, opacity: 0.18,
+          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.5) 1px, transparent 1px)",
+          backgroundSize: "10px 10px",
+          maskImage: "radial-gradient(circle at bottom right, black, transparent 70%)",
+          WebkitMaskImage: "radial-gradient(circle at bottom right, black, transparent 70%)",
+          pointerEvents: "none",
+        }} />
+        {/* gold accent line */}
+        <span aria-hidden style={{
+          position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)",
+          width: 64, height: 3, background: "var(--gb-gold)", borderRadius: "0 0 6px 6px",
+        }} />
+
+        <div style={{ position: "relative", maxWidth: 560, margin: "0 auto", padding: "0 20px", textAlign: "center" }}>
           <motion.div {...FI()}>
-            <span className="gb-eyebrow" style={{ display: "block", marginBottom: 16, color: "rgba(255,255,255,0.4)" }}>Ready to join?</span>
-            <h2 style={{ fontSize: "clamp(20px, 3.5vw, 44px)", fontWeight: 900, color: "#FFFFFF", letterSpacing: "-0.04em", marginBottom: 14, lineHeight: 1.08 }}>
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase",
+              color: "var(--gb-gold)", marginBottom: 18,
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--gb-gold)" }} />
+              Ready to join
+            </span>
+            <h2 style={{ fontSize: "clamp(24px, 4vw, 46px)", fontWeight: 800, color: "#FFFFFF", letterSpacing: "-0.04em", marginBottom: 14, lineHeight: 1.08 }}>
               {d.finalHeadline}
             </h2>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", lineHeight: 1.7, marginBottom: 32 }}>{d.finalSubtext}</p>
-            <a href="#submit" style={{
-              display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 700,
-              background: "rgba(255,255,255,0.1)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)",
-              borderRadius: 8, padding: "13px 26px", textDecoration: "none", transition: "background 0.15s",
-              fontFamily: "'Inter', sans-serif",
-            }}
-              onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.15)")}
-              onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.1)")}
-            >
-              {d.finalCtaPrimary} <ArrowRight size={14} />
+            <p style={{ fontSize: 16, color: "rgba(255,255,255,0.65)", lineHeight: 1.7, marginBottom: 36, maxWidth: "44ch", margin: "0 auto 36px" }}>
+              {d.finalSubtext}
+            </p>
+            <a href="#submit" className="gb-btn" style={{ background: "#FFFFFF", color: "#0A0A0A", border: "1px solid rgba(255,255,255,0.18)" }}>
+              {d.finalCtaPrimary} <ArrowRight size={16} />
             </a>
           </motion.div>
         </div>
