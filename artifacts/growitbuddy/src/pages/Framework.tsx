@@ -90,13 +90,11 @@ export default function Framework() {
         <div className="max-w-[1100px] mx-auto">
           <div style={{ textAlign: "center", marginBottom: 44 }}>
             <span style={{
-              display: "inline-flex", alignItems: "center", gap: 10,
+              display: "inline-block",
               fontSize: 14, fontWeight: 800, letterSpacing: "0.24em", textTransform: "uppercase",
               color: "var(--gb-gold)",
             }}>
-              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--gb-gold)" }} />
               The 4-Step System
-              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--gb-gold)" }} />
             </span>
             <span aria-hidden style={{ display: "block", width: 48, height: 2, background: "rgba(194,168,120,0.4)", borderRadius: 2, margin: "14px auto 0" }} />
           </div>
