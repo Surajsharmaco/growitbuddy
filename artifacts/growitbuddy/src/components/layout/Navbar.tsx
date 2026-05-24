@@ -502,9 +502,10 @@ export function Navbar() {
                           <div style={{
                             display: "flex",
                             flexWrap: "wrap",
-                            gap: "4px 14px",
+                            gap: 8,
                             paddingLeft: 34,
-                            paddingBottom: "clamp(8px, 1vw, 12px)",
+                            paddingBottom: "clamp(10px, 1.2vw, 14px)",
+                            paddingTop: 2,
                           }}>
                             {it.subItems.map((sub) => {
                               const subActive = location === sub.href;
@@ -514,15 +515,31 @@ export function Navbar() {
                                     onClick={(e) => { e.stopPropagation(); setIsOpen(false); }}
                                     className="gb-menu-sublink"
                                     style={{
-                                      fontSize: 13,
-                                      fontWeight: 500,
-                                      color: subActive ? "#0A0A0A" : "#8A8A8A",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: 6,
+                                      fontSize: 12.5,
+                                      fontWeight: 600,
+                                      color: subActive ? "#0A0A0A" : "#5F5F5F",
+                                      background: subActive ? "rgba(194,168,120,0.10)" : "#FFFFFF",
+                                      border: `1px solid ${subActive ? "rgba(194,168,120,0.40)" : "rgba(10,10,10,0.08)"}`,
+                                      borderRadius: 100,
+                                      padding: "5px 12px 5px 14px",
                                       cursor: "pointer",
                                       letterSpacing: "-0.005em",
-                                      transition: "color 0.15s",
+                                      lineHeight: 1.1,
+                                      transition: "color 0.18s, background 0.18s, border-color 0.18s, transform 0.18s",
                                     }}
                                   >
                                     {sub.label}
+                                    <span style={{
+                                      display: "inline-block",
+                                      width: 4,
+                                      height: 4,
+                                      borderRadius: "50%",
+                                      background: "var(--gb-accent)",
+                                      opacity: subActive ? 1 : 0.55,
+                                    }} />
                                   </span>
                                 </Link>
                               );
@@ -602,7 +619,7 @@ export function Navbar() {
             <style>{`
               .gb-menu-link:hover { color: #0A0A0A !important; }
               .gb-menu-link:hover .gb-menu-arrow { opacity: 1 !important; transform: translateX(0) !important; }
-              .gb-menu-sublink:hover { color: var(--gb-accent) !important; }
+              .gb-menu-sublink:hover { color: #0A0A0A !important; background: rgba(194,168,120,0.10) !important; border-color: rgba(194,168,120,0.45) !important; transform: translateY(-1px); }
               @media (min-width: 900px) {
                 .gb-menu-grid { grid-template-columns: 1.6fr 1fr !important; }
               }
