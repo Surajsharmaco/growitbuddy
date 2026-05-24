@@ -236,28 +236,28 @@ const DEFAULTS: HomeData = {
   founderQuote:
     "\"I built GrowitBuddy after watching brilliant founders lose market position to louder, less qualified voices. Authority isn't given - it's built. We built the systems to do it consistently.\"",
   founderTags: ["Founder & CEO", "Content Strategist", "Authority Architect"],
-  testimonialsHeadline: "What our clients say.",
+  testimonialsHeadline: "What founders we've worked with say.",
   testimonials: [
     {
       quote:
-        "We went from 0 to 50K LinkedIn followers in 90 days and closed 3 enterprise deals from content alone.",
-      name: "Marcus Johnson",
-      role: "Founder, TechScale Labs",
-      initials: "MJ",
+        "Honestly, I was skeptical at first — I'd worked with two agencies before and both just recycled my old posts. The GrowitBuddy team actually sat with me for two hours figuring out what I wanted to be known for. Three months in, I'm getting cold DMs from people I used to look up to. That's the part nobody warned me would feel weird.",
+      name: "Rohan Mehta",
+      role: "Founder, Aarna Consumer Labs",
+      initials: "RM",
     },
     {
       quote:
-        "GrowitBuddy helped us create content that drives investor interest and partnership deals. Creative, fast, and reliable.",
-      name: "Sarah Chen",
-      role: "CEO, VentureEdge",
-      initials: "SC",
+        "The first month was slower than I'd hoped — they kept pushing back on my ideas which annoyed me a little, in hindsight rightly so. By month two the inbound started: two podcast invites, one investor intro, and a partnership conversation that's now signed. I still write my own posts; they just made me sound more like myself.",
+      name: "Priya Iyer",
+      role: "Co-founder, Lumen.health",
+      initials: "PI",
     },
     {
       quote:
-        "Real engagement growth and inbound leads after partnering with GrowitBuddy. They're experts at authority-driven content.",
-      name: "Jordan Lally",
-      role: "Founder & CEO, SaaSGrowth Co.",
-      initials: "JL",
+        "I'm not a content person. I run a 14-person agency and I just needed someone to handle the LinkedIn stuff without making me cringe. They get the tone, they ship on time, and when something flopped they actually told me why instead of spinning it. That alone was worth it.",
+      name: "Karan Sethi",
+      role: "Founder, Northstar Creative",
+      initials: "KS",
     },
   ],
   ctaHeadline: "If your content isn't driving results, it's not a content problem.",
