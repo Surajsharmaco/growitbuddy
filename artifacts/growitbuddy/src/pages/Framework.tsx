@@ -88,9 +88,18 @@ export default function Framework() {
       {/* Visual connector - vertical */}
       <section style={{ padding: "96px 24px", background: "#F8F8F6" }}>
         <div className="max-w-[1100px] mx-auto">
-          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#8A8A8A", marginBottom: 32, textAlign: "center" }}>
-            The 4-Step System
-          </p>
+          <div style={{ textAlign: "center", marginBottom: 44 }}>
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: 10,
+              fontSize: 14, fontWeight: 800, letterSpacing: "0.24em", textTransform: "uppercase",
+              color: "var(--gb-gold)",
+            }}>
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--gb-gold)" }} />
+              The 4-Step System
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--gb-gold)" }} />
+            </span>
+            <span aria-hidden style={{ display: "block", width: 48, height: 2, background: "rgba(194,168,120,0.4)", borderRadius: 2, margin: "14px auto 0" }} />
+          </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 0, position: "relative" }}>
             {/* Vertical connecting line — slate tinted, full opacity for visibility */}
             <div style={{ position: "absolute", left: 23, top: 22, bottom: 22, width: 2, background: "linear-gradient(to bottom, rgba(30,41,59,0.18), rgba(30,41,59,0.08))", zIndex: 0 }} />
