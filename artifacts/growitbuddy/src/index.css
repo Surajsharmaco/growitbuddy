@@ -551,3 +551,27 @@ section {
   section[style*="padding: 72px 24px"],
   section[style*="padding: 64px 24px"] { padding-left: 18px !important; padding-right: 18px !important; }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   GLOBAL SECTION DENSITY — desktop & mobile
+   Round 2: user reported still-too-wide gaps between sections
+   (e.g. between "See All Case Studies" and "ECOSYSTEM" block).
+   Tighten 100px / 108px section paddings site-wide. Also covers
+   the few 120px sections that aren't full heroes.
+   ───────────────────────────────────────────────────────────── */
+
+/* DESKTOP — globally compress oversized section paddings */
+section[style*="padding: 100px"]      { padding-top: 72px !important; padding-bottom: 72px !important; }
+section[style*='padding: "100px 24px 108px'],
+section[style*="padding: 100px 24px 108px"] { padding-top: 72px !important; padding-bottom: 76px !important; }
+
+/* TABLET ≤900px */
+@media (max-width: 900px) {
+  section[style*="padding: 100px"] { padding-top: 52px !important; padding-bottom: 52px !important; }
+}
+
+/* PHONE ≤600px */
+@media (max-width: 600px) {
+  section[style*="padding: 100px"] { padding-top: 40px !important; padding-bottom: 40px !important; }
+  section[style*="padding: 100px"] { padding-left: 18px !important; padding-right: 18px !important; }
+}
