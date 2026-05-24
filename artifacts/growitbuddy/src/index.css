@@ -192,51 +192,59 @@ h1, h2, h3, h4 {
   50%       { box-shadow: 0 0 20px 4px var(--gb-accent-glow); }
 }
 
-/* ── GB Button: primary CTA (burnt rust) ── */
+/* ── GB Button: primary CTA — site-wide unified pill ── */
 .gb-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   background: var(--gb-accent);
   color: #fff;
   font-family: 'Inter', sans-serif;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
   letter-spacing: -0.01em;
-  padding: 12px 24px;
-  border-radius: 6px;
-  border: none;
+  padding: 14px 28px;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.10);
   cursor: pointer;
-  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s, border-color 0.2s;
   text-decoration: none;
+  box-shadow: 0 2px 8px rgba(30,41,59,0.10);
+  white-space: nowrap;
 }
 .gb-btn:hover {
   background: var(--gb-accent-hover);
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px var(--gb-accent-glow);
+  box-shadow: 0 8px 24px rgba(30,41,59,0.18);
+  border-color: rgba(255,255,255,0.16);
 }
 
-/* ── GB Button: outline (ink blue) ── */
+/* ── GB Button: outline — matching pill ── */
 .gb-btn-outline {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   background: transparent;
   color: var(--gb-authority);
   font-family: 'Inter', sans-serif;
   font-weight: 600;
-  font-size: 14px;
-  padding: 11px 24px;
-  border-radius: 6px;
-  border: 1.5px solid var(--gb-border);
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  padding: 13px 27px;
+  border-radius: 100px;
+  border: 1.5px solid rgba(30,41,59,0.18);
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s, color 0.2s;
+  transition: border-color 0.2s, background 0.2s, color 0.2s, transform 0.15s;
   text-decoration: none;
+  white-space: nowrap;
 }
 .gb-btn-outline:hover {
   border-color: var(--gb-authority);
   background: rgba(30,41,59,0.04);
   color: var(--gb-authority);
+  transform: translateY(-1px);
 }
 
 /* ── GB Card ── */
