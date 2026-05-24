@@ -451,8 +451,8 @@ export default function AuthorityAudit() {
                   </div>
                   <a
                     href="/contact"
-                    style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "13px 26px", borderRadius: 100, background: "#FFFFFF", color: "#0A0A0A", fontSize: 14, fontWeight: 700, cursor: "pointer", textDecoration: "none", fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap", flexShrink: 0 }}
-                    className="hover:opacity-85 transition-opacity"
+                    className="gb-btn"
+                    style={{ flexShrink: 0 }}
                   >
                     {cms.introPaidButton} <ArrowRight className="w-4 h-4" />
                   </a>

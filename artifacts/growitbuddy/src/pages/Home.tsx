@@ -843,7 +843,7 @@ export default function Home() {
                 <h3 style={{ fontWeight: 800, fontSize: "clamp(22px, 3vw, 30px)", letterSpacing: "-0.03em", lineHeight: "1.15", color: "#0A0A0A", marginBottom: 16 }}>{card.title}</h3>
                 <p style={{ fontSize: 15, color: "#5F5F5F", lineHeight: "1.75", marginBottom: 32 }}>{card.desc}</p>
                 <Link href={card.href}>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 22px", borderRadius: 100, background: "var(--gb-accent)", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }} className="hover:opacity-80">
+                  <span className="gb-btn">
                     {card.cta}
                     <ArrowRight className="w-4 h-4" />
                   </span>

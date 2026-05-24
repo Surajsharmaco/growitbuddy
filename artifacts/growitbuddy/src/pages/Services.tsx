@@ -349,14 +349,8 @@ export default function Services() {
               </p>
               <Link href="/contact">
                 <span
-                  style={{
-                    display: "inline-flex", alignItems: "center", gap: 8,
-                    padding: "13px 26px", borderRadius: 100,
-                    background: "var(--gb-accent)", color: "#FFFFFF",
-                    fontSize: 14, fontWeight: 700, cursor: "pointer",
-                    fontFamily: "'Inter', sans-serif", width: "fit-content",
-                    transition: "background 0.2s, box-shadow 0.2s",
-                  }}
+                  className="gb-btn"
+                  style={{ width: "fit-content" }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--gb-accent-hover)"; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "var(--gb-accent)"; }}
                 >
@@ -526,14 +520,12 @@ export default function Services() {
                   {/* CTA */}
                   <Link href="/contact">
                     <span
+                      className="gb-btn"
                       style={{
-                        display: "inline-flex", alignItems: "center", gap: 7,
-                        padding: "10px 20px", borderRadius: 100,
+                        padding: "10px 20px",
+                        fontSize: 13,
                         background: isDark ? "rgba(255,255,255,0.1)" : "var(--gb-authority)",
-                        color: "#FFFFFF",
-                        fontSize: 13, fontWeight: 700, cursor: "pointer",
-                        fontFamily: "'Inter', sans-serif",
-                        border: isDark ? "1px solid rgba(255,255,255,0.15)" : "none",
+                        border: isDark ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(255,255,255,0.10)",
                         transition: "opacity 0.18s, background 0.18s",
                         alignSelf: "flex-start",
                       }}
@@ -658,16 +650,9 @@ export default function Services() {
             </p>
             <Link href="/contact">
               <span
-                className="svc-cta-btn"
+                className="gb-btn svc-cta-btn"
                 style={{
-                  display: "inline-flex", alignItems: "center", gap: 10,
-                  padding: "16px 34px", borderRadius: 100,
-                  background: "var(--gb-accent)", color: "#FFFFFF",
-                  fontSize: 15, fontWeight: 700, cursor: "pointer",
-                  fontFamily: "'Inter', sans-serif",
-                  border: "1.5px solid rgba(255,255,255,0.18)",
-                  boxShadow: "0 1px 0 rgba(255,255,255,0.18) inset, 0 10px 30px -10px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04)",
-                  transition: "transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, border-color 0.25s ease",
+                  padding: "16px 34px",
                   willChange: "transform",
                 }}
               >

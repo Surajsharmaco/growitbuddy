@@ -74,34 +74,43 @@ export default function JoinNetwork() {
         .jn-card-dark .jn-rule  { background: var(--gb-accent); }
         .jn-card-dark .jn-desc  { color: #5F5F5F; }
         .jn-card-dark .jn-btn   { background: var(--gb-accent); color: #fff; }
-        .jn-card-dark .jn-btn:hover { opacity: 0.88; }
         .jn-card-light .jn-num  { color: #8A8A8A; }
         .jn-card-light .jn-title { color: #0A0A0A; }
         .jn-card-light .jn-sub  { color: #8A8A8A; }
         .jn-card-light .jn-rule { background: rgba(10,10,10,0.1); }
         .jn-card-light .jn-desc { color: #5F5F5F; }
-        .jn-card-light .jn-btn  { background: #1E293B; color: #F8F8F6; border: none; }
-        .jn-card-light .jn-btn:hover { opacity: 0.88; }
+        .jn-card-light .jn-btn  { background: #1E293B; color: #F8F8F6; }
         .jn-num   { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 32px; display: block; }
         .jn-title { font-weight: 800; font-size: clamp(28px, 3.5vw, 42px); letter-spacing: -0.04em; line-height: 1.08; margin-bottom: 0; }
         .jn-sub   { font-size: 13px; font-weight: 600; letter-spacing: 0.01em; margin-top: 6px; }
         .jn-rule  { width: 36px; height: 2px; border-radius: 2px; margin: 24px 0; flex-shrink: 0; }
         .jn-desc  { font-size: 15px; line-height: 1.75; flex: 1; margin-bottom: 40px; }
         .jn-btn {
+          position: relative;
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          font-size: 14px;
-          font-weight: 700;
+          justify-content: center;
+          gap: 10px;
+          font-size: 15px;
+          font-weight: 600;
           border-radius: 100px;
-          padding: 13px 24px;
-          border: none;
+          padding: 14px 28px;
+          border: 1px solid rgba(255,255,255,0.10);
           cursor: pointer;
           font-family: 'Inter', sans-serif;
           width: fit-content;
-          transition: opacity 0.15s ease;
-          pointer-events: none;
+          box-shadow: 0 2px 8px rgba(30,41,59,0.10);
+          transition: transform 0.25s cubic-bezier(0.22,1,0.36,1), box-shadow 0.25s ease, background 0.25s ease;
+          white-space: nowrap;
           letter-spacing: -0.01em;
+        }
+        .jn-card:hover .jn-btn {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 28px rgba(30,41,59,0.22);
+        }
+        .jn-btn svg { transition: transform 0.3s cubic-bezier(0.22,1,0.36,1); flex-shrink: 0; }
+        .jn-card:hover .jn-btn svg { transform: translateX(4px); }
+        .jn-btn-old-unused {
         }
         .jn-deco {
           position: absolute;

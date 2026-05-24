@@ -563,7 +563,7 @@ export default function DistributionNetwork() {
               {cms.ctaSubtext}
             </p>
             <Link href="/contact">
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "var(--gb-accent)", color: "#fff", fontWeight: 700, fontSize: 14, borderRadius: 100, padding: "12px 24px", cursor: "pointer" }}>
+              <span className="gb-btn">
                 {cms.ctaButton}
                 <ArrowRight className="w-4 h-4" />
               </span>

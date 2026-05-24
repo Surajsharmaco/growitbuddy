@@ -410,25 +410,16 @@ export default function About() {
           </p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <Link href="/contact">
-              <span style={{
-                display: "inline-flex", alignItems: "center", gap: 8,
-                background: "var(--gb-accent)", color: "#fff",
-                fontWeight: 700, fontSize: 14, borderRadius: 100,
-                padding: "14px 28px", cursor: "pointer",
-                fontFamily: "'Inter', sans-serif",
-              }} className="hover:opacity-90 transition-opacity">
+              <span className="gb-btn">
                 Book a free call
                 <ArrowRight className="w-4 h-4" />
               </span>
             </Link>
             <Link href="/services">
-              <span style={{
-                display: "inline-flex", alignItems: "center", gap: 8,
-                border: "1.5px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.8)",
-                fontWeight: 700, fontSize: 14, borderRadius: 100,
-                padding: "14px 28px", cursor: "pointer",
-                fontFamily: "'Inter', sans-serif",
-              }} className="hover:border-white hover:text-white transition-colors">
+              <span className="gb-btn-outline" style={{
+                color: "rgba(255,255,255,0.85)",
+                borderColor: "rgba(255,255,255,0.25)",
+              }}>
                 Explore services
               </span>
             </Link>
