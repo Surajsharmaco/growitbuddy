@@ -481,23 +481,6 @@ const SERVICE_PALETTES: ServiceCardPalette[] = [
     dotDivider: "#1E293B",
     dotColor: "rgba(10,10,10,0.06)",
   },
-  // 3 — Gold-tinted dark
-  {
-    bg: "linear-gradient(160deg, #0A0A0A 0%, #1E293B 100%)",
-    border: "1px solid rgba(194,168,120,0.20)",
-    shadow: "0 8px 32px rgba(10,10,10,0.20)",
-    text: "#F8F8F6",
-    mutedText: "rgba(248,248,246,0.72)",
-    eyebrow: "#C2A878",
-    pillBg: "#C2A878",
-    pillText: "#0A0A0A",
-    pillBorder: "1px solid #C2A878",
-    arrowBg: "#C2A878",
-    arrowText: "#0A0A0A",
-    arrowBorder: "1px solid #C2A878",
-    dotDivider: "#C2A878",
-    dotColor: "rgba(194,168,120,0.12)",
-  },
 ];
 
 // ── Service Category Card (landing) — colour-differentiated branded design ──
