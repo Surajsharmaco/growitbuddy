@@ -727,17 +727,19 @@ export default function Home() {
                     flexDirection: "column",
                   }}
                 >
-                  <div style={{
-                    width: 32, height: 32, borderRadius: "50%",
-                    background: isAccent ? "rgba(255,255,255,0.15)" : "rgba(10,10,10,0.05)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 11, fontWeight: 800, letterSpacing: "0.05em",
-                    color: isAccent ? "#FFFFFF" : "#8A8A8A",
-                    marginBottom: 20, flexShrink: 0,
-                  }}>
-                    {s.num}
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                    <div style={{
+                      width: 32, height: 32, borderRadius: "50%",
+                      background: isAccent ? "rgba(255,255,255,0.15)" : "rgba(10,10,10,0.05)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 11, fontWeight: 800, letterSpacing: "0.05em",
+                      color: isAccent ? "#FFFFFF" : "#8A8A8A",
+                      flexShrink: 0,
+                    }}>
+                      {s.num}
+                    </div>
+                    <h3 style={{ fontWeight: 700, fontSize: 18, letterSpacing: "-0.02em", color: isAccent ? "#FFFFFF" : TEXT, margin: 0 }}>{s.title}</h3>
                   </div>
-                  <h3 style={{ fontWeight: 700, fontSize: 18, letterSpacing: "-0.02em", color: isAccent ? "#FFFFFF" : TEXT, marginBottom: 10 }}>{s.title}</h3>
                   <p style={{ fontSize: 14, color: isAccent ? "rgba(255,255,255,0.7)" : "#5F5F5F", lineHeight: "1.7", flex: 1 }}>{s.desc}</p>
                   <div style={{ marginTop: 24 }}>
                     <a
