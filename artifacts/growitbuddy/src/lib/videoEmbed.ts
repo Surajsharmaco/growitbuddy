@@ -73,6 +73,21 @@ export function getHiResThumbnail(url: string): string {
   return "";
 }
 
+// True for vertical short-form: YouTube /shorts/ URLs.
+// Other sources (Vimeo, Drive) default to long-form.
+export function isShortVideo(url: string): boolean {
+  if (!url) return false;
+  try {
+    const u = new URL(url.trim());
+    if (u.hostname.toLowerCase().includes("youtube.com") && u.pathname.includes("/shorts/")) {
+      return true;
+    }
+  } catch {
+    if (/\/shorts\/[a-zA-Z0-9_-]{6,}/.test(url)) return true;
+  }
+  return false;
+}
+
 export function sourceLabel(url: string): string {
   const { source } = parseVideo(url);
   if (source === "youtube") return "YouTube";

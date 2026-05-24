@@ -4,15 +4,15 @@ import { motion } from "framer-motion";
 import { useRoute, Link, useLocation } from "wouter";
 
 import { API_BASE } from "@/lib/api";
-import { getEmbedUrl, getThumbnail, getHiResThumbnail } from "@/lib/videoEmbed";
+import { getEmbedUrl, getThumbnail, getHiResThumbnail, isShortVideo } from "@/lib/videoEmbed";
 
-type CategoryType = "video" | "reel" | "case-study";
+type CategoryType = "video" | "case-study";
 
 const CATEGORIES = [
   "Personal Branding",
   "Content Creation",
-  "Video Editing",
-  "Reels / Shorts",
+  "Video Editing — India",
+  "Video Editing — US",
   "Graphics",
   "Social Media Management",
   "Distribution & Growth",
@@ -32,15 +32,15 @@ const CATEGORY_META: Record<string, { slug: string; tagline: string; type: Categ
     tagline: "High-signal content production engineered for trust and consistency at scale.",
     type: "video",
   },
-  "Video Editing": {
-    slug: "video-editing",
-    tagline: "Cinematic long-form edits crafted to convert attention into authority.",
+  "Video Editing — India": {
+    slug: "video-editing-india",
+    tagline: "Long-form edits and short-form reels crafted for India's creator economy.",
     type: "video",
   },
-  "Reels / Shorts": {
-    slug: "reels-shorts",
-    tagline: "Scroll-stopping short-form built for reach and retention.",
-    type: "reel",
+  "Video Editing — US": {
+    slug: "video-editing-us",
+    tagline: "Premium long-form and short-form edits built for US founders and creators.",
+    type: "video",
   },
   "Graphics": {
     slug: "graphics",
@@ -675,11 +675,26 @@ export default function Portfolio() {
     const categoryItems = items.filter((i) => i.category === activeCategory);
     const meta = CATEGORY_META[activeCategory];
 
-    // Chunk video items into [1 big, 2 normal] repeating blocks
-    const videoBlocks: PortfolioItem[][] = [];
+    // Split video-type items into shorts (9:16) and longs (16:9),
+    // then weave: 3 shorts row → 1 long full-width → repeat.
+    type VideoBlock =
+      | { kind: "shorts"; items: PortfolioItem[] }
+      | { kind: "long"; item: PortfolioItem };
+    const videoBlocks: VideoBlock[] = [];
     if (meta.type === "video") {
-      for (let i = 0; i < categoryItems.length; i += 3) {
-        videoBlocks.push(categoryItems.slice(i, i + 3));
+      const shorts = categoryItems.filter((i) => isShortVideo(i.youtubeUrl));
+      const longs = categoryItems.filter((i) => !isShortVideo(i.youtubeUrl));
+      let sIdx = 0;
+      let lIdx = 0;
+      while (sIdx < shorts.length || lIdx < longs.length) {
+        if (sIdx < shorts.length) {
+          videoBlocks.push({ kind: "shorts", items: shorts.slice(sIdx, sIdx + 3) });
+          sIdx += 3;
+        }
+        if (lIdx < longs.length) {
+          videoBlocks.push({ kind: "long", item: longs[lIdx] });
+          lIdx += 1;
+        }
       }
     }
 
@@ -737,38 +752,28 @@ export default function Portfolio() {
                 No projects in {activeCategory} yet.
               </p>
             </div>
-          ) : meta.type === "reel" ? (
-            // ── REEL: 3 per row, bigger tiles ──
-            <div
-              className="reel-grid"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: 24,
-              }}
-            >
-              {categoryItems.map((item) => <ReelTile key={item.id} item={item} />)}
-            </div>
           ) : meta.type === "video" ? (
-            // ── VIDEO: pattern of [1 big, 2 normal] repeating ──
-            <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
-              {videoBlocks.map((block, bi) => (
-                <div key={bi} style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-                  {block[0] && <VideoTile item={block[0]} featured />}
-                  {block.length > 1 && (
-                    <div
-                      className="video-row"
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(2, 1fr)",
-                        gap: 22,
-                      }}
-                    >
-                      {block.slice(1).map((item) => <VideoTile key={item.id} item={item} />)}
-                    </div>
-                  )}
-                </div>
-              ))}
+            // ── VIDEO: 3 shorts row → 1 long full-width → repeat ──
+            <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+              {videoBlocks.map((block, bi) =>
+                block.kind === "shorts" ? (
+                  <div
+                    key={bi}
+                    className="reel-grid"
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(3, 1fr)",
+                      gap: 24,
+                    }}
+                  >
+                    {block.items.map((item) => <ReelTile key={item.id} item={item} />)}
+                  </div>
+                ) : (
+                  <div key={bi}>
+                    <VideoTile item={block.item} featured />
+                  </div>
+                )
+              )}
             </div>
           ) : (
             // ── CASE STUDY: featured + grid ──

@@ -10,8 +10,8 @@ import { getEmbedUrl as toEmbedUrl, getThumbnail, sourceLabel } from "@/lib/vide
 const CATEGORIES = [
   "Personal Branding",
   "Content Creation",
-  "Video Editing",
-  "Reels / Shorts",
+  "Video Editing — India",
+  "Video Editing — US",
   "Graphics",
   "Social Media Management",
   "Distribution & Growth",
@@ -39,7 +39,7 @@ interface FormState {
 }
 
 const EMPTY_FORM: FormState = {
-  title: "", category: "Video Editing", youtubeUrl: "", description: "", sortOrder: 0,
+  title: "", category: "Video Editing — India", youtubeUrl: "", description: "", sortOrder: 0,
 };
 
 // ── Item Form ──
