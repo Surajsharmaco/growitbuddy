@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useRoute, Link, useLocation } from "wouter";
 
 import { API_BASE } from "@/lib/api";
+import { getEmbedUrl, getThumbnail, getHiResThumbnail } from "@/lib/videoEmbed";
 
 type CategoryType = "video" | "reel" | "case-study";
 
@@ -90,38 +91,6 @@ interface PortfolioItem {
   youtubeUrl: string;
   description: string | null;
   sortOrder: number;
-}
-
-function getEmbedUrl(url: string): string {
-  let videoId = "";
-  try {
-    const u = new URL(url);
-    if (u.hostname.includes("youtu.be")) {
-      videoId = u.pathname.slice(1);
-    } else if (u.hostname.includes("youtube.com")) {
-      if (u.pathname.includes("/shorts/")) {
-        videoId = u.pathname.split("/shorts/")[1]?.split("/")[0] ?? "";
-      } else {
-        videoId = u.searchParams.get("v") ?? "";
-      }
-    }
-  } catch {
-    const m = url.match(/(?:v=|youtu\.be\/|\/shorts\/)([a-zA-Z0-9_-]{11})/);
-    videoId = m?.[1] ?? "";
-  }
-  return videoId ? `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1` : "";
-}
-
-function getThumbnail(url: string): string {
-  const embed = getEmbedUrl(url);
-  const m = embed.match(/embed\/([a-zA-Z0-9_-]{11})/);
-  return m ? `https://img.youtube.com/vi/${m[1]}/hqdefault.jpg` : "";
-}
-
-function getHiResThumbnail(url: string): string {
-  const embed = getEmbedUrl(url);
-  const m = embed.match(/embed\/([a-zA-Z0-9_-]{11})/);
-  return m ? `https://img.youtube.com/vi/${m[1]}/maxresdefault.jpg` : "";
 }
 
 // ── Video Tile (16:9) — long-form ──

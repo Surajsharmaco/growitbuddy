@@ -5,6 +5,7 @@ import { Plus, Edit2, Trash2, X, Save, ExternalLink, Play } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { API_BASE } from "@/lib/api";
+import { getEmbedUrl as toEmbedUrl, getThumbnail, sourceLabel } from "@/lib/videoEmbed";
 
 const CATEGORIES = [
   "Personal Branding",
@@ -41,32 +42,6 @@ const EMPTY_FORM: FormState = {
   title: "", category: "Video Editing", youtubeUrl: "", description: "", sortOrder: 0,
 };
 
-function toEmbedUrl(url: string): string {
-  let videoId = "";
-  try {
-    const u = new URL(url);
-    if (u.hostname.includes("youtu.be")) {
-      videoId = u.pathname.slice(1);
-    } else if (u.hostname.includes("youtube.com")) {
-      if (u.pathname.includes("/shorts/")) {
-        videoId = u.pathname.split("/shorts/")[1]?.split("/")[0] ?? "";
-      } else {
-        videoId = u.searchParams.get("v") ?? "";
-      }
-    }
-  } catch {
-    const m = url.match(/(?:v=|youtu\.be\/|\/shorts\/)([a-zA-Z0-9_-]{11})/);
-    videoId = m?.[1] ?? "";
-  }
-  return videoId ? `https://www.youtube.com/embed/${videoId}` : "";
-}
-
-function getThumbnail(url: string): string {
-  const embed = toEmbedUrl(url);
-  const m = embed.match(/embed\/([a-zA-Z0-9_-]{11})/);
-  return m ? `https://img.youtube.com/vi/${m[1]}/mqdefault.jpg` : "";
-}
-
 // ── Item Form ──
 function ItemForm({
   initial,
@@ -82,6 +57,7 @@ function ItemForm({
   const [form, setForm] = useState<FormState>(initial);
   const thumb = form.youtubeUrl ? getThumbnail(form.youtubeUrl) : "";
   const embedOk = !!toEmbedUrl(form.youtubeUrl);
+  const detectedSource = sourceLabel(form.youtubeUrl);
 
   function set(key: keyof FormState, value: string | number) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -96,17 +72,23 @@ function ItemForm({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {/* YouTube URL */}
+      {/* Video URL */}
       <div>
-        <label style={labelStyle}>YouTube URL *</label>
+        <label style={labelStyle}>Video URL * <span style={{ color: "#8A8A8A", fontWeight: 400 }}>— YouTube, Vimeo or Google Drive</span></label>
         <input
           style={{ ...inputStyle, borderColor: form.youtubeUrl && !embedOk ? "#e53e3e" : "#E5E5E0" }}
-          placeholder="https://www.youtube.com/watch?v=..."
+          placeholder="Paste a YouTube, Vimeo or Drive link…"
           value={form.youtubeUrl}
           onChange={(e) => set("youtubeUrl", e.target.value)}
         />
         {form.youtubeUrl && !embedOk && (
-          <p style={{ fontSize: 12, color: "#e53e3e", marginTop: 4 }}>Invalid YouTube URL</p>
+          <p style={{ fontSize: 12, color: "#e53e3e", marginTop: 4 }}>Could not detect a YouTube, Vimeo or Google Drive video in this link.</p>
+        )}
+        {detectedSource && (
+          <p style={{ fontSize: 11, color: "#5F5F5F", marginTop: 4 }}>
+            Detected: <strong style={{ color: "#1E293B" }}>{detectedSource}</strong>
+            {detectedSource === "Google Drive" && <span style={{ color: "#8A8A8A" }}> · Drive sharing must be set to “Anyone with the link”.</span>}
+          </p>
         )}
         {thumb && (
           <div style={{ marginTop: 10, borderRadius: 8, overflow: "hidden", maxWidth: 280, position: "relative" }}>
