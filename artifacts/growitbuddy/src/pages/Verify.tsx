@@ -179,18 +179,14 @@ export default function Verify() {
         }}
       >
         <div className="max-w-[640px] mx-auto text-center">
-          <p
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.2em",
-              textTransform: "uppercase",
-              color: "#7A7A85",
-              marginBottom: 16,
-            }}
-          >
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase",
+            color: "var(--gb-gold)", marginBottom: 18,
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--gb-gold)" }} />
             Certificate Verification
-          </p>
+          </span>
           <motion.h1
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
@@ -201,11 +197,12 @@ export default function Verify() {
               letterSpacing: "-0.04em",
               lineHeight: 1.05,
               color: "#0A0A0A",
-              marginBottom: 16,
+              marginBottom: 18,
             }}
           >
             Verify Credentials
           </motion.h1>
+          <span aria-hidden style={{ display: "inline-block", width: 56, height: 3, background: "var(--gb-gold)", borderRadius: 2, marginBottom: 18 }} />
           <motion.p
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
