@@ -410,26 +410,119 @@ function CaseStudyTile({ item, featured = false }: { item: PortfolioItem; featur
   );
 }
 
-// ── Service Category Card (landing) — uniform brand palette ──
+// ── Service Card Palettes ──
+// 4 variants cycled by index — strict brand palette only.
+type ServiceCardPalette = {
+  bg: string;
+  border: string;
+  shadow: string;
+  text: string;
+  mutedText: string;
+  eyebrow: string;
+  pillBg: string;
+  pillText: string;
+  pillBorder: string;
+  arrowBg: string;
+  arrowText: string;
+  arrowBorder: string;
+  dotDivider: string;
+  dotColor: string;
+};
+
+const SERVICE_PALETTES: ServiceCardPalette[] = [
+  // 0 — Dark slate (signature)
+  {
+    bg: "linear-gradient(160deg, #1E293B 0%, #0F172A 100%)",
+    border: "1px solid rgba(255,255,255,0.06)",
+    shadow: "0 8px 32px rgba(15,23,42,0.18)",
+    text: "#F8F8F6",
+    mutedText: "rgba(248,248,246,0.7)",
+    eyebrow: "rgba(194,168,120,0.92)",
+    pillBg: "rgba(255,255,255,0.10)",
+    pillText: "#F8F8F6",
+    pillBorder: "1px solid rgba(255,255,255,0.16)",
+    arrowBg: "rgba(255,255,255,0.10)",
+    arrowText: "#F8F8F6",
+    arrowBorder: "1px solid rgba(255,255,255,0.18)",
+    dotDivider: "#C2A878",
+    dotColor: "rgba(194,168,120,0.10)",
+  },
+  // 1 — Cream + dark slate text
+  {
+    bg: "linear-gradient(160deg, #FFFFFF 0%, #F8F8F6 100%)",
+    border: "1.5px solid #E5E5E0",
+    shadow: "0 8px 28px rgba(30,41,59,0.08)",
+    text: "#0A0A0A",
+    mutedText: "#5F5F5F",
+    eyebrow: "#C2A878",
+    pillBg: "#1E293B",
+    pillText: "#FFFFFF",
+    pillBorder: "1px solid #1E293B",
+    arrowBg: "#1E293B",
+    arrowText: "#FFFFFF",
+    arrowBorder: "1px solid #1E293B",
+    dotDivider: "#C2A878",
+    dotColor: "rgba(30,41,59,0.07)",
+  },
+  // 2 — Off-cream with stronger gold corner
+  {
+    bg: "linear-gradient(160deg, #EFEFEA 0%, #F8F8F6 100%)",
+    border: "1.5px solid rgba(194,168,120,0.35)",
+    shadow: "0 8px 28px rgba(30,41,59,0.10)",
+    text: "#0A0A0A",
+    mutedText: "#5F5F5F",
+    eyebrow: "#1E293B",
+    pillBg: "#C2A878",
+    pillText: "#0A0A0A",
+    pillBorder: "1px solid #C2A878",
+    arrowBg: "#0A0A0A",
+    arrowText: "#C2A878",
+    arrowBorder: "1px solid #0A0A0A",
+    dotDivider: "#1E293B",
+    dotColor: "rgba(10,10,10,0.06)",
+  },
+  // 3 — Gold-tinted dark
+  {
+    bg: "linear-gradient(160deg, #0A0A0A 0%, #1E293B 100%)",
+    border: "1px solid rgba(194,168,120,0.20)",
+    shadow: "0 8px 32px rgba(10,10,10,0.20)",
+    text: "#F8F8F6",
+    mutedText: "rgba(248,248,246,0.72)",
+    eyebrow: "#C2A878",
+    pillBg: "#C2A878",
+    pillText: "#0A0A0A",
+    pillBorder: "1px solid #C2A878",
+    arrowBg: "#C2A878",
+    arrowText: "#0A0A0A",
+    arrowBorder: "1px solid #C2A878",
+    dotDivider: "#C2A878",
+    dotColor: "rgba(194,168,120,0.12)",
+  },
+];
+
+// ── Service Category Card (landing) — colour-differentiated branded design ──
 function ServiceCard({
-  category, count, previewThumb, index,
-}: { category: string; count: number; previewThumb: string; index: number }) {
+  category, count, index,
+}: { category: string; count: number; index: number }) {
   const meta = CATEGORY_META[category];
   const [, setLocation] = useLocation();
   const href = `/portfolio/${meta.slug}`;
+  const p = SERVICE_PALETTES[index % SERVICE_PALETTES.length];
+
   const go = (e: React.MouseEvent) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return; // allow new-tab
     e.preventDefault();
     setLocation(href);
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
   };
+
   return (
     <motion.a
       href={href}
       onClick={go}
       initial={{ opacity: 0, y: 28 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.08, duration: 0.55 }}
+      transition={{ delay: index * 0.06, duration: 0.55 }}
       whileHover={{ y: -6 }}
       style={{
         position: "relative",
@@ -438,113 +531,118 @@ function ServiceCard({
         overflow: "hidden",
         cursor: "pointer",
         minHeight: 340,
-        background: BRAND_ACCENT,
-        boxShadow: "0 8px 32px rgba(15,23,42,0.12)",
-        transition: "box-shadow 0.3s",
+        background: p.bg,
+        border: p.border,
+        boxShadow: p.shadow,
+        transition: "box-shadow 0.3s, border-color 0.3s",
         textDecoration: "none",
       }}
       className="service-card group hover:shadow-2xl"
     >
-        {previewThumb && (
-          <img
-            src={previewThumb}
-            alt=""
-            loading="lazy"
+      {/* Subtle dotted-grid pattern */}
+      <div
+        style={{
+          position: "absolute", inset: 0,
+          backgroundImage: `radial-gradient(${p.dotColor} 1.2px, transparent 1.2px)`,
+          backgroundSize: "22px 22px",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Gold accent rail — top */}
+      <div
+        style={{
+          position: "absolute", top: 0, left: 0, right: 0, height: 3,
+          background: "linear-gradient(90deg, #C2A878, #D4BB90)",
+        }}
+      />
+
+      {/* Dotted-grid corner decoration — bottom-right */}
+      <div
+        style={{
+          position: "absolute", bottom: 16, right: 78,
+          width: 36, height: 36,
+          backgroundImage: `radial-gradient(${p.eyebrow} 1.3px, transparent 1.3px)`,
+          backgroundSize: "8px 8px",
+          opacity: 0.45,
+          pointerEvents: "none",
+        }}
+      />
+
+      <div
+        style={{
+          position: "relative", height: "100%", minHeight: 340,
+          padding: "32px 32px 30px",
+          display: "flex", flexDirection: "column", justifyContent: "space-between",
+          color: p.text,
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <span
             style={{
-              position: "absolute", inset: 0, width: "100%", height: "100%",
-              objectFit: "cover", opacity: 0.32,
-              transition: "transform 0.6s, opacity 0.3s",
+              fontSize: 10, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase",
+              color: p.eyebrow,
             }}
-            className="group-hover:scale-110 group-hover:opacity-50"
-          />
-        )}
-        <div
-          style={{
-            position: "absolute", inset: 0,
-            background: "linear-gradient(160deg, rgba(15,23,42,0.65) 0%, rgba(15,23,42,0.92) 100%)",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute", top: 0, left: 0, right: 0, height: 3,
-            background: "linear-gradient(90deg, #C2A878, #D4BB90)",
-          }}
-        />
-
-        <div
-          style={{
-            position: "relative", height: "100%", minHeight: 340,
-            padding: "32px 32px 30px",
-            display: "flex", flexDirection: "column", justifyContent: "space-between",
-            color: "#fff",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <span
-              style={{
-                fontSize: 10, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase",
-                color: "rgba(194,168,120,0.9)",
-              }}
-            >
-              0{index + 1} · Service
-            </span>
-            <div
-              style={{
-                width: 44, height: 44, borderRadius: "50%",
-                background: "rgba(255,255,255,0.1)",
-                border: "1px solid rgba(255,255,255,0.2)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                transition: "background 0.25s, transform 0.25s",
-              }}
-              className="group-hover:bg-[#C2A878] group-hover:scale-110"
-            >
-              <ArrowUpRight size={20} />
-            </div>
-          </div>
-
-          <div>
-            <h3
-              style={{
-                fontWeight: 800,
-                fontSize: "clamp(28px, 3.6vw, 40px)",
-                letterSpacing: "-0.035em",
-                lineHeight: 1.05,
-                marginBottom: 14,
-              }}
-            >
-              {category}
-            </h3>
-            <p
-              style={{
-                fontSize: 14, color: "rgba(255,255,255,0.72)",
-                lineHeight: 1.55, marginBottom: 20, maxWidth: "36ch",
-              }}
-            >
-              {meta.tagline}
-            </p>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span
-                style={{
-                  fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
-                  padding: "6px 14px", borderRadius: 100,
-                  background: "rgba(255,255,255,0.12)",
-                  border: "1px solid rgba(255,255,255,0.18)",
-                }}
-              >
-                {count} {count === 1 ? "project" : "projects"}
-              </span>
-              <span
-                style={{
-                  fontSize: 12, color: "rgba(255,255,255,0.6)",
-                  display: "inline-flex", alignItems: "center", gap: 6,
-                }}
-              >
-                <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#C2A878" }} />
-                View collection
-              </span>
-            </div>
+          >
+            0{index + 1} · Service
+          </span>
+          <div
+            style={{
+              width: 44, height: 44, borderRadius: "50%",
+              background: p.arrowBg,
+              border: p.arrowBorder,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              transition: "background 0.25s, transform 0.25s",
+            }}
+            className="group-hover:!bg-[#C2A878] group-hover:scale-110"
+          >
+            <ArrowUpRight size={20} style={{ color: p.arrowText }} />
           </div>
         </div>
+
+        <div>
+          <h3
+            style={{
+              fontWeight: 800,
+              fontSize: "clamp(28px, 3.6vw, 40px)",
+              letterSpacing: "-0.035em",
+              lineHeight: 1.05,
+              marginBottom: 14,
+              color: p.text,
+            }}
+          >
+            {category}
+          </h3>
+          <p
+            style={{
+              fontSize: 14, color: p.mutedText,
+              lineHeight: 1.55, marginBottom: 22, maxWidth: "36ch",
+            }}
+          >
+            {meta.tagline}
+          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span
+              style={{
+                fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
+                padding: "6px 14px", borderRadius: 100,
+                background: p.pillBg, color: p.pillText, border: p.pillBorder,
+              }}
+            >
+              {count} {count === 1 ? "project" : "projects"}
+            </span>
+            <span
+              style={{
+                fontSize: 12, color: p.mutedText,
+                display: "inline-flex", alignItems: "center", gap: 6,
+              }}
+            >
+              <span style={{ width: 5, height: 5, borderRadius: "50%", background: p.dotDivider }} />
+              View collection
+            </span>
+          </div>
+        </div>
+      </div>
     </motion.a>
   );
 }
@@ -765,13 +863,11 @@ export default function Portfolio() {
           >
             {CATEGORIES.map((cat, i) => {
               const list = itemsByCategory(cat);
-              const preview = list[0] ? getHiResThumbnail(list[0].youtubeUrl) : "";
               return (
                 <ServiceCard
                   key={cat}
                   category={cat}
                   count={list.length}
-                  previewThumb={preview}
                   index={i}
                 />
               );
