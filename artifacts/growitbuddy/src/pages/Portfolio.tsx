@@ -290,18 +290,100 @@ function ReelTile({ item }: { item: PortfolioItem }) {
   );
 }
 
-// Stable picsum dummy image per case-study item
-function caseHeroImage(item: PortfolioItem, w: number, h: number) {
-  return `https://picsum.photos/seed/cs-${item.id}/${w}/${h}`;
+// ── Case Study Tile Palette ──
+// 4 variants cycled by item id — strict brand palette only.
+type CaseTilePalette = {
+  bg: string;
+  watermark: string;
+  pillBg: string;
+  pillText: string;
+  arrowBg: string;
+  arrowText: string;
+  border: string;
+  dotColor: string;
+  categoryColor: string;
+};
+
+const CASE_TILE_PALETTES: CaseTilePalette[] = [
+  // 0 — Cream + dark slate watermark
+  {
+    bg: "linear-gradient(135deg, #F8F8F6 0%, #EFEFEA 100%)",
+    watermark: "rgba(30,41,59,0.10)",
+    pillBg: "#1E293B",
+    pillText: "#FFFFFF",
+    arrowBg: "#1E293B",
+    arrowText: "#FFFFFF",
+    border: "1.5px solid #E5E5E0",
+    dotColor: "rgba(30,41,59,0.10)",
+    categoryColor: "#1E293B",
+  },
+  // 1 — Dark slate + gold watermark
+  {
+    bg: "linear-gradient(135deg, #1E293B 0%, #0F172A 100%)",
+    watermark: "rgba(194,168,120,0.18)",
+    pillBg: "rgba(255,255,255,0.95)",
+    pillText: "#1E293B",
+    arrowBg: "#C2A878",
+    arrowText: "#0A0A0A",
+    border: "1.5px solid #1E293B",
+    dotColor: "rgba(194,168,120,0.16)",
+    categoryColor: "#C2A878",
+  },
+  // 2 — Gold-tinted soft + dark watermark
+  {
+    bg: "linear-gradient(135deg, #EFEFEA 0%, rgba(194,168,120,0.22) 100%)",
+    watermark: "rgba(10,10,10,0.10)",
+    pillBg: "#0A0A0A",
+    pillText: "#C2A878",
+    arrowBg: "#0A0A0A",
+    arrowText: "#C2A878",
+    border: "1.5px solid rgba(194,168,120,0.45)",
+    dotColor: "rgba(10,10,10,0.08)",
+    categoryColor: "#0A0A0A",
+  },
+  // 3 — Off-cream + slate watermark with gold accents
+  {
+    bg: "linear-gradient(135deg, #EFEFEA 0%, #F8F8F6 100%)",
+    watermark: "rgba(30,41,59,0.12)",
+    pillBg: "#C2A878",
+    pillText: "#0A0A0A",
+    arrowBg: "#1E293B",
+    arrowText: "#FFFFFF",
+    border: "1.5px solid #E5E5E0",
+    dotColor: "rgba(30,41,59,0.09)",
+    categoryColor: "#1E293B",
+  },
+];
+
+// Decorative dotted grid for case study tile backgrounds
+function DottedGrid({ color, opacity = 1 }: { color: string; opacity?: number }) {
+  return (
+    <div
+      style={{
+        position: "absolute", inset: 0, opacity,
+        backgroundImage: `radial-gradient(${color} 1.2px, transparent 1.2px)`,
+        backgroundSize: "22px 22px",
+        backgroundPosition: "0 0",
+        pointerEvents: "none",
+      }}
+    />
+  );
 }
 
-// ── Case Study Tile — image only, title separated below as highlighted heading ──
+// ── Case Study Tile — color-differentiated branded design (no photo) ──
 function CaseStudyTile({ item, featured = false }: { item: PortfolioItem; featured?: boolean }) {
   const [, setLocation] = useLocation();
   const meta = CATEGORY_META[item.category];
   const href = meta ? `/portfolio/${meta.slug}/case/${item.id}` : "#";
-  const dim = featured ? { w: 1400, h: 800 } : { w: 800, h: 600 };
-  const img = caseHeroImage(item, dim.w, dim.h);
+  const palette = CASE_TILE_PALETTES[item.id % CASE_TILE_PALETTES.length];
+
+  // Big watermark — initials of title (up to 2 letters)
+  const initials = item.title
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("") || "GB";
 
   const go = (e: React.MouseEvent) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
@@ -318,7 +400,7 @@ function CaseStudyTile({ item, featured = false }: { item: PortfolioItem; featur
       style={{ display: "flex", flexDirection: "column", gap: 18 }}
       className="group"
     >
-      {/* Image-only card */}
+      {/* Branded card — no photo */}
       <a
         href={href}
         onClick={go}
@@ -328,52 +410,99 @@ function CaseStudyTile({ item, featured = false }: { item: PortfolioItem; featur
           aspectRatio: featured ? "16/9" : "4/3",
           borderRadius: 18,
           overflow: "hidden",
-          background: BRAND_ACCENT,
-          border: "1.5px solid #E5E5E0",
+          background: palette.bg,
+          border: palette.border,
           transition: "transform 0.3s, box-shadow 0.3s, border-color 0.3s",
           textDecoration: "none",
         }}
         className="hover:-translate-y-1 hover:shadow-2xl hover:border-[#C2A878]"
       >
-        <img
-          src={img}
-          alt={item.title}
-          loading="lazy"
+        {/* Subtle dotted-grid decoration */}
+        <DottedGrid color={palette.dotColor} />
+
+        {/* Gold corner accent strip — top-right */}
+        <div
           style={{
-            position: "absolute", inset: 0, width: "100%", height: "100%",
-            objectFit: "cover",
-            transition: "transform 0.6s",
+            position: "absolute", top: 0, right: 0,
+            width: 64, height: 4,
+            background: "#C2A878",
+            opacity: 0.9,
+          }}
+        />
+
+        {/* Huge initials watermark — center-right */}
+        <div
+          style={{
+            position: "absolute",
+            right: featured ? "-2%" : "-4%",
+            bottom: featured ? "-12%" : "-14%",
+            fontSize: featured ? "clamp(180px, 22vw, 320px)" : "clamp(120px, 18vw, 200px)",
+            fontWeight: 800,
+            letterSpacing: "-0.06em",
+            color: palette.watermark,
+            lineHeight: 0.85,
+            transition: "transform 0.5s, opacity 0.3s",
+            userSelect: "none",
+            fontFamily: "inherit",
           }}
           className="group-hover:scale-105"
-        />
-        <div
-          style={{
-            position: "absolute", inset: 0,
-            background: "linear-gradient(180deg, rgba(15,23,42,0) 55%, rgba(15,23,42,0.5) 100%)",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute", top: 14, left: 14,
-            fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase",
-            padding: "5px 11px", borderRadius: 100,
-            background: "rgba(255,255,255,0.95)", color: "#1E293B",
-          }}
         >
-          Case Study
+          {initials}
         </div>
+
+        {/* Category label — large, prominent */}
         <div
           style={{
-            position: "absolute", bottom: 14, right: 14,
-            width: 42, height: 42, borderRadius: "50%",
-            background: "rgba(255,255,255,0.95)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
-            transition: "transform 0.25s, background 0.25s",
+            position: "absolute",
+            top: featured ? 28 : 22,
+            left: featured ? 28 : 22,
+            right: featured ? 28 : 22,
+            display: "flex", flexDirection: "column", gap: 8,
+            zIndex: 2,
           }}
-          className="group-hover:scale-110 group-hover:!bg-[#C2A878]"
         >
-          <ArrowUpRight size={18} style={{ color: "#0A0A0A" }} />
+          <span
+            style={{
+              fontSize: 10, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase",
+              padding: "5px 11px", borderRadius: 100,
+              background: palette.pillBg, color: palette.pillText,
+              alignSelf: "flex-start",
+            }}
+          >
+            Case Study
+          </span>
+          <span
+            style={{
+              fontSize: featured ? 13 : 11,
+              fontWeight: 700,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: palette.categoryColor,
+              opacity: 0.85,
+            }}
+          >
+            {item.category}
+          </span>
+        </div>
+
+        {/* Arrow button — bottom-right */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: featured ? 22 : 18,
+            right: featured ? 22 : 18,
+            width: featured ? 48 : 42,
+            height: featured ? 48 : 42,
+            borderRadius: "50%",
+            background: palette.arrowBg,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+            transition: "transform 0.25s, background 0.25s",
+            zIndex: 2,
+          }}
+          className="group-hover:scale-110 group-hover:!bg-[#C2A878] group-hover:!text-[#0A0A0A]"
+        >
+          <ArrowUpRight size={featured ? 20 : 18} style={{ color: palette.arrowText }} />
         </div>
       </a>
 
