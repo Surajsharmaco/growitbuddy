@@ -180,22 +180,24 @@ function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?:
       </div>
 
       <div style={{ padding: featured ? "26px 26px 28px" : "20px", flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
-        <span
-          style={{
-            fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase",
-            padding: "5px 11px", borderRadius: 100, background: "#EFEFEA", color: "#1E293B",
-            alignSelf: "flex-start",
-          }}
-        >
-          {item.category}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ width: 16, height: 2, background: "#C2A878", borderRadius: 2 }} />
+          <span
+            style={{
+              fontSize: 10, fontWeight: 800, letterSpacing: "0.18em", textTransform: "uppercase",
+              color: "#8A7548",
+            }}
+          >
+            {item.category}
+          </span>
+        </div>
         <h3
           style={{
             fontWeight: 800,
-            fontSize: featured ? 24 : 17,
-            letterSpacing: "-0.025em",
+            fontSize: featured ? 26 : 18,
+            letterSpacing: "-0.028em",
             color: "#0A0A0A",
-            lineHeight: 1.25,
+            lineHeight: 1.22,
             margin: 0,
           }}
         >
@@ -264,31 +266,6 @@ function ReelTile({ item }: { item: PortfolioItem }) {
                 }}
               />
             )}
-            {/* Title gradient at bottom — keeps top of frame CLEAR so
-                the creator's logo / watermark / face in the thumbnail
-                remains unobstructed. */}
-            <div
-              style={{
-                position: "absolute", left: 0, right: 0, bottom: 0,
-                paddingTop: 60, paddingLeft: 16, paddingRight: 16, paddingBottom: 16,
-                background: "linear-gradient(180deg, rgba(10,10,10,0) 0%, rgba(10,10,10,0.85) 60%, rgba(10,10,10,0.95) 100%)",
-                pointerEvents: "none",
-              }}
-            >
-              <h3
-                style={{
-                  fontWeight: 700,
-                  fontSize: 15,
-                  letterSpacing: "-0.015em",
-                  color: "#fff",
-                  lineHeight: 1.3,
-                  margin: 0,
-                  textShadow: "0 1px 3px rgba(0,0,0,0.5)",
-                }}
-              >
-                {item.title}
-              </h3>
-            </div>
             {/* Click surface — entire tile, with centered glass play
                 button. Top half is fully clear (no overlay) so brand
                 logos visible at rest. Veil deepens on hover. */}
@@ -300,6 +277,7 @@ function ReelTile({ item }: { item: PortfolioItem }) {
                 cursor: "pointer",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 transition: "background 0.3s ease",
+                zIndex: 1,
               }}
               onClick={() => setPlaying(true)}
             >
@@ -319,6 +297,52 @@ function ReelTile({ item }: { item: PortfolioItem }) {
               >
                 <Play size={22} style={{ color: "#fff", marginLeft: 3 }} fill="#fff" />
               </div>
+            </div>
+            {/* Title overlay — rendered AFTER the click surface and
+                given z-index:2 so the hover veil cannot bury it.
+                Strong dark gradient + gold accent bar make the title
+                pop even at rest; hover adds a gold underline reveal. */}
+            <div
+              className="portfolio-reel-title"
+              style={{
+                position: "absolute", left: 0, right: 0, bottom: 0,
+                paddingTop: 70, paddingLeft: 16, paddingRight: 16, paddingBottom: 18,
+                background: "linear-gradient(180deg, rgba(10,10,10,0) 0%, rgba(10,10,10,0.7) 45%, rgba(10,10,10,0.96) 100%)",
+                pointerEvents: "none",
+                zIndex: 2,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <span style={{ width: 18, height: 2, background: "#C2A878", borderRadius: 2, boxShadow: "0 0 8px rgba(194,168,120,0.7)" }} />
+                <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase", color: "#C2A878" }}>
+                  Reel
+                </span>
+              </div>
+              <h3
+                style={{
+                  fontWeight: 800,
+                  fontSize: 15,
+                  letterSpacing: "-0.018em",
+                  color: "#fff",
+                  lineHeight: 1.3,
+                  margin: 0,
+                  textShadow: "0 2px 8px rgba(0,0,0,0.6)",
+                }}
+              >
+                {item.title}
+              </h3>
+              <span
+                className="portfolio-reel-underline"
+                style={{
+                  display: "block",
+                  marginTop: 8,
+                  height: 2,
+                  width: 0,
+                  background: "linear-gradient(90deg, #C2A878, #D4BB90)",
+                  borderRadius: 2,
+                  transition: "width 0.4s cubic-bezier(.2,.8,.2,1)",
+                }}
+              />
             </div>
           </>
         )}

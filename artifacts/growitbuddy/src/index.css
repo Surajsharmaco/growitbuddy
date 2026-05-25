@@ -590,3 +590,12 @@ section[style*="padding: 100px 24px 108px"] { padding-top: 72px !important; padd
   border-color: rgba(255,255,255,0.95) !important;
   box-shadow: 0 14px 50px rgba(194,168,120,0.45), 0 0 0 6px rgba(194,168,120,0.15) !important;
 }
+
+/* Reel title hover — gold underline grows in from the left when the
+   user hovers anywhere on the tile. Title remains fully readable at
+   rest thanks to its own bottom gradient and z-index above the play
+   surface. */
+.portfolio-play-surface:hover ~ .portfolio-reel-title .portfolio-reel-underline,
+.portfolio-reel-title:hover .portfolio-reel-underline {
+  width: 56px;
+}
