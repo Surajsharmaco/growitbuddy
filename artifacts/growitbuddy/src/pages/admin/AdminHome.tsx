@@ -166,7 +166,7 @@ export default function AdminHome() {
                   <Textarea value={s.desc} onChange={(e) => { const sv = [...data.services]; sv[i] = { ...s, desc: e.target.value }; set("services", sv); }} rows={2} placeholder="Description" />
                 </div>
               ))}
-              <button onClick={() => set("services", [...data.services, { num: String(data.services.length + 1).padStart(2, "0"), title: "", desc: "" }])} className="text-[12px] text-[#0B0B0B]/40 hover:text-[#0B0B0B] flex items-center gap-1"><Plus size={12} /> Add service</button>
+              <button onClick={() => set("services", [...data.services, { num: String(data.services.length + 1).padStart(2, "0"), title: "", desc: "", href: "" }])} className="text-[12px] text-[#0B0B0B]/40 hover:text-[#0B0B0B] flex items-center gap-1"><Plus size={12} /> Add service</button>
             </div>
           </div>
         </Card>

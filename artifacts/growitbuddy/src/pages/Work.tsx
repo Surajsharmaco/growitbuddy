@@ -8,7 +8,7 @@ import { usePublicContent } from "@/hooks/usePublicContent";
 
 import { API_BASE, resolveMediaUrl } from "@/lib/api";
 
-import { WORK_DEFAULTS as DEFAULTS, type WorkData, type WorkItem, type WorkHeroStat } from "@/lib/workDefaults";
+import { WORK_DEFAULTS as DEFAULTS, type WorkData, type WorkItem, type WorkHeroStat, type ClientLogo } from "@/lib/workDefaults";
 
 const SYSTEM_STEPS = [
   { label: "Content", desc: "Precise, authority-led output built for your niche." },

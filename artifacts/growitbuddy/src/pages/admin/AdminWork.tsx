@@ -8,7 +8,7 @@ import { Plus, Trash2, ChevronDown, ChevronUp, Pencil, X, Check, GripVertical, I
 
 import { API_BASE } from "@/lib/api";
 
-import { WORK_DEFAULTS, type WorkData, type WorkItem, type WorkItemStat as WorkStat, type WorkHeroStat as HeroStat } from "@/lib/workDefaults";
+import { WORK_DEFAULTS, type WorkData, type WorkItem, type WorkItemStat as WorkStat, type WorkHeroStat as HeroStat, type ClientLogo } from "@/lib/workDefaults";
 const DEFAULT_WORK = WORK_DEFAULTS.items;
 const DEFAULT_STATS = WORK_DEFAULTS.heroStats;
 

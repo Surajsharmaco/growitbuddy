@@ -1,3 +1,13 @@
+export interface ClientLogo {
+  id: number;
+  imageUrl: string;
+  altText: string;
+  sortOrder: number;
+  link: string;
+  enabled: boolean;
+  createdAt: string;
+}
+
 export interface WorkItemStat { label: string; value: string; }
 
 export interface WorkItem {
