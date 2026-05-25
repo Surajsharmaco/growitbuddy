@@ -962,12 +962,6 @@ export default function Portfolio() {
                 <ArrowLeft size={15} /> All services
               </a>
             </Link>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 10, marginBottom: 22 }}>
-              <span style={{ width: 28, height: 1, background: "linear-gradient(90deg, transparent, #C2A878)" }} />
-              <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: "#C2A878", margin: 0 }}>
-                Portfolio · Collection
-              </p>
-            </div>
             <h1 style={{ fontWeight: 800, fontSize: "clamp(38px, 7.2vw, 78px)", letterSpacing: "-0.045em", lineHeight: 1.02, color: "#fff", marginBottom: 24 }}>
               {activeCategory}
             </h1>
