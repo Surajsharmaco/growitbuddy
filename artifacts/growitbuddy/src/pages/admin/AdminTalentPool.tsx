@@ -3,7 +3,7 @@ import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
 import { Plus, Trash2, ExternalLink } from "lucide-react";
-import { sourceLabel } from "@/lib/videoEmbed";
+import { sourceLabel, getEmbedUrl, detectAspectRatio } from "@/lib/videoEmbed";
 
 interface ResourceCard { id: string; title: string; desc: string; link: string; btnLabel: string; }
 interface Step { number: string; title: string; desc: string; }
@@ -130,10 +130,48 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
             return <div className="mt-3 flex items-center gap-2 text-[12px] text-[#0B0B0B]/40"><span className="w-2 h-2 rounded-full bg-[#0B0B0B]/20 inline-block" /> No video set - placeholder shown.</div>;
           }
           const label = sourceLabel(data.videoUrl);
-          if (label) {
-            return <div className="mt-3 flex items-center gap-2 text-[12px] text-emerald-700 font-medium"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> {label} video detected — live on page.</div>;
+          const embedSrc = getEmbedUrl(data.videoUrl);
+          const ratio = detectAspectRatio(data.videoUrl);
+          const isVertical = ratio === "9/16";
+          if (!label || !embedSrc) {
+            return <div className="mt-3 flex items-center gap-2 text-[12px] text-amber-700 font-medium"><span className="w-2 h-2 rounded-full bg-amber-500 inline-block" /> URL not recognized. Supported: YouTube, Vimeo, Google Drive, Gumlet.</div>;
           }
-          return <div className="mt-3 flex items-center gap-2 text-[12px] text-amber-700 font-medium"><span className="w-2 h-2 rounded-full bg-amber-500 inline-block" /> URL not recognized. Supported: YouTube, Vimeo, Google Drive, Gumlet.</div>;
+          return (
+            <>
+              <div className="mt-3 flex items-center gap-2 text-[12px] text-emerald-700 font-medium">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+                {label} video detected — live on page.
+                <span className="ml-2 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#0B0B0B]/5 text-[#0B0B0B]/60">{ratio} {isVertical ? "vertical" : "horizontal"}</span>
+              </div>
+              <div className="mt-4">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-[#0B0B0B]/50 mb-2">Live Preview</div>
+                <div
+                  className="bg-black rounded-xl overflow-hidden mx-auto"
+                  style={{
+                    aspectRatio: ratio,
+                    maxWidth: isVertical ? 280 : "100%",
+                    width: "100%",
+                    position: "relative",
+                  }}
+                >
+                  <iframe
+                    key={embedSrc}
+                    src={embedSrc}
+                    title="Video preview"
+                    referrerPolicy="origin"
+                    allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen; clipboard-write"
+                    allowFullScreen
+                    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
+                  />
+                </div>
+                {isVertical && (
+                  <p className="mt-3 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                    ⚠️ This is a vertical (9:16) video. The talent pool page's video slot is horizontal (16:9), so on the live page it will show with black bars on the sides. Tell me if you want the slot switched to vertical.
+                  </p>
+                )}
+              </div>
+            </>
+          );
         })()}
       </Card>
 

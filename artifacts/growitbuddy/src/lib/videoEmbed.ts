@@ -30,6 +30,32 @@ export function extractEmbedUrl(input: string): string {
   return trimmed;
 }
 
+// Detect the intended aspect ratio of a pasted embed snippet.
+// Returns "9/16" for vertical (Shorts/Reel) embeds, "16/9" otherwise.
+// Looks at `aspect-ratio:` declarations and explicit width/height attributes
+// in the snippet — falls back to 16/9 when nothing is detected.
+export function detectAspectRatio(input: string): "16/9" | "9/16" {
+  if (!input) return "16/9";
+  const s = input.toLowerCase();
+  // aspect-ratio: 9/16 or 9 / 16 (with optional spaces)
+  const ar = s.match(/aspect-ratio\s*:\s*(\d+)\s*\/\s*(\d+)/);
+  if (ar) {
+    const w = parseInt(ar[1], 10);
+    const h = parseInt(ar[2], 10);
+    if (w && h && h > w) return "9/16";
+    return "16/9";
+  }
+  // width="X" height="Y" attributes
+  const w = s.match(/\bwidth\s*=\s*["']?(\d+)/);
+  const h = s.match(/\bheight\s*=\s*["']?(\d+)/);
+  if (w && h) {
+    const wn = parseInt(w[1], 10);
+    const hn = parseInt(h[1], 10);
+    if (wn && hn && hn > wn) return "9/16";
+  }
+  return "16/9";
+}
+
 export function parseVideo(url: string): ParsedVideo {
   if (!url) return { source: null, id: "" };
   url = extractEmbedUrl(url);
