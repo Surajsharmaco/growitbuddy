@@ -71,7 +71,25 @@ router.get("/seo/:slug", async (req: Request, res: Response) => {
 // embed and the public portfolio gets a poster image automatically.
 //
 // Usage:  <img src="/api/video-thumb?id=<gumlet-video-id>" />
+// Bounded LRU-ish cache. Size cap prevents unbounded heap growth from
+// scrapers/junk traffic; on overflow we drop expired entries first, then
+// the oldest insertion (Map iteration order is insertion order in JS).
 const GUMLET_THUMB_CACHE = new Map<string, { url: string; expiresAt: number }>();
+const GUMLET_THUMB_CACHE_MAX = 2000;
+function gumletCacheSet(id: string, url: string, expiresAt: number) {
+  if (GUMLET_THUMB_CACHE.size >= GUMLET_THUMB_CACHE_MAX) {
+    const now = Date.now();
+    for (const [k, v] of GUMLET_THUMB_CACHE) {
+      if (v.expiresAt <= now) GUMLET_THUMB_CACHE.delete(k);
+    }
+    while (GUMLET_THUMB_CACHE.size >= GUMLET_THUMB_CACHE_MAX) {
+      const oldest = GUMLET_THUMB_CACHE.keys().next().value;
+      if (oldest === undefined) break;
+      GUMLET_THUMB_CACHE.delete(oldest);
+    }
+  }
+  GUMLET_THUMB_CACHE.set(id, { url, expiresAt });
+}
 router.get("/video-thumb", async (req: Request, res: Response) => {
   const id = String(req.query.id || "").trim();
   if (!/^[a-zA-Z0-9]{6,64}$/.test(id)) {
@@ -95,7 +113,7 @@ router.get("/video-thumb", async (req: Request, res: Response) => {
     const data = (await oe.json()) as { thumbnail_url?: string };
     const thumb = data.thumbnail_url;
     if (!thumb) { res.status(404).json({ error: "no thumbnail" }); return; }
-    GUMLET_THUMB_CACHE.set(id, { url: thumb, expiresAt: now + 24 * 60 * 60 * 1000 });
+    gumletCacheSet(id, thumb, now + 24 * 60 * 60 * 1000);
     res.setHeader("Cache-Control", "public, max-age=86400");
     res.redirect(302, thumb);
   } catch {
