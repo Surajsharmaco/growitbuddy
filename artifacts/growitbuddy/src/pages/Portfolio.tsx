@@ -748,8 +748,9 @@ function ServiceCard({
               View collection
             </span>
           </div>
+          </div>
         </div>
-      </div>
+      )}
     </motion.a>
   );
 }
