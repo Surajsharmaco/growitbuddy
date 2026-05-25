@@ -24,12 +24,12 @@ const CATEGORY_META: Record<string, { slug: string; tagline: string; type: Categ
   },
   "Video Editing": {
     slug: "video-editing",
-    tagline: "Performance-focused edits crafted for creators, founders, and modern digital brands.",
+    tagline: "Performance-focused edits crafted for the creator economy and modern digital brands.",
     type: "video",
   },
   "Video Editing Global": {
     slug: "video-editing-global",
-    tagline: "High-retention edits engineered for founder-led brands and authority-driven content worldwide.",
+    tagline: "High-retention edits engineered for founder-led brands, creators, and authority-driven content ecosystems.",
     type: "video",
   },
   "Graphics": {
