@@ -4,49 +4,7 @@ import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/comp
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
 import { Plus, Trash2 } from "lucide-react";
 
-interface ResourceCard { id: string; title: string; desc: string; link: string; btnLabel: string; }
-interface Step { number: string; title: string; desc: string; }
-
-interface PageData {
-  eyebrow: string; headline: string; description: string;
-  opportunityText: string; ctaPrimary: string; ctaSecondary: string; videoUrl: string;
-  stepsTitle: string; steps: Step[];
-  resourcesTitle: string; resourcesSubtext: string; resources: ResourceCard[];
-  formTitle: string; formSubtext: string; formDisclaimer: string; formNotifyEmail: string;
-  finalHeadline: string; finalSubtext: string; finalCtaPrimary: string; finalCtaSecondary: string;
-  seoTitle: string; seoDesc: string;
-}
-
-const DEFAULTS: PageData = {
-  eyebrow: "VIDEO EDITORS POOL",
-  headline: "Join our growing network of editors.",
-  description: "Watch the demo, follow the workflow, submit your work, and get added to our internal talent network.",
-  opportunityText: "Top performers may receive freelance, creator, or agency opportunities in the future.",
-  ctaPrimary: "Submit Your Work", ctaSecondary: "View Resources",
-  videoUrl: "",
-  stepsTitle: "How it works.",
-  steps: [
-    { number: "01", title: "Watch Demo",         desc: "Understand our style and expectations." },
-    { number: "02", title: "Download Resources", desc: "Access raw files and editing assets." },
-    { number: "03", title: "Submit Your Work",   desc: "Upload your completed edit for review." },
-    { number: "04", title: "Get Reviewed",       desc: "We evaluate and add you to our network." },
-  ],
-  resourcesTitle: "Resources & Guidelines", resourcesSubtext: "Everything you need before submitting.",
-  resources: [
-    { id: "1", title: "Editing Guidelines", desc: "Technical and stylistic standards for all submissions.", link: "", btnLabel: "Open" },
-    { id: "2", title: "Raw Footage",        desc: "Source files for the current project.", link: "", btnLabel: "Download" },
-    { id: "3", title: "Brand Assets",       desc: "Logos, fonts, and visual identity files.", link: "", btnLabel: "Download" },
-    { id: "4", title: "Submission Rules",   desc: "How to name, export, and share your final edit.", link: "", btnLabel: "Open" },
-  ],
-  formTitle: "Submit Your Application", formSubtext: "Fill in your details and share a link to your completed work.",
-  formDisclaimer: "This is a network-based opportunity system, not a guaranteed job offer.",
-  formNotifyEmail: "",
-  finalHeadline: "Ready to join the network?",
-  finalSubtext: "Submit your work and become part of the GrowitBuddy ecosystem.",
-  finalCtaPrimary: "Submit Work", finalCtaSecondary: "Watch Demo",
-  seoTitle: "Video Editors Pool - GrowitBuddy",
-  seoDesc: "Join the GrowitBuddy editors pool. Watch the demo, access resources, and submit your work.",
-};
+import { CREATOR_SCHOOL_DEFAULTS as DEFAULTS, type CreatorSchoolData as PageData } from "@/lib/creatorSchoolDefaults";
 
 export default function AdminCreatorSchool() {
   const { getContent, saveContent } = useAdmin();
@@ -87,6 +45,7 @@ export default function AdminCreatorSchool() {
           <Textarea label="Description" value={data.description} onChange={e => set("description", e.target.value)} />
           <Input label="Opportunity Text (callout box)" value={data.opportunityText} onChange={e => set("opportunityText", e.target.value)} hint="Shown as a highlighted note below the description. Leave blank to hide." />
           <Input label="Secondary CTA Button" value={data.ctaSecondary} onChange={e => set("ctaSecondary", e.target.value)} />
+          <Textarea label="Trust Text (below hero CTAs)" value={data.heroTrustText} onChange={e => set("heroTrustText", e.target.value)} hint="Small reassurance line shown under the hero CTAs. Leave blank to hide." rows={2} />
         </div>
       </Card>
 

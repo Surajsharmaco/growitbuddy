@@ -8,57 +8,9 @@ import { Plus, Trash2, ChevronDown, ChevronUp, Pencil, X, Check, GripVertical, I
 
 import { API_BASE } from "@/lib/api";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-interface WorkStat {
-  label: string;
-  value: string;
-}
-
-interface WorkItem {
-  id: string;
-  title: string;
-  subtitle: string;
-  category: string;
-  metric: string;
-  metricLabel: string;
-  description: string;
-  tags: string[];
-  stats: WorkStat[];
-  imageUrl: string;
-}
-
-interface HeroStat {
-  eyebrow: string;
-  value: string;
-  valueLabel: string;
-  headline: string;
-  description: string;
-}
-
-interface ClientLogo {
-  id: number;
-  imageUrl: string;
-  altText: string;
-  sortOrder: number;
-}
-
-// ─── Defaults ─────────────────────────────────────────────────────────────────
-
-const DEFAULT_WORK: WorkItem[] = [
-  { id: "1", title: "Tech Founder to Industry Voice", subtitle: "LinkedIn Authority Campaign", category: "B2B SaaS · LinkedIn", metric: "14M", metricLabel: "impressions", description: "A full content marketing system took this founder from zero online presence to the most-cited authority in their SaaS niche - in 6 months.", tags: ["LinkedIn", "B2B SaaS"], stats: [], imageUrl: "" },
-  { id: "2", title: "Agency Owner Authority Engine", subtitle: "Multi-channel content strategy", category: "Services · Multi-channel", metric: "$2.4M", metricLabel: "inbound pipeline", description: "A systematic content strategy and distribution system drove inbound pipeline that exceeded prior annual revenue.", tags: ["Content Strategy"], stats: [], imageUrl: "" },
-  { id: "3", title: "Creator Monetization System", subtitle: "YouTube authority build", category: "Creator Economy · YouTube", metric: "250K", metricLabel: "subscribers", description: "A content strategy built around a proprietary framework compounded into 250K subscribers and $40K/mo in revenue.", tags: ["YouTube", "Creator"], stats: [], imageUrl: "" },
-  { id: "4", title: "Executive Personal Brand", subtitle: "Podcast & PR strategy", category: "Leadership · Podcast & PR", metric: "15+", metricLabel: "speaking invites / qtr", description: "Personal branding strategy turned a quiet operator into a recognized industry thought leader with consistent media placement.", tags: ["Personal Brand", "PR"], stats: [], imageUrl: "" },
-  { id: "5", title: "E-commerce Founder Growth", subtitle: "X / Twitter brand build", category: "E-commerce · X / Twitter", metric: "400%", metricLabel: "branded search growth", description: "A personal brand-first content marketing approach made this founder synonymous with their product category.", tags: ["X / Twitter", "E-commerce"], stats: [], imageUrl: "" },
-  { id: "6", title: "VC Authority Engine", subtitle: "LinkedIn positioning", category: "Finance · LinkedIn", metric: "3x", metricLabel: "deal flow growth", description: "Content strategy and personal branding positioned this venture firm as the category expert - attracting better deals at higher velocity.", tags: ["Finance", "LinkedIn"], stats: [], imageUrl: "" },
-];
-
-const DEFAULT_STATS: HeroStat[] = [
-  { eyebrow: "Multi-Channel · Content Networks", value: "700M+", valueLabel: "views generated", headline: "Built large-scale visibility across content ecosystems", description: "Distributed content across platforms and campaigns to generate massive reach." },
-  { eyebrow: "Services · Authority System", value: "200+", valueLabel: "founders & brands", headline: "Built authority systems for founders and growing brands", description: "Positioned creators and businesses into recognized voices in their niche." },
-  { eyebrow: "Content Engine · High Volume", value: "90K+", valueLabel: "content assets", headline: "Executed high-volume content production at scale", description: "Consistent output across short-form, long-form, and platform-native formats." },
-];
+import { WORK_DEFAULTS, type WorkData, type WorkItem, type WorkItemStat as WorkStat, type WorkHeroStat as HeroStat } from "@/lib/workDefaults";
+const DEFAULT_WORK = WORK_DEFAULTS.items;
+const DEFAULT_STATS = WORK_DEFAULTS.heroStats;
 
 // ─── Work Case Study Row ──────────────────────────────────────────────────────
 

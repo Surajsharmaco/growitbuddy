@@ -8,78 +8,7 @@ import { usePublicContent } from "@/hooks/usePublicContent";
 
 import { API_BASE, resolveMediaUrl } from "@/lib/api";
 
-interface WorkItem {
-  id: string;
-  title: string;
-  subtitle: string;
-  category: string;
-  metric: string;
-  metricLabel: string;
-  description: string;
-  tags: string[];
-  stats: { label: string; value: string }[];
-  imageUrl: string;
-}
-
-interface WorkStat {
-  eyebrow: string;
-  value: string;
-  valueLabel: string;
-  headline: string;
-  description: string;
-}
-
-interface WorkData {
-  headline: string;
-  subtext: string;
-  heroStats: WorkStat[];
-  items: WorkItem[];
-}
-
-interface ClientLogo {
-  id: number;
-  imageUrl: string;
-  altText: string;
-  sortOrder: number;
-  enabled?: boolean;
-  link?: string;
-}
-
-const DEFAULTS: WorkData = {
-  headline: "Proof of authority at scale.",
-  subtext: "Real systems. Real execution. Real outcomes.",
-  heroStats: [
-    {
-      eyebrow: "Multi-Channel · Content Networks",
-      value: "700M+",
-      valueLabel: "views generated",
-      headline: "Built large-scale visibility across content ecosystems through consistent high-volume distribution systems.",
-      description: "Distributed content across platforms and campaigns to generate massive organic reach.",
-    },
-    {
-      eyebrow: "Services · Authority System",
-      value: "200+",
-      valueLabel: "founders & brands served",
-      headline: "Built authority systems for founders, creators, and modern internet brands.",
-      description: "Positioned creators and businesses into recognized voices within their niche.",
-    },
-    {
-      eyebrow: "Content Engine · High Volume",
-      value: "90K+",
-      valueLabel: "content assets created",
-      headline: "Executed high-volume content production at scale across multiple platforms.",
-      description: "Consistent output across short-form, long-form, platform-native, and distribution-first formats.",
-    },
-  ],
-  items: [
-    { id: "1", title: "Built a SaaS founder into an industry voice", subtitle: "LinkedIn Authority Campaign", category: "B2B SaaS · LinkedIn", metric: "14M+", metricLabel: "impressions", description: "From zero presence to recognized authority in 6 months.", tags: [], stats: [], imageUrl: "" },
-    { id: "2", title: "Turned content into a $2.4M inbound pipeline", subtitle: "Multi-channel content strategy", category: "Services · Multi-channel", metric: "$2.4M", metricLabel: "inbound pipeline", description: "Systematic distribution drove inbound that exceeded prior annual revenue.", tags: [], stats: [], imageUrl: "" },
-    { id: "3", title: "Built 250K+ subscribers from a zero-base channel", subtitle: "YouTube authority build", category: "Creator Economy · YouTube", metric: "250K+", metricLabel: "subscribers", description: "Consistent inbound through framework-led content systems.", tags: [], stats: [], imageUrl: "" },
-    { id: "4", title: "Turned a quiet operator into a thought leader", subtitle: "Podcast & PR strategy", category: "Leadership · Podcast & PR", metric: "15+", metricLabel: "speaking invites/qtr", description: "Consistent media placement and a personal brand system.", tags: [], stats: [], imageUrl: "" },
-    { id: "5", title: "Made a founder synonymous with their category", subtitle: "X / Twitter brand build", category: "E-commerce · X / Twitter", metric: "400%", metricLabel: "branded search growth", description: "Personal brand-first approach drove organic discovery at scale.", tags: [], stats: [], imageUrl: "" },
-    { id: "6", title: "Repositioned a VC firm to attract premium deal flow", subtitle: "LinkedIn positioning", category: "Finance · LinkedIn", metric: "3x", metricLabel: "deal flow growth", description: "Category authority positioning brought better deals at higher velocity.", tags: [], stats: [], imageUrl: "" },
-  ],
-};
+import { WORK_DEFAULTS as DEFAULTS, type WorkData, type WorkItem, type WorkHeroStat } from "@/lib/workDefaults";
 
 const SYSTEM_STEPS = [
   { label: "Content", desc: "Precise, authority-led output built for your niche." },
