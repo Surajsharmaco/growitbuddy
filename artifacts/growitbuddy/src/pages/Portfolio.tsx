@@ -14,52 +14,52 @@ const CATEGORIES = PORTFOLIO_CATEGORIES;
 const CATEGORY_META: Record<string, { slug: string; tagline: string; type: CategoryType }> = {
   "Personal Branding": {
     slug: "personal-branding",
-    tagline: "Positioning and authority systems for founders, creators, and operators.",
+    tagline: "Positioning systems designed to turn founders and creators into category authorities.",
     type: "case-study",
   },
   "Content Creation": {
     slug: "content-creation",
-    tagline: "High-signal content production engineered for trust and consistency at scale.",
+    tagline: "Content production systems built for consistency, trust, and long-term audience attention.",
     type: "video",
   },
   "Video Editing — India": {
     slug: "video-editing-india",
-    tagline: "Long-form edits and short-form reels crafted for India's creator economy.",
+    tagline: "Performance-focused edits crafted for India's creator economy and modern digital brands.",
     type: "video",
   },
   "Video Editing — US": {
     slug: "video-editing-us",
-    tagline: "Premium long-form and short-form edits built for US founders and creators.",
+    tagline: "High-retention edits engineered for founder-led brands, creators, and authority-driven content.",
     type: "video",
   },
   "Graphics": {
     slug: "graphics",
-    tagline: "Visual systems and design that make brands unforgettable.",
+    tagline: "Visual identity systems that make brands instantly recognizable across modern digital platforms.",
     type: "case-study",
   },
   "Social Media Management": {
     slug: "social-media-management",
-    tagline: "End-to-end social systems that turn channels into engines.",
+    tagline: "Content and distribution built to maintain visibility, consistency, and audience momentum.",
     type: "case-study",
   },
   "Distribution & Growth": {
     slug: "distribution-growth",
-    tagline: "Amplification networks and performance systems that push content to the right audiences.",
+    tagline: "Amplification engines designed to push content into the right networks, audiences, and inbound channels.",
     type: "case-study",
   },
   "Web & Funnel Systems": {
     slug: "web-funnel-systems",
-    tagline: "Digital infrastructure — sites and funnels engineered to convert.",
+    tagline: "Conversion-focused digital infrastructure engineered to turn authority into inbound demand.",
     type: "case-study",
   },
   "AI Automation": {
     slug: "ai-automation",
-    tagline: "AI-powered authority systems that compound output without scaling headcount.",
+    tagline: "AI-powered systems that streamline operations, communication, and scalable content workflows.",
     type: "case-study",
   },
   "Digital Products & Growth": {
     slug: "digital-products-growth",
-    tagline: "Monetization systems — products, offers, and funnels built to grow.",
+    tagline: "Monetization built around products, offers, communities, and scalable digital distribution.",
     type: "case-study",
   },
 };
@@ -1250,16 +1250,16 @@ function EcosystemStrip() {
               maxWidth: "22ch",
             }}
           >
-            Where production meets distribution.
+            Where authority meets distribution.
           </h3>
         </div>
         <p
           style={{
             fontSize: 14, color: "#5F5F5F", lineHeight: 1.65,
-            maxWidth: "36ch",
+            maxWidth: "40ch",
           }}
         >
-          Every service below is a module — designed to slot into the same compounding authority engine.
+          Every service functions as part of a connected ecosystem designed to compound visibility into inbound growth.
         </p>
       </div>
 
