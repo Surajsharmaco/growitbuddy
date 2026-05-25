@@ -782,6 +782,7 @@ export default function AdminPortfolio() {
                         youtubeUrl: item.youtubeUrl,
                         description: item.description ?? "",
                         sortOrder: item.sortOrder,
+                        customThumbnailUrl: item.customThumbnailUrl ?? "",
                         caseStudy: { ...EMPTY_CASE_STUDY, ...(item.caseStudy ?? {}) },
                       }}
                       onSave={(form) => handleEdit(item.id, form)}
