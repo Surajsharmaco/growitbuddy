@@ -78,6 +78,7 @@ export const portfolioItems = pgTable("portfolio_items", {
   description: text("description"),
   sortOrder: integer("sort_order").notNull().default(0),
   isHidden: boolean("is_hidden").notNull().default(false),
+  customThumbnailUrl: text("custom_thumbnail_url"),
   caseStudy: jsonb("case_study").$type<CaseStudyData>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

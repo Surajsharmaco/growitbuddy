@@ -6,7 +6,7 @@ import { Plus, Edit2, Trash2, X, Save, ExternalLink, Play, ChevronDown, ChevronU
 import { motion, AnimatePresence } from "framer-motion";
 
 import { API_BASE } from "@/lib/api";
-import { getEmbedUrl as toEmbedUrl, getThumbnail, sourceLabel, detectAspectRatio } from "@/lib/videoEmbed";
+import { getEmbedUrl as toEmbedUrl, getThumbnail, sourceLabel, detectAspectRatio, parseVideo } from "@/lib/videoEmbed";
 
 interface CaseStudyData {
   clientName?: string;
@@ -36,6 +36,7 @@ interface PortfolioItem {
   description: string | null;
   sortOrder: number;
   createdAt: string;
+  customThumbnailUrl?: string | null;
   caseStudy?: CaseStudyData | null;
 }
 
@@ -45,6 +46,7 @@ interface FormState {
   youtubeUrl: string;
   description: string;
   sortOrder: number;
+  customThumbnailUrl: string;
   caseStudy: CaseStudyData;
 }
 
@@ -72,6 +74,7 @@ const EMPTY_CASE_STUDY: CaseStudyData = {
 
 const EMPTY_FORM: FormState = {
   title: "", category: "Video Editing — India", youtubeUrl: "", description: "", sortOrder: 0,
+  customThumbnailUrl: "",
   caseStudy: EMPTY_CASE_STUDY,
 };
 
@@ -205,6 +208,82 @@ function ItemForm({
               <Play size={28} style={{ color: "#fff" }} />
             </div>
           </div>
+        )}
+      </div>
+
+      {/* Custom Thumbnail / Cover — overrides the auto-generated poster */}
+      <div style={{ border: "1.5px solid #E5E5E0", borderRadius: 10, padding: 14, background: "#FAFAF7" }}>
+        <ImagePickerField
+          label="Custom Cover / Thumbnail (optional)"
+          value={form.customThumbnailUrl}
+          onChange={(url) => set("customThumbnailUrl", url)}
+          shape="square"
+          size={120}
+          hint="Upload your own poster, or leave blank to auto-fetch from the video platform."
+        />
+        {(() => {
+          // YouTube exposes 4 auto-generated frames. Let the admin one-click
+          // pick a different moment without leaving the form.
+          const parsed = form.youtubeUrl ? parseVideo(form.youtubeUrl) : null;
+          if (!parsed || parsed.source !== "youtube" || !parsed.id) return null;
+          const id = parsed.id;
+          const frames = [
+            { idx: 0, label: "Default" },
+            { idx: 1, label: "Frame 1" },
+            { idx: 2, label: "Frame 2" },
+            { idx: 3, label: "Frame 3" },
+          ];
+          return (
+            <div style={{ marginTop: 14 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#8A8A8A", marginBottom: 8 }}>
+                Or pick a frame from this YouTube video
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
+                {frames.map((f) => {
+                  const url = `https://img.youtube.com/vi/${id}/${f.idx}.jpg`;
+                  const selected = form.customThumbnailUrl === url;
+                  return (
+                    <button
+                      key={f.idx}
+                      type="button"
+                      onClick={() => set("customThumbnailUrl", url)}
+                      style={{
+                        position: "relative",
+                        aspectRatio: "16/9",
+                        borderRadius: 8,
+                        overflow: "hidden",
+                        border: selected ? "2px solid #C2A878" : "2px solid #E5E5E0",
+                        boxShadow: selected ? "0 0 0 3px rgba(194,168,120,0.25)" : "none",
+                        padding: 0, cursor: "pointer", background: "#000",
+                        transition: "border-color 0.2s, box-shadow 0.2s",
+                      }}
+                    >
+                      <img src={url} alt={f.label} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                      <div style={{
+                        position: "absolute", bottom: 0, left: 0, right: 0,
+                        background: "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.75) 100%)",
+                        color: "#fff", fontSize: 10, fontWeight: 700, padding: "10px 6px 4px",
+                        letterSpacing: "0.05em",
+                      }}>{f.label}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
+        {form.customThumbnailUrl && (
+          <button
+            type="button"
+            onClick={() => set("customThumbnailUrl", "")}
+            style={{
+              marginTop: 10, fontSize: 11, fontWeight: 600, color: "#8A8A8A",
+              background: "none", border: "none", padding: 0, cursor: "pointer",
+              textDecoration: "underline",
+            }}
+          >
+            Clear custom cover (use auto thumbnail)
+          </button>
         )}
       </div>
 
@@ -516,7 +595,12 @@ export default function AdminPortfolio() {
       const res = await authFetch(`${API_BASE}/admin/portfolio`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, description: form.description || null, caseStudy: cleanCaseStudy(form.caseStudy) }),
+        body: JSON.stringify({
+          ...form,
+          description: form.description || null,
+          customThumbnailUrl: form.customThumbnailUrl?.trim() || null,
+          caseStudy: cleanCaseStudy(form.caseStudy),
+        }),
       });
       if (res.ok) {
         const item = await res.json();
@@ -534,7 +618,12 @@ export default function AdminPortfolio() {
       const res = await authFetch(`${API_BASE}/admin/portfolio/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, description: form.description || null, caseStudy: cleanCaseStudy(form.caseStudy) }),
+        body: JSON.stringify({
+          ...form,
+          description: form.description || null,
+          customThumbnailUrl: form.customThumbnailUrl?.trim() || null,
+          caseStudy: cleanCaseStudy(form.caseStudy),
+        }),
       });
       if (res.ok) {
         const updated = await res.json();

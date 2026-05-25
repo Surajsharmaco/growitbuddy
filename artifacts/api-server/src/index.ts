@@ -62,6 +62,15 @@ async function runStartupMigrations() {
     logger.error({ err }, "Startup migration: failed to ensure case_study column.");
   }
 
+  // Optional admin-chosen poster image for portfolio video tiles
+  // (overrides auto thumbnail fetched from YouTube/Vimeo/Gumlet).
+  try {
+    await pool.query(`ALTER TABLE portfolio_items ADD COLUMN IF NOT EXISTS custom_thumbnail_url text`);
+    logger.info("Startup migration: portfolio_items.custom_thumbnail_url column ensured.");
+  } catch (err) {
+    logger.error({ err }, "Startup migration: failed to ensure custom_thumbnail_url column.");
+  }
+
   // Shareable portfolio links — admin hides some categories/items per share.
   try {
     await pool.query(`

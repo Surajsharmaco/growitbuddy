@@ -87,6 +87,7 @@ interface PortfolioItem {
   youtubeUrl: string;
   description: string | null;
   sortOrder: number;
+  customThumbnailUrl?: string | null;
   caseStudy?: CaseStudyMini | null;
 }
 
@@ -94,7 +95,10 @@ interface PortfolioItem {
 function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?: boolean }) {
   const [playing, setPlaying] = useState(false);
   const embedUrl = getEmbedUrl(item.youtubeUrl, { autoplay: true });
-  const thumb = featured ? getHiResThumbnail(item.youtubeUrl) : getThumbnail(item.youtubeUrl);
+  // Admin-set poster takes priority over auto-generated platform thumbnail.
+  const thumb = item.customThumbnailUrl?.trim()
+    ? item.customThumbnailUrl
+    : (featured ? getHiResThumbnail(item.youtubeUrl) : getThumbnail(item.youtubeUrl));
 
   return (
     <motion.div
@@ -217,7 +221,10 @@ function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?:
 function ReelTile({ item }: { item: PortfolioItem }) {
   const [playing, setPlaying] = useState(false);
   const embedUrl = getEmbedUrl(item.youtubeUrl, { autoplay: true });
-  const thumb = getHiResThumbnail(item.youtubeUrl);
+  // Admin-set poster takes priority over auto-generated platform thumbnail.
+  const thumb = item.customThumbnailUrl?.trim()
+    ? item.customThumbnailUrl
+    : getHiResThumbnail(item.youtubeUrl);
 
   return (
     <motion.div
