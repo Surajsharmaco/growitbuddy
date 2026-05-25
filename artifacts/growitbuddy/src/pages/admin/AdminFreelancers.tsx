@@ -199,44 +199,7 @@ function ApplicationsPanel({ type, title }: { type: string; title: string }) {
   );
 }
 
-interface FreelancersData {
-  heroLabel: string;
-  heroHeadline: string;
-  heroSubtext: string;
-  perksHeadline: string;
-  perks: string[];
-  notForEveryoneTitle: string;
-  notForEveryone: string[];
-  formHeadline: string;
-  formSubtext: string;
-  formSuccessHeadline: string;
-  formSuccessSubtext: string;
-}
-
-const DEFAULTS: FreelancersData = {
-  heroLabel: "Talent Network",
-  heroHeadline: "Join the Talent Network.",
-  heroSubtext: "Work on real projects. Get selected based on performance. Build your career with a system, not random gigs.",
-  perksHeadline: "What You Get.",
-  perks: [
-    "Real client projects, not random gigs",
-    "Consistent work opportunities based on performance",
-    "Performance-based growth within the network",
-    "Access to tools and resources as you level up",
-    "A structured system to sharpen your skills",
-  ],
-  notForEveryoneTitle: "Not for everyone",
-  notForEveryone: [
-    "Video editors ready to work on real client projects",
-    "Graphic and motion designers with a strong portfolio",
-    "Content creators who execute, not just ideate",
-    "If you want random gigs, this is not for you",
-  ],
-  formHeadline: "Apply for the Talent Network",
-  formSubtext: "Selection is performance-based. Apply now and prove your work.",
-  formSuccessHeadline: "Application received.",
-  formSuccessSubtext: "We review applications based on performance. If you make the cut, we'll be in touch within 7 business days.",
-};
+import { FREELANCERS_DEFAULTS as DEFAULTS, type FreelancersPageData as FreelancersData } from "@/lib/freelancersDefaults";
 
 export default function AdminFreelancers() {
   const { getContent, saveContent } = useAdmin();

@@ -201,47 +201,7 @@ function ApplicationsPanel({ type, title }: { type: string; title: string }) {
   );
 }
 
-interface FullTimeData {
-  heroLabel: string;
-  heroHeadline: string;
-  heroSubtext: string;
-  perksHeadline: string;
-  perks: string[];
-  rolesLabel: string;
-  roles: string[];
-  formHeadline: string;
-  formSubtext: string;
-  formSuccessHeadline: string;
-  formSuccessSubtext: string;
-}
-
-const DEFAULTS: FullTimeData = {
-  heroLabel: "Full-Time Careers",
-  heroHeadline: "Build your career at GrowitBuddy.",
-  heroSubtext: "We are a small, high-output team doing some of the most interesting content and authority work in the world. If that sounds like where you want to be, apply below.",
-  perksHeadline: "Why join full-time?",
-  perks: [
-    "Full-time remote role with flexible hours",
-    "Work directly with world-class founders and creators",
-    "Competitive salary + performance bonuses",
-    "Access to GrowitBuddy's proprietary frameworks and training",
-    "Real ownership and impact from day one",
-  ],
-  rolesLabel: "Open roles",
-  roles: [
-    "Content Strategist",
-    "Ghostwriter / Senior Writer",
-    "Video Editor",
-    "Social Media Manager",
-    "Distribution & Growth Specialist",
-    "Brand Designer",
-    "Operations & Project Manager",
-  ],
-  formHeadline: "Apply for a full-time role",
-  formSubtext: "We review every application. Expect a response within 7 business days.",
-  formSuccessHeadline: "Application received!",
-  formSuccessSubtext: "We review every application carefully. If you are a fit, we will reach out within 7 business days.",
-};
+import { FULLTIME_DEFAULTS as DEFAULTS, type FullTimePageData as FullTimeData } from "@/lib/fulltimeDefaults";
 
 export default function AdminFullTime() {
   const { getContent, saveContent } = useAdmin();

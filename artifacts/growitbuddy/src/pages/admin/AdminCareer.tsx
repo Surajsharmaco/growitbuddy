@@ -19,71 +19,9 @@ interface Lead {
   createdAt: string;
 }
 
-interface FullTimeData {
-  heroLabel: string; heroHeadline: string; heroSubtext: string;
-  perksHeadline: string; perks: string[];
-  rolesLabel: string; roles: string[];
-  formHeadline: string; formSubtext: string;
-  formSuccessHeadline: string; formSuccessSubtext: string;
-}
-
-interface FreelancersData {
-  heroLabel: string; heroHeadline: string; heroSubtext: string;
-  perksHeadline: string; perks: string[];
-  notForEveryoneTitle: string; notForEveryone: string[];
-  formHeadline: string; formSubtext: string;
-  formSuccessHeadline: string; formSuccessSubtext: string;
-}
-
-interface InternshipData {
-  heroLabel: string; heroHeadline: string; heroSubtext: string;
-  perksHeadline: string; perks: string[];
-  idealForTitle: string; idealFor: string[];
-  formHeadline: string; formSubtext: string;
-  formSuccessHeadline: string; formSuccessSubtext: string;
-}
-
-const FT_DEFAULTS: FullTimeData = {
-  heroLabel: "Careers at GrowitBuddy",
-  heroHeadline: "Build modern authority systems with us.",
-  heroSubtext: "We're building a high-output creative ecosystem for founders, creators, and brands — and we're looking for ambitious people who want to do meaningful work.",
-  perksHeadline: "Why join full-time?",
-  perks: ["Flexible remote-first work environment", "Work directly on creator and authority systems", "High ownership and creative impact", "Access to modern workflows, systems, and frameworks", "Opportunities to grow across multiple creative disciplines"],
-  rolesLabel: "Open Roles",
-  roles: ["Content Strategist", "Video Editor", "Graphic Designer", "Motion Designer", "Thumbnail Designer", "Copywriter", "Social Media Manager", "Distribution Specialist", "AI Automation Specialist", "Web & Funnel Designer", "Community Manager", "Operations Coordinator"],
-  formHeadline: "Apply for a full-time role",
-  formSubtext: "We review every application. Expect a response within 7 business days.",
-  formSuccessHeadline: "Application received.",
-  formSuccessSubtext: "We review every application carefully. If you are a fit, we will reach out within 7 business days.",
-};
-
-const FL_DEFAULTS: FreelancersData = {
-  heroLabel: "Talent Network",
-  heroHeadline: "Join the creator network behind modern authority brands.",
-  heroSubtext: "Work on real projects, collaborate with creators and brands, and become part of a long-term creative ecosystem — not random one-off gigs.",
-  perksHeadline: "What You Get.",
-  perks: ["Real-world creator and brand projects", "Consistent freelance and collaboration opportunities", "Access to systems, workflows, and creative resources", "Opportunities across content, design, AI, and growth", "Long-term relationships inside the GrowitBuddy ecosystem"],
-  notForEveryoneTitle: "Built for creators who want to grow",
-  notForEveryone: ["Creative people serious about improving their craft", "Freelancers looking for meaningful long-term opportunities", "Creators who value consistency, quality, and execution", "Talent interested in building real-world experience and relationships"],
-  formHeadline: "Apply for the Talent Network",
-  formSubtext: "Selection is performance-based. Apply now and prove your work.",
-  formSuccessHeadline: "Application received.",
-  formSuccessSubtext: "We review applications based on performance. If you make the cut, we'll be in touch within 7 business days.",
-};
-
-const IN_DEFAULTS: InternshipData = {
-  heroLabel: "Creator Internship",
-  heroHeadline: "Start building real-world experience.",
-  heroSubtext: "Work alongside creators, brands, and modern content systems while learning through execution — not theory.",
-  perksHeadline: "What you'll experience.",
-  perks: ["Real projects with practical execution", "Structured feedback and collaborative workflows", "Exposure to modern creator and authority systems", "Opportunities to build your portfolio with shipped work", "A path toward freelance, creator, or full-time opportunities"],
-  idealForTitle: "Ideal For",
-  idealFor: ["Creators starting their journey", "People who want hands-on experience instead of only tutorials", "Early-stage creatives looking to sharpen real-world skills", "Ambitious individuals who want to grow through execution"],
-  formHeadline: "Apply for Internship",
-  formSubtext: "We read every application. If you're a fit, we'll be in touch.",
-  formSuccessHeadline: "Application received.",
-  formSuccessSubtext: "We'll review it and get back to you within a few days.",
-};
+import { FULLTIME_DEFAULTS as FT_DEFAULTS, type FullTimePageData as FullTimeData } from "@/lib/fulltimeDefaults";
+import { FREELANCERS_DEFAULTS as FL_DEFAULTS, type FreelancersPageData as FreelancersData } from "@/lib/freelancersDefaults";
+import { INTERNSHIP_DEFAULTS as IN_DEFAULTS, type InternshipPageData as InternshipData } from "@/lib/internshipDefaults";
 
 // ── Applications Panel ───────────────────────────────────────────────────────
 function fmt(iso: string) {
