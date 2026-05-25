@@ -6,7 +6,7 @@ import { Plus, Edit2, Trash2, X, Save, ExternalLink, Play, ChevronDown, ChevronU
 import { motion, AnimatePresence } from "framer-motion";
 
 import { API_BASE } from "@/lib/api";
-import { getEmbedUrl as toEmbedUrl, getThumbnail, sourceLabel } from "@/lib/videoEmbed";
+import { getEmbedUrl as toEmbedUrl, getThumbnail, sourceLabel, detectAspectRatio } from "@/lib/videoEmbed";
 
 interface CaseStudyData {
   clientName?: string;
@@ -138,23 +138,64 @@ function ItemForm({
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       {/* Video URL */}
       <div>
-        <label style={labelStyle}>Video URL * <span style={{ color: "#8A8A8A", fontWeight: 400 }}>— YouTube, Vimeo or Google Drive</span></label>
-        <input
-          style={{ ...inputStyle, borderColor: form.youtubeUrl && !embedOk ? "#e53e3e" : "#E5E5E0" }}
-          placeholder="Paste a YouTube, Vimeo or Drive link…"
+        <label style={labelStyle}>Video URL or Embed Code * <span style={{ color: "#8A8A8A", fontWeight: 400 }}>— YouTube, Vimeo, Google Drive or Gumlet</span></label>
+        <textarea
+          style={{
+            ...inputStyle,
+            borderColor: form.youtubeUrl && !embedOk ? "#e53e3e" : "#E5E5E0",
+            minHeight: 80,
+            fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+            fontSize: 12,
+            resize: "vertical",
+          }}
+          placeholder={'Paste a link OR the full <iframe …> embed code'}
           value={form.youtubeUrl}
           onChange={(e) => set("youtubeUrl", e.target.value)}
         />
         {form.youtubeUrl && !embedOk && (
-          <p style={{ fontSize: 12, color: "#e53e3e", marginTop: 4 }}>Could not detect a YouTube, Vimeo or Google Drive video in this link.</p>
+          <p style={{ fontSize: 12, color: "#e53e3e", marginTop: 4 }}>Could not detect a video in this link or embed code. Supported: YouTube, Vimeo, Google Drive, Gumlet.</p>
         )}
-        {detectedSource && (
-          <p style={{ fontSize: 11, color: "#5F5F5F", marginTop: 4 }}>
-            Detected: <strong style={{ color: "#1E293B" }}>{detectedSource}</strong>
-            {detectedSource === "Google Drive" && <span style={{ color: "#8A8A8A" }}> · Drive sharing must be set to “Anyone with the link”.</span>}
-          </p>
-        )}
-        {thumb && (
+        {detectedSource && embedOk && (() => {
+          const ratio = detectAspectRatio(form.youtubeUrl);
+          const isVertical = ratio === "9/16";
+          const embedSrc = toEmbedUrl(form.youtubeUrl);
+          return (
+            <>
+              <p style={{ fontSize: 11, color: "#5F5F5F", marginTop: 6, display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#10b981", display: "inline-block" }} />
+                <strong style={{ color: "#1E293B" }}>{detectedSource}</strong> detected
+                <span style={{ padding: "2px 8px", borderRadius: 999, background: "#0B0B0B0D", color: "#0B0B0B99", fontWeight: 600 }}>{ratio} {isVertical ? "vertical" : "horizontal"}</span>
+                {detectedSource === "Google Drive" && <span style={{ color: "#8A8A8A" }}>· must be “Anyone with the link”</span>}
+              </p>
+              <div style={{ marginTop: 10 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#8A8A8A", marginBottom: 6 }}>Live Preview</div>
+                <div
+                  style={{
+                    background: "#000",
+                    borderRadius: 10,
+                    overflow: "hidden",
+                    aspectRatio: ratio,
+                    width: "100%",
+                    maxWidth: isVertical ? 240 : 480,
+                    margin: isVertical ? "0 auto" : 0,
+                    position: "relative",
+                  }}
+                >
+                  <iframe
+                    key={embedSrc}
+                    src={embedSrc}
+                    title="Video preview"
+                    referrerPolicy="origin"
+                    allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen; clipboard-write"
+                    allowFullScreen
+                    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
+                  />
+                </div>
+              </div>
+            </>
+          );
+        })()}
+        {thumb && !embedOk && (
           <div style={{ marginTop: 10, borderRadius: 8, overflow: "hidden", maxWidth: 280, position: "relative" }}>
             <img src={thumb} alt="preview" style={{ width: "100%", display: "block" }} />
             <div style={{
@@ -406,10 +447,10 @@ function ItemForm({
 
             {/* Video URL override */}
             <div>
-              <label style={labelStyle}>Walkthrough Video URL <span style={{ color: "#8A8A8A", fontWeight: 400 }}>— optional, overrides showcase reel on detail page</span></label>
-              <input
-                style={inputStyle}
-                placeholder="https://youtu.be/..."
+              <label style={labelStyle}>Walkthrough Video URL or Embed Code <span style={{ color: "#8A8A8A", fontWeight: 400 }}>— optional, overrides showcase reel on detail page</span></label>
+              <textarea
+                style={{ ...inputStyle, minHeight: 70, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 12, resize: "vertical" }}
+                placeholder={'Paste a link OR the full <iframe …> embed code'}
                 value={form.caseStudy.videoUrl ?? ""}
                 onChange={(e) => setCs("videoUrl", e.target.value)}
               />
