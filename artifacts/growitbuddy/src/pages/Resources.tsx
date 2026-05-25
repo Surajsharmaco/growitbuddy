@@ -63,7 +63,7 @@ export default function Resources() {
                 gap: 20,
               }}
             >
-              {cms.items.map((item, i) => (
+              {(cms.items || []).map((item, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, y: 20 }}

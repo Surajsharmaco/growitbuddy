@@ -466,7 +466,7 @@ export default function DistributionNetwork() {
             </p>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {cms.advantageItems.map(({ label, desc }) => (
+            {(cms.advantageItems || []).map(({ label, desc }) => (
               <div key={label} style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
                 <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--gb-accent)", marginTop: 8, flexShrink: 0 }} />
                 <div>
@@ -487,7 +487,7 @@ export default function DistributionNetwork() {
             {cms.hiwHeadline}
           </h2>
           <div className="dist-steps-grid">
-            {cms.hiwSteps.map(({ num, title, desc }) => (
+            {(cms.hiwSteps || []).map(({ num, title, desc }) => (
               <motion.div
                 key={num}
                 initial={{ opacity: 0, y: 16 }}
