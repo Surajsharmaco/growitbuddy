@@ -78,6 +78,7 @@ const AdminMediaLibrary       = lazy(() => import("@/pages/admin/AdminMediaLibra
 const AdminTeamMembers        = lazy(() => import("@/pages/admin/AdminTeamMembers"));
 const AdminOptimize           = lazy(() => import("@/pages/admin/AdminOptimize"));
 const AdminPortfolio          = lazy(() => import("@/pages/admin/AdminPortfolio"));
+const AdminPortfolioShares    = lazy(() => import("@/pages/admin/AdminPortfolioShares"));
 const AdminLogos              = lazy(() => import("@/pages/admin/AdminLogos"));
 const AdminCreatorSchool      = lazy(() => import("@/pages/admin/AdminCreatorSchool"));
 const AdminTalentPool         = lazy(() => import("@/pages/admin/AdminTalentPool"));
@@ -147,6 +148,7 @@ function AdminRoutes() {
       <Route path="/admin/team">{() => <AdminGuard><AdminTeamMembers /></AdminGuard>}</Route>
       <Route path="/admin/optimize">{() => <AdminGuard><AdminOptimize /></AdminGuard>}</Route>
       <Route path="/admin/portfolio">{() => <AdminGuard><AdminPortfolio /></AdminGuard>}</Route>
+      <Route path="/admin/portfolio-shares">{() => <AdminGuard><AdminPortfolioShares /></AdminGuard>}</Route>
       <Route path="/admin/logos">{() => <AdminGuard><AdminLogos /></AdminGuard>}</Route>
       <Route path="/admin/editors-pool">{() => <AdminGuard><AdminCreatorSchool /></AdminGuard>}</Route>
       <Route path="/admin/pool-designers">{() => <AdminGuard><AdminTalentPool poolKey="pool-designers" label="Designers Pool" description="Manage the /designers-pool landing page." pageUrl="/designers-pool" /></AdminGuard>}</Route>
@@ -254,6 +256,9 @@ function App() {
                       <Route path="/internship">{() => <Redirect to="/career?type=internship" />}</Route>
                       <Route path="/authority-audit">{() => <PageGate slug="authority-audit"><AuthorityAudit /></PageGate>}</Route>
                       <Route path="/portfolio" component={Portfolio} />
+                      <Route path="/portfolio/shared/:slug/:category/case/:id" component={CaseStudy} />
+                      <Route path="/portfolio/shared/:slug/:category" component={Portfolio} />
+                      <Route path="/portfolio/shared/:slug" component={Portfolio} />
                       <Route path="/portfolio/:category/case/:id" component={CaseStudy} />
                       <Route path="/portfolio/:category" component={Portfolio} />
                       {/* Back-compat for old links */}

@@ -68,6 +68,7 @@ const navGroups: NavGroup[] = [
       { label: "Media Library", path: "/admin/media", icon: <Image size={15} />, permission: "media" },
       { label: "Client Logos", path: "/admin/logos", icon: <Image size={15} />, permission: "media" },
       { label: "Private Portfolio", path: "/admin/portfolio", icon: <Play size={15} />, superOnly: true },
+      { label: "Portfolio Share Links", path: "/admin/portfolio-shares", icon: <Play size={15} />, superOnly: true },
     ],
   },
   {
