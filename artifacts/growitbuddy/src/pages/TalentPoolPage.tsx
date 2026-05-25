@@ -5,6 +5,7 @@ import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import EcosystemOptIn from "@/components/EcosystemOptIn";
 import { API_BASE } from "@/lib/api";
+import { getEmbedUrl, getHiResThumbnail, getThumbnail, parseVideo } from "@/lib/videoEmbed";
 
 const VARIANT_TO_CONTEXT: Record<string, string> = {
   designers:  "designer",
@@ -65,30 +66,22 @@ const FI = (delay = 0) => ({
 function VideoPlayer({ url }: { url: string }) {
   const [playing, setPlaying] = useState(false);
 
-  const getYtId = (raw: string) => raw.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?/]+)/)?.[1] ?? null;
+  // Use the shared, robust video parser (handles YouTube, Vimeo, Drive incl. open?id= format)
+  const parsed = url ? parseVideo(url) : { source: null, id: "" };
+  const baseEmbed = url ? getEmbedUrl(url) : "";
+  // Add autoplay where the provider supports it. Drive ignores ?autoplay so we add it harmlessly.
+  const embedSrc = baseEmbed
+    ? baseEmbed + (baseEmbed.includes("?") ? "&autoplay=1" : "?autoplay=1")
+    : "";
+  const thumbUrl = url ? getHiResThumbnail(url) : "";
 
-  const embed = (raw: string) => {
-    const ytId = getYtId(raw);
-    if (ytId) return `https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&mute=0`;
-    const loom = raw.match(/loom\.com\/share\/([^?]+)/);
-    if (loom) return `https://www.loom.com/embed/${loom[1]}?autoplay=1`;
-    const vimeo = raw.match(/vimeo\.com\/(\d+)/);
-    if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}?autoplay=1`;
-    // Google Drive: accept full /file/d/ID/view or /file/d/ID/preview links
-    const drive = raw.match(/drive\.google\.com\/file\/d\/([^/?]+)/);
-    if (drive) return `https://drive.google.com/file/d/${drive[1]}/preview`;
-    return raw;
-  };
-
-  // Auto-start after 1.5 s once url is available
+  // Auto-start after 1.5s — but only for providers that support autoplay via URL.
+  // Drive ignores it, so we still let the user click play inside Drive's own iframe.
   useEffect(() => {
-    if (!url) return;
+    if (!url || !embedSrc) return;
     const t = setTimeout(() => setPlaying(true), 1500);
     return () => clearTimeout(t);
-  }, [url]);
-
-  const ytId = url ? getYtId(url) : null;
-  const thumbUrl = ytId ? `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg` : null;
+  }, [url, embedSrc]);
 
   return (
     <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: 16, overflow: "hidden", position: "relative", boxShadow: "0 24px 64px rgba(0,0,0,0.22)", background: "#0F172A" }}>
@@ -97,35 +90,51 @@ function VideoPlayer({ url }: { url: string }) {
         <img
           src={thumbUrl}
           alt="Video thumbnail"
+          referrerPolicy="no-referrer"
           style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: playing ? 0 : 1, transition: "opacity 0.4s" }}
+          onError={(e) => {
+            const el = e.currentTarget as HTMLImageElement;
+            const fallback = getThumbnail(url);
+            if (el.src !== fallback && fallback) {
+              el.src = fallback;
+            } else {
+              el.style.display = "none";
+            }
+          }}
         />
       )}
 
       {/* Play button overlay — shown before autoplay kicks in */}
       {!playing && (
         <div
-          onClick={() => url && setPlaying(true)}
-          style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", cursor: url ? "pointer" : "default", background: thumbUrl ? "rgba(0,0,0,0.25)" : "transparent" }}
+          onClick={() => url && embedSrc && setPlaying(true)}
+          style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", cursor: url && embedSrc ? "pointer" : "default", background: thumbUrl ? "rgba(0,0,0,0.25)" : "transparent" }}
         >
           <div style={{ textAlign: "center" }}>
             <div style={{
               width: 72, height: 72, borderRadius: "50%",
-              background: url ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.06)",
+              background: url && embedSrc ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.06)",
               display: "flex", alignItems: "center", justifyContent: "center",
               margin: "0 auto 12px",
-              boxShadow: url ? "0 8px 32px rgba(0,0,0,0.3)" : "none",
+              boxShadow: url && embedSrc ? "0 8px 32px rgba(0,0,0,0.3)" : "none",
               transition: "transform 0.15s",
             }}>
-              <Play size={28} color={url ? "#1E293B" : "#ffffff20"} fill={url ? "#1E293B" : "#ffffff20"} style={{ marginLeft: 5 }} />
+              <Play size={28} color={url && embedSrc ? "#1E293B" : "#ffffff20"} fill={url && embedSrc ? "#1E293B" : "#ffffff20"} style={{ marginLeft: 5 }} />
             </div>
             {!url && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.18)", letterSpacing: "0.12em", textTransform: "uppercase" }}>Demo video coming soon</span>}
+            {url && !embedSrc && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em", textTransform: "uppercase" }}>Unsupported video URL</span>}
+            {parsed.source === "drive" && !playing && (
+              <span style={{ display: "block", fontSize: 10, color: "rgba(255,255,255,0.5)", marginTop: 6, letterSpacing: "0.06em" }}>
+                Drive video — make sure it's shared "Anyone with link"
+              </span>
+            )}
           </div>
         </div>
       )}
 
       {/* Iframe — shown once playing */}
-      {playing && url && (
-        <iframe src={embed(url)} allow="autoplay; fullscreen" allowFullScreen
+      {playing && embedSrc && (
+        <iframe src={embedSrc} allow="autoplay; fullscreen" allowFullScreen
           style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none", zIndex: 1 }} />
       )}
     </div>
