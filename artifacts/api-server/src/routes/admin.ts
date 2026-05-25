@@ -992,6 +992,22 @@ router.delete("/portfolio/:id", authMiddleware, async (req, res) => {
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   try {
     await db.delete(portfolioItems).where(eq(portfolioItems.id, id));
+    // Cascade cleanup: remove this id from every share's hiddenItemIds so
+    // shares don't accumulate dangling references over time.
+    try {
+      const shares = await db.select().from(portfolioShares);
+      for (const s of shares) {
+        const ids = (s.hiddenItemIds ?? []).map(Number);
+        if (ids.includes(id)) {
+          await db
+            .update(portfolioShares)
+            .set({ hiddenItemIds: ids.filter((x) => x !== id), updatedAt: new Date() })
+            .where(eq(portfolioShares.id, s.id));
+        }
+      }
+    } catch (cleanupErr) {
+      logger.warn({ err: cleanupErr, id }, "Share cleanup after item delete failed (non-fatal)");
+    }
     logger.info({ id }, "Portfolio item deleted");
     res.json({ success: true });
   } catch (err) {
@@ -1035,7 +1051,16 @@ router.get("/portfolio/shares/public/:slug", async (req, res) => {
 router.get("/portfolio/shares", authMiddleware, async (_req, res) => {
   try {
     const rows = await db.select().from(portfolioShares).orderBy(desc(portfolioShares.createdAt));
-    res.json(rows);
+    // Annotate each share with how many of its hidden IDs no longer exist,
+    // so the admin UI can warn ("3 hidden items have been deleted").
+    const allItems = await db.select({ id: portfolioItems.id }).from(portfolioItems);
+    const liveIds = new Set(allItems.map((i) => i.id));
+    const annotated = rows.map((r) => {
+      const hidden = (r.hiddenItemIds ?? []).map(Number);
+      const stale = hidden.filter((id) => !liveIds.has(id));
+      return { ...r, staleItemCount: stale.length };
+    });
+    res.json(annotated);
   } catch (err) {
     logger.error({ err }, "Failed to list portfolio shares");
     res.status(500).json({ error: "Failed to fetch shares" });

@@ -5,21 +5,11 @@ import { useRoute, Link, useLocation } from "wouter";
 
 import { API_BASE } from "@/lib/api";
 import { getEmbedUrl, getThumbnail, getHiResThumbnail, isShortVideo } from "@/lib/videoEmbed";
+import { PORTFOLIO_CATEGORIES } from "@/lib/portfolioCategories";
 
 type CategoryType = "video" | "case-study";
 
-const CATEGORIES = [
-  "Personal Branding",
-  "Content Creation",
-  "Video Editing — India",
-  "Video Editing — US",
-  "Graphics",
-  "Social Media Management",
-  "Distribution & Growth",
-  "Web & Funnel Systems",
-  "AI Automation",
-  "Digital Products & Growth",
-] as const;
+const CATEGORIES = PORTFOLIO_CATEGORIES;
 
 const CATEGORY_META: Record<string, { slug: string; tagline: string; type: CategoryType }> = {
   "Personal Branding": {

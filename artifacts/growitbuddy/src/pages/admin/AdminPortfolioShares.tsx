@@ -5,19 +5,9 @@ import { Plus, Trash2, Copy, Check, ExternalLink, Save, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { API_BASE } from "@/lib/api";
+import { PORTFOLIO_CATEGORIES } from "@/lib/portfolioCategories";
 
-const CATEGORIES = [
-  "Personal Branding",
-  "Content Creation",
-  "Video Editing — India",
-  "Video Editing — US",
-  "Graphics",
-  "Social Media Management",
-  "Distribution & Growth",
-  "Web & Funnel Systems",
-  "AI Automation",
-  "Digital Products & Growth",
-];
+const CATEGORIES = PORTFOLIO_CATEGORIES;
 
 interface PortfolioItem {
   id: number;
@@ -33,6 +23,9 @@ interface Share {
   hiddenItemIds: number[];
   createdAt: string;
   updatedAt: string;
+  // Set by the server: count of hidden item IDs that no longer exist in the
+  // portfolio (because the item was deleted after the share was created).
+  staleItemCount?: number;
 }
 
 interface DraftState {
@@ -337,6 +330,11 @@ export default function AdminPortfolioShares() {
                     {(s.hiddenCategories ?? []).length === 0 && (s.hiddenItemIds ?? []).length === 0 && (
                       <span className="px-2 py-0.5 rounded-full bg-[#F0FDF4] text-[#166534] border border-[#86EFAC]">
                         Shows everything
+                      </span>
+                    )}
+                    {(s.staleItemCount ?? 0) > 0 && (
+                      <span className="px-2 py-0.5 rounded-full bg-[#FFF7ED] text-[#9A3412] border border-[#FDBA74]">
+                        ⚠ {s.staleItemCount} hidden item{s.staleItemCount === 1 ? "" : "s"} deleted — edit to clean up
                       </span>
                     )}
                   </div>

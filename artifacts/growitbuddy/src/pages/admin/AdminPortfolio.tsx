@@ -25,18 +25,8 @@ interface CaseStudyData {
   videoUrl?: string;
 }
 
-const CATEGORIES = [
-  "Personal Branding",
-  "Content Creation",
-  "Video Editing — India",
-  "Video Editing — US",
-  "Graphics",
-  "Social Media Management",
-  "Distribution & Growth",
-  "Web & Funnel Systems",
-  "AI Automation",
-  "Digital Products & Growth",
-];
+import { PORTFOLIO_CATEGORIES } from "@/lib/portfolioCategories";
+const CATEGORIES = PORTFOLIO_CATEGORIES;
 
 interface PortfolioItem {
   id: number;
