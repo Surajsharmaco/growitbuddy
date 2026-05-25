@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, ExternalLink, Play, CheckCircle, ChevronRight } from "lucide-react";
+import { ArrowRight, ExternalLink, Play, CheckCircle } from "lucide-react";
 import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import EcosystemOptIn from "@/components/EcosystemOptIn";
@@ -282,47 +282,133 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
         .tp-wrap    { max-width: 1080px; margin: 0 auto; padding: 0 32px; }
         .tp-wrap-md { max-width: 800px;  margin: 0 auto; padding: 0 32px; }
         .tp-wrap-sm { max-width: 640px;  margin: 0 auto; padding: 0 32px; }
-        .tp-pad     { padding: 88px 0; }
-        .tp-steps   { display: grid; grid-template-columns: repeat(4,1fr); gap: 0; }
-        .tp-cards   { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; }
+        .tp-pad     { padding: 96px 0; }
+        .tp-steps   { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+        .tp-cards   { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; }
         .tp-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .tp-btns    { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-        .tp-step-num { font-size: 40px; font-weight: 900; letter-spacing: -0.04em; color: #E5E5E0; line-height: 1; margin-bottom: 12px; font-family: 'Inter', sans-serif; }
-        @media (max-width: 900px) {
+
+        /* Hero eyebrow — gold pill with dot */
+        .tp-eyebrow {
+          display: inline-flex; align-items: center; gap: 8px;
+          padding: 7px 14px 7px 12px;
+          border: 1px solid rgba(194,168,120,0.35);
+          background: rgba(194,168,120,0.08);
+          border-radius: 100px;
+          font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+          color: #8B6F3D;
+          margin-bottom: 22px;
+        }
+        .tp-eyebrow::before {
+          content: ""; width: 6px; height: 6px; border-radius: 50%;
+          background: #C2A878; box-shadow: 0 0 0 3px rgba(194,168,120,0.18);
+        }
+
+        /* Hero headline — balanced line breaks */
+        .tp-h1 {
+          font-size: clamp(30px, 4.6vw, 56px);
+          font-weight: 900; line-height: 1.05; letter-spacing: -0.04em;
+          color: #0A0A0A; margin-bottom: 22px;
+          text-wrap: balance; -webkit-text-wrap: balance;
+        }
+        .tp-h1-accent { color: #8B6F3D; }
+        .tp-lead {
+          font-size: 18px; color: #4A4A4A; line-height: 1.65;
+          max-width: 540px; margin: 0 auto 36px;
+          text-wrap: pretty; -webkit-text-wrap: pretty;
+        }
+
+        /* Step cards */
+        .tp-step {
+          position: relative;
+          background: #FFFFFF;
+          border: 1px solid #EAEAE4;
+          border-radius: 14px;
+          padding: 24px 22px 22px;
+          transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+        .tp-step:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 14px 36px rgba(10,10,10,0.06);
+          border-color: rgba(194,168,120,0.45);
+        }
+        .tp-step-num {
+          display: inline-flex; align-items: center; justify-content: center;
+          width: 36px; height: 36px;
+          border-radius: 10px;
+          background: linear-gradient(135deg, #FAF6EE 0%, #F0E6CF 100%);
+          color: #8B6F3D;
+          font-size: 14px; font-weight: 800; letter-spacing: 0.02em;
+          margin-bottom: 16px;
+          font-family: 'Inter', sans-serif;
+        }
+
+        /* Resource cards */
+        .tp-res {
+          background: #FFFFFF;
+          border: 1px solid #EAEAE4;
+          border-radius: 14px;
+          padding: 20px 22px;
+          display: flex; align-items: center; justify-content: space-between; gap: 16px;
+          transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .tp-res:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 12px 28px rgba(10,10,10,0.05);
+          border-color: rgba(194,168,120,0.4);
+        }
+
+        /* Section heading */
+        .tp-h2 {
+          font-size: clamp(24px, 3.4vw, 40px);
+          font-weight: 800; color: #0A0A0A;
+          letter-spacing: -0.035em; line-height: 1.12;
+          text-wrap: balance; -webkit-text-wrap: balance;
+        }
+        .tp-section-eyebrow {
+          display: inline-block;
+          font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+          color: #8B6F3D; margin-bottom: 14px;
+        }
+
+        @media (max-width: 960px) {
           .tp-steps   { grid-template-columns: repeat(2,1fr); }
           .tp-cards   { grid-template-columns: 1fr; }
-          .tp-pad     { padding: 64px 0; }
+          .tp-pad     { padding: 72px 0; }
         }
         @media (max-width: 600px) {
           .tp-steps   { grid-template-columns: 1fr; }
           .tp-form-grid { grid-template-columns: 1fr; }
           .tp-wrap, .tp-wrap-md, .tp-wrap-sm { padding: 0 20px; }
-          .tp-pad     { padding: 48px 0; }
+          .tp-pad     { padding: 56px 0; }
           .tp-btns a  { width: 100%; max-width: 280px; justify-content: center; text-align: center; }
+          .tp-lead    { font-size: 16px; }
         }
       `}</style>
 
       {/* ─── 01 HERO ─────────────────────────────────────── */}
-      <section style={{ paddingTop: 88, paddingBottom: 0, background: "#FFFFFF", borderBottom: "1px solid #E5E5E0" }}>
-        <div className="tp-wrap-md">
-          <motion.div {...FI()} style={{ textAlign: "center", paddingBottom: 52 }}>
-            <span className="gb-eyebrow" style={{ marginBottom: 20, display: "block" }}>{d.eyebrow}</span>
-            <h1 style={{ fontSize: "clamp(28px, 5vw, 62px)", fontWeight: 900, lineHeight: 1.08, letterSpacing: "-0.04em", color: "#0A0A0A", marginBottom: 18 }}>
-              {d.headline}
-            </h1>
-            <p style={{ fontSize: 17, color: "#5F5F5F", lineHeight: 1.7, maxWidth: 500, margin: "0 auto 32px" }}>
-              {d.description}
-            </p>
+      <section style={{ paddingTop: 96, paddingBottom: 0, background: "#FFFFFF", borderBottom: "1px solid #E5E5E0", position: "relative", overflow: "hidden" }}>
+        {/* Soft gold radial glow */}
+        <span aria-hidden style={{
+          position: "absolute", top: -160, left: "50%", transform: "translateX(-50%)",
+          width: 720, height: 320, pointerEvents: "none",
+          background: "radial-gradient(ellipse at center, rgba(194,168,120,0.14) 0%, rgba(194,168,120,0) 65%)",
+        }} />
+        <div className="tp-wrap-md" style={{ position: "relative" }}>
+          <motion.div {...FI()} style={{ textAlign: "center", paddingBottom: 56 }}>
+            <span className="tp-eyebrow">{d.eyebrow}</span>
+            <h1 className="tp-h1">{d.headline}</h1>
+            <p className="tp-lead">{d.description}</p>
             <div className="tp-btns">
-              <a href="#submit" className="gb-btn" style={{ fontSize: 14, padding: "13px 26px", display: "inline-flex", alignItems: "center", gap: 7 }}>
+              <a href="#submit" className="gb-btn" style={{ fontSize: 14, padding: "14px 28px", display: "inline-flex", alignItems: "center", gap: 7 }}>
                 {d.ctaPrimary} <ArrowRight size={14} />
               </a>
-              <a href="#resources" className="gb-btn-outline" style={{ fontSize: 14, padding: "13px 26px" }}>
+              <a href="#resources" className="gb-btn-outline" style={{ fontSize: 14, padding: "14px 28px" }}>
                 {d.ctaSecondary}
               </a>
             </div>
             {d.heroTrustText && (
-              <p style={{ fontSize: 12, color: "#8A8A8A", marginTop: 16, lineHeight: 1.65 }}>
+              <p style={{ fontSize: 12.5, color: "#7A7A7A", marginTop: 22, lineHeight: 1.7, maxWidth: 480, margin: "22px auto 0" }}>
                 {d.heroTrustText}
               </p>
             )}
@@ -348,22 +434,16 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
       {/* ─── 02 HOW IT WORKS ─────────────────────────────── */}
       <section style={{ borderTop: "1px solid #E5E5E0" }} className="tp-pad">
         <div className="tp-wrap">
-          <motion.div {...FI()} style={{ marginBottom: 52, textAlign: "center" }}>
-            <span className="gb-eyebrow" style={{ display: "block", marginBottom: 14 }}>Process</span>
-            <h2 style={{ fontSize: "clamp(18px, 2.8vw, 40px)", fontWeight: 800, color: "#0A0A0A", letterSpacing: "-0.03em" }}>
-              {d.stepsTitle}
-            </h2>
+          <motion.div {...FI()} style={{ marginBottom: 56, textAlign: "center" }}>
+            <span className="tp-section-eyebrow">Process</span>
+            <h2 className="tp-h2">{d.stepsTitle}</h2>
           </motion.div>
           <div className="tp-steps">
             {(d.steps || []).map((step, i) => (
-              <motion.div key={i} {...FI(i * 0.08)}
-                style={{ padding: "0 32px 0", borderLeft: i > 0 ? "1px solid #E5E5E0" : "none" }}>
+              <motion.div key={i} {...FI(i * 0.08)} className="tp-step">
                 <div className="tp-step-num">{step.number}</div>
-                <p style={{ fontSize: 14, fontWeight: 700, color: "#0A0A0A", marginBottom: 6 }}>{step.title}</p>
-                <p style={{ fontSize: 13, color: "#8A8A8A", lineHeight: 1.65 }}>{step.desc}</p>
-                {i < d.steps.length - 1 && (
-                  <ChevronRight size={14} color="#D4D4CE" style={{ position: "absolute", right: -8, top: 12 }} />
-                )}
+                <p style={{ fontSize: 15, fontWeight: 700, color: "#0A0A0A", marginBottom: 8, letterSpacing: "-0.01em" }}>{step.title}</p>
+                <p style={{ fontSize: 13.5, color: "#6B6B6B", lineHeight: 1.6 }}>{step.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -373,12 +453,10 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
       {/* ─── 03 RESOURCES ────────────────────────────────── */}
       <section id="resources" className="tp-pad" style={{ background: "#FFFFFF", borderTop: "1px solid #E5E5E0" }}>
         <div className="tp-wrap-md">
-          <motion.div {...FI()} style={{ marginBottom: 36 }}>
-            <span className="gb-eyebrow" style={{ marginBottom: 14, display: "block" }}>Resources</span>
-            <h2 style={{ fontSize: "clamp(18px, 2.8vw, 38px)", fontWeight: 800, color: "#0A0A0A", letterSpacing: "-0.03em", marginBottom: 10 }}>
-              {d.resourcesTitle}
-            </h2>
-            <p style={{ fontSize: 15, color: "#5F5F5F" }}>{d.resourcesSubtext}</p>
+          <motion.div {...FI()} style={{ marginBottom: 40 }}>
+            <span className="tp-section-eyebrow">Resources</span>
+            <h2 className="tp-h2" style={{ marginBottom: 12 }}>{d.resourcesTitle}</h2>
+            <p style={{ fontSize: 16, color: "#5F5F5F", lineHeight: 1.65, maxWidth: 600 }}>{d.resourcesSubtext}</p>
           </motion.div>
           <div className="tp-cards">
             {(d.resources || []).map((r, i) => {
@@ -387,15 +465,14 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
               const link = r.link || fallback?.link || "";
               const btnLabel = r.btnLabel || fallback?.btnLabel || "Open";
               return (
-                <motion.div key={r.id} {...FI(i * 0.06)}
-                  style={{ background: "var(--gb-bg)", border: "1px solid #E5E5E0", borderRadius: 12, padding: "20px 22px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14 }}>
+                <motion.div key={r.id} {...FI(i * 0.06)} className="tp-res">
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <h3 style={{ fontSize: 14, fontWeight: 700, color: "#0A0A0A", marginBottom: 3 }}>{r.title}</h3>
-                    <p style={{ fontSize: 12, color: "#8A8A8A", lineHeight: 1.55 }}>{r.desc}</p>
+                    <h3 style={{ fontSize: 14.5, fontWeight: 700, color: "#0A0A0A", marginBottom: 4, letterSpacing: "-0.01em" }}>{r.title}</h3>
+                    <p style={{ fontSize: 12.5, color: "#7A7A7A", lineHeight: 1.55 }}>{r.desc}</p>
                   </div>
                   {link ? (
                     <a href={link} target="_blank" rel="noopener noreferrer"
-                      style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "#1E293B", padding: "8px 14px", border: "1px solid #D4D4CE", borderRadius: 8, textDecoration: "none", whiteSpace: "nowrap", background: "#FFFFFF", transition: "all 0.15s" }}
+                      style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "#1E293B", padding: "9px 14px", border: "1px solid #D4D4CE", borderRadius: 8, textDecoration: "none", whiteSpace: "nowrap", background: "#FFFFFF", transition: "all 0.15s" }}
                       onMouseEnter={(e) => { e.currentTarget.style.background = "#1E293B"; e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "#1E293B"; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = "#FFFFFF"; e.currentTarget.style.color = "#1E293B"; e.currentTarget.style.borderColor = "#D4D4CE"; }}>
                       <ExternalLink size={12} /> {btnLabel}
@@ -413,14 +490,12 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
       {/* ─── 04 SUBMISSION FORM ──────────────────────────── */}
       <section id="submit" className="tp-pad" style={{ borderTop: "1px solid #E5E5E0" }}>
         <div className="tp-wrap-sm">
-          <motion.div {...FI()} style={{ marginBottom: 32 }}>
-            <span className="gb-eyebrow" style={{ marginBottom: 14, display: "block" }}>Apply Now</span>
-            <h2 style={{ fontSize: "clamp(18px, 2.8vw, 38px)", fontWeight: 800, color: "#0A0A0A", letterSpacing: "-0.03em", marginBottom: 10 }}>
-              {d.formTitle}
-            </h2>
-            <p style={{ fontSize: 15, color: "#5F5F5F" }}>{d.formSubtext}</p>
+          <motion.div {...FI()} style={{ marginBottom: 36, textAlign: "center" }}>
+            <span className="tp-section-eyebrow">Apply Now</span>
+            <h2 className="tp-h2" style={{ marginBottom: 12 }}>{d.formTitle}</h2>
+            <p style={{ fontSize: 16, color: "#5F5F5F", lineHeight: 1.65, maxWidth: 520, margin: "0 auto" }}>{d.formSubtext}</p>
           </motion.div>
-          <motion.div {...FI(0.08)} style={{ background: "#FFFFFF", border: "1px solid #E5E5E0", borderRadius: 16, padding: "clamp(24px,5vw,40px)" }}>
+          <motion.div {...FI(0.08)} style={{ background: "#FFFFFF", border: "1px solid #EAEAE4", borderRadius: 18, padding: "clamp(28px,5vw,44px)", boxShadow: "0 14px 40px rgba(10,10,10,0.04)" }}>
             <PoolForm d={d} formVariant={config.formVariant} poolType={config.poolType} submitLabel={d.ctaPrimary} />
           </motion.div>
           {d.formDisclaimer && (
