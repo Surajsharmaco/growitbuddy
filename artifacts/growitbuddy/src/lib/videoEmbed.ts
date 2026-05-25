@@ -139,17 +139,30 @@ export function getHiResThumbnail(url: string): string {
   return "";
 }
 
-// True for vertical short-form: YouTube /shorts/ URLs.
-// Other sources (Vimeo, Drive) default to long-form.
+// True for vertical short-form videos.
+// Detects:
+//  1. YouTube `/shorts/` URLs.
+//  2. Any pasted embed snippet whose wrapper declares `aspect-ratio: 9/16`
+//     (Gumlet, Vimeo, custom embeds all use this in their Share → Embed code
+//     for vertical clips).
+//  3. Pasted embed snippets with explicit width/height attributes where
+//     height > width.
+// Falls back to false (long-form / 16:9).
 export function isShortVideo(url: string): boolean {
   if (!url) return false;
+  // 1. Aspect-ratio detection works on the raw pasted snippet (which is what
+  //    the admin actually saves for Gumlet etc.) — must run BEFORE we strip
+  //    the snippet down to just the iframe `src`.
+  if (detectAspectRatio(url) === "9/16") return true;
+  // 2. URL-shape detection (YouTube Shorts).
+  const inner = extractEmbedUrl(url);
   try {
-    const u = new URL(url.trim());
+    const u = new URL(inner.trim());
     if (u.hostname.toLowerCase().includes("youtube.com") && u.pathname.includes("/shorts/")) {
       return true;
     }
   } catch {
-    if (/\/shorts\/[a-zA-Z0-9_-]{6,}/.test(url)) return true;
+    if (/\/shorts\/[a-zA-Z0-9_-]{6,}/.test(inner)) return true;
   }
   return false;
 }
