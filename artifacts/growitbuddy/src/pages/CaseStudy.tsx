@@ -5,6 +5,23 @@ import { ArrowLeft, ArrowUpRight, CheckCircle2, Quote } from "lucide-react";
 
 import { API_BASE } from "@/lib/api";
 
+interface CaseStudyData {
+  clientName?: string;
+  clientLogoUrl?: string;
+  coverImageUrl?: string;
+  heroImageUrl?: string;
+  galleryImages?: string[];
+  metrics?: Array<{ value: string; label: string }>;
+  stack?: string[];
+  testimonial?: { quote: string; author: string };
+  overview?: string;
+  challenge?: string;
+  approach?: string;
+  approachBullets?: string[];
+  solution?: string;
+  videoUrl?: string;
+}
+
 interface PortfolioItem {
   id: number;
   title: string;
@@ -12,6 +29,7 @@ interface PortfolioItem {
   youtubeUrl: string;
   description: string | null;
   sortOrder: number;
+  caseStudy?: CaseStudyData | null;
 }
 
 const BRAND_ACCENT = "linear-gradient(135deg, #1E293B 0%, #0F172A 100%)";
@@ -126,10 +144,34 @@ export default function CaseStudy() {
     );
   }
 
-  const content = dummyContent(item);
+  const cs = item.caseStudy ?? null;
+  const fallback = dummyContent(item);
   const seeds = HERO_SEEDS[item.category] ?? ["fallback-1", "fallback-2", "fallback-3"];
-  const heroImg = picsum(`${seeds[0]}-${item.id}`, 1600, 900);
-  const embedUrl = getEmbedUrl(item.youtubeUrl);
+
+  // Merge real case-study content with category-tailored fallbacks so partial fills still look polished.
+  const content = {
+    overview: cs?.overview || fallback.overview,
+    challenge: cs?.challenge || fallback.challenge,
+    approach: cs?.approach || fallback.approach,
+    solution: cs?.solution || fallback.solution,
+    metrics: cs?.metrics && cs.metrics.length > 0 ? cs.metrics : fallback.metrics,
+    testimonial: cs?.testimonial?.quote ? cs.testimonial : fallback.testimonial,
+    stack: cs?.stack && cs.stack.length > 0 ? cs.stack : fallback.stack,
+    approachBullets: cs?.approachBullets && cs.approachBullets.length > 0
+      ? cs.approachBullets
+      : [
+          "Discovery sprint and surface-area audit",
+          "Strategic framework tailored to the founder's positioning",
+          "Production engine handover with SOPs and tooling",
+          "Weekly performance review and optimization",
+        ],
+  };
+
+  const heroImg = cs?.heroImageUrl || cs?.coverImageUrl || picsum(`${seeds[0]}-${item.id}`, 1600, 900);
+  const gallery = (cs?.galleryImages && cs.galleryImages.length > 0)
+    ? cs.galleryImages.slice(0, 2)
+    : [picsum(`${seeds[1]}-${item.id}`, 900, 600), picsum(`${seeds[2]}-${item.id}`, 900, 600)];
+  const embedUrl = getEmbedUrl(cs?.videoUrl || item.youtubeUrl);
   const categorySlug = params?.category ?? "";
 
   const go = (e: React.MouseEvent, href: string) => {
@@ -158,9 +200,18 @@ export default function CaseStudy() {
             <ArrowLeft size={15} /> Back to {item.category}
           </a>
 
-          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(194,168,120,0.9)", marginBottom: 18 }}>
-            Case Study · {item.category}
-          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18 }}>
+            {cs?.clientLogoUrl && (
+              <img
+                src={cs.clientLogoUrl}
+                alt={cs.clientName ?? "Client"}
+                style={{ width: 36, height: 36, borderRadius: 8, objectFit: "contain", background: "rgba(255,255,255,0.92)", padding: 4 }}
+              />
+            )}
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(194,168,120,0.9)", margin: 0 }}>
+              Case Study · {cs?.clientName || item.category}
+            </p>
+          </div>
           <h1 style={{ fontWeight: 800, fontSize: "clamp(36px, 6.5vw, 68px)", letterSpacing: "-0.04em", lineHeight: 1.04, color: "#fff", marginBottom: 24, maxWidth: "20ch" }}>
             {item.title}
           </h1>
@@ -264,18 +315,15 @@ export default function CaseStudy() {
           className="gallery-2"
           style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 22 }}
         >
-          <img
-            src={picsum(`${seeds[1]}-${item.id}`, 900, 600)}
-            alt=""
-            loading="lazy"
-            style={{ width: "100%", aspectRatio: "3/2", objectFit: "cover", borderRadius: 16, border: "1.5px solid #E5E5E0" }}
-          />
-          <img
-            src={picsum(`${seeds[2]}-${item.id}`, 900, 600)}
-            alt=""
-            loading="lazy"
-            style={{ width: "100%", aspectRatio: "3/2", objectFit: "cover", borderRadius: 16, border: "1.5px solid #E5E5E0" }}
-          />
+          {gallery.map((src, i) => (
+            <img
+              key={i}
+              src={src}
+              alt=""
+              loading="lazy"
+              style={{ width: "100%", aspectRatio: "3/2", objectFit: "cover", borderRadius: 16, border: "1.5px solid #E5E5E0" }}
+            />
+          ))}
         </div>
       </div>
 
@@ -298,12 +346,7 @@ export default function CaseStudy() {
               {content.approach}
             </p>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 12 }}>
-              {[
-                "Discovery sprint and surface-area audit",
-                "Strategic framework tailored to the founder's positioning",
-                "Production engine handover with SOPs and tooling",
-                "Weekly performance review and optimization",
-              ].map((line, i) => (
+              {content.approachBullets.map((line, i) => (
                 <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, fontSize: 15, color: "#3F3F3F", lineHeight: 1.6 }}>
                   <CheckCircle2 size={20} style={{ color: "#1E293B", flexShrink: 0, marginTop: 2 }} />
                   {line}

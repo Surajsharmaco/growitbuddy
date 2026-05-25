@@ -53,6 +53,23 @@ export const teamMembers = pgTable("team_members", {
 export type TeamMember = typeof teamMembers.$inferSelect;
 export type InsertTeamMember = typeof teamMembers.$inferInsert;
 
+export type CaseStudyData = {
+  clientName?: string;
+  clientLogoUrl?: string;
+  coverImageUrl?: string;
+  heroImageUrl?: string;
+  galleryImages?: string[];
+  metrics?: Array<{ value: string; label: string }>;
+  stack?: string[];
+  testimonial?: { quote: string; author: string };
+  overview?: string;
+  challenge?: string;
+  approach?: string;
+  approachBullets?: string[];
+  solution?: string;
+  videoUrl?: string;
+};
+
 export const portfolioItems = pgTable("portfolio_items", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
@@ -61,6 +78,7 @@ export const portfolioItems = pgTable("portfolio_items", {
   description: text("description"),
   sortOrder: integer("sort_order").notNull().default(0),
   isHidden: boolean("is_hidden").notNull().default(false),
+  caseStudy: jsonb("case_study").$type<CaseStudyData>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

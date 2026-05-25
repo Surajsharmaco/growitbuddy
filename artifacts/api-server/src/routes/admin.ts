@@ -946,7 +946,7 @@ router.get("/portfolio", authMiddleware, async (_req, res) => {
 });
 
 router.post("/portfolio", authMiddleware, async (req, res) => {
-  const { title, category, youtubeUrl, description, sortOrder } = req.body;
+  const { title, category, youtubeUrl, description, sortOrder, caseStudy } = req.body;
   if (!title || !category || !youtubeUrl) {
     res.status(400).json({ error: "title, category, and youtubeUrl are required" });
     return;
@@ -955,6 +955,7 @@ router.post("/portfolio", authMiddleware, async (req, res) => {
     const rows = await db.insert(portfolioItems).values({
       title, category, youtubeUrl, description: description || null,
       sortOrder: sortOrder ?? 0,
+      caseStudy: caseStudy ?? null,
     }).returning();
     logger.info({ id: rows[0].id }, "Portfolio item created");
     res.status(201).json(rows[0]);
@@ -967,7 +968,7 @@ router.post("/portfolio", authMiddleware, async (req, res) => {
 router.put("/portfolio/:id", authMiddleware, async (req, res) => {
   const id = parseInt(String(req.params.id));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
-  const { title, category, youtubeUrl, description, sortOrder } = req.body;
+  const { title, category, youtubeUrl, description, sortOrder, caseStudy } = req.body;
   try {
     const update: Record<string, unknown> = { updatedAt: new Date() };
     if (title !== undefined) update.title = title;
@@ -975,6 +976,7 @@ router.put("/portfolio/:id", authMiddleware, async (req, res) => {
     if (youtubeUrl !== undefined) update.youtubeUrl = youtubeUrl;
     if (description !== undefined) update.description = description;
     if (sortOrder !== undefined) update.sortOrder = sortOrder;
+    if (caseStudy !== undefined) update.caseStudy = caseStudy;
     const rows = await db.update(portfolioItems).set(update).where(eq(portfolioItems.id, id)).returning();
     if (rows.length === 0) { res.status(404).json({ error: "Item not found" }); return; }
     logger.info({ id }, "Portfolio item updated");

@@ -53,6 +53,14 @@ async function runStartupMigrations() {
       logger.error({ err, table }, "Startup migration: failed to ensure is_hidden column.");
     }
   }
+
+  // Rich case-study payload for portfolio items (text+image+video editorial content).
+  try {
+    await pool.query(`ALTER TABLE portfolio_items ADD COLUMN IF NOT EXISTS case_study jsonb`);
+    logger.info("Startup migration: portfolio_items.case_study column ensured.");
+  } catch (err) {
+    logger.error({ err }, "Startup migration: failed to ensure case_study column.");
+  }
   try {
     const rows = await db.select().from(siteContent).where(eq(siteContent.section, "home"));
     if (rows.length === 0) {

@@ -1,11 +1,29 @@
 import { useState, useEffect } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { Card } from "@/components/admin/AdminField";
-import { Plus, Edit2, Trash2, X, Save, ExternalLink, Play } from "lucide-react";
+import { ImagePickerField } from "@/components/admin/ImagePickerField";
+import { Plus, Edit2, Trash2, X, Save, ExternalLink, Play, ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { API_BASE } from "@/lib/api";
 import { getEmbedUrl as toEmbedUrl, getThumbnail, sourceLabel } from "@/lib/videoEmbed";
+
+interface CaseStudyData {
+  clientName?: string;
+  clientLogoUrl?: string;
+  coverImageUrl?: string;
+  heroImageUrl?: string;
+  galleryImages?: string[];
+  metrics?: Array<{ value: string; label: string }>;
+  stack?: string[];
+  testimonial?: { quote: string; author: string };
+  overview?: string;
+  challenge?: string;
+  approach?: string;
+  approachBullets?: string[];
+  solution?: string;
+  videoUrl?: string;
+}
 
 const CATEGORIES = [
   "Personal Branding",
@@ -28,6 +46,7 @@ interface PortfolioItem {
   description: string | null;
   sortOrder: number;
   createdAt: string;
+  caseStudy?: CaseStudyData | null;
 }
 
 interface FormState {
@@ -36,11 +55,61 @@ interface FormState {
   youtubeUrl: string;
   description: string;
   sortOrder: number;
+  caseStudy: CaseStudyData;
 }
+
+const EMPTY_CASE_STUDY: CaseStudyData = {
+  clientName: "",
+  clientLogoUrl: "",
+  coverImageUrl: "",
+  heroImageUrl: "",
+  galleryImages: ["", "", ""],
+  metrics: [
+    { value: "", label: "" },
+    { value: "", label: "" },
+    { value: "", label: "" },
+    { value: "", label: "" },
+  ],
+  stack: [],
+  testimonial: { quote: "", author: "" },
+  overview: "",
+  challenge: "",
+  approach: "",
+  approachBullets: ["", "", "", ""],
+  solution: "",
+  videoUrl: "",
+};
 
 const EMPTY_FORM: FormState = {
   title: "", category: "Video Editing — India", youtubeUrl: "", description: "", sortOrder: 0,
+  caseStudy: EMPTY_CASE_STUDY,
 };
+
+// Strip empty strings / empty objects so the DB stores null-ish gracefully.
+function cleanCaseStudy(cs: CaseStudyData): CaseStudyData | null {
+  const out: CaseStudyData = {};
+  if (cs.clientName?.trim()) out.clientName = cs.clientName.trim();
+  if (cs.clientLogoUrl?.trim()) out.clientLogoUrl = cs.clientLogoUrl.trim();
+  if (cs.coverImageUrl?.trim()) out.coverImageUrl = cs.coverImageUrl.trim();
+  if (cs.heroImageUrl?.trim()) out.heroImageUrl = cs.heroImageUrl.trim();
+  const gallery = (cs.galleryImages ?? []).map((s) => s.trim()).filter(Boolean);
+  if (gallery.length) out.galleryImages = gallery;
+  const metrics = (cs.metrics ?? []).filter((m) => m.value?.trim() || m.label?.trim()).map((m) => ({ value: m.value.trim(), label: m.label.trim() }));
+  if (metrics.length) out.metrics = metrics;
+  const stack = (cs.stack ?? []).map((s) => s.trim()).filter(Boolean);
+  if (stack.length) out.stack = stack;
+  if (cs.testimonial?.quote?.trim() || cs.testimonial?.author?.trim()) {
+    out.testimonial = { quote: cs.testimonial?.quote?.trim() ?? "", author: cs.testimonial?.author?.trim() ?? "" };
+  }
+  if (cs.overview?.trim()) out.overview = cs.overview.trim();
+  if (cs.challenge?.trim()) out.challenge = cs.challenge.trim();
+  if (cs.approach?.trim()) out.approach = cs.approach.trim();
+  const bullets = (cs.approachBullets ?? []).map((s) => s.trim()).filter(Boolean);
+  if (bullets.length) out.approachBullets = bullets;
+  if (cs.solution?.trim()) out.solution = cs.solution.trim();
+  if (cs.videoUrl?.trim()) out.videoUrl = cs.videoUrl.trim();
+  return Object.keys(out).length === 0 ? null : out;
+}
 
 // ── Item Form ──
 function ItemForm({
@@ -59,8 +128,13 @@ function ItemForm({
   const embedOk = !!toEmbedUrl(form.youtubeUrl);
   const detectedSource = sourceLabel(form.youtubeUrl);
 
+  const [csOpen, setCsOpen] = useState(false);
+
   function set(key: keyof FormState, value: string | number) {
     setForm((f) => ({ ...f, [key]: value }));
+  }
+  function setCs<K extends keyof CaseStudyData>(key: K, value: CaseStudyData[K]) {
+    setForm((f) => ({ ...f, caseStudy: { ...f.caseStudy, [key]: value } }));
   }
 
   const inputStyle: React.CSSProperties = {
@@ -144,6 +218,216 @@ function ItemForm({
         <p style={{ fontSize: 11, color: "#8A8A8A", marginTop: 4 }}>Lower numbers appear first.</p>
       </div>
 
+      {/* ── Case Study (collapsible) ── */}
+      <div style={{ border: "1.5px solid #E5E5E0", borderRadius: 10, background: "#fff" }}>
+        <button
+          type="button"
+          onClick={() => setCsOpen((o) => !o)}
+          style={{
+            width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "14px 16px", background: "none", border: "none", cursor: "pointer",
+          }}
+        >
+          <div style={{ textAlign: "left" }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#0A0A0A" }}>Case Study Content</div>
+            <div style={{ fontSize: 11, color: "#8A8A8A", marginTop: 2 }}>
+              Add rich editorial content shown on the case study detail page. All fields optional.
+            </div>
+          </div>
+          {csOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+        </button>
+
+        {csOpen && (
+          <div style={{ padding: "4px 16px 18px", display: "flex", flexDirection: "column", gap: 16, borderTop: "1px solid #EFEFEA" }}>
+            {/* Client */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div>
+                <label style={labelStyle}>Client Name</label>
+                <input style={inputStyle} placeholder="e.g. Acme Co." value={form.caseStudy.clientName ?? ""} onChange={(e) => setCs("clientName", e.target.value)} />
+              </div>
+              <ImagePickerField
+                label="Client Logo"
+                value={form.caseStudy.clientLogoUrl ?? ""}
+                onChange={(url) => setCs("clientLogoUrl", url)}
+                shape="square"
+                size={64}
+                hint="Square PNG with transparent bg"
+              />
+            </div>
+
+            {/* Cover + Hero images */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <ImagePickerField
+                label="Cover Image (tile)"
+                value={form.caseStudy.coverImageUrl ?? ""}
+                onChange={(url) => setCs("coverImageUrl", url)}
+                shape="square"
+                size={120}
+                hint="Shown on the portfolio tile"
+              />
+              <ImagePickerField
+                label="Hero Image (detail page)"
+                value={form.caseStudy.heroImageUrl ?? ""}
+                onChange={(url) => setCs("heroImageUrl", url)}
+                shape="square"
+                size={120}
+                hint="Large 16:9 hero"
+              />
+            </div>
+
+            {/* Gallery */}
+            <div>
+              <label style={labelStyle}>Gallery (up to 3)</label>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+                {[0, 1, 2].map((idx) => (
+                  <ImagePickerField
+                    key={idx}
+                    label={`Image ${idx + 1}`}
+                    value={form.caseStudy.galleryImages?.[idx] ?? ""}
+                    onChange={(url) => {
+                      const arr = [...(form.caseStudy.galleryImages ?? ["", "", ""])];
+                      arr[idx] = url;
+                      setCs("galleryImages", arr);
+                    }}
+                    shape="square"
+                    size={100}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Overview / Challenge */}
+            <div>
+              <label style={labelStyle}>Overview</label>
+              <textarea
+                style={{ ...inputStyle, minHeight: 80, resize: "vertical" }}
+                placeholder="High-level summary of the project…"
+                value={form.caseStudy.overview ?? ""}
+                onChange={(e) => setCs("overview", e.target.value)}
+              />
+            </div>
+            <div>
+              <label style={labelStyle}>Challenge</label>
+              <textarea
+                style={{ ...inputStyle, minHeight: 80, resize: "vertical" }}
+                placeholder="What problem the client faced…"
+                value={form.caseStudy.challenge ?? ""}
+                onChange={(e) => setCs("challenge", e.target.value)}
+              />
+            </div>
+
+            {/* Approach */}
+            <div>
+              <label style={labelStyle}>Approach (paragraph)</label>
+              <textarea
+                style={{ ...inputStyle, minHeight: 80, resize: "vertical" }}
+                placeholder="How we approached the problem…"
+                value={form.caseStudy.approach ?? ""}
+                onChange={(e) => setCs("approach", e.target.value)}
+              />
+            </div>
+            <div>
+              <label style={labelStyle}>Approach Bullets <span style={{ color: "#8A8A8A", fontWeight: 400 }}>— one per line</span></label>
+              <textarea
+                style={{ ...inputStyle, minHeight: 90, resize: "vertical", fontFamily: "inherit" }}
+                placeholder={"Discovery sprint and audit\nStrategic framework\nProduction handover"}
+                value={(form.caseStudy.approachBullets ?? []).join("\n")}
+                onChange={(e) => setCs("approachBullets", e.target.value.split("\n"))}
+              />
+            </div>
+
+            {/* Solution */}
+            <div>
+              <label style={labelStyle}>Solution</label>
+              <textarea
+                style={{ ...inputStyle, minHeight: 80, resize: "vertical" }}
+                placeholder="What we shipped…"
+                value={form.caseStudy.solution ?? ""}
+                onChange={(e) => setCs("solution", e.target.value)}
+              />
+            </div>
+
+            {/* Metrics */}
+            <div>
+              <label style={labelStyle}>Metrics (up to 4)</label>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {[0, 1, 2, 3].map((idx) => {
+                  const m = form.caseStudy.metrics?.[idx] ?? { value: "", label: "" };
+                  return (
+                    <div key={idx} style={{ display: "grid", gridTemplateColumns: "140px 1fr", gap: 8 }}>
+                      <input
+                        style={inputStyle}
+                        placeholder="+247%"
+                        value={m.value}
+                        onChange={(e) => {
+                          const arr = [...(form.caseStudy.metrics ?? [])];
+                          while (arr.length < 4) arr.push({ value: "", label: "" });
+                          arr[idx] = { ...arr[idx], value: e.target.value };
+                          setCs("metrics", arr);
+                        }}
+                      />
+                      <input
+                        style={inputStyle}
+                        placeholder="Increase in qualified inbound"
+                        value={m.label}
+                        onChange={(e) => {
+                          const arr = [...(form.caseStudy.metrics ?? [])];
+                          while (arr.length < 4) arr.push({ value: "", label: "" });
+                          arr[idx] = { ...arr[idx], label: e.target.value };
+                          setCs("metrics", arr);
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Stack */}
+            <div>
+              <label style={labelStyle}>Stack <span style={{ color: "#8A8A8A", fontWeight: 400 }}>— comma separated</span></label>
+              <input
+                style={inputStyle}
+                placeholder="Next.js, Framer Motion, Resend"
+                value={(form.caseStudy.stack ?? []).join(", ")}
+                onChange={(e) => setCs("stack", e.target.value.split(",").map((s) => s.trim()).filter(Boolean))}
+              />
+            </div>
+
+            {/* Testimonial */}
+            <div>
+              <label style={labelStyle}>Testimonial — Quote</label>
+              <textarea
+                style={{ ...inputStyle, minHeight: 70, resize: "vertical" }}
+                placeholder="They built a system we now run ourselves…"
+                value={form.caseStudy.testimonial?.quote ?? ""}
+                onChange={(e) => setCs("testimonial", { quote: e.target.value, author: form.caseStudy.testimonial?.author ?? "" })}
+              />
+            </div>
+            <div>
+              <label style={labelStyle}>Testimonial — Author</label>
+              <input
+                style={inputStyle}
+                placeholder="Founder, Series-A SaaS"
+                value={form.caseStudy.testimonial?.author ?? ""}
+                onChange={(e) => setCs("testimonial", { quote: form.caseStudy.testimonial?.quote ?? "", author: e.target.value })}
+              />
+            </div>
+
+            {/* Video URL override */}
+            <div>
+              <label style={labelStyle}>Walkthrough Video URL <span style={{ color: "#8A8A8A", fontWeight: 400 }}>— optional, overrides showcase reel on detail page</span></label>
+              <input
+                style={inputStyle}
+                placeholder="https://youtu.be/..."
+                value={form.caseStudy.videoUrl ?? ""}
+                onChange={(e) => setCs("videoUrl", e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Actions */}
       <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
         <button
@@ -201,7 +485,7 @@ export default function AdminPortfolio() {
       const res = await authFetch(`${API_BASE}/admin/portfolio`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, description: form.description || null }),
+        body: JSON.stringify({ ...form, description: form.description || null, caseStudy: cleanCaseStudy(form.caseStudy) }),
       });
       if (res.ok) {
         const item = await res.json();
@@ -219,7 +503,7 @@ export default function AdminPortfolio() {
       const res = await authFetch(`${API_BASE}/admin/portfolio/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, description: form.description || null }),
+        body: JSON.stringify({ ...form, description: form.description || null, caseStudy: cleanCaseStudy(form.caseStudy) }),
       });
       if (res.ok) {
         const updated = await res.json();
@@ -372,7 +656,14 @@ export default function AdminPortfolio() {
                       </button>
                     </div>
                     <ItemForm
-                      initial={{ title: item.title, category: item.category, youtubeUrl: item.youtubeUrl, description: item.description ?? "", sortOrder: item.sortOrder }}
+                      initial={{
+                        title: item.title,
+                        category: item.category,
+                        youtubeUrl: item.youtubeUrl,
+                        description: item.description ?? "",
+                        sortOrder: item.sortOrder,
+                        caseStudy: { ...EMPTY_CASE_STUDY, ...(item.caseStudy ?? {}) },
+                      }}
                       onSave={(form) => handleEdit(item.id, form)}
                       onCancel={() => setEditId(null)}
                       saving={saving}

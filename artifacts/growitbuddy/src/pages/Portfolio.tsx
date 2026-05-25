@@ -84,6 +84,12 @@ function slugToCategory(slug: string): string | null {
   return null;
 }
 
+interface CaseStudyMini {
+  clientName?: string;
+  clientLogoUrl?: string;
+  coverImageUrl?: string;
+}
+
 interface PortfolioItem {
   id: number;
   title: string;
@@ -91,6 +97,7 @@ interface PortfolioItem {
   youtubeUrl: string;
   description: string | null;
   sortOrder: number;
+  caseStudy?: CaseStudyMini | null;
 }
 
 // ── Video Tile (16:9) — long-form ──
@@ -290,8 +297,9 @@ function ReelTile({ item }: { item: PortfolioItem }) {
   );
 }
 
-// Stable picsum dummy image per case-study item
+// Stable picsum dummy image per case-study item, or real cover when provided.
 function caseHeroImage(item: PortfolioItem, w: number, h: number) {
+  if (item.caseStudy?.coverImageUrl) return item.caseStudy.coverImageUrl;
   return `https://picsum.photos/seed/cs-${item.id}/${w}/${h}`;
 }
 
@@ -389,7 +397,7 @@ function CaseStudyTile({ item, featured = false }: { item: PortfolioItem; featur
             color: "#C2A878", margin: 0, marginBottom: 8,
           }}
         >
-          {item.category}
+          {item.caseStudy?.clientName || item.category}
         </p>
         <h3
           style={{
