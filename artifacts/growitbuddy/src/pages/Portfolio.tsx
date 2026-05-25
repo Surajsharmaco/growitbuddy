@@ -22,14 +22,14 @@ const CATEGORY_META: Record<string, { slug: string; tagline: string; type: Categ
     tagline: "Content production systems built for consistency, trust, and long-term audience attention.",
     type: "video",
   },
-  "Long-Form Editing": {
-    slug: "long-form-editing",
-    tagline: "Cinematic long-form edits engineered for retention, storytelling, and authority-driven content.",
+  "Video Editing": {
+    slug: "video-editing",
+    tagline: "Performance-focused edits crafted for creators, founders, and modern digital brands.",
     type: "video",
   },
-  "Short-Form Editing": {
-    slug: "short-form-editing",
-    tagline: "Scroll-stopping reels and shorts crafted for reach, virality, and modern attention spans.",
+  "Video Editing Global": {
+    slug: "video-editing-global",
+    tagline: "High-retention edits engineered for founder-led brands and authority-driven content worldwide.",
     type: "video",
   },
   "Graphics": {

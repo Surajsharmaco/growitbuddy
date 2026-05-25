@@ -6,8 +6,8 @@
 export const PORTFOLIO_CATEGORIES = [
   "Personal Branding",
   "Content Creation",
-  "Long-Form Editing",
-  "Short-Form Editing",
+  "Video Editing",
+  "Video Editing Global",
   "Graphics",
   "Social Media Management",
   "Distribution & Growth",
