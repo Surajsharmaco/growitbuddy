@@ -144,26 +144,35 @@ function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?:
                 }}
               />
             )}
+            {/* Click surface — subtle dark veil only on hover so the
+                creator's branding/logo in the thumbnail stays visible
+                at rest. Play button sits center, gold-ringed, premium. */}
             <div
+              className="portfolio-play-surface"
               style={{
                 position: "absolute", inset: 0,
-                background: "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 100%)",
+                background: "linear-gradient(180deg, rgba(10,10,10,0) 55%, rgba(10,10,10,0.35) 100%)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 cursor: "pointer",
+                transition: "background 0.3s ease",
               }}
               onClick={() => setPlaying(true)}
             >
               <div
+                className="portfolio-play-btn"
                 style={{
-                  width: featured ? 76 : 60, height: featured ? 76 : 60,
-                  borderRadius: "50%", background: "rgba(255,255,255,0.95)",
+                  width: featured ? 72 : 58, height: featured ? 72 : 58,
+                  borderRadius: "50%",
+                  background: "rgba(255,255,255,0.18)",
+                  backdropFilter: "blur(10px)",
+                  WebkitBackdropFilter: "blur(10px)",
+                  border: "1.5px solid rgba(255,255,255,0.65)",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.4)",
-                  transition: "transform 0.2s",
+                  boxShadow: "0 12px 40px rgba(0,0,0,0.35)",
+                  transition: "transform 0.3s cubic-bezier(.2,.8,.2,1), background 0.3s, border-color 0.3s",
                 }}
-                className="hover:scale-110"
               >
-                <Play size={featured ? 30 : 24} style={{ color: "#0A0A0A", marginLeft: 3 }} fill="#0A0A0A" />
+                <Play size={featured ? 26 : 22} style={{ color: "#fff", marginLeft: 3 }} fill="#fff" />
               </div>
             </div>
           </>
@@ -255,44 +264,60 @@ function ReelTile({ item }: { item: PortfolioItem }) {
                 }}
               />
             )}
-            {/* Bottom info overlay — title visible on the reel */}
+            {/* Title gradient at bottom — keeps top of frame CLEAR so
+                the creator's logo / watermark / face in the thumbnail
+                remains unobstructed. */}
             <div
               style={{
+                position: "absolute", left: 0, right: 0, bottom: 0,
+                paddingTop: 60, paddingLeft: 16, paddingRight: 16, paddingBottom: 16,
+                background: "linear-gradient(180deg, rgba(10,10,10,0) 0%, rgba(10,10,10,0.85) 60%, rgba(10,10,10,0.95) 100%)",
+                pointerEvents: "none",
+              }}
+            >
+              <h3
+                style={{
+                  fontWeight: 700,
+                  fontSize: 15,
+                  letterSpacing: "-0.015em",
+                  color: "#fff",
+                  lineHeight: 1.3,
+                  margin: 0,
+                  textShadow: "0 1px 3px rgba(0,0,0,0.5)",
+                }}
+              >
+                {item.title}
+              </h3>
+            </div>
+            {/* Click surface — entire tile, with centered glass play
+                button. Top half is fully clear (no overlay) so brand
+                logos visible at rest. Veil deepens on hover. */}
+            <div
+              className="portfolio-play-surface"
+              style={{
                 position: "absolute", inset: 0,
-                background: "linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.85) 100%)",
+                background: "rgba(10,10,10,0)",
                 cursor: "pointer",
-                display: "flex", flexDirection: "column", justifyContent: "space-between",
-                padding: 16,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "background 0.3s ease",
               }}
               onClick={() => setPlaying(true)}
             >
-              <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                <div
-                  style={{
-                    width: 52, height: 52, borderRadius: "50%",
-                    background: "rgba(255,255,255,0.95)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
-                    transition: "transform 0.2s",
-                  }}
-                  className="hover:scale-110"
-                >
-                  <Play size={22} style={{ color: "#0A0A0A", marginLeft: 3 }} fill="#0A0A0A" />
-                </div>
-              </div>
-              <div>
-                <h3
-                  style={{
-                    fontWeight: 800,
-                    fontSize: 15,
-                    letterSpacing: "-0.02em",
-                    color: "#fff",
-                    lineHeight: 1.3,
-                    margin: 0,
-                  }}
-                >
-                  {item.title}
-                </h3>
+              <div
+                className="portfolio-play-btn"
+                style={{
+                  width: 60, height: 60,
+                  borderRadius: "50%",
+                  background: "rgba(255,255,255,0.18)",
+                  backdropFilter: "blur(10px)",
+                  WebkitBackdropFilter: "blur(10px)",
+                  border: "1.5px solid rgba(255,255,255,0.6)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.4)",
+                  transition: "transform 0.3s cubic-bezier(.2,.8,.2,1), background 0.3s, border-color 0.3s",
+                }}
+              >
+                <Play size={22} style={{ color: "#fff", marginLeft: 3 }} fill="#fff" />
               </div>
             </div>
           </>
@@ -871,8 +896,34 @@ export default function Portfolio() {
     return (
       <div style={{ minHeight: "100vh", background: "#F8F8F6" }}>
         {/* Hero */}
-        <div style={{ background: BRAND_ACCENT, padding: "120px 24px 72px", position: "relative", overflow: "hidden" }}>
+        <div style={{ background: BRAND_ACCENT, padding: "120px 24px 84px", position: "relative", overflow: "hidden" }}>
+          {/* Top accent line */}
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #C2A878, #D4BB90)" }} />
+          {/* Soft gold radial glow — adds depth without colour shift */}
+          <div
+            aria-hidden
+            style={{
+              position: "absolute", top: -180, right: -120, width: 520, height: 520,
+              background: "radial-gradient(circle, rgba(194,168,120,0.22) 0%, rgba(194,168,120,0) 70%)",
+              pointerEvents: "none",
+            }}
+          />
+          <div
+            aria-hidden
+            style={{
+              position: "absolute", bottom: -160, left: -100, width: 440, height: 440,
+              background: "radial-gradient(circle, rgba(194,168,120,0.12) 0%, rgba(194,168,120,0) 70%)",
+              pointerEvents: "none",
+            }}
+          />
+          {/* Subtle film grain for premium texture */}
+          <div
+            aria-hidden
+            style={{
+              position: "absolute", inset: 0, opacity: 0.04, pointerEvents: "none",
+              backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>\")",
+            }}
+          />
           <div style={{ maxWidth: 1180, margin: "0 auto", position: "relative" }}>
             <Link href={sharePrefix}>
               <a
@@ -887,26 +938,33 @@ export default function Portfolio() {
                 <ArrowLeft size={15} /> All services
               </a>
             </Link>
-            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(194,168,120,0.9)", marginBottom: 18 }}>
-              Portfolio · Collection
-            </p>
-            <h1 style={{ fontWeight: 800, fontSize: "clamp(36px, 7vw, 72px)", letterSpacing: "-0.04em", lineHeight: 1.04, color: "#fff", marginBottom: 22 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 10, marginBottom: 22 }}>
+              <span style={{ width: 28, height: 1, background: "linear-gradient(90deg, transparent, #C2A878)" }} />
+              <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: "#C2A878", margin: 0 }}>
+                Portfolio · Collection
+              </p>
+            </div>
+            <h1 style={{ fontWeight: 800, fontSize: "clamp(38px, 7.2vw, 78px)", letterSpacing: "-0.045em", lineHeight: 1.02, color: "#fff", marginBottom: 24 }}>
               {activeCategory}
             </h1>
-            <p style={{ fontSize: 16, color: "rgba(255,255,255,0.72)", lineHeight: 1.65, maxWidth: "54ch", marginBottom: 26 }}>
+            <p style={{ fontSize: 17, color: "rgba(255,255,255,0.78)", lineHeight: 1.65, maxWidth: "56ch", marginBottom: 32, fontWeight: 400 }}>
               {meta.tagline}
             </p>
-            <span
-              style={{
-                fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase",
-                padding: "7px 14px", borderRadius: 100,
-                background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)",
-                color: "#fff",
-                display: "inline-block",
-              }}
-            >
-              {categoryItems.length} {categoryItems.length === 1 ? "project" : "projects"}
-            </span>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 12 }}>
+              <span
+                style={{
+                  fontSize: 11, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase",
+                  padding: "8px 16px", borderRadius: 100,
+                  background: "rgba(194,168,120,0.14)",
+                  border: "1px solid rgba(194,168,120,0.35)",
+                  color: "#D4BB90",
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                }}
+              >
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#C2A878", boxShadow: "0 0 8px rgba(194,168,120,0.8)" }} />
+                {categoryItems.length} {categoryItems.length === 1 ? "project" : "projects"}
+              </span>
+            </div>
           </div>
         </div>
 

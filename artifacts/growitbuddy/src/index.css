@@ -575,3 +575,18 @@ section[style*="padding: 100px 24px 108px"] { padding-top: 72px !important; padd
   section[style*="padding: 100px"] { padding-top: 40px !important; padding-bottom: 40px !important; }
   section[style*="padding: 100px"] { padding-left: 18px !important; padding-right: 18px !important; }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   PORTFOLIO TILES — premium play-button hover behaviour.
+   Keep top of thumbnail clear so creator brand logos / faces
+   are unobstructed at rest; intensify on hover.
+   ───────────────────────────────────────────────────────────── */
+.portfolio-play-surface:hover {
+  background: linear-gradient(180deg, rgba(10,10,10,0.25) 0%, rgba(10,10,10,0.55) 100%) !important;
+}
+.portfolio-play-surface:hover .portfolio-play-btn {
+  transform: scale(1.12);
+  background: rgba(194,168,120,0.92) !important;
+  border-color: rgba(255,255,255,0.95) !important;
+  box-shadow: 0 14px 50px rgba(194,168,120,0.45), 0 0 0 6px rgba(194,168,120,0.15) !important;
+}
