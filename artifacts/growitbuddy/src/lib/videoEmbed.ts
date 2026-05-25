@@ -88,7 +88,7 @@ export function parseVideo(url: string): ParsedVideo {
       return { source: "drive", id };
     }
 
-    if (h.includes("gumlet.io") || h.includes("gumlet.com")) {
+    if (h.includes("gumlet.io") || h.includes("gumlet.com") || h.includes("gumlet.tv")) {
       return { source: "gumlet", id: extractGumletId(u.pathname) };
     }
   } catch {
@@ -98,7 +98,7 @@ export function parseVideo(url: string): ParsedVideo {
     if (vm) return { source: "vimeo", id: vm[1] };
     const dr = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
     if (dr) return { source: "drive", id: dr[1] };
-    const gm = url.match(/(?:gumlet\.io|gumlet\.com)\/(?:embed|v|watch)\/([a-zA-Z0-9]+)/);
+    const gm = url.match(/(?:gumlet\.io|gumlet\.com|gumlet\.tv)\/(?:embed|v|watch)\/([a-zA-Z0-9]+)/);
     if (gm) return { source: "gumlet", id: gm[1] };
   }
   return { source: null, id: "" };
