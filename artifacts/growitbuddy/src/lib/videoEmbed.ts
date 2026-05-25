@@ -1,8 +1,20 @@
-export type VideoSource = "youtube" | "vimeo" | "drive" | null;
+export type VideoSource = "youtube" | "vimeo" | "drive" | "gumlet" | null;
 
 export interface ParsedVideo {
   source: VideoSource;
   id: string;
+}
+
+// Extract Gumlet video ID from any Gumlet URL shape we know:
+//   https://play.gumlet.io/embed/{ID}
+//   https://play.gumlet.io/v/{ID}
+//   https://www.gumlet.com/watch/{ID}
+function extractGumletId(pathname: string): string {
+  const m =
+    pathname.match(/\/embed\/([a-zA-Z0-9]+)/) ??
+    pathname.match(/\/v\/([a-zA-Z0-9]+)/) ??
+    pathname.match(/\/watch\/([a-zA-Z0-9]+)/);
+  return m?.[1] ?? "";
 }
 
 export function parseVideo(url: string): ParsedVideo {
@@ -35,6 +47,10 @@ export function parseVideo(url: string): ParsedVideo {
       const id = m?.[1] ?? u.searchParams.get("id") ?? "";
       return { source: "drive", id };
     }
+
+    if (h.includes("gumlet.io") || h.includes("gumlet.com")) {
+      return { source: "gumlet", id: extractGumletId(u.pathname) };
+    }
   } catch {
     const yt = url.match(/(?:v=|youtu\.be\/|\/shorts\/|\/embed\/)([a-zA-Z0-9_-]{11})/);
     if (yt) return { source: "youtube", id: yt[1] };
@@ -42,6 +58,8 @@ export function parseVideo(url: string): ParsedVideo {
     if (vm) return { source: "vimeo", id: vm[1] };
     const dr = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
     if (dr) return { source: "drive", id: dr[1] };
+    const gm = url.match(/(?:gumlet\.io|gumlet\.com)\/(?:embed|v|watch)\/([a-zA-Z0-9]+)/);
+    if (gm) return { source: "gumlet", id: gm[1] };
   }
   return { source: null, id: "" };
 }
@@ -52,6 +70,7 @@ export function getEmbedUrl(url: string): string {
   if (source === "youtube") return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1`;
   if (source === "vimeo") return `https://player.vimeo.com/video/${id}?title=0&byline=0&portrait=0`;
   if (source === "drive") return `https://drive.google.com/file/d/${id}/preview?usp=sharing`;
+  if (source === "gumlet") return `https://play.gumlet.io/embed/${id}?background=false&autoplay=false&loop=false&disable_player_controls=false`;
   return "";
 }
 
@@ -62,6 +81,8 @@ export function getThumbnail(url: string): string {
   if (source === "vimeo") return `https://vumbnail.com/${id}.jpg`;
   // Modern Drive CDN — more reliable than drive.google.com/thumbnail (which often 403s)
   if (source === "drive") return `https://lh3.googleusercontent.com/d/${id}=w800`;
+  // Gumlet exposes the poster image via its CDN at a deterministic path
+  if (source === "gumlet") return `https://video.gumlet.io/${id}/thumbnail-1-0.png`;
   return "";
 }
 
@@ -71,6 +92,7 @@ export function getHiResThumbnail(url: string): string {
   if (source === "youtube") return `https://img.youtube.com/vi/${id}/maxresdefault.jpg`;
   if (source === "vimeo") return `https://vumbnail.com/${id}_large.jpg`;
   if (source === "drive") return `https://lh3.googleusercontent.com/d/${id}=w1600`;
+  if (source === "gumlet") return `https://video.gumlet.io/${id}/thumbnail-1-0.png`;
   return "";
 }
 
@@ -94,5 +116,6 @@ export function sourceLabel(url: string): string {
   if (source === "youtube") return "YouTube";
   if (source === "vimeo") return "Vimeo";
   if (source === "drive") return "Google Drive";
+  if (source === "gumlet") return "Gumlet";
   return "";
 }

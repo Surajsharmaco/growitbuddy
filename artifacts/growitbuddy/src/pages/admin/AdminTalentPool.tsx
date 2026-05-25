@@ -113,8 +113,8 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
         <div className="bg-[#F8F8F6] border border-[#0B0B0B]/8 rounded-xl px-4 py-3 mb-4 flex gap-3 items-start">
           <span className="text-[18px]">🎬</span>
           <div>
-            <p className="text-[13px] font-semibold text-[#0B0B0B] mb-0.5">Paste any YouTube, Vimeo, or Loom link.</p>
-            <p className="text-[12px] text-[#0B0B0B]/50">Example: <span className="font-mono">https://youtube.com/watch?v=abc123</span></p>
+            <p className="text-[13px] font-semibold text-[#0B0B0B] mb-0.5">Paste any YouTube, Vimeo, Google Drive, or Gumlet link.</p>
+            <p className="text-[12px] text-[#0B0B0B]/50">Example: <span className="font-mono">https://play.gumlet.io/embed/abc123</span></p>
           </div>
         </div>
         <Input label="Video URL" value={data.videoUrl} onChange={e => set("videoUrl", e.target.value)} placeholder="https://youtube.com/watch?v=..." />
