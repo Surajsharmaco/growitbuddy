@@ -117,6 +117,14 @@ export function getEmbedUrl(url: string, opts: { autoplay?: boolean } = {}): str
   return "";
 }
 
+// Gumlet thumbnail URLs require the tenant ID (which we don't have from the
+// embed URL alone). We proxy through our API which does an oEmbed lookup
+// server-side and 302s to the real poster image.
+import { API_BASE } from "@/lib/api";
+function gumletThumbProxy(id: string): string {
+  return `${API_BASE}/video-thumb?id=${encodeURIComponent(id)}`;
+}
+
 export function getThumbnail(url: string): string {
   const { source, id } = parseVideo(url);
   if (!id) return "";
@@ -124,8 +132,7 @@ export function getThumbnail(url: string): string {
   if (source === "vimeo") return `https://vumbnail.com/${id}.jpg`;
   // Modern Drive CDN — more reliable than drive.google.com/thumbnail (which often 403s)
   if (source === "drive") return `https://lh3.googleusercontent.com/d/${id}=w800`;
-  // Gumlet exposes the poster image via its CDN at a deterministic path
-  if (source === "gumlet") return `https://video.gumlet.io/${id}/thumbnail-1-0.png`;
+  if (source === "gumlet") return gumletThumbProxy(id);
   return "";
 }
 
@@ -135,7 +142,7 @@ export function getHiResThumbnail(url: string): string {
   if (source === "youtube") return `https://img.youtube.com/vi/${id}/maxresdefault.jpg`;
   if (source === "vimeo") return `https://vumbnail.com/${id}_large.jpg`;
   if (source === "drive") return `https://lh3.googleusercontent.com/d/${id}=w1600`;
-  if (source === "gumlet") return `https://video.gumlet.io/${id}/thumbnail-1-0.png`;
+  if (source === "gumlet") return gumletThumbProxy(id);
   return "";
 }
 

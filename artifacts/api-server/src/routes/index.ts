@@ -62,6 +62,47 @@ router.get("/seo/:slug", async (req: Request, res: Response) => {
   }
 });
 
+// ── Public Gumlet thumbnail proxy (no auth) ──
+// Gumlet's poster URL needs the tenant ID, which we don't have from the
+// embed URL alone. Gumlet's oEmbed endpoint returns the correct
+// thumbnail URL but doesn't send CORS headers, so the browser can't call
+// it directly. This proxy does the oEmbed lookup server-side and 302
+// redirects to the actual image, so admins can paste a plain Gumlet
+// embed and the public portfolio gets a poster image automatically.
+//
+// Usage:  <img src="/api/video-thumb?id=<gumlet-video-id>" />
+const GUMLET_THUMB_CACHE = new Map<string, { url: string; expiresAt: number }>();
+router.get("/video-thumb", async (req: Request, res: Response) => {
+  const id = String(req.query.id || "").trim();
+  if (!/^[a-zA-Z0-9]{6,64}$/.test(id)) {
+    res.status(400).json({ error: "invalid id" });
+    return;
+  }
+  try {
+    const now = Date.now();
+    const cached = GUMLET_THUMB_CACHE.get(id);
+    if (cached && cached.expiresAt > now) {
+      res.setHeader("Cache-Control", "public, max-age=86400");
+      res.redirect(302, cached.url);
+      return;
+    }
+    const embedUrl = `https://play.gumlet.io/embed/${id}`;
+    const oe = await fetch(
+      `https://api.gumlet.com/v1/oembed?url=${encodeURIComponent(embedUrl)}&format=json`,
+      { headers: { "User-Agent": "growitbuddy-thumb-proxy/1.0" } },
+    );
+    if (!oe.ok) { res.status(404).json({ error: "lookup failed" }); return; }
+    const data = (await oe.json()) as { thumbnail_url?: string };
+    const thumb = data.thumbnail_url;
+    if (!thumb) { res.status(404).json({ error: "no thumbnail" }); return; }
+    GUMLET_THUMB_CACHE.set(id, { url: thumb, expiresAt: now + 24 * 60 * 60 * 1000 });
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    res.redirect(302, thumb);
+  } catch {
+    res.status(500).json({ error: "failed" });
+  }
+});
+
 router.use("/admin", adminRouter);
 router.use("/admin/ai-seo", aiSeoRouter);
 
