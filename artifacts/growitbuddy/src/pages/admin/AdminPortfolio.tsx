@@ -73,7 +73,7 @@ const EMPTY_CASE_STUDY: CaseStudyData = {
 };
 
 const EMPTY_FORM: FormState = {
-  title: "", category: "Video Editing — India", youtubeUrl: "", description: "", sortOrder: 0,
+  title: "", category: "Long-Form Editing", youtubeUrl: "", description: "", sortOrder: 0,
   customThumbnailUrl: "",
   caseStudy: EMPTY_CASE_STUDY,
 };

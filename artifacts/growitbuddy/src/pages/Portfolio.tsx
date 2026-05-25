@@ -22,14 +22,14 @@ const CATEGORY_META: Record<string, { slug: string; tagline: string; type: Categ
     tagline: "Content production systems built for consistency, trust, and long-term audience attention.",
     type: "video",
   },
-  "Video Editing — India": {
-    slug: "video-editing-india",
-    tagline: "Performance-focused edits crafted for India's creator economy and modern digital brands.",
+  "Long-Form Editing": {
+    slug: "long-form-editing",
+    tagline: "Cinematic long-form edits engineered for retention, storytelling, and authority-driven content.",
     type: "video",
   },
-  "Video Editing — US": {
-    slug: "video-editing-us",
-    tagline: "High-retention edits engineered for founder-led brands, creators, and authority-driven content.",
+  "Short-Form Editing": {
+    slug: "short-form-editing",
+    tagline: "Scroll-stopping reels and shorts crafted for reach, virality, and modern attention spans.",
     type: "video",
   },
   "Graphics": {

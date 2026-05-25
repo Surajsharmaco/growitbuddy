@@ -71,6 +71,17 @@ async function runStartupMigrations() {
     logger.error({ err }, "Startup migration: failed to ensure custom_thumbnail_url column.");
   }
 
+  // Rename region-specific video categories to format-based names so the
+  // portfolio works for clients from any geography. Idempotent: rows already
+  // using the new names are untouched.
+  try {
+    await pool.query(`UPDATE portfolio_items SET category = 'Long-Form Editing' WHERE category = 'Video Editing — India'`);
+    await pool.query(`UPDATE portfolio_items SET category = 'Short-Form Editing' WHERE category = 'Video Editing — US'`);
+    logger.info("Startup migration: portfolio_items category rename (India/US -> Long-Form/Short-Form) applied.");
+  } catch (err) {
+    logger.error({ err }, "Startup migration: failed to rename video editing categories.");
+  }
+
   // Shareable portfolio links — admin hides some categories/items per share.
   try {
     await pool.query(`
