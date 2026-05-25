@@ -107,11 +107,12 @@ function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?:
       transition={{ duration: 0.5 }}
       style={{
         background: "#fff",
-        border: "1.5px solid #E5E5E0",
+        border: "1px solid #D8D6CE",
         borderRadius: 18,
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
+        boxShadow: "0 1px 2px rgba(10,10,10,0.04), 0 8px 24px -8px rgba(10,10,10,0.10)",
         transition: "transform 0.25s, box-shadow 0.25s, border-color 0.25s",
       }}
       className="hover:-translate-y-1 hover:shadow-2xl hover:border-[#C2A878]"
@@ -226,7 +227,8 @@ function ReelTile({ item }: { item: PortfolioItem }) {
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
-        border: "1.5px solid #E5E5E0",
+        border: "1px solid #D8D6CE",
+        boxShadow: "0 1px 2px rgba(10,10,10,0.05), 0 10px 28px -10px rgba(10,10,10,0.18)",
         transition: "transform 0.25s, box-shadow 0.25s, border-color 0.25s",
       }}
       className="hover:-translate-y-1 hover:shadow-2xl hover:border-[#C2A878]"
