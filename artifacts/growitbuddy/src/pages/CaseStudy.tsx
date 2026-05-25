@@ -102,7 +102,13 @@ function dummyContent(item: PortfolioItem) {
 }
 
 export default function CaseStudy() {
-  const [, params] = useRoute<{ category: string; id: string }>("/portfolio/:category/case/:id");
+  // Support both /portfolio/:category/case/:id and /portfolio/shared/:slug/:category/case/:id
+  const [, sharedParams] = useRoute<{ slug: string; category: string; id: string }>("/portfolio/shared/:slug/:category/case/:id");
+  const [, plainParams] = useRoute<{ category: string; id: string }>("/portfolio/:category/case/:id");
+  const params = sharedParams ?? plainParams;
+  const shareSlug = sharedParams?.slug ?? null;
+  const sharePrefix = shareSlug ? `/portfolio/shared/${shareSlug}` : "/portfolio";
+
   const [, setLocation] = useLocation();
 
   const [item, setItem] = useState<PortfolioItem | null>(null);
@@ -114,9 +120,13 @@ export default function CaseStudy() {
     (async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${API_BASE}/admin/portfolio/items`);
+        const url = shareSlug
+          ? `${API_BASE}/admin/portfolio/shares/public/${encodeURIComponent(shareSlug)}`
+          : `${API_BASE}/admin/portfolio/items`;
+        const res = await fetch(url);
         if (!res.ok) throw new Error("fetch failed");
-        const all: PortfolioItem[] = await res.json();
+        const payload = await res.json();
+        const all: PortfolioItem[] = shareSlug ? (payload.items ?? []) : payload;
         if (cancelled) return;
         const found = all.find((i) => String(i.id) === params?.id);
         if (!found) setNotFound(true);
@@ -128,7 +138,7 @@ export default function CaseStudy() {
       }
     })();
     return () => { cancelled = true; };
-  }, [params?.id]);
+  }, [params?.id, shareSlug]);
 
   if (loading) {
     return (
@@ -143,7 +153,7 @@ export default function CaseStudy() {
       <div style={{ minHeight: "100vh", background: BG, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div style={{ textAlign: "center" }}>
           <p style={{ fontSize: 16, color: MUTED, marginBottom: 16 }}>Case study not found.</p>
-          <Link href="/portfolio" style={{ color: SLATE, fontWeight: 700, textDecoration: "underline" }}>
+          <Link href={sharePrefix} style={{ color: SLATE, fontWeight: 700, textDecoration: "underline" }}>
             ← Back to portfolio
           </Link>
         </div>
@@ -204,8 +214,8 @@ export default function CaseStudy() {
       <div style={{ borderBottom: `1px solid ${RULE}`, background: BG }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "20px 24px" }}>
           <a
-            href={`/portfolio/${categorySlug}`}
-            onClick={(e) => go(e, `/portfolio/${categorySlug}`)}
+            href={`${sharePrefix}/${categorySlug}`}
+            onClick={(e) => go(e, `${sharePrefix}/${categorySlug}`)}
             style={{
               display: "inline-flex", alignItems: "center", gap: 8,
               color: MUTED, fontSize: 12, fontWeight: 700,

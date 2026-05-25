@@ -61,6 +61,25 @@ async function runStartupMigrations() {
   } catch (err) {
     logger.error({ err }, "Startup migration: failed to ensure case_study column.");
   }
+
+  // Shareable portfolio links — admin hides some categories/items per share.
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS portfolio_shares (
+        id serial PRIMARY KEY,
+        slug text NOT NULL UNIQUE,
+        title text NOT NULL DEFAULT '',
+        hidden_categories text[] NOT NULL DEFAULT '{}',
+        hidden_item_ids integer[] NOT NULL DEFAULT '{}',
+        created_at timestamp NOT NULL DEFAULT now(),
+        updated_at timestamp NOT NULL DEFAULT now()
+      )
+    `);
+    logger.info("Startup migration: portfolio_shares table ensured.");
+  } catch (err) {
+    logger.error({ err }, "Startup migration: failed to ensure portfolio_shares table.");
+  }
+
   try {
     const rows = await db.select().from(siteContent).where(eq(siteContent.section, "home"));
     if (rows.length === 0) {

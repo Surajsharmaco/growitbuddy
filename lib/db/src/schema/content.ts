@@ -86,6 +86,19 @@ export const portfolioItems = pgTable("portfolio_items", {
 export type PortfolioItem = typeof portfolioItems.$inferSelect;
 export type InsertPortfolioItem = typeof portfolioItems.$inferInsert;
 
+export const portfolioShares = pgTable("portfolio_shares", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull().default(""),
+  hiddenCategories: text("hidden_categories").array().notNull().default([]),
+  hiddenItemIds: integer("hidden_item_ids").array().notNull().default([]),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type PortfolioShare = typeof portfolioShares.$inferSelect;
+export type InsertPortfolioShare = typeof portfolioShares.$inferInsert;
+
 export const revokedTokens = pgTable("revoked_tokens", {
   token: text("token").primaryKey(),
   revokedAt: timestamp("revoked_at").defaultNow().notNull(),

@@ -304,10 +304,10 @@ function caseHeroImage(item: PortfolioItem, w: number, h: number) {
 }
 
 // ── Case Study Tile — image only, title separated below as highlighted heading ──
-function CaseStudyTile({ item, featured = false }: { item: PortfolioItem; featured?: boolean }) {
+function CaseStudyTile({ item, featured = false, sharePrefix = "/portfolio" }: { item: PortfolioItem; featured?: boolean; sharePrefix?: string }) {
   const [, setLocation] = useLocation();
   const meta = CATEGORY_META[item.category];
-  const href = meta ? `/portfolio/${meta.slug}/case/${item.id}` : "#";
+  const href = meta ? `${sharePrefix}/${meta.slug}/case/${item.id}` : "#";
   const dim = featured ? { w: 1400, h: 800 } : { w: 800, h: 600 };
   const img = caseHeroImage(item, dim.w, dim.h);
 
@@ -495,11 +495,11 @@ type ServiceCardVariant = "standard" | "spotlight" | "compact" | "horizontal";
 
 // ── Service Category Card (landing) — colour-differentiated branded design ──
 function ServiceCard({
-  category, count, index, variant = "standard",
-}: { category: string; count: number; index: number; variant?: ServiceCardVariant }) {
+  category, count, index, variant = "standard", sharePrefix = "/portfolio",
+}: { category: string; count: number; index: number; variant?: ServiceCardVariant; sharePrefix?: string }) {
   const meta = CATEGORY_META[category];
   const [, setLocation] = useLocation();
-  const href = `/portfolio/${meta.slug}`;
+  const href = `${sharePrefix}/${meta.slug}`;
   const p = SERVICE_PALETTES[index % SERVICE_PALETTES.length];
 
   const go = (e: React.MouseEvent) => {
@@ -757,21 +757,45 @@ function ServiceCard({
 
 // ── Main Portfolio Page ──
 export default function Portfolio() {
-  const [, params] = useRoute<{ category?: string }>("/portfolio/:category");
-  const categorySlug = params?.category;
+  // Routes: /portfolio, /portfolio/:category, /portfolio/shared/:slug, /portfolio/shared/:slug/:category
+  const [, sharedCatMatch] = useRoute<{ slug: string; category: string }>("/portfolio/shared/:slug/:category");
+  const [, sharedRootMatch] = useRoute<{ slug: string }>("/portfolio/shared/:slug");
+  const [, plainCatMatch] = useRoute<{ category: string }>("/portfolio/:category");
+
+  const shareSlug = sharedCatMatch?.slug ?? sharedRootMatch?.slug ?? null;
+  const sharePrefix = shareSlug ? `/portfolio/shared/${shareSlug}` : "/portfolio";
+  const rawCategorySlug = sharedCatMatch?.category ?? (sharedRootMatch ? undefined : plainCatMatch?.category);
+  // Guard against the literal "shared" being treated as a category slug.
+  const categorySlug = rawCategorySlug === "shared" ? undefined : rawCategorySlug;
   const activeCategory = categorySlug ? slugToCategory(categorySlug) : null;
 
   const [items, setItems] = useState<PortfolioItem[]>([]);
+  const [hiddenCategories, setHiddenCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [shareNotFound, setShareNotFound] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
+      setShareNotFound(false);
       try {
-        const res = await fetch(`${API_BASE}/admin/portfolio/items`);
-        if (!cancelled && res.ok) {
-          setItems(await res.json());
+        if (shareSlug) {
+          const res = await fetch(`${API_BASE}/admin/portfolio/shares/public/${encodeURIComponent(shareSlug)}`);
+          if (res.status === 404) { if (!cancelled) setShareNotFound(true); return; }
+          if (res.ok) {
+            const data = await res.json() as { items: PortfolioItem[]; share: { hiddenCategories: string[] } };
+            if (!cancelled) {
+              setItems(data.items ?? []);
+              setHiddenCategories(data.share?.hiddenCategories ?? []);
+            }
+          }
+        } else {
+          const res = await fetch(`${API_BASE}/admin/portfolio/items`);
+          if (!cancelled && res.ok) {
+            setItems(await res.json());
+            setHiddenCategories([]);
+          }
         }
       } catch {
         // silent
@@ -780,7 +804,23 @@ export default function Portfolio() {
       }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [shareSlug]);
+
+  // In share mode, drop entire categories that the admin hid (so they don't show as empty 0-count cards).
+  const visibleCategories = shareSlug ? CATEGORIES.filter((c) => !hiddenCategories.includes(c)) : CATEGORIES;
+
+  if (shareNotFound) {
+    return (
+      <div style={{ minHeight: "100vh", background: "#F8F8F6", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <div style={{ textAlign: "center" }}>
+          <p style={{ fontSize: 16, color: "#5F5F5F", marginBottom: 16 }}>This share link is no longer active.</p>
+          <Link href="/portfolio" style={{ color: "#1E293B", fontWeight: 700, textDecoration: "underline" }}>
+            ← Browse all work
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   // ── CATEGORY VIEW ──
   if (categorySlug) {
@@ -789,7 +829,7 @@ export default function Portfolio() {
         <div style={{ minHeight: "100vh", background: "#F8F8F6", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <div style={{ textAlign: "center" }}>
             <p style={{ fontSize: 16, color: "#5F5F5F", marginBottom: 16 }}>Category not found.</p>
-            <Link href="/portfolio">
+            <Link href={sharePrefix}>
               <a style={{ color: "#1E293B", fontWeight: 700, textDecoration: "underline" }}>← Back to portfolio</a>
             </Link>
           </div>
@@ -829,7 +869,7 @@ export default function Portfolio() {
         <div style={{ background: BRAND_ACCENT, padding: "120px 24px 72px", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #C2A878, #D4BB90)" }} />
           <div style={{ maxWidth: 1180, margin: "0 auto", position: "relative" }}>
-            <Link href="/portfolio">
+            <Link href={sharePrefix}>
               <a
                 style={{
                   display: "inline-flex", alignItems: "center", gap: 6,
@@ -905,7 +945,7 @@ export default function Portfolio() {
             <>
               {categoryItems[0] && (
                 <div style={{ marginBottom: 28 }}>
-                  <CaseStudyTile item={categoryItems[0]} featured />
+                  <CaseStudyTile item={categoryItems[0]} featured sharePrefix={sharePrefix} />
                 </div>
               )}
               {categoryItems.length > 1 && (
@@ -916,7 +956,7 @@ export default function Portfolio() {
                     gap: 22,
                   }}
                 >
-                  {categoryItems.slice(1).map((item) => <CaseStudyTile key={item.id} item={item} />)}
+                  {categoryItems.slice(1).map((item) => <CaseStudyTile key={item.id} item={item} sharePrefix={sharePrefix} />)}
                 </div>
               )}
             </>
@@ -977,7 +1017,7 @@ export default function Portfolio() {
                 gap: 26,
               }}
             >
-              {CATEGORIES.slice(0, 3).map((cat, i) => {
+              {visibleCategories.slice(0, 3).map((cat, i) => {
                 const list = itemsByCategory(cat);
                 const variant: ServiceCardVariant =
                   i === 0 ? "spotlight" : "compact";
@@ -988,6 +1028,7 @@ export default function Portfolio() {
                     count={list.length}
                     index={i}
                     variant={variant}
+                    sharePrefix={sharePrefix}
                   />
                 );
               })}
@@ -1005,7 +1046,7 @@ export default function Portfolio() {
                 gap: 26,
               }}
             >
-              {CATEGORIES.slice(3, 9).map((cat, i) => {
+              {visibleCategories.slice(3, 9).map((cat, i) => {
                 const list = itemsByCategory(cat);
                 return (
                   <ServiceCard
@@ -1013,13 +1054,14 @@ export default function Portfolio() {
                     category={cat}
                     count={list.length}
                     index={i + 3}
+                    sharePrefix={sharePrefix}
                   />
                 );
               })}
             </div>
 
             {/* ── Zone 4: horizontal cinematic finisher ── */}
-            {CATEGORIES[9] && (
+            {visibleCategories[9] && (
               <div
                 className="service-grid sg-finisher"
                 style={{
@@ -1029,11 +1071,12 @@ export default function Portfolio() {
                 }}
               >
                 <ServiceCard
-                  key={CATEGORIES[9]}
-                  category={CATEGORIES[9]}
-                  count={itemsByCategory(CATEGORIES[9]).length}
+                  key={visibleCategories[9]}
+                  category={visibleCategories[9]}
+                  count={itemsByCategory(visibleCategories[9]).length}
                   index={9}
                   variant="horizontal"
+                  sharePrefix={sharePrefix}
                 />
               </div>
             )}

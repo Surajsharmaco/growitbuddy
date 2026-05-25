@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { randomBytes, createHmac, timingSafeEqual, scrypt, randomUUID } from "crypto";
-import { db, pool, siteContent, leads, certificates, teamMembers, portfolioItems, clientLogos, revokedTokens as revokedTokensTable, adminActionLogs, mediaFiles } from "@workspace/db";
+import { db, pool, siteContent, leads, certificates, teamMembers, portfolioItems, portfolioShares, clientLogos, revokedTokens as revokedTokensTable, adminActionLogs, mediaFiles } from "@workspace/db";
 import { eq, desc, count, asc, lt } from "drizzle-orm";
 import { logger } from "../lib/logger";
 import multer from "multer";
@@ -997,6 +997,108 @@ router.delete("/portfolio/:id", authMiddleware, async (req, res) => {
   } catch (err) {
     logger.error({ err }, "Failed to delete portfolio item");
     res.status(500).json({ error: "Failed to delete portfolio item" });
+  }
+});
+
+// ── Portfolio Shares (public read by slug) ──
+
+router.get("/portfolio/shares/public/:slug", async (req, res) => {
+  const slug = String(req.params.slug || "").trim().toLowerCase();
+  if (!slug) { res.status(400).json({ error: "Slug required" }); return; }
+  try {
+    const shareRows = await db.select().from(portfolioShares).where(eq(portfolioShares.slug, slug)).limit(1);
+    if (shareRows.length === 0) { res.status(404).json({ error: "Share not found" }); return; }
+    const share = shareRows[0];
+
+    const allItems = await db.select().from(portfolioItems).orderBy(asc(portfolioItems.sortOrder), desc(portfolioItems.createdAt));
+    const hiddenCats = new Set(share.hiddenCategories ?? []);
+    const hiddenIds = new Set((share.hiddenItemIds ?? []).map(Number));
+    const items = allItems.filter((it) => !hiddenCats.has(it.category) && !hiddenIds.has(it.id));
+
+    res.json({
+      share: {
+        slug: share.slug,
+        title: share.title,
+        hiddenCategories: share.hiddenCategories ?? [],
+        hiddenItemIds: share.hiddenItemIds ?? [],
+      },
+      items,
+    });
+  } catch (err) {
+    logger.error({ err, slug }, "Failed to fetch public share");
+    res.status(500).json({ error: "Failed to fetch share" });
+  }
+});
+
+// ── Portfolio Shares CRUD (admin only) ──
+
+router.get("/portfolio/shares", authMiddleware, async (_req, res) => {
+  try {
+    const rows = await db.select().from(portfolioShares).orderBy(desc(portfolioShares.createdAt));
+    res.json(rows);
+  } catch (err) {
+    logger.error({ err }, "Failed to list portfolio shares");
+    res.status(500).json({ error: "Failed to fetch shares" });
+  }
+});
+
+function genSlug(): string {
+  return randomBytes(4).toString("hex"); // 8-char hex
+}
+
+router.post("/portfolio/shares", authMiddleware, async (req, res) => {
+  const title = String(req.body.title ?? "").trim();
+  let slug = String(req.body.slug ?? "").trim().toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/^-+|-+$/g, "");
+  const hiddenCategories: string[] = Array.isArray(req.body.hiddenCategories) ? req.body.hiddenCategories.map(String) : [];
+  const hiddenItemIds: number[] = Array.isArray(req.body.hiddenItemIds)
+    ? req.body.hiddenItemIds.map((n: unknown) => parseInt(String(n))).filter((n: number) => !isNaN(n))
+    : [];
+
+  // Generate unique slug if missing or taken.
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const candidate = slug && attempt === 0 ? slug : `${slug || "share"}-${genSlug()}`.replace(/^-+/, "");
+    const existing = await db.select().from(portfolioShares).where(eq(portfolioShares.slug, candidate)).limit(1);
+    if (existing.length === 0) { slug = candidate; break; }
+    slug = "";
+  }
+
+  try {
+    const rows = await db.insert(portfolioShares).values({ slug, title, hiddenCategories, hiddenItemIds }).returning();
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    logger.error({ err }, "Failed to create portfolio share");
+    res.status(500).json({ error: "Failed to create share" });
+  }
+});
+
+router.put("/portfolio/shares/:id", authMiddleware, async (req, res) => {
+  const id = parseInt(String(req.params.id));
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+  try {
+    const update: Record<string, unknown> = { updatedAt: new Date() };
+    if (req.body.title !== undefined) update.title = String(req.body.title);
+    if (Array.isArray(req.body.hiddenCategories)) update.hiddenCategories = req.body.hiddenCategories.map(String);
+    if (Array.isArray(req.body.hiddenItemIds)) {
+      update.hiddenItemIds = req.body.hiddenItemIds.map((n: unknown) => parseInt(String(n))).filter((n: number) => !isNaN(n));
+    }
+    const rows = await db.update(portfolioShares).set(update).where(eq(portfolioShares.id, id)).returning();
+    if (rows.length === 0) { res.status(404).json({ error: "Share not found" }); return; }
+    res.json(rows[0]);
+  } catch (err) {
+    logger.error({ err, id }, "Failed to update portfolio share");
+    res.status(500).json({ error: "Failed to update share" });
+  }
+});
+
+router.delete("/portfolio/shares/:id", authMiddleware, async (req, res) => {
+  const id = parseInt(String(req.params.id));
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+  try {
+    await db.delete(portfolioShares).where(eq(portfolioShares.id, id));
+    res.json({ success: true });
+  } catch (err) {
+    logger.error({ err, id }, "Failed to delete portfolio share");
+    res.status(500).json({ error: "Failed to delete share" });
   }
 });
 
