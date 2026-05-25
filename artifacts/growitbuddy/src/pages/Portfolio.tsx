@@ -129,10 +129,16 @@ function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?:
                 alt={item.title}
                 style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
                 loading="lazy"
+                referrerPolicy="no-referrer"
                 onError={(e) => {
                   const el = e.currentTarget as HTMLImageElement;
                   const fallback = getThumbnail(item.youtubeUrl);
-                  if (el.src !== fallback) el.src = fallback;
+                  if (el.src !== fallback) {
+                    el.src = fallback;
+                  } else {
+                    // Both hi-res and standard failed (common for private Drive files) — hide so play button shows on clean bg
+                    el.style.display = "none";
+                  }
                 }}
               />
             )}
@@ -233,10 +239,15 @@ function ReelTile({ item }: { item: PortfolioItem }) {
                 alt={item.title}
                 style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
                 loading="lazy"
+                referrerPolicy="no-referrer"
                 onError={(e) => {
                   const el = e.currentTarget as HTMLImageElement;
                   const fallback = getThumbnail(item.youtubeUrl);
-                  if (el.src !== fallback) el.src = fallback;
+                  if (el.src !== fallback) {
+                    el.src = fallback;
+                  } else {
+                    el.style.display = "none";
+                  }
                 }}
               />
             )}

@@ -60,7 +60,8 @@ export function getThumbnail(url: string): string {
   if (!id) return "";
   if (source === "youtube") return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
   if (source === "vimeo") return `https://vumbnail.com/${id}.jpg`;
-  if (source === "drive") return `https://drive.google.com/thumbnail?id=${id}&sz=w800`;
+  // Modern Drive CDN — more reliable than drive.google.com/thumbnail (which often 403s)
+  if (source === "drive") return `https://lh3.googleusercontent.com/d/${id}=w800`;
   return "";
 }
 
@@ -69,7 +70,7 @@ export function getHiResThumbnail(url: string): string {
   if (!id) return "";
   if (source === "youtube") return `https://img.youtube.com/vi/${id}/maxresdefault.jpg`;
   if (source === "vimeo") return `https://vumbnail.com/${id}_large.jpg`;
-  if (source === "drive") return `https://drive.google.com/thumbnail?id=${id}&sz=w1600`;
+  if (source === "drive") return `https://lh3.googleusercontent.com/d/${id}=w1600`;
   return "";
 }
 
