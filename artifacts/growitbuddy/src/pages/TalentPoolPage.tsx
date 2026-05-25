@@ -5,7 +5,7 @@ import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import EcosystemOptIn from "@/components/EcosystemOptIn";
 import { API_BASE } from "@/lib/api";
-import { getEmbedUrl, getHiResThumbnail, getThumbnail, parseVideo } from "@/lib/videoEmbed";
+import { getEmbedUrl, getHiResThumbnail, getThumbnail, parseVideo, detectAspectRatio } from "@/lib/videoEmbed";
 
 const VARIANT_TO_CONTEXT: Record<string, string> = {
   designers:  "designer",
@@ -74,6 +74,10 @@ function VideoPlayer({ url }: { url: string }) {
     ? baseEmbed + (baseEmbed.includes("?") ? "&autoplay=1" : "?autoplay=1")
     : "";
   const thumbUrl = url ? getHiResThumbnail(url) : "";
+  // Auto-detect aspect ratio from the pasted snippet (Gumlet's wrapper sets
+  // aspect-ratio: 9/16 for vertical Shorts/Reels). Falls back to 16/9.
+  const ratio = url ? detectAspectRatio(url) : "16/9";
+  const isVertical = ratio === "9/16";
 
   // Auto-start after 1.5s — but only for providers that support autoplay via URL.
   // Drive ignores it, so we still let the user click play inside Drive's own iframe.
@@ -84,7 +88,17 @@ function VideoPlayer({ url }: { url: string }) {
   }, [url, embedSrc]);
 
   return (
-    <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: 16, overflow: "hidden", position: "relative", boxShadow: "0 24px 64px rgba(0,0,0,0.22)", background: "#0F172A" }}>
+    <div style={{
+      width: "100%",
+      maxWidth: isVertical ? 380 : "100%",
+      margin: "0 auto",
+      aspectRatio: ratio,
+      borderRadius: 16,
+      overflow: "hidden",
+      position: "relative",
+      boxShadow: "0 24px 64px rgba(0,0,0,0.22)",
+      background: "#0F172A",
+    }}>
       {/* Thumbnail — always visible until iframe loads */}
       {thumbUrl && (
         <img
