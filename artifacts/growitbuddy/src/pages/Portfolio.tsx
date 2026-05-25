@@ -483,10 +483,12 @@ const SERVICE_PALETTES: ServiceCardPalette[] = [
   },
 ];
 
+type ServiceCardVariant = "standard" | "spotlight" | "compact" | "horizontal";
+
 // ── Service Category Card (landing) — colour-differentiated branded design ──
 function ServiceCard({
-  category, count, index,
-}: { category: string; count: number; index: number }) {
+  category, count, index, variant = "standard",
+}: { category: string; count: number; index: number; variant?: ServiceCardVariant }) {
   const meta = CATEGORY_META[category];
   const [, setLocation] = useLocation();
   const href = `/portfolio/${meta.slug}`;
@@ -499,13 +501,44 @@ function ServiceCard({
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
   };
 
+  // Variant-driven sizing
+  const isSpotlight = variant === "spotlight";
+  const isCompact = variant === "compact";
+  const isHorizontal = variant === "horizontal";
+
+  const minHeight =
+    isSpotlight ? 506 :
+    isCompact ? 240 :
+    isHorizontal ? 240 :
+    340;
+
+  const padding =
+    isSpotlight ? "40px 44px 38px" :
+    isCompact ? "26px 26px 24px" :
+    isHorizontal ? "40px 44px" :
+    "32px 32px 30px";
+
+  const titleSize =
+    isSpotlight ? "clamp(40px, 4.6vw, 60px)" :
+    isCompact ? "clamp(22px, 1.8vw, 26px)" :
+    isHorizontal ? "clamp(32px, 3.4vw, 44px)" :
+    "clamp(28px, 3.6vw, 40px)";
+
+  const arrowSize = isSpotlight ? 56 : isCompact ? 38 : isHorizontal ? 52 : 44;
+  const arrowIcon = isSpotlight ? 24 : isCompact ? 16 : isHorizontal ? 22 : 20;
+
+  const gridSpanClass =
+    isSpotlight ? "sc-spotlight" :
+    isHorizontal ? "sc-horizontal" :
+    isCompact ? "sc-compact" : "";
+
   return (
     <motion.a
       href={href}
       onClick={go}
       initial={{ opacity: 0, y: 28 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.06, duration: 0.55 }}
+      transition={{ delay: Math.min(index, 6) * 0.06, duration: 0.55 }}
       whileHover={{ y: -6 }}
       style={{
         position: "relative",
@@ -513,21 +546,21 @@ function ServiceCard({
         borderRadius: 22,
         overflow: "hidden",
         cursor: "pointer",
-        minHeight: 340,
+        minHeight,
         background: p.bg,
         border: p.border,
         boxShadow: p.shadow,
         transition: "box-shadow 0.3s, border-color 0.3s",
         textDecoration: "none",
       }}
-      className="service-card group hover:shadow-2xl"
+      className={`service-card group hover:shadow-2xl ${gridSpanClass}`}
     >
       {/* Subtle dotted-grid pattern */}
       <div
         style={{
           position: "absolute", inset: 0,
           backgroundImage: `radial-gradient(${p.dotColor} 1.2px, transparent 1.2px)`,
-          backgroundSize: "22px 22px",
+          backgroundSize: isSpotlight ? "26px 26px" : "22px 22px",
           pointerEvents: "none",
         }}
       />
@@ -540,61 +573,144 @@ function ServiceCard({
         }}
       />
 
-      {/* Dotted-grid corner decoration — bottom-right */}
-      <div
-        style={{
-          position: "absolute", bottom: 16, right: 78,
-          width: 36, height: 36,
-          backgroundImage: `radial-gradient(${p.eyebrow} 1.3px, transparent 1.3px)`,
-          backgroundSize: "8px 8px",
-          opacity: 0.45,
-          pointerEvents: "none",
-        }}
-      />
+      {/* Dotted-grid corner decoration — bottom-right (hidden on compact) */}
+      {!isCompact && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: isSpotlight ? 22 : 16,
+            right: isSpotlight ? 96 : 78,
+            width: isSpotlight ? 56 : 36,
+            height: isSpotlight ? 56 : 36,
+            backgroundImage: `radial-gradient(${p.eyebrow} 1.3px, transparent 1.3px)`,
+            backgroundSize: "8px 8px",
+            opacity: 0.45,
+            pointerEvents: "none",
+          }}
+        />
+      )}
 
-      <div
-        style={{
-          position: "relative", height: "100%", minHeight: 340,
-          padding: "32px 32px 30px",
-          display: "flex", flexDirection: "column", justifyContent: "space-between",
-          color: p.text,
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <span
-            style={{
-              fontSize: 10, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase",
-              color: p.eyebrow,
-            }}
-          >
-            0{index + 1} · Service
-          </span>
+      {isHorizontal ? (
+        // ── Horizontal cinematic layout ──
+        <div
+          style={{
+            position: "relative", height: "100%", minHeight,
+            padding,
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 1fr) auto",
+            alignItems: "center",
+            gap: 32,
+            color: p.text,
+          }}
+        >
+          <div>
+            <span
+              style={{
+                display: "inline-block",
+                fontSize: 10, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase",
+                color: p.eyebrow, marginBottom: 14,
+              }}
+            >
+              0{index + 1} · Service · Featured
+            </span>
+            <h3
+              style={{
+                fontWeight: 800,
+                fontSize: titleSize,
+                letterSpacing: "-0.035em",
+                lineHeight: 1.04,
+                marginBottom: 12,
+                color: p.text,
+              }}
+            >
+              {category}
+            </h3>
+            <p
+              style={{
+                fontSize: 15, color: p.mutedText,
+                lineHeight: 1.6, marginBottom: 18, maxWidth: "62ch",
+              }}
+            >
+              {meta.tagline}
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <span
+                style={{
+                  fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
+                  padding: "6px 14px", borderRadius: 100,
+                  background: p.pillBg, color: p.pillText, border: p.pillBorder,
+                }}
+              >
+                {count} {count === 1 ? "project" : "projects"}
+              </span>
+              <span
+                style={{
+                  fontSize: 12, color: p.mutedText,
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                }}
+              >
+                <span style={{ width: 5, height: 5, borderRadius: "50%", background: p.dotDivider }} />
+                Open the system
+              </span>
+            </div>
+          </div>
           <div
             style={{
-              width: 44, height: 44, borderRadius: "50%",
-              background: p.arrowBg,
-              border: p.arrowBorder,
+              width: arrowSize, height: arrowSize, borderRadius: "50%",
+              background: p.arrowBg, border: p.arrowBorder,
               display: "flex", alignItems: "center", justifyContent: "center",
               transition: "background 0.25s, transform 0.25s",
+              flexShrink: 0,
             }}
             className="group-hover:!bg-[#C2A878] group-hover:scale-110"
           >
-            <ArrowUpRight size={20} style={{ color: p.arrowText }} />
+            <ArrowUpRight size={arrowIcon} style={{ color: p.arrowText }} />
           </div>
         </div>
+      ) : (
+        <div
+          style={{
+            position: "relative", height: "100%", minHeight,
+            padding,
+            display: "flex", flexDirection: "column", justifyContent: "space-between",
+            color: p.text,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <span
+              style={{
+                fontSize: isCompact ? 9 : 10, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase",
+                color: p.eyebrow,
+              }}
+            >
+              {isSpotlight ? "Featured · 01 · Service" : `0${index + 1} · Service`}
+            </span>
+            <div
+              style={{
+                width: arrowSize, height: arrowSize, borderRadius: "50%",
+                background: p.arrowBg,
+                border: p.arrowBorder,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "background 0.25s, transform 0.25s",
+              }}
+              className="group-hover:!bg-[#C2A878] group-hover:scale-110"
+            >
+              <ArrowUpRight size={arrowIcon} style={{ color: p.arrowText }} />
+            </div>
+          </div>
 
-        <div>
-          <h3
-            style={{
-              fontWeight: 800,
-              fontSize: "clamp(28px, 3.6vw, 40px)",
-              letterSpacing: "-0.035em",
-              lineHeight: 1.05,
-              marginBottom: 14,
-              color: p.text,
-            }}
-          >
-            {category}
+          <div>
+            <h3
+              style={{
+                fontWeight: 800,
+                fontSize: titleSize,
+                letterSpacing: "-0.035em",
+                lineHeight: 1.04,
+                marginBottom: isSpotlight ? 18 : isCompact ? 10 : 14,
+                color: p.text,
+              }}
+            >
+              {category}
           </h3>
           <p
             style={{
@@ -841,42 +957,226 @@ export default function Portfolio() {
             <div style={{ width: 36, height: 36, borderRadius: "50%", border: "3px solid #E5E5E0", borderTopColor: "#1E293B" }} className="animate-spin" />
           </div>
         ) : (
-          <div
-            className="service-grid"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: 26,
-            }}
-          >
-            {CATEGORIES.map((cat, i) => {
-              const list = itemsByCategory(cat);
-              return (
+          <>
+            {/* ── Zone 1: spotlight + compact stack ── */}
+            <div
+              className="service-grid sg-featured"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gridAutoRows: "minmax(240px, auto)",
+                gap: 26,
+              }}
+            >
+              {CATEGORIES.slice(0, 3).map((cat, i) => {
+                const list = itemsByCategory(cat);
+                const variant: ServiceCardVariant =
+                  i === 0 ? "spotlight" : "compact";
+                return (
+                  <ServiceCard
+                    key={cat}
+                    category={cat}
+                    count={list.length}
+                    index={i}
+                    variant={variant}
+                  />
+                );
+              })}
+            </div>
+
+            {/* ── Zone 2: cinematic ecosystem strip ── */}
+            <EcosystemStrip />
+
+            {/* ── Zone 3: main grid ── */}
+            <div
+              className="service-grid"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: 26,
+              }}
+            >
+              {CATEGORIES.slice(3, 9).map((cat, i) => {
+                const list = itemsByCategory(cat);
+                return (
+                  <ServiceCard
+                    key={cat}
+                    category={cat}
+                    count={list.length}
+                    index={i + 3}
+                  />
+                );
+              })}
+            </div>
+
+            {/* ── Zone 4: horizontal cinematic finisher ── */}
+            {CATEGORIES[9] && (
+              <div
+                className="service-grid sg-finisher"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr",
+                  marginTop: 26,
+                }}
+              >
                 <ServiceCard
-                  key={cat}
-                  category={cat}
-                  count={list.length}
-                  index={i}
+                  key={CATEGORIES[9]}
+                  category={CATEGORIES[9]}
+                  count={itemsByCategory(CATEGORIES[9]).length}
+                  index={9}
+                  variant="horizontal"
                 />
-              );
-            })}
-          </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
       <style>{`
+        /* Featured zone grid spans */
+        .sg-featured .sc-spotlight { grid-column: span 2; grid-row: span 2; }
+        .sg-featured .sc-compact   { grid-column: span 1; }
+
         @media (max-width: 1100px) {
           .service-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .reel-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .sg-featured .sc-spotlight { grid-column: span 2 !important; grid-row: span 1 !important; }
+          .sg-featured .sc-compact   { grid-column: span 1 !important; }
+          .ecosystem-strip-pillars { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 640px) {
           .service-grid { grid-template-columns: 1fr !important; gap: 18px !important; }
+          .sg-featured  { grid-template-columns: 1fr !important; gap: 18px !important; }
+          .sg-featured .sc-spotlight { grid-column: span 1 !important; grid-row: span 1 !important; }
+          .sg-featured .sc-compact   { grid-column: span 1 !important; }
           .reel-grid { grid-template-columns: 1fr !important; }
           .video-row { grid-template-columns: 1fr !important; }
           .services-wrap { padding-left: 20px !important; padding-right: 20px !important; }
+          .ecosystem-strip { padding: 32px 24px !important; }
+          .ecosystem-strip h3 { font-size: 26px !important; }
+          .ecosystem-strip-horizontal-row { flex-direction: column !important; align-items: flex-start !important; gap: 18px !important; }
         }
         .service-card a, .service-card { text-decoration: none; }
       `}</style>
     </div>
+  );
+}
+
+// ── Cinematic ecosystem strip — between featured zone and main grid ──
+function EcosystemStrip() {
+  const pillars = [
+    { num: "01", title: "Position",   sub: "Authority-first messaging that compounds trust." },
+    { num: "02", title: "Produce",    sub: "High-signal content engineered for retention." },
+    { num: "03", title: "Distribute", sub: "Inbound systems that turn reach into demand." },
+  ];
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.5 }}
+      className="ecosystem-strip"
+      style={{
+        position: "relative",
+        margin: "44px 0",
+        padding: "44px 48px",
+        borderRadius: 22,
+        background: "linear-gradient(160deg, #EFEFEA 0%, #F8F8F6 100%)",
+        border: "1.5px solid rgba(194,168,120,0.30)",
+        overflow: "hidden",
+      }}
+    >
+      {/* Gold rail */}
+      <div
+        style={{
+          position: "absolute", top: 0, left: 0, right: 0, height: 3,
+          background: "linear-gradient(90deg, #C2A878, #D4BB90)",
+        }}
+      />
+      {/* Subtle dot pattern */}
+      <div
+        style={{
+          position: "absolute", inset: 0,
+          backgroundImage: "radial-gradient(rgba(30,41,59,0.06) 1.2px, transparent 1.2px)",
+          backgroundSize: "22px 22px",
+          pointerEvents: "none",
+        }}
+      />
+
+      <div
+        className="ecosystem-strip-horizontal-row"
+        style={{
+          position: "relative",
+          display: "flex", justifyContent: "space-between", alignItems: "flex-end",
+          gap: 24, marginBottom: 28,
+        }}
+      >
+        <div>
+          <p
+            style={{
+              fontSize: 11, fontWeight: 700, letterSpacing: "0.22em",
+              textTransform: "uppercase", color: "#C2A878", marginBottom: 12,
+            }}
+          >
+            Built as an ecosystem
+          </p>
+          <h3
+            style={{
+              fontWeight: 800, fontSize: "clamp(28px, 3.2vw, 38px)",
+              letterSpacing: "-0.03em", lineHeight: 1.08, color: "#0A0A0A",
+              maxWidth: "22ch",
+            }}
+          >
+            Where production meets distribution.
+          </h3>
+        </div>
+        <p
+          style={{
+            fontSize: 14, color: "#5F5F5F", lineHeight: 1.65,
+            maxWidth: "36ch",
+          }}
+        >
+          Every service below is a module — designed to slot into the same compounding authority engine.
+        </p>
+      </div>
+
+      <div
+        className="ecosystem-strip-pillars"
+        style={{
+          position: "relative",
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: 24,
+          paddingTop: 24,
+          borderTop: "1px solid rgba(30,41,59,0.10)",
+        }}
+      >
+        {pillars.map((p) => (
+          <div key={p.num} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+            <span
+              style={{
+                fontSize: 11, fontWeight: 700, letterSpacing: "0.16em",
+                color: "#C2A878", paddingTop: 2, flexShrink: 0,
+              }}
+            >
+              {p.num}
+            </span>
+            <div>
+              <p
+                style={{
+                  fontWeight: 700, fontSize: 15, color: "#0A0A0A",
+                  letterSpacing: "-0.01em", marginBottom: 4,
+                }}
+              >
+                {p.title}
+              </p>
+              <p style={{ fontSize: 13, color: "#5F5F5F", lineHeight: 1.55 }}>
+                {p.sub}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </motion.div>
   );
 }
