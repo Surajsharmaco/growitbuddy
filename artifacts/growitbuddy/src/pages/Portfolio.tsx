@@ -184,17 +184,6 @@ function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?:
       </div>
 
       <div style={{ padding: featured ? "26px 26px 28px" : "20px", flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ width: 16, height: 2, background: "#C2A878", borderRadius: 2 }} />
-          <span
-            style={{
-              fontSize: 10, fontWeight: 800, letterSpacing: "0.18em", textTransform: "uppercase",
-              color: "#8A7548",
-            }}
-          >
-            {item.category}
-          </span>
-        </div>
         <h3
           style={{
             fontWeight: 800,
@@ -319,12 +308,6 @@ function ReelTile({ item }: { item: PortfolioItem }) {
                 zIndex: 2,
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                <span style={{ width: 18, height: 2, background: "#C2A878", borderRadius: 2, boxShadow: "0 0 8px rgba(194,168,120,0.7)" }} />
-                <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase", color: "#C2A878" }}>
-                  Reel
-                </span>
-              </div>
               <h3
                 style={{
                   fontWeight: 800,
