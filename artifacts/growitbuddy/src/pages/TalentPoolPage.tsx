@@ -74,6 +74,9 @@ function VideoPlayer({ url }: { url: string }) {
     if (loom) return `https://www.loom.com/embed/${loom[1]}?autoplay=1`;
     const vimeo = raw.match(/vimeo\.com\/(\d+)/);
     if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}?autoplay=1`;
+    // Google Drive: accept full /file/d/ID/view or /file/d/ID/preview links
+    const drive = raw.match(/drive\.google\.com\/file\/d\/([^/?]+)/);
+    if (drive) return `https://drive.google.com/file/d/${drive[1]}/preview`;
     return raw;
   };
 
@@ -415,11 +418,9 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
           </motion.div>
         </div>
 
-        {d.videoUrl && (
-          <motion.div {...FI(0.08)} style={{ maxWidth: 860, margin: "0 auto", padding: "0 24px 0" }}>
-            <VideoPlayer url={d.videoUrl} />
-          </motion.div>
-        )}
+        <motion.div {...FI(0.08)} style={{ maxWidth: 860, margin: "0 auto", padding: "0 24px 0" }}>
+          <VideoPlayer url={d.videoUrl} />
+        </motion.div>
 
         {d.opportunityText && (
           <div className="tp-wrap-md">
