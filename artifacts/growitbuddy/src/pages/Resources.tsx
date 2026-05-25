@@ -4,30 +4,7 @@ import { Link } from "wouter";
 import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
 
-interface ResourceItem {
-  title: string;
-  desc: string;
-  tag: string;
-  link: string;
-}
-
-interface ResourcesData {
-  heroEyebrow: string;
-  heroHeadline: string;
-  heroSubtext: string;
-  items: ResourceItem[];
-  seoTitle: string;
-  seoDesc: string;
-}
-
-const DEFAULTS: ResourcesData = {
-  heroEyebrow: "Resources",
-  heroHeadline: "Open-source frameworks.",
-  heroSubtext: "Free templates, guides and playbooks from our internal agency toolkit.",
-  items: [],
-  seoTitle: "Resources - GrowitBuddy",
-  seoDesc: "Free templates, guides and playbooks from our internal agency toolkit.",
-};
+import { RESOURCES_DEFAULTS as DEFAULTS, type ResourcesData, type ResourceItem } from "@/lib/resourcesDefaults";
 
 export default function Resources() {
   const cms = usePublicContent<ResourcesData>("resources", DEFAULTS);

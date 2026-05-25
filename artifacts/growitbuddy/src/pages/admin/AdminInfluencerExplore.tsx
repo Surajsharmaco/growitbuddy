@@ -3,32 +3,7 @@ import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
 
-interface InfluencerExploreData {
-  heroEyebrow: string;
-  heroHeadline: string;
-  heroSubtext: string;
-  heroCTA: string;
-  ctaEyebrow: string;
-  ctaHeadline: string;
-  ctaSubtext: string;
-  ctaButton: string;
-  seoTitle: string;
-  seoDesc: string;
-}
-
-const DEFAULTS: InfluencerExploreData = {
-  heroEyebrow: "Influencer Network",
-  heroHeadline: "Work With Proven Influencers.",
-  heroSubtext: "Discover creators who build real engagement and drive meaningful results -- not just impressions.",
-  heroCTA: "Join as Influencer",
-  ctaEyebrow: "Are you a creator?",
-  ctaHeadline: "Ready to Get Discovered?",
-  ctaSubtext: "Apply to join the Influencer Network. Get reviewed, get listed, and unlock real brand opportunities.",
-  ctaButton: "Apply Now",
-  seoTitle: "Explore Influencers - GrowitBuddy",
-  seoDesc: "Discover proven influencers and content creators who build real engagement and drive meaningful results for ambitious brands.",
-};
-
+import { INFLUENCER_EXPLORE_DEFAULTS as DEFAULTS, type InfluencerExploreData } from "@/lib/influencerExploreDefaults";
 export default function AdminInfluencerExplore() {
   const { getContent, saveContent } = useAdmin();
   const [data, setData] = useState<InfluencerExploreData>(DEFAULTS);

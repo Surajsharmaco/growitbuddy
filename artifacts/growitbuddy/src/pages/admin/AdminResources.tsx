@@ -4,31 +4,7 @@ import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/comp
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
 import { Plus, Trash2 } from "lucide-react";
 
-interface ResourceItem {
-  title: string;
-  desc: string;
-  tag: string;
-  link: string;
-}
-
-interface ResourcesData {
-  heroEyebrow: string;
-  heroHeadline: string;
-  heroSubtext: string;
-  items: ResourceItem[];
-  seoTitle: string;
-  seoDesc: string;
-}
-
-const DEFAULTS: ResourcesData = {
-  heroEyebrow: "Resources",
-  heroHeadline: "Open-source frameworks.",
-  heroSubtext: "Free templates, guides and playbooks from our internal agency toolkit.",
-  items: [],
-  seoTitle: "Resources - GrowitBuddy",
-  seoDesc: "Free templates, guides and playbooks from our internal agency toolkit.",
-};
-
+import { RESOURCES_DEFAULTS as DEFAULTS, type ResourcesData, type ResourceItem } from "@/lib/resourcesDefaults";
 export default function AdminResources() {
   const { getContent, saveContent } = useAdmin();
   const [data, setData] = useState<ResourcesData>(DEFAULTS);

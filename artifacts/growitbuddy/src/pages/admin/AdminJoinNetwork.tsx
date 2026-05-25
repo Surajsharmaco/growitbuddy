@@ -3,40 +3,7 @@ import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
 
-interface JoinNetworkData {
-  heroLabel: string;
-  heroHeadline: string;
-  heroSubtext: string;
-  card1Num: string;
-  card1Title: string;
-  card1Subtitle: string;
-  card1Desc: string;
-  card1CTA: string;
-  card2Num: string;
-  card2Title: string;
-  card2Subtitle: string;
-  card2Desc: string;
-  card2CTA: string;
-  footerNote: string;
-}
-
-const DEFAULTS: JoinNetworkData = {
-  heroLabel: "Join Our Network",
-  heroHeadline: "Choose Your Path.",
-  heroSubtext: "Two ways to become part of a growing ecosystem. Pick the one that fits you.",
-  card1Num: "01",
-  card1Title: "I'm an Influencer",
-  card1Subtitle: "",
-  card1Desc: "I create content on my personal profile, build an audience, and collaborate with brands.",
-  card1CTA: "Continue as Influencer",
-  card2Num: "02",
-  card2Title: "I run a Page",
-  card2Subtitle: "Meme / Theme Page",
-  card2Desc: "I manage a content page with a large audience and help distribute content at scale.",
-  card2CTA: "Continue as Page Owner",
-  footerNote: "Not sure where you fit? Choose the closest option - we'll guide you from there.",
-};
-
+import { JOIN_NETWORK_DEFAULTS as DEFAULTS, type JoinNetworkData } from "@/lib/joinNetworkDefaults";
 export default function AdminJoinNetwork() {
   const { getContent, saveContent } = useAdmin();
   const [data, setData] = useState<JoinNetworkData>(DEFAULTS);
