@@ -329,7 +329,7 @@ export default function Services() {
       {/* ── Stats ── */}
       <section style={{ background: "#F8F8F6", borderBottom: "1px solid #E5E5E0", padding: "0 24px" }}>
         <div className="max-w-[1100px] mx-auto svc-stats-grid">
-          {cms.stats.map(({ num, label }, i) => (
+          {(cms.stats || []).map(({ num, label }, i) => (
             <motion.div
               key={label}
               initial={{ opacity: 0, y: 10 }}

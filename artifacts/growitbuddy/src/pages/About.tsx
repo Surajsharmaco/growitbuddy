@@ -92,7 +92,7 @@ export default function About() {
               maxWidth: 640,
             }}
           >
-            {data.stats.map((s, i) => (
+            {(data.stats || []).map((s, i) => (
               <div key={i} style={{
                 padding: "28px 24px",
                 borderRight: "1px solid #E5E5E0",
@@ -141,7 +141,7 @@ export default function About() {
 
             {/* Mini stats */}
             <div style={{ display: "flex", flexDirection: "column", gap: 0, borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 28 }}>
-              {data.stats.map((s, i) => (
+              {(data.stats || []).map((s, i) => (
                 <div key={i} style={{
                   display: "flex",
                   alignItems: "baseline",
@@ -302,7 +302,7 @@ export default function About() {
               <h2 style={{ fontWeight: 800, fontSize: "clamp(22px, 4vw, 52px)", letterSpacing: "-0.04em", lineHeight: 1.05, color: "#0A0A0A", maxWidth: "14ch" }}>How we operate.</h2>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 24 }}>
-              {data.values.map((v, i) => (
+              {(data.values || []).map((v, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, y: 16 }}
@@ -337,7 +337,7 @@ export default function About() {
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#8A8A8A", marginBottom: 16 }}>Team</p>
             <h2 style={{ fontWeight: 800, fontSize: "clamp(22px, 4vw, 48px)", letterSpacing: "-0.04em", lineHeight: 1.1, color: "#0A0A0A", marginBottom: 48 }}>The people behind the work.</h2>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 24 }}>
-              {data.team.map((m, i) => (
+              {(data.team || []).map((m, i) => (
                 <div key={i} style={{ textAlign: "center" }}>
                   <div style={{ width: 80, height: 80, borderRadius: "50%", overflow: "hidden", margin: "0 auto 14px", background: "#E8E8E5", border: "2px solid #E5E5E0" }}>
                     {m.photo ? (

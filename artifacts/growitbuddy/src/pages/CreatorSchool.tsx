@@ -249,7 +249,7 @@ export default function CreatorSchool() {
             </h2>
           </motion.div>
           <div className="csp-steps">
-            {d.steps.map((step, i) => (
+            {(d.steps || []).map((step, i) => (
               <motion.div key={i} {...FI(i * 0.07)} className="csp-step-item">
                 <span style={{ display: "block", fontSize: 11, fontWeight: 800, letterSpacing: "0.12em", color: "#C2A878", marginBottom: 10 }}>{step.number}</span>
                 <span style={{ display: "block", fontSize: 15, fontWeight: 700, color: "#0A0A0A", marginBottom: 6 }}>{step.title}</span>
@@ -271,7 +271,7 @@ export default function CreatorSchool() {
             <p style={{ fontSize: 16, color: "#5F5F5F" }}>{d.resourcesSubtext}</p>
           </motion.div>
           <div className="csp-cards">
-            {d.resources.map((r, i) => {
+            {(d.resources || []).map((r, i) => {
               // Fallback: if saved link is empty, use the default Drive link for this resource id
               const fallback = DEFAULTS.resources.find((dr) => dr.id === r.id);
               const link = r.link || fallback?.link || "";

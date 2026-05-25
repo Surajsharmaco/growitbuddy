@@ -393,7 +393,7 @@ export default function Contact() {
           {/* Info */}
           <div>
             <div style={{ borderTop: "1px solid #E5E5E0", display: "flex", flexDirection: "column" }}>
-              {cms.contactInfo.map((item) => (
+              {(cms.contactInfo || []).map((item) => (
                 <div key={item.label} style={{ padding: "20px 0", borderBottom: "1px solid #E5E5E0" }}>
                   <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#7A7A85", marginBottom: 6 }}>{item.label}</p>
                   {item.href

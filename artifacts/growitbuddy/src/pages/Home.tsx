@@ -347,7 +347,7 @@ export default function Home() {
       {/* ══ 2. STATS ══ */}
       <section style={{ borderTop: "1px solid #E5E5E0", borderBottom: "1px solid #E5E5E0", background: "#FFFFFF", padding: "0 24px" }}>
         <div className="max-w-[1100px] mx-auto home-stats-grid">
-          {hm.stats.map((stat, i) => (
+          {(hm.stats || []).map((stat, i) => (
             <m.div
               key={i}
               initial={{ opacity: 0, y: 16 }}
@@ -396,7 +396,7 @@ export default function Home() {
             </h2>
           </FadeUp>
           <div className="home-problem-grid">
-            {hm.problems.map((p, i) => (
+            {(hm.problems || []).map((p, i) => (
               <m.div
                 key={i}
                 initial={{ opacity: 0, y: 28 }}
@@ -451,7 +451,7 @@ export default function Home() {
           </FadeUp>
 
           <div className="home-system-grid">
-            {hm.services.map((s, i) => {
+            {(hm.services || []).map((s, i) => {
               const isAccent = i === 5;
               return (
                 <m.div
@@ -530,7 +530,7 @@ export default function Home() {
             </h2>
           </FadeUp>
           <div className="home-proof-grid">
-            {hm.proof.map((p, i) => (
+            {(hm.proof || []).map((p, i) => (
               <m.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
@@ -683,7 +683,7 @@ export default function Home() {
             </h2>
           </FadeUp>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
-            {hm.testimonials.map((t, i) => (
+            {(hm.testimonials || []).map((t, i) => (
               <m.div
                 key={i}
                 initial={{ opacity: 0, y: 16 }}

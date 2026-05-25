@@ -355,7 +355,7 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
             </h2>
           </motion.div>
           <div className="tp-steps">
-            {d.steps.map((step, i) => (
+            {(d.steps || []).map((step, i) => (
               <motion.div key={i} {...FI(i * 0.08)}
                 style={{ padding: "0 32px 0", borderLeft: i > 0 ? "1px solid #E5E5E0" : "none" }}>
                 <div className="tp-step-num">{step.number}</div>
@@ -381,7 +381,7 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
             <p style={{ fontSize: 15, color: "#5F5F5F" }}>{d.resourcesSubtext}</p>
           </motion.div>
           <div className="tp-cards">
-            {d.resources.map((r, i) => {
+            {(d.resources || []).map((r, i) => {
               // Fallback: if saved link is empty, use default Drive link from pool config
               const fallback = config.defaults.resources.find((dr) => dr.id === r.id);
               const link = r.link || fallback?.link || "";
