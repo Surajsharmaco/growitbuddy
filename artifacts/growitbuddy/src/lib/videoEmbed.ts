@@ -104,13 +104,16 @@ export function parseVideo(url: string): ParsedVideo {
   return { source: null, id: "" };
 }
 
-export function getEmbedUrl(url: string): string {
+export function getEmbedUrl(url: string, opts: { autoplay?: boolean } = {}): string {
   const { source, id } = parseVideo(url);
   if (!id) return "";
-  if (source === "youtube") return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1`;
-  if (source === "vimeo") return `https://player.vimeo.com/video/${id}?title=0&byline=0&portrait=0`;
+  const ap = opts.autoplay ? 1 : 0;
+  if (source === "youtube") return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&autoplay=${ap}&playsinline=1`;
+  if (source === "vimeo") return `https://player.vimeo.com/video/${id}?title=0&byline=0&portrait=0&autoplay=${ap}&playsinline=1`;
+  // Google Drive ignores autoplay in its /preview URL, click-to-play still works inside the iframe.
   if (source === "drive") return `https://drive.google.com/file/d/${id}/preview?usp=sharing`;
-  if (source === "gumlet") return `https://play.gumlet.io/embed/${id}?background=false&autoplay=false&loop=false&disable_player_controls=false`;
+  // Gumlet expects boolean strings: autoplay=true / autoplay=false (not 1/0).
+  if (source === "gumlet") return `https://play.gumlet.io/embed/${id}?background=false&autoplay=${opts.autoplay ? "true" : "false"}&loop=false&disable_player_controls=false`;
   return "";
 }
 

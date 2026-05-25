@@ -68,11 +68,8 @@ function VideoPlayer({ url }: { url: string }) {
 
   // Use the shared, robust video parser (handles YouTube, Vimeo, Drive incl. open?id= format)
   const parsed = url ? parseVideo(url) : { source: null, id: "" };
-  const baseEmbed = url ? getEmbedUrl(url) : "";
-  // Add autoplay where the provider supports it. Drive ignores ?autoplay so we add it harmlessly.
-  const embedSrc = baseEmbed
-    ? baseEmbed + (baseEmbed.includes("?") ? "&autoplay=1" : "?autoplay=1")
-    : "";
+  // getEmbedUrl handles per-provider autoplay syntax (YouTube/Vimeo: ?autoplay=1, Gumlet: ?autoplay=true, Drive: click-to-play in its own iframe).
+  const embedSrc = url ? getEmbedUrl(url, { autoplay: true }) : "";
   const thumbUrl = url ? getHiResThumbnail(url) : "";
   // Auto-detect aspect ratio from the pasted snippet (Gumlet's wrapper sets
   // aspect-ratio: 9/16 for vertical Shorts/Reels). Falls back to 16/9.

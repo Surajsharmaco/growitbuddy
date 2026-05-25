@@ -93,7 +93,7 @@ interface PortfolioItem {
 // ── Video Tile (16:9) — long-form ──
 function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?: boolean }) {
   const [playing, setPlaying] = useState(false);
-  const embedUrl = getEmbedUrl(item.youtubeUrl);
+  const embedUrl = getEmbedUrl(item.youtubeUrl, { autoplay: true });
   const thumb = featured ? getHiResThumbnail(item.youtubeUrl) : getThumbnail(item.youtubeUrl);
 
   return (
@@ -115,9 +115,11 @@ function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?:
       <div style={{ position: "relative", aspectRatio: "16/9", background: "#0A0A0A" }}>
         {playing && embedUrl ? (
           <iframe
-            src={`${embedUrl}&autoplay=1`}
+            src={embedUrl}
+            title={item.title}
+            referrerPolicy="origin"
             style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
             loading="lazy"
           />
@@ -203,7 +205,7 @@ function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?:
 // ── Reel Tile (9:16) — short-form, aligned grid ──
 function ReelTile({ item }: { item: PortfolioItem }) {
   const [playing, setPlaying] = useState(false);
-  const embedUrl = getEmbedUrl(item.youtubeUrl);
+  const embedUrl = getEmbedUrl(item.youtubeUrl, { autoplay: true });
   const thumb = getHiResThumbnail(item.youtubeUrl);
 
   return (
@@ -225,9 +227,11 @@ function ReelTile({ item }: { item: PortfolioItem }) {
       <div style={{ position: "relative", aspectRatio: "9/16", background: "#0A0A0A" }}>
         {playing && embedUrl ? (
           <iframe
-            src={`${embedUrl}&autoplay=1`}
+            src={embedUrl}
+            title={item.title}
+            referrerPolicy="origin"
             style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
             loading="lazy"
           />

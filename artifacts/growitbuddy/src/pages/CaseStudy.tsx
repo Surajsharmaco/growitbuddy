@@ -57,20 +57,11 @@ function picsum(seed: string, w: number, h: number) {
   return `https://picsum.photos/seed/${encodeURIComponent(seed)}/${w}/${h}`;
 }
 
+// Use the shared embed builder so case-study videos support YouTube, Vimeo,
+// Google Drive and Gumlet (incl. full <iframe> embed-code paste).
+import { getEmbedUrl as buildEmbedUrl } from "@/lib/videoEmbed";
 function getEmbedUrl(url: string): string {
-  let videoId = "";
-  try {
-    const u = new URL(url);
-    if (u.hostname.includes("youtu.be")) videoId = u.pathname.slice(1);
-    else if (u.hostname.includes("youtube.com")) {
-      if (u.pathname.includes("/shorts/")) videoId = u.pathname.split("/shorts/")[1]?.split("/")[0] ?? "";
-      else videoId = u.searchParams.get("v") ?? "";
-    }
-  } catch {
-    const m = url.match(/(?:v=|youtu\.be\/|\/shorts\/)([a-zA-Z0-9_-]{11})/);
-    videoId = m?.[1] ?? "";
-  }
-  return videoId ? `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1` : "";
+  return buildEmbedUrl(url, { autoplay: true });
 }
 
 function dummyContent(item: PortfolioItem) {
