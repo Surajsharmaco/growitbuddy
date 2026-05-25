@@ -3,6 +3,7 @@ import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
 import { Plus, Trash2, ExternalLink } from "lucide-react";
+import { sourceLabel } from "@/lib/videoEmbed";
 
 interface ResourceCard { id: string; title: string; desc: string; link: string; btnLabel: string; }
 interface Step { number: string; title: string; desc: string; }
@@ -113,15 +114,27 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
         <div className="bg-[#F8F8F6] border border-[#0B0B0B]/8 rounded-xl px-4 py-3 mb-4 flex gap-3 items-start">
           <span className="text-[18px]">🎬</span>
           <div>
-            <p className="text-[13px] font-semibold text-[#0B0B0B] mb-0.5">Paste any YouTube, Vimeo, Google Drive, or Gumlet link.</p>
-            <p className="text-[12px] text-[#0B0B0B]/50">Example: <span className="font-mono">https://play.gumlet.io/embed/abc123</span></p>
+            <p className="text-[13px] font-semibold text-[#0B0B0B] mb-0.5">Paste a video link OR the full embed code from Gumlet, YouTube, Vimeo, or Google Drive.</p>
+            <p className="text-[12px] text-[#0B0B0B]/50">Examples: <span className="font-mono">https://play.gumlet.io/embed/abc123</span> &nbsp;·&nbsp; <span className="font-mono">&lt;iframe src="…"&gt;&lt;/iframe&gt;</span></p>
           </div>
         </div>
-        <Input label="Video URL" value={data.videoUrl} onChange={e => set("videoUrl", e.target.value)} placeholder="https://youtube.com/watch?v=..." />
-        {data.videoUrl
-          ? <div className="mt-3 flex items-center gap-2 text-[12px] text-emerald-700 font-medium"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> Video URL set - live on page.</div>
-          : <div className="mt-3 flex items-center gap-2 text-[12px] text-[#0B0B0B]/40"><span className="w-2 h-2 rounded-full bg-[#0B0B0B]/20 inline-block" /> No video set - placeholder shown.</div>
-        }
+        <Textarea
+          label="Video URL or Embed Code"
+          value={data.videoUrl}
+          onChange={e => set("videoUrl", e.target.value)}
+          placeholder={'https://play.gumlet.io/embed/...  OR  <iframe src="..."></iframe>'}
+          className="min-h-[90px] font-mono text-[12px]"
+        />
+        {(() => {
+          if (!data.videoUrl) {
+            return <div className="mt-3 flex items-center gap-2 text-[12px] text-[#0B0B0B]/40"><span className="w-2 h-2 rounded-full bg-[#0B0B0B]/20 inline-block" /> No video set - placeholder shown.</div>;
+          }
+          const label = sourceLabel(data.videoUrl);
+          if (label) {
+            return <div className="mt-3 flex items-center gap-2 text-[12px] text-emerald-700 font-medium"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> {label} video detected — live on page.</div>;
+          }
+          return <div className="mt-3 flex items-center gap-2 text-[12px] text-amber-700 font-medium"><span className="w-2 h-2 rounded-full bg-amber-500 inline-block" /> URL not recognized. Supported: YouTube, Vimeo, Google Drive, Gumlet.</div>;
+        })()}
       </Card>
 
       {/* ── STEPS ── */}

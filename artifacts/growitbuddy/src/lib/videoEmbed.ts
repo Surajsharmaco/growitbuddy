@@ -17,8 +17,22 @@ function extractGumletId(pathname: string): string {
   return m?.[1] ?? "";
 }
 
+// If the admin pasted a full iframe / embed snippet (e.g. the HTML block
+// Gumlet, YouTube, Vimeo, etc. give in their "Share" dialog) instead of a
+// bare URL, pull the first src="…" out of it so the rest of the parser
+// can work as usual. Falls back to the input trimmed.
+export function extractEmbedUrl(input: string): string {
+  if (!input) return "";
+  const trimmed = input.trim();
+  // Look for src="..." or src='...' anywhere in the string
+  const m = trimmed.match(/\bsrc\s*=\s*["']([^"']+)["']/i);
+  if (m) return m[1].trim();
+  return trimmed;
+}
+
 export function parseVideo(url: string): ParsedVideo {
   if (!url) return { source: null, id: "" };
+  url = extractEmbedUrl(url);
   try {
     const u = new URL(url.trim());
     const h = u.hostname.toLowerCase();
