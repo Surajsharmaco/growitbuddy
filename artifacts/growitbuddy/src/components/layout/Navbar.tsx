@@ -3,18 +3,7 @@ import { ArrowUpRight, ChevronDown } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import { usePublicContent } from "@/hooks/usePublicContent";
-
-interface NavbarData {
-  logo: string;
-  ctaLabel: string;
-  ctaPath: string;
-}
-
-const NAVBAR_DEFAULTS: NavbarData = {
-  logo: "GrowitBuddy",
-  ctaLabel: "Book a Call",
-  ctaPath: "https://cal.com/growitbuddy.com/growth-strategy-call",
-};
+import { NAVBAR_DEFAULTS, type NavbarData } from "@/lib/navbarDefaults";
 
 type NavDropdownItem = { href: string; label: string; subtitle: string };
 type NavLink =

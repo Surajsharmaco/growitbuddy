@@ -2,69 +2,7 @@ import { useEffect, useState } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, SaveBar } from "@/components/admin/AdminField";
 import { Plus, Trash2 } from "lucide-react";
-
-interface FooterLink { label: string; path: string; }
-interface FooterColumn { title: string; links: FooterLink[]; }
-
-interface FooterData {
-  tagline: string;
-  email: string;
-  linkedin: string;
-  twitter: string;
-  instagram: string;
-  columns: FooterColumn[];
-  legalText: string;
-}
-
-const DEFAULTS: FooterData = {
-  tagline: "The premium content & authority studio for founders, creators and brands.",
-  email: "cs.growitbuddy@gmail.com",
-  linkedin: "",
-  twitter: "",
-  instagram: "",
-  columns: [
-    {
-      title: "Services",
-      links: [
-        { label: "Authority Strategy", path: "/services" },
-        { label: "Content Systems", path: "/services" },
-        { label: "Video Editing", path: "/services" },
-        { label: "Distribution", path: "/services" },
-      ],
-    },
-    {
-      title: "Company",
-      links: [
-        { label: "About", path: "/about" },
-        { label: "Work", path: "/work" },
-        { label: "Framework", path: "/framework" },
-        { label: "Blog", path: "/blog" },
-        { label: "Resources", path: "/resources" },
-        { label: "Contact", path: "/contact" },
-      ],
-    },
-    {
-      title: "Network",
-      links: [
-        { label: "Influencer Directory", path: "/influencers" },
-        { label: "Distribution Network", path: "/distribution" },
-        { label: "Creator Onboarding", path: "/creators" },
-        { label: "Join Network", path: "/join" },
-        { label: "Creator School", path: "/editors-pool" },
-      ],
-    },
-    {
-      title: "Careers",
-      links: [
-        { label: "Talent Network", path: "/freelancers" },
-        { label: "Full-time Jobs", path: "/full-time" },
-        { label: "Internship", path: "/internship" },
-        { label: "Authority Audit", path: "/authority-audit" },
-      ],
-    },
-  ],
-  legalText: "2026 GrowitBuddy. All rights reserved.",
-};
+import { FOOTER_DEFAULTS as DEFAULTS, type FooterData, type FooterColumn, type FooterLink } from "@/lib/footerDefaults";
 
 export default function AdminFooter() {
   const { getContent, saveContent } = useAdmin();
