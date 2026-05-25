@@ -4,63 +4,9 @@ import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/comp
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
 import { Plus, Trash2, ChevronDown, ChevronUp, GripVertical } from "lucide-react";
 
-interface Service {
-  id: string;
-  title: string;
-  subtitle: string;
-  headline: string;
-  description: string;
-  features: string[];
-  badge: string;
-}
+import { SERVICES_DEFAULTS, type ServiceItem as Service, type ServicesStat as Stat } from "@/lib/servicesDefaults";
+const DEFAULT_SERVICES = SERVICES_DEFAULTS.services;
 
-const DEFAULT_SERVICES: Service[] = [
-  {
-    id: "1",
-    title: "Personal Branding Strategy",
-    subtitle: "Positioning & Narrative",
-    badge: "",
-    headline: "Define exactly how you are positioned before you create a single piece of content.",
-    description: "We design your personal branding strategy, narrative, and content direction so every piece you put out reinforces exactly what you want to be known for.",
-    features: ["Positioning & Narrative Design", "Target Audience Research", "90-Day Content Roadmap", "Competitive Landscape Analysis", "Content Themes & Pillars"],
-  },
-  {
-    id: "2",
-    title: "Content Strategy Services",
-    subtitle: "Done-For-You Production",
-    badge: "Most Popular",
-    headline: "A content strategy that produces great content consistently.",
-    description: "We build a repeatable content engine around your expertise - ghostwriting, visual assets, newsletters, and platform-native formats that produce results week after week.",
-    features: ["Ghostwriting", "Visual Asset Creation", "Newsletter Systems", "Platform-Native Formatting", "Content Calendar"],
-  },
-  {
-    id: "3",
-    title: "Video Marketing",
-    subtitle: "Short & Long-Form",
-    badge: "",
-    headline: "Video marketing that captures attention and keeps it.",
-    description: "High-retention editing for short and long-form video - structured to perform on the algorithm and built to make your expertise look as sharp as it actually is.",
-    features: ["Short-Form Clips", "Long-Form Editing", "Thumbnail Design", "Retention Optimization", "Caption Systems"],
-  },
-  {
-    id: "4",
-    title: "Content Distribution Strategy",
-    subtitle: "Reach & Amplification",
-    badge: "",
-    headline: "A content distribution strategy that reaches the right people every time.",
-    description: "Make sure your content doesn't just get posted - it gets seen by the people who actually matter. Structured distribution across the platforms and channels where your audience lives.",
-    features: ["Platform Growth Strategy", "Cross-Platform Reach", "Engagement Optimization", "Community Building", "Paid Amplification"],
-  },
-  {
-    id: "5",
-    title: "Personal Brand Growth",
-    subtitle: "Full-Stack Authority",
-    badge: "",
-    headline: "Become the most recognized name in your category.",
-    description: "Profile optimization, media placement, network expansion, and speaking opportunities - a full-stack personal branding approach to owning your space in the market.",
-    features: ["Profile Optimization", "Network Expansion", "Monetization Strategy", "PR & Media Placements", "Speaking Outreach"],
-  },
-];
 
 function ServiceRow({
   service,
@@ -130,19 +76,15 @@ function ServiceRow({
             rows={5}
             hint="Each line becomes a bullet point feature"
           />
+          <div className="grid grid-cols-2 gap-3">
+            <Input label="CTA Button Label" value={service.cta || ""} onChange={(e) => set({ cta: e.target.value })} placeholder="Build Authority" hint="Button shown on the service card" />
+            <Input label="Note (optional)" value={service.note || ""} onChange={(e) => set({ note: e.target.value })} placeholder="Starting at $5k/mo" hint="Small note shown under the CTA" />
+          </div>
         </div>
       )}
     </Card>
   );
 }
-
-interface Stat { num: string; label: string; }
-
-const DEFAULT_STATS: Stat[] = [
-  { num: "700M+", label: "Views Generated Across Content Networks" },
-  { num: "200+",  label: "Founders & Brands Served" },
-  { num: "90K+",  label: "Content Assets Created Across High-Volume Pages" },
-];
 
 export default function AdminServices() {
   const { getContent, saveContent } = useAdmin();
@@ -154,7 +96,7 @@ export default function AdminServices() {
   const [heroHeadline, setHeroHeadline] = useState("The content systems behind authority and inbound demand.");
   const [heroSubtext, setHeroSubtext] = useState("We don't just create content. We build the content marketing infrastructure that turns your expertise into recognition, trust, and consistent inbound opportunities.");
   const [heroCTA, setHeroCTA] = useState("Book a strategy call");
-  const [stats, setStats] = useState<Stat[]>(DEFAULT_STATS);
+  const [stats, setStats] = useState<Stat[]>(SERVICES_DEFAULTS.stats);
 
   useEffect(() => {
     getContent("services").then((d) => {
@@ -194,7 +136,7 @@ export default function AdminServices() {
 
   function addNew() {
     setSaved(false);
-    setServices((p) => [...p, { id: Date.now().toString(), title: "", subtitle: "", headline: "", badge: "", description: "", features: [] }]);
+    setServices((p) => [...p, { id: Date.now().toString(), title: "", subtitle: "", headline: "", badge: "", description: "", features: [], cta: "", note: "" }]);
   }
 
   return (
