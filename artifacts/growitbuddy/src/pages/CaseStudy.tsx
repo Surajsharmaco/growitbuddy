@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRoute, useLocation, Link } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, CheckCircle2, Quote } from "lucide-react";
 
 import { API_BASE } from "@/lib/api";
 
@@ -32,16 +32,17 @@ interface PortfolioItem {
   caseStudy?: CaseStudyData | null;
 }
 
-const SERIF = `'Fraunces', 'Times New Roman', Georgia, serif`;
-const CREAM = "#F8F8F6";
-const CREAM_DEEP = "#EFEFEA";
-const INK = "#0A0A0A";
+// ── Site theme constants (match Home / rest of site) ──
+const BG = "#F8F8F6";
+const BG_ALT = "#EFEFEA";
+const CARD = "#FFFFFF";
+const TEXT = "#0A0A0A";
 const SLATE = "#1E293B";
 const MUTED = "#5F5F5F";
+const MUTED_SOFT = "#8A8A8A";
+const RULE = "#E5E5E0";
 const GOLD = "#C2A878";
-const RULE = "#E0DED6";
 
-// Stable, neutral hero images per category (picsum seeds — always available)
 const HERO_SEEDS: Record<string, string[]> = {
   "Personal Branding": ["pb-1", "pb-2", "pb-3"],
   "Graphics": ["gx-1", "gx-2", "gx-3"],
@@ -72,7 +73,6 @@ function getEmbedUrl(url: string): string {
   return videoId ? `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1` : "";
 }
 
-// Category-tailored dummy copy
 function dummyContent(item: PortfolioItem) {
   const cat = item.category;
   const verb = cat.includes("Web") ? "build" : cat.includes("AI") ? "automate" : "scale";
@@ -132,15 +132,15 @@ export default function CaseStudy() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: "100vh", background: CREAM, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ width: 36, height: 36, borderRadius: "50%", border: "3px solid #E5E5E0", borderTopColor: SLATE }} className="animate-spin" />
+      <div style={{ minHeight: "100vh", background: BG, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: 36, height: 36, borderRadius: "50%", border: `3px solid ${RULE}`, borderTopColor: SLATE }} className="animate-spin" />
       </div>
     );
   }
 
   if (notFound || !item) {
     return (
-      <div style={{ minHeight: "100vh", background: CREAM, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <div style={{ minHeight: "100vh", background: BG, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div style={{ textAlign: "center" }}>
           <p style={{ fontSize: 16, color: MUTED, marginBottom: 16 }}>Case study not found.</p>
           <Link href="/portfolio" style={{ color: SLATE, fontWeight: 700, textDecoration: "underline" }}>
@@ -173,17 +173,12 @@ export default function CaseStudy() {
         ],
   };
 
-  const heroImg = cs?.heroImageUrl || cs?.coverImageUrl || picsum(`${seeds[0]}-${item.id}`, 1800, 1100);
+  const heroImg = cs?.heroImageUrl || cs?.coverImageUrl || picsum(`${seeds[0]}-${item.id}`, 1600, 900);
   const gallery = (cs?.galleryImages && cs.galleryImages.length > 0)
-    ? cs.galleryImages.slice(0, 3)
-    : [
-        picsum(`${seeds[1]}-${item.id}`, 1200, 1500),
-        picsum(`${seeds[2]}-${item.id}`, 900, 600),
-        picsum(`${seeds[0]}-alt-${item.id}`, 900, 600),
-      ];
+    ? cs.galleryImages.slice(0, 2)
+    : [picsum(`${seeds[1]}-${item.id}`, 900, 600), picsum(`${seeds[2]}-${item.id}`, 900, 600)];
   const embedUrl = getEmbedUrl(cs?.videoUrl || item.youtubeUrl);
   const categorySlug = params?.category ?? "";
-
   const yearLabel = new Date().getFullYear().toString();
   const roleLabel = item.category.includes("Web") ? "Design & Build"
     : item.category.includes("AI") ? "Strategy & Automation"
@@ -197,18 +192,24 @@ export default function CaseStudy() {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
   };
 
+  // Eyebrow style used site-wide
+  const eyebrow: React.CSSProperties = {
+    fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase",
+    color: GOLD, margin: 0,
+  };
+
   return (
-    <div style={{ minHeight: "100vh", background: CREAM, color: INK }}>
-      {/* ── BACK STRIP ── */}
-      <div style={{ borderBottom: `1px solid ${RULE}`, background: CREAM }}>
-        <div style={{ maxWidth: 1240, margin: "0 auto", padding: "20px 28px" }}>
+    <div style={{ minHeight: "100vh", background: BG, color: TEXT, fontFamily: "'Inter', sans-serif" }}>
+      {/* ── Back strip ── */}
+      <div style={{ borderBottom: `1px solid ${RULE}`, background: BG }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "20px 24px" }}>
           <a
             href={`/portfolio/${categorySlug}`}
             onClick={(e) => go(e, `/portfolio/${categorySlug}`)}
             style={{
               display: "inline-flex", alignItems: "center", gap: 8,
-              color: MUTED, fontSize: 12, fontWeight: 600,
-              letterSpacing: "0.08em", textTransform: "uppercase",
+              color: MUTED, fontSize: 12, fontWeight: 700,
+              letterSpacing: "0.12em", textTransform: "uppercase",
               textDecoration: "none",
             }}
             className="hover:!text-[#0A0A0A]"
@@ -218,47 +219,38 @@ export default function CaseStudy() {
         </div>
       </div>
 
-      {/* ── EDITORIAL HERO ── */}
-      <section style={{ padding: "72px 28px 56px" }}>
-        <div style={{ maxWidth: 1240, margin: "0 auto" }}>
-          {/* Kicker row */}
+      {/* ── HERO ── */}
+      <section style={{ padding: "80px 24px 56px" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 28 }}>
-            <span style={{ width: 36, height: 1, background: GOLD }} />
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: GOLD }}>
-              Case Study № {String(item.id).padStart(3, "0")}
-            </span>
+            <span style={{ width: 32, height: 1, background: GOLD }} />
+            <p style={eyebrow}>Case Study · {item.category}</p>
           </div>
 
-          {/* Title */}
           <h1
             style={{
-              fontFamily: SERIF,
-              fontWeight: 400,
-              fontSize: "clamp(44px, 7.8vw, 104px)",
-              letterSpacing: "-0.03em",
-              lineHeight: 0.98,
-              color: INK,
+              fontWeight: 800,
+              fontSize: "clamp(36px, 6.5vw, 72px)",
+              letterSpacing: "-0.04em",
+              lineHeight: 1.04,
+              color: TEXT,
               margin: 0,
-              maxWidth: "16ch",
-              fontStyle: "normal",
+              maxWidth: "20ch",
             }}
           >
             {item.title}
           </h1>
 
-          {/* Dek (subtitle) */}
           {item.description && (
             <p
               style={{
-                fontFamily: SERIF,
-                fontWeight: 300,
-                fontStyle: "italic",
-                fontSize: "clamp(20px, 2.2vw, 26px)",
+                fontSize: "clamp(17px, 1.6vw, 20px)",
                 color: MUTED,
-                lineHeight: 1.45,
-                marginTop: 28,
+                lineHeight: 1.6,
+                marginTop: 24,
                 marginBottom: 0,
-                maxWidth: "48ch",
+                maxWidth: "62ch",
+                fontWeight: 500,
               }}
             >
               {item.description}
@@ -287,7 +279,7 @@ export default function CaseStudy() {
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: GOLD, marginBottom: 8 }}>
                   {m.label}
                 </div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: INK, letterSpacing: "-0.005em" }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: TEXT, letterSpacing: "-0.01em" }}>
                   {m.value}
                 </div>
               </div>
@@ -296,18 +288,20 @@ export default function CaseStudy() {
         </div>
       </section>
 
-      {/* ── FULL-BLEED HERO IMAGE ── */}
-      <section style={{ padding: "0 28px 96px" }}>
-        <div style={{ maxWidth: 1240, margin: "0 auto" }}>
+      {/* ── HERO IMAGE ── */}
+      <section style={{ padding: "0 24px 88px" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <motion.div
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.55 }}
             style={{
+              position: "relative",
+              borderRadius: 22,
               overflow: "hidden",
-              borderRadius: 4,
-              background: CREAM_DEEP,
-              boxShadow: "0 40px 80px -30px rgba(10,10,10,0.25)",
+              border: `1px solid ${RULE}`,
+              background: BG_ALT,
+              boxShadow: "0 30px 80px -30px rgba(10,10,10,0.25)",
             }}
           >
             {cs?.clientLogoUrl && (
@@ -315,19 +309,20 @@ export default function CaseStudy() {
                 style={{
                   position: "absolute",
                   zIndex: 2,
-                  margin: 20,
+                  top: 20, left: 20,
                   background: "rgba(255,255,255,0.95)",
-                  borderRadius: 6,
-                  padding: "8px 12px",
-                  display: "flex",
+                  borderRadius: 100,
+                  padding: "8px 14px",
+                  display: "inline-flex",
                   alignItems: "center",
-                  gap: 8,
-                  boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
+                  gap: 10,
+                  border: `1px solid ${RULE}`,
+                  boxShadow: "0 4px 14px rgba(0,0,0,0.06)",
                 }}
               >
-                <img src={cs.clientLogoUrl} alt={cs.clientName ?? "Client"} style={{ width: 22, height: 22, objectFit: "contain" }} />
+                <img src={cs.clientLogoUrl} alt={cs.clientName ?? "Client"} style={{ width: 22, height: 22, objectFit: "contain", borderRadius: 4 }} />
                 {cs.clientName && (
-                  <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.04em", color: INK }}>{cs.clientName}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.04em", color: TEXT }}>{cs.clientName}</span>
                 )}
               </div>
             )}
@@ -341,16 +336,15 @@ export default function CaseStudy() {
         </div>
       </section>
 
-      {/* ── METRICS — editorial numerals ── */}
-      <section style={{ padding: "0 28px 96px" }}>
-        <div
-          style={{
-            maxWidth: 1240,
-            margin: "0 auto",
-            borderTop: `1px solid ${RULE}`,
-            borderBottom: `1px solid ${RULE}`,
-          }}
-        >
+      {/* ── METRICS STRIP — same visual language as Home stats ── */}
+      <section
+        style={{
+          borderTop: `1px solid ${RULE}`,
+          borderBottom: `1px solid ${RULE}`,
+          background: CARD,
+        }}
+      >
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
           <div
             className="metrics-grid"
             style={{
@@ -364,36 +358,35 @@ export default function CaseStudy() {
                 initial={{ opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.08, duration: 0.5 }}
+                transition={{ delay: i * 0.06, duration: 0.45 }}
                 style={{
                   padding: "56px 28px",
-                  textAlign: "left",
+                  textAlign: "center",
                   borderLeft: i === 0 ? "none" : `1px solid ${RULE}`,
                 }}
                 className="metric-cell"
               >
+                <div style={{ width: 32, height: 2, background: GOLD, borderRadius: 2, margin: "0 auto 20px" }} />
                 <div
                   style={{
-                    fontFamily: SERIF,
-                    fontWeight: 400,
-                    fontSize: "clamp(48px, 6vw, 84px)",
+                    fontSize: "clamp(36px, 4.5vw, 56px)",
+                    fontWeight: 800,
                     letterSpacing: "-0.04em",
-                    color: INK,
-                    lineHeight: 0.95,
-                    marginBottom: 14,
+                    color: TEXT,
+                    lineHeight: 1,
+                    marginBottom: 12,
                   }}
                 >
                   {m.value}
                 </div>
-                <div style={{ width: 28, height: 1, background: GOLD, marginBottom: 14 }} />
                 <div
                   style={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    letterSpacing: "0.06em",
-                    textTransform: "uppercase",
-                    color: MUTED,
-                    lineHeight: 1.4,
+                    fontSize: 13,
+                    color: MUTED_SOFT,
+                    fontWeight: 500,
+                    maxWidth: "20ch",
+                    lineHeight: 1.6,
+                    margin: "0 auto",
                   }}
                 >
                   {m.label}
@@ -404,165 +397,91 @@ export default function CaseStudy() {
         </div>
       </section>
 
-      {/* ── OVERVIEW + CHALLENGE ── */}
-      <Section label="Overview" heading="The brief, and the bigger picture.">
-        <p
-          style={{
-            fontFamily: SERIF,
-            fontWeight: 400,
-            fontSize: "clamp(22px, 2.2vw, 28px)",
-            lineHeight: 1.45,
-            color: INK,
-            margin: 0,
-            marginBottom: 28,
-            letterSpacing: "-0.01em",
-          }}
-        >
-          <span
-            style={{
-              fontFamily: SERIF,
-              fontSize: "clamp(56px, 7vw, 88px)",
-              fontWeight: 500,
-              float: "left",
-              lineHeight: 0.85,
-              marginRight: 14,
-              marginTop: 6,
-              color: GOLD,
-            }}
-          >
-            {content.overview.charAt(0)}
-          </span>
-          {content.overview.slice(1)}
+      {/* ── OVERVIEW ── */}
+      <Section label="Overview" heading="How we approached this project.">
+        <p style={{ fontSize: 17, color: TEXT, lineHeight: 1.75, marginTop: 0, marginBottom: 22, fontWeight: 500 }}>
+          {content.overview}
         </p>
-        <p style={{ fontSize: 16.5, color: MUTED, lineHeight: 1.8, margin: 0 }}>
+        <p style={{ fontSize: 16, color: MUTED, lineHeight: 1.75, margin: 0 }}>
           {content.challenge}
         </p>
       </Section>
 
-      {/* ── PULL QUOTE 1 ── */}
-      {content.testimonial.quote && (
-        <section style={{ padding: "16px 28px 48px" }}>
-          <div style={{ maxWidth: 1040, margin: "0 auto", textAlign: "center" }}>
-            <span style={{ fontFamily: SERIF, fontSize: 80, fontWeight: 500, color: GOLD, lineHeight: 0.4, display: "inline-block", marginBottom: 8 }}>
-              “
-            </span>
-            <p
+      {/* ── IMAGE GALLERY ── */}
+      <section style={{ padding: "0 24px 56px" }}>
+        <div
+          className="gallery-2"
+          style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 22 }}
+        >
+          {gallery.map((src, i) => (
+            <div
+              key={i}
               style={{
-                fontFamily: SERIF,
-                fontWeight: 400,
-                fontStyle: "italic",
-                fontSize: "clamp(26px, 3.4vw, 44px)",
-                lineHeight: 1.3,
-                color: INK,
-                letterSpacing: "-0.02em",
-                margin: 0,
+                borderRadius: 22,
+                overflow: "hidden",
+                border: `1px solid ${RULE}`,
+                background: BG_ALT,
               }}
             >
-              {content.testimonial.quote}
-            </p>
-            <div style={{ marginTop: 28, display: "inline-flex", alignItems: "center", gap: 12 }}>
-              <span style={{ width: 24, height: 1, background: GOLD }} />
-              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: MUTED }}>
-                {content.testimonial.author}
-              </span>
-              <span style={{ width: 24, height: 1, background: GOLD }} />
+              <img
+                src={src}
+                alt=""
+                loading="lazy"
+                style={{ display: "block", width: "100%", aspectRatio: "3/2", objectFit: "cover" }}
+              />
             </div>
-          </div>
-        </section>
-      )}
-
-      {/* ── ASYMMETRIC GALLERY ── */}
-      <section style={{ padding: "48px 28px 24px" }}>
-        <div
-          className="gallery-grid"
-          style={{
-            maxWidth: 1240,
-            margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "1.15fr 1fr",
-            gap: 22,
-          }}
-        >
-          <div style={{ borderRadius: 4, overflow: "hidden", background: CREAM_DEEP }}>
-            <img
-              src={gallery[0]}
-              alt=""
-              loading="lazy"
-              style={{ display: "block", width: "100%", aspectRatio: "4/5", objectFit: "cover" }}
-            />
-          </div>
-          <div style={{ display: "grid", gridTemplateRows: "1fr 1fr", gap: 22 }}>
-            {gallery.slice(1, 3).map((src, i) => (
-              <div key={i} style={{ borderRadius: 4, overflow: "hidden", background: CREAM_DEEP }}>
-                <img
-                  src={src}
-                  alt=""
-                  loading="lazy"
-                  style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              </div>
-            ))}
-          </div>
+          ))}
         </div>
       </section>
 
       {/* ── APPROACH ── */}
-      <Section label="Approach" heading="First principles, then execution.">
-        <p style={{ fontSize: 17, color: INK, lineHeight: 1.75, marginBottom: 32, fontWeight: 400 }}>
+      <Section label="Approach" heading="First-principles, then execution.">
+        <p style={{ fontSize: 17, color: TEXT, lineHeight: 1.75, marginTop: 0, marginBottom: 28, fontWeight: 500 }}>
           {content.approach}
         </p>
-        <ol
-          style={{
-            listStyle: "none",
-            padding: 0,
-            margin: 0,
-            counterReset: "step",
-          }}
-        >
+        <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 14 }}>
           {content.approachBullets.map((line, i) => (
             <li
               key={i}
               style={{
-                display: "grid",
-                gridTemplateColumns: "auto 1fr",
-                gap: 24,
-                padding: "22px 0",
-                borderTop: i === 0 ? `1px solid ${RULE}` : "none",
-                borderBottom: `1px solid ${RULE}`,
-                alignItems: "baseline",
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 14,
+                padding: "16px 20px",
+                background: CARD,
+                border: `1px solid ${RULE}`,
+                borderRadius: 14,
+                fontSize: 15,
+                color: TEXT,
+                lineHeight: 1.55,
+                fontWeight: 500,
               }}
             >
-              <span
-                style={{
-                  fontFamily: SERIF,
-                  fontWeight: 400,
-                  fontSize: 22,
-                  color: GOLD,
-                  letterSpacing: "-0.02em",
-                  fontVariantNumeric: "tabular-nums",
-                }}
-              >
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <span style={{ fontSize: 16.5, color: INK, lineHeight: 1.6, fontWeight: 500 }}>
-                {line}
-              </span>
+              <CheckCircle2 size={20} style={{ color: SLATE, flexShrink: 0, marginTop: 1 }} />
+              {line}
             </li>
           ))}
-        </ol>
+        </ul>
       </Section>
 
-      {/* ── EMBEDDED VIDEO ── */}
+      {/* ── VIDEO ── */}
       {embedUrl && (
-        <section style={{ padding: "24px 28px 48px" }}>
-          <div style={{ maxWidth: 1240, margin: "0 auto" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 24 }}>
-              <span style={{ width: 36, height: 1, background: GOLD }} />
-              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: GOLD }}>
-                Project Walkthrough
-              </span>
+        <section style={{ padding: "24px 24px 48px" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20, justifyContent: "center" }}>
+              <span style={{ width: 32, height: 1, background: GOLD }} />
+              <p style={eyebrow}>Project Walkthrough</p>
+              <span style={{ width: 32, height: 1, background: GOLD }} />
             </div>
-            <div style={{ borderRadius: 4, overflow: "hidden", background: INK, boxShadow: "0 30px 60px -20px rgba(10,10,10,0.35)" }}>
+            <div
+              style={{
+                borderRadius: 22,
+                overflow: "hidden",
+                border: `1px solid ${RULE}`,
+                background: TEXT,
+                boxShadow: "0 20px 60px -20px rgba(15,23,42,0.25)",
+              }}
+            >
               <div style={{ position: "relative", aspectRatio: "16/9" }}>
                 <iframe
                   src={embedUrl}
@@ -579,76 +498,108 @@ export default function CaseStudy() {
       )}
 
       {/* ── SOLUTION + STACK ── */}
-      <Section label="Outcome" heading="The system we shipped.">
-        <p style={{ fontSize: 17, color: INK, lineHeight: 1.75, marginBottom: 36, fontWeight: 400 }}>
+      <Section label="Solution" heading="The system we shipped.">
+        <p style={{ fontSize: 17, color: TEXT, lineHeight: 1.75, marginTop: 0, marginBottom: 28, fontWeight: 500 }}>
           {content.solution}
         </p>
-        <div style={{ paddingTop: 24, borderTop: `1px solid ${RULE}` }}>
-          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: GOLD, marginBottom: 16 }}>
-            Tools & Stack
-          </p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {content.stack.map((s) => (
-              <span
-                key={s}
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  letterSpacing: "0.04em",
-                  padding: "9px 16px",
-                  borderRadius: 100,
-                  background: "transparent",
-                  border: `1px solid ${INK}`,
-                  color: INK,
-                }}
-              >
-                {s}
-              </span>
-            ))}
-          </div>
+        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: MUTED_SOFT, marginBottom: 14 }}>
+          Stack
+        </p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          {content.stack.map((s) => (
+            <span
+              key={s}
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: "0.06em",
+                padding: "8px 14px",
+                borderRadius: 100,
+                background: CARD,
+                border: `1px solid ${RULE}`,
+                color: SLATE,
+              }}
+            >
+              {s}
+            </span>
+          ))}
         </div>
       </Section>
 
-      {/* ── CTA ── */}
-      <section style={{ padding: "96px 28px 140px", borderTop: `1px solid ${RULE}`, marginTop: 64 }}>
-        <div style={{ maxWidth: 920, margin: "0 auto", textAlign: "center" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 14, marginBottom: 28 }}>
-            <span style={{ width: 36, height: 1, background: GOLD }} />
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: GOLD }}>
-              Next Chapter
-            </span>
-            <span style={{ width: 36, height: 1, background: GOLD }} />
-          </div>
-          <h3
+      {/* ── TESTIMONIAL — dark slate card like Home problem section ── */}
+      <section style={{ padding: "32px 24px 64px" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
             style={{
-              fontFamily: SERIF,
-              fontWeight: 400,
-              fontSize: "clamp(34px, 5.2vw, 64px)",
-              letterSpacing: "-0.03em",
-              color: INK,
-              lineHeight: 1.05,
-              margin: 0,
-              marginBottom: 24,
+              background: SLATE,
+              borderRadius: 22,
+              padding: "56px 48px",
+              position: "relative",
+              overflow: "hidden",
+              color: "#FFFFFF",
             }}
           >
-            Want a case study<br />
-            <em style={{ fontWeight: 400, color: GOLD }}>with your name on it?</em>
+            <div style={{ position: "absolute", top: 0, left: 32, right: 32, height: 2, background: "linear-gradient(90deg, #C2A878 0%, transparent 100%)", borderRadius: 1 }} />
+            <Quote size={44} style={{ color: "rgba(194,168,120,0.45)", marginBottom: 18 }} />
+            <p
+              style={{
+                fontSize: "clamp(20px, 2.4vw, 28px)",
+                fontWeight: 700,
+                letterSpacing: "-0.02em",
+                lineHeight: 1.4,
+                color: "#FFFFFF",
+                margin: 0,
+                marginBottom: 26,
+                maxWidth: "48ch",
+              }}
+            >
+              "{content.testimonial.quote}"
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <span style={{ width: 24, height: 1, background: GOLD }} />
+              <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: GOLD, margin: 0 }}>
+                {content.testimonial.author}
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── CTA ── */}
+      <section style={{ padding: "32px 24px 112px", textAlign: "center" }}>
+        <div style={{ maxWidth: 920, margin: "0 auto" }}>
+          <h3
+            style={{
+              fontWeight: 800,
+              fontSize: "clamp(26px, 3.6vw, 42px)",
+              letterSpacing: "-0.035em",
+              color: TEXT,
+              lineHeight: 1.08,
+              margin: 0,
+              marginBottom: 18,
+            }}
+          >
+            Want results like these?
           </h3>
-          <p style={{ fontSize: 17, color: MUTED, marginBottom: 40, maxWidth: "52ch", marginLeft: "auto", marginRight: "auto", lineHeight: 1.65 }}>
+          <p style={{ fontSize: 16, color: MUTED, marginBottom: 32, maxWidth: "48ch", marginLeft: "auto", marginRight: "auto", lineHeight: 1.6 }}>
             We work with a small number of founders each quarter. If you're serious about building a system that compounds, let's talk.
           </p>
           <a
             href="/contact"
             onClick={(e) => go(e, "/contact")}
             style={{
-              display: "inline-flex", alignItems: "center", gap: 10,
-              padding: "18px 34px", borderRadius: 100,
-              background: INK, color: "#fff",
-              fontSize: 13, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
+              display: "inline-flex", alignItems: "center", gap: 8,
+              padding: "16px 30px", borderRadius: 100,
+              background: SLATE, color: "#FFFFFF",
+              fontSize: 14, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase",
               textDecoration: "none",
               transition: "background 0.2s, transform 0.2s",
             }}
-            className="hover:!bg-[#1E293B] hover:scale-[1.03]"
+            className="hover:!bg-[#0A0A0A] hover:scale-[1.03]"
           >
             Start a project <ArrowUpRight size={18} />
           </a>
@@ -661,8 +612,8 @@ export default function CaseStudy() {
           .metric-cell { border-left: none !important; border-top: 1px solid ${RULE}; }
           .metric-cell:nth-child(-n+2) { border-top: none; }
           .metric-cell:nth-child(even) { border-left: 1px solid ${RULE} !important; }
-          .two-col { grid-template-columns: 1fr !important; gap: 28px !important; }
-          .gallery-grid { grid-template-columns: 1fr !important; }
+          .two-col { grid-template-columns: 1fr !important; gap: 24px !important; }
+          .gallery-2 { grid-template-columns: 1fr !important; }
           .byline { grid-template-columns: repeat(2, 1fr) !important; row-gap: 20px !important; }
         }
       `}</style>
@@ -670,36 +621,35 @@ export default function CaseStudy() {
   );
 }
 
-// ── Reusable editorial section (sticky label column, narrow editorial body) ──
+// ── Reusable section with label column + body column (same as site convention) ──
 function Section({ label, heading, children }: { label: string; heading: string; children: React.ReactNode }) {
   return (
-    <section style={{ padding: "72px 28px" }}>
+    <section style={{ padding: "72px 24px" }}>
       <div
         className="two-col"
         style={{
-          maxWidth: 1240,
+          maxWidth: 1200,
           margin: "0 auto",
           display: "grid",
-          gridTemplateColumns: "0.7fr 1.6fr",
-          gap: 64,
+          gridTemplateColumns: "1fr 1.4fr",
+          gap: 48,
           alignItems: "start",
         }}
       >
-        <div style={{ position: "sticky", top: 100 }}>
+        <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
             <span style={{ width: 20, height: 1, background: GOLD }} />
-            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: GOLD }}>
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: GOLD, margin: 0 }}>
               {label}
-            </span>
+            </p>
           </div>
           <h2
             style={{
-              fontFamily: SERIF,
-              fontWeight: 400,
-              fontSize: "clamp(28px, 3.4vw, 44px)",
-              letterSpacing: "-0.025em",
-              lineHeight: 1.05,
-              color: INK,
+              fontWeight: 800,
+              fontSize: "clamp(26px, 3.4vw, 40px)",
+              letterSpacing: "-0.035em",
+              lineHeight: 1.1,
+              color: TEXT,
               margin: 0,
             }}
           >
