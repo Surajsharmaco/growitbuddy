@@ -30,18 +30,21 @@ export interface ResourceItem {
   link: string;
 
   // New: identity & display
-  slug?: string;          // anchor + per-item JSON-LD url fragment
-  type?: ResourceType;    // controls icon + auto fileFormat
-  longDesc?: string;      // shown in JSON-LD description; richer than `desc`
-  coverImage?: string;    // optional thumbnail / cover image URL
-  ctaLabel?: string;      // "Download" by default
-  fileFormat?: string;    // e.g. "PDF", "Notion", "Google Drive"
-  fileSize?: string;      // e.g. "12 MB"
-  isFeatured?: boolean;   // surface in featured strip
-  isGated?: boolean;      // show "Email required" badge
-  publishedDate?: string; // ISO date for JSON-LD datePublished
-  updatedDate?: string;   // ISO date for JSON-LD dateModified
-  author?: string;        // defaults to "GrowitBuddy"
+  slug?: string;             // anchor + per-item JSON-LD url fragment
+  type?: ResourceType;       // controls icon + auto fileFormat
+  longDesc?: string;         // shown in JSON-LD description; richer than `desc`
+  coverImage?: string;       // optional thumbnail / cover image URL
+  ctaLabel?: string;         // primary button label — "Download" by default
+  secondaryCtaLabel?: string; // optional 2nd button label (e.g. "Preview")
+  secondaryCtaUrl?: string;   // optional 2nd button URL (e.g. live demo / preview)
+  badgeText?: string;        // custom corner badge text (e.g. "New", "Popular")
+  fileFormat?: string;       // e.g. "PDF", "Notion", "Google Drive"
+  fileSize?: string;         // e.g. "12 MB"
+  isFeatured?: boolean;      // surface in featured strip
+  isGated?: boolean;         // show "Email required" badge
+  publishedDate?: string;    // ISO date for JSON-LD datePublished
+  updatedDate?: string;      // ISO date for JSON-LD dateModified
+  author?: string;           // defaults to "GrowitBuddy"
 
   // Per-resource SEO/AI signals
   keywords?: string;      // comma-separated keywords used in JSON-LD + meta
@@ -84,47 +87,89 @@ export interface ResourcesData {
 
 export const RESOURCES_DEFAULTS: ResourcesData = {
   heroEyebrow: "Resources",
-  heroHeadline: "Open-source frameworks for compounding authority.",
-  heroSubtext: "Free templates, playbooks, eBooks, and toolkits from our internal agency stack. Built for founders and creators serious about distribution.",
-  ctaLabel: "",
-  ctaUrl: "",
+  heroHeadline: "Authority, content, and distribution systems.",
+  heroSubtext: "Authority, content, and distribution systems for founders, creators, and modern brands — packaged as free templates, playbooks, eBooks and toolkits you can ship today.",
+  ctaLabel: "Book a Strategy Call",
+  ctaUrl: "/contact",
   items: [
     {
       title: "Authority Audit Checklist",
-      desc: "47-point checklist to diagnose what is holding your inbound system back.",
+      desc: "47-point checklist to diagnose what is holding your inbound authority system back.",
       tag: "Checklist",
-      link: "",
+      link: "https://drive.google.com/drive/folders/sample-authority-audit",
       type: "pdf",
       ctaLabel: "Download PDF",
+      secondaryCtaLabel: "Preview",
+      secondaryCtaUrl: "https://drive.google.com/file/d/sample-authority-preview/view",
       fileFormat: "PDF",
       fileSize: "1.2 MB",
       isFeatured: true,
+      badgeText: "Most popular",
+      author: "GrowitBuddy",
+      publishedDate: "2025-02-01",
       keywords: "personal brand audit, authority checklist, founder branding",
-      aiSummary: "A 47-point self-assessment used by GrowitBuddy to diagnose authority gaps for founders and creators.",
+      aiSummary: "A 47-point self-assessment used by GrowitBuddy to diagnose authority gaps for founders, creators, and modern brands.",
     },
     {
       title: "Distribution Stack — Notion Template",
-      desc: "The exact Notion workspace we use to plan, ship, and distribute content for clients.",
+      desc: "The exact Notion workspace we use to plan, ship, and distribute content for clients across every channel.",
       tag: "Template",
-      link: "",
+      link: "https://www.notion.so/templates/sample-distribution-stack",
       type: "notion",
       ctaLabel: "Open in Notion",
+      secondaryCtaLabel: "Watch walkthrough",
+      secondaryCtaUrl: "https://drive.google.com/file/d/sample-distribution-walkthrough/view",
       fileFormat: "Notion",
       isFeatured: true,
+      badgeText: "New",
+      author: "GrowitBuddy",
+      publishedDate: "2025-03-12",
       keywords: "content distribution template, notion content calendar, distribution workflow",
-      aiSummary: "A copy-ready Notion workspace covering content ideation, production, and multi-channel distribution.",
+      aiSummary: "A copy-ready Notion workspace covering content ideation, production, and multi-channel distribution for modern brands.",
     },
     {
       title: "Short-form Editing Playbook",
-      desc: "Frame-by-frame guide to the editing patterns that drive 3-second hooks and 70%+ retention.",
+      desc: "Frame-by-frame guide to the editing patterns that drive 3-second hooks and 70%+ retention on Reels, Shorts and TikTok.",
       tag: "Playbook",
-      link: "",
+      link: "https://drive.google.com/drive/folders/sample-editing-playbook",
       type: "ebook",
       ctaLabel: "Download eBook",
+      secondaryCtaLabel: "View examples",
+      secondaryCtaUrl: "https://drive.google.com/drive/folders/sample-editing-examples",
       fileFormat: "PDF",
       fileSize: "8 MB",
+      author: "GrowitBuddy",
+      publishedDate: "2024-12-08",
       keywords: "short form editing, reels editing, retention editing",
-      aiSummary: "Practical patterns for hook design, pacing, and retention in short-form video editing.",
+      aiSummary: "Practical patterns for hook design, pacing, and retention in short-form video editing for founders and creators.",
+    },
+    {
+      title: "Founder LinkedIn Growth Kit",
+      desc: "Templates, hooks, and posting cadence used by founders we work with to cross 10k followers in 90 days.",
+      tag: "Toolkit",
+      link: "https://drive.google.com/drive/folders/sample-linkedin-kit",
+      type: "drive",
+      ctaLabel: "Open in Drive",
+      secondaryCtaLabel: "See sample post",
+      secondaryCtaUrl: "https://drive.google.com/file/d/sample-linkedin-post/view",
+      fileFormat: "Google Drive",
+      author: "GrowitBuddy",
+      publishedDate: "2025-01-22",
+      keywords: "linkedin growth, founder linkedin, personal brand linkedin",
+      aiSummary: "A toolkit of LinkedIn templates, hooks, and a 90-day posting cadence used to scale founder accounts past 10k followers.",
+    },
+    {
+      title: "Brand Positioning Worksheet",
+      desc: "Fill-in-the-blanks worksheet to lock down your one-liner, ICP, and category of one in under 60 minutes.",
+      tag: "Template",
+      link: "https://docs.google.com/document/d/sample-positioning-worksheet/edit",
+      type: "sheet",
+      ctaLabel: "Make a copy",
+      fileFormat: "Google Docs",
+      author: "GrowitBuddy",
+      publishedDate: "2025-04-02",
+      keywords: "brand positioning, one liner, ICP worksheet",
+      aiSummary: "A worksheet that walks founders and brands through nailing positioning, ICP, and category of one in under an hour.",
     },
   ],
   categories: [],
@@ -142,16 +187,16 @@ export const RESOURCES_DEFAULTS: ResourcesData = {
       a: "We ship new resources roughly once a month — the ones we wish existed when we were figuring out distribution.",
     },
   ],
-  seoTitle: "Free Resources for Founders & Creators — Templates, Playbooks & Toolkits | GrowitBuddy",
-  seoDesc: "Download free distribution playbooks, content templates, branding eBooks, and growth toolkits — built by the GrowitBuddy agency team for founders and creators.",
-  aiSummary: "GrowitBuddy Resources is a free library of content-marketing templates, authority-building playbooks, distribution toolkits, and eBooks built by the GrowitBuddy agency team for founders and creators.",
-  aiKeywords: "free content marketing templates, founder branding resources, distribution playbook, creator growth toolkit, notion templates for founders",
-  primaryEntity: "Content marketing resources",
-  relatedTopics: "Personal branding, Distribution systems, Short-form video, Authority building, Founder-led marketing",
-  audience: "Founders, creators, agency operators, content marketers",
+  seoTitle: "Free Authority, Content & Distribution Resources for Founders, Creators & Modern Brands | GrowitBuddy",
+  seoDesc: "Authority, content, and distribution systems for founders, creators, and modern brands — free templates, playbooks, eBooks, and toolkits you can copy and ship today.",
+  aiSummary: "GrowitBuddy Resources is a free library of authority-building, content, and distribution systems for founders, creators, and modern brands — shipped as templates, playbooks, toolkits, and eBooks.",
+  aiKeywords: "authority building resources, content systems for founders, distribution playbook, creator growth toolkit, notion templates for founders, modern brand frameworks",
+  primaryEntity: "Authority, content and distribution systems",
+  relatedTopics: "Personal branding, Distribution systems, Short-form video, Authority building, Founder-led marketing, Modern brand building",
+  audience: "Founders, creators, modern brands, agency operators",
   geoLocation: "India",
   geoLanguage: "en",
-  factualClaims: "GrowitBuddy is a content marketing agency for founders and creators.\nAll resources on this page are free to use without attribution.\nResources are curated from the agency's internal client toolkit.",
+  factualClaims: "GrowitBuddy ships authority, content, and distribution systems for founders, creators, and modern brands.\nAll resources on this page are free to use without attribution.\nResources are pulled from the same toolkit used with paying clients.",
   canonicalUrl: "https://growitbuddy.com/resources",
   ogImage: "",
 };

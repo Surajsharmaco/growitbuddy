@@ -348,68 +348,127 @@ export default function Resources() {
   );
 }
 
-// ── Featured card — emphasised look for `isFeatured: true` items ────────────
+// ── CTA buttons row — used by both featured & standard cards. Buttons are
+// real <a> elements (not nested inside a card-wrapping anchor) so secondary
+// CTAs actually receive clicks. ─────────────────────────────────────────────
+function CtaRow({ item, dark = false }: { item: ResourceItem; dark?: boolean }) {
+  const primaryLabel = item.ctaLabel || (item.type === "drive" || item.type === "notion" || item.type === "link" ? "Open" : "Download");
+  const PrimaryIcon = item.type === "drive" || item.type === "notion" || item.type === "link" ? ExternalLink : Download;
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 14 }}>
+      {item.link && (
+        <a
+          href={item.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "10px 16px", borderRadius: 100,
+            background: dark ? "#F8F8F6" : "#0A0A0A",
+            color: dark ? "#0A0A0A" : "#F8F8F6",
+            fontSize: 12, fontWeight: 700, letterSpacing: "0.01em",
+            textDecoration: "none", whiteSpace: "nowrap",
+          }}
+        >
+          <PrimaryIcon size={13} /> {primaryLabel}
+        </a>
+      )}
+      {item.secondaryCtaUrl && (
+        <a
+          href={item.secondaryCtaUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "10px 16px", borderRadius: 100,
+            background: "transparent",
+            color: dark ? "#F8F8F6" : "#0A0A0A",
+            border: `1px solid ${dark ? "rgba(248,248,246,0.25)" : "#E5E5E0"}`,
+            fontSize: 12, fontWeight: 700,
+            textDecoration: "none", whiteSpace: "nowrap",
+          }}
+        >
+          {item.secondaryCtaLabel || "Preview"} <ArrowRight size={13} />
+        </a>
+      )}
+    </div>
+  );
+}
+
+function BadgePill({ text, accent }: { text: string; accent?: boolean }) {
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 4,
+      fontSize: 10, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase",
+      padding: "4px 10px", borderRadius: 100,
+      background: accent ? "#C2A878" : "#FFF7E0",
+      color: accent ? "#0A0A0A" : "#8A6A2E",
+      whiteSpace: "nowrap",
+    }}>
+      {text}
+    </span>
+  );
+}
+
+// ── Featured card ──────────────────────────────────────────────────────────
 function FeaturedCard({ item, index }: { item: ResourceItem; index: number }) {
-  const content = (
+  const dark = index === 0;
+  return (
     <div
       style={{
         position: "relative",
-        background: index === 0 ? "#0A0A0A" : "#F8F8F6",
-        color: index === 0 ? "#F8F8F6" : "#0A0A0A",
+        background: dark ? "#0A0A0A" : "#F8F8F6",
+        color: dark ? "#F8F8F6" : "#0A0A0A",
         borderRadius: 18,
         padding: "26px 26px 22px",
-        border: index === 0 ? "1px solid #1F1F1F" : "1.5px solid #E5E5E0",
+        border: dark ? "1px solid #1F1F1F" : "1.5px solid #E5E5E0",
         height: "100%",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
         transition: "transform 0.22s, box-shadow 0.22s",
       }}
-      className={item.link ? "hover:-translate-y-1 hover:shadow-lg" : ""}
+      className="hover:-translate-y-1 hover:shadow-lg"
     >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18, gap: 8 }}>
         <span style={{
           display: "inline-flex", alignItems: "center", gap: 6,
           fontSize: 10, fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase",
           padding: "5px 12px", borderRadius: 100,
-          background: index === 0 ? "rgba(194,168,120,0.18)" : "#EFEFEA",
-          color: index === 0 ? "#C2A878" : "#0A0A0A",
+          background: dark ? "rgba(194,168,120,0.18)" : "#EFEFEA",
+          color: dark ? "#C2A878" : "#0A0A0A",
         }}>
           {typeIcon(item.type)} {item.tag}
         </span>
-        {item.isGated && (
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 700, color: index === 0 ? "rgba(248,248,246,0.55)" : "#7A7A85" }}>
-            <Lock size={11} /> Email
-          </span>
-        )}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {item.badgeText && <BadgePill text={item.badgeText} accent={dark} />}
+          {item.isGated && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 700, color: dark ? "rgba(248,248,246,0.55)" : "#7A7A85" }}>
+              <Lock size={11} /> Email
+            </span>
+          )}
+        </div>
       </div>
       <h3 style={{ fontWeight: 800, fontSize: 22, letterSpacing: "-0.03em", lineHeight: 1.18, marginBottom: 10 }}>
         {item.title}
       </h3>
-      <p style={{ fontSize: 14, lineHeight: 1.65, flex: 1, color: index === 0 ? "rgba(248,248,246,0.7)" : "#5F5F5F" }}>
+      <p style={{ fontSize: 14, lineHeight: 1.65, flex: 1, color: dark ? "rgba(248,248,246,0.7)" : "#5F5F5F" }}>
         {item.desc}
       </p>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 22, fontSize: 12, color: index === 0 ? "rgba(248,248,246,0.55)" : "#7A7A85" }}>
-        <span>{typeLabel(item)}{item.fileSize ? ` · ${item.fileSize}` : ""}</span>
-        {item.link && (
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 700, color: index === 0 ? "#F8F8F6" : "#0A0A0A" }}>
-            {item.ctaLabel || "Download"} <ArrowRight size={13} />
-          </span>
-        )}
+      <div style={{ marginTop: 18, fontSize: 12, color: dark ? "rgba(248,248,246,0.55)" : "#7A7A85" }}>
+        {typeLabel(item)}{item.fileSize ? ` · ${item.fileSize}` : ""}
       </div>
+      <CtaRow item={item} dark={dark} />
     </div>
   );
-  return item.link ? (
-    <a href={item.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", display: "block", height: "100%" }}>{content}</a>
-  ) : content;
 }
 
 // ── Standard resource card ──────────────────────────────────────────────────
 function ResourceCard({ item }: { item: ResourceItem }) {
-  const isExternal = !!item.link;
-  const content = (
+  return (
     <div
       style={{
+        position: "relative",
         background: "#F8F8F6",
         border: "1.5px solid #E5E5E0",
         borderRadius: 18,
@@ -418,11 +477,15 @@ function ResourceCard({ item }: { item: ResourceItem }) {
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        cursor: isExternal ? "pointer" : "default",
         transition: "transform 0.2s, box-shadow 0.2s, border-color 0.2s",
       }}
-      className={isExternal ? "hover:-translate-y-1 hover:shadow-md hover:border-[#C2A878]" : ""}
+      className="hover:-translate-y-1 hover:shadow-md hover:border-[#C2A878]"
     >
+      {item.badgeText && (
+        <div style={{ position: "absolute", top: 14, right: 14, zIndex: 2 }}>
+          <BadgePill text={item.badgeText} />
+        </div>
+      )}
       {item.coverImage ? (
         <div style={{ width: "100%", aspectRatio: "16/9", overflow: "hidden", background: "#EFEFEA" }}>
           <img src={item.coverImage} alt={item.title} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -454,22 +517,14 @@ function ResourceCard({ item }: { item: ResourceItem }) {
         <h3 style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.025em", color: "#0A0A0A", marginBottom: 8, lineHeight: 1.3 }}>
           {item.title}
         </h3>
-        <p style={{ fontSize: 14, color: "#5F5F5F", lineHeight: 1.65, flex: 1, marginBottom: 16 }}>
+        <p style={{ fontSize: 14, color: "#5F5F5F", lineHeight: 1.65, flex: 1, marginBottom: 4 }}>
           {item.desc}
         </p>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 14, borderTop: "1px solid #E5E5E0", fontSize: 12, color: "#7A7A85" }}>
-          <span>{typeLabel(item)}{item.fileSize ? ` · ${item.fileSize}` : ""}</span>
-          {isExternal && (
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontWeight: 700, color: "#0A0A0A" }}>
-              {item.ctaLabel || (item.type === "drive" || item.type === "notion" || item.type === "link" ? "Open" : "Download")}
-              {item.type === "drive" || item.type === "notion" || item.type === "link" ? <ExternalLink size={12} /> : <Download size={12} />}
-            </span>
-          )}
+        <div style={{ paddingTop: 14, marginTop: 8, borderTop: "1px solid #E5E5E0", fontSize: 12, color: "#7A7A85" }}>
+          {typeLabel(item)}{item.fileSize ? ` · ${item.fileSize}` : ""}
         </div>
+        <CtaRow item={item} />
       </div>
     </div>
   );
-  return isExternal ? (
-    <a href={item.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", display: "block", height: "100%" }}>{content}</a>
-  ) : content;
 }

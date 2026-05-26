@@ -277,9 +277,16 @@ export default function AdminResources() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
-                      <Input label="Link URL (Drive / Notion / file)" value={item.link} onChange={(e) => setItem(i, { link: e.target.value })} placeholder="https://drive.google.com/..." />
-                      <Input label="CTA Label" value={item.ctaLabel ?? ""} onChange={(e) => setItem(i, { ctaLabel: e.target.value })} placeholder="Download / Open / Watch" />
+                      <Input label="Primary Link (Drive / Notion / file)" value={item.link} onChange={(e) => setItem(i, { link: e.target.value })} placeholder="https://drive.google.com/..." />
+                      <Input label="Primary Button Label" value={item.ctaLabel ?? ""} onChange={(e) => setItem(i, { ctaLabel: e.target.value })} placeholder="Download / Open / Watch" />
                     </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <Input label="Secondary Link (optional — Preview / Walkthrough)" value={item.secondaryCtaUrl ?? ""} onChange={(e) => setItem(i, { secondaryCtaUrl: e.target.value })} placeholder="https://..." />
+                      <Input label="Secondary Button Label" value={item.secondaryCtaLabel ?? ""} onChange={(e) => setItem(i, { secondaryCtaLabel: e.target.value })} placeholder="Preview / Watch demo" />
+                    </div>
+
+                    <Input label="Corner Badge (optional)" value={item.badgeText ?? ""} onChange={(e) => setItem(i, { badgeText: e.target.value })} placeholder='e.g. "New", "Most popular", "Updated"' />
 
                     <div className="grid grid-cols-3 gap-3">
                       <Input label="File Format" value={item.fileFormat ?? ""} onChange={(e) => setItem(i, { fileFormat: e.target.value })} placeholder="PDF / Notion / Drive" />
