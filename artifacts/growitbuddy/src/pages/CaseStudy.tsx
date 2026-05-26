@@ -170,6 +170,12 @@ export default function CaseStudy() {
   const sharePrefix = shareSlug ? `/portfolio/shared/${shareSlug}` : "/portfolio";
 
   const [, setLocation] = useLocation();
+  const go = (e: React.MouseEvent, href: string) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
+    e.preventDefault();
+    setLocation(href);
+    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+  };
   const { isAuthenticated } = useAdmin();
   // Show the Edit-inline button to any logged-in admin (permission gating
   // is enforced server-side on PUT /portfolio/:id, so this is safe).
@@ -326,13 +332,6 @@ export default function CaseStudy() {
     : item.category.includes("AI") ? "Strategy & Automation"
     : item.category.includes("Graphics") ? "Brand & Identity"
     : "Strategy & Production";
-
-  const go = (e: React.MouseEvent, href: string) => {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
-    e.preventDefault();
-    setLocation(href);
-    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
-  };
 
   // Eyebrow style used site-wide
   const eyebrow: React.CSSProperties = {
