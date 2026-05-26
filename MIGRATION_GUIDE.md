@@ -441,7 +441,68 @@ psql "$DATABASE_URL" < growitbuddy_import.sql
 | H1 | "API is dead!" first request after a while | First request takes 30+ seconds, then everything works | Render free plan cold-starts after 15 min of no traffic. | Expected. If unacceptable, upgrade Render plan OR set up an external pinger (cron-job.org → hit `/api/healthz` every 10 min). |
 | H2 | Rate-limit counters reset randomly | Form spam not throttled as expected | Rate limits are in-memory (`formLimit = 5/60s`). They reset on every Render restart (cold start, deploy). | Acceptable for current traffic. If abuse appears, move limits to Redis or DB. |
 
-#### I. Things The New Agent Must Verify On Day 1
+#### J. Code-level footguns found by deep audit (must-read before any backend change)
+
+| # | File:Line | Pattern | What could go wrong | Prevention |
+|---|---|---|---|---|
+| J1 | `artifacts/api-server/src/routes/forms.ts:110` | `const { Resend } = await import("resend");` (dynamic import inside `sendEmail()`) | If esbuild bundles the dynamic import wrong, every form submission silently fails — and the user still gets a "success" response. | When adding any new email path, do NOT introduce more dynamic imports. After any esbuild config change, do one real form submission against the deployed Render URL and check the inbox. |
+| J2 | `artifacts/api-server/src/routes/forms.ts:8` | `const rateLimitWindows = new Map<...>();` | In-memory rate limit. Resets on every Render cold-start (every 15 min idle on free plan). An attacker can burst-spam by waiting for restart. | Current behaviour is acceptable. If spam appears, move limits to DB-backed counters or Cloudflare WAF — do NOT just raise the in-memory ceiling. |
+| J3 | `artifacts/api-server/src/index.ts:77` | `const GUMLET_THUMB_CACHE = new Map<...>();` (unbounded) | Memory leak — every unique video ID adds an entry. Render free-plan instance OOMs after weeks of uptime. | Wrap in `lru-cache` with `max: 500`. Until then, the periodic Render restarts mask the issue — but DO NOT remove those restarts. |
+| J4 | `artifacts/api-server/src/routes/admin.ts:946` | `loadOptimizeSettingsFromDb().then(...)` — unawaited at startup | If DB is unreachable at boot, `cachedSettings` stays at defaults and the error is logged but ignored. User edits in /admin/optimize appear lost until next restart. | When adding any startup-time DB read, `await` it INSIDE the listen-start path and fail-fast with a clear log line. |
+| J5 | `artifacts/api-server/src/routes/admin.ts:61` | `return process.env.ADMIN_PASSWORD ?? randomBytes(16).toString("hex");` | If `ADMIN_PASSWORD` is missing, the HMAC signing secret becomes a fresh random value each startup → every existing admin session is silently invalidated, and the user gets logged out every cold start. | Make ADMIN_PASSWORD a startup hard-requirement: `if (!process.env.ADMIN_PASSWORD) { logger.fatal(...); process.exit(1); }`. |
+| J6 | `artifacts/api-server/src/app.ts:55-56` | `express.json({ limit: "10mb" })` | 10 MB cap. Image uploads stored as base64 in `media_files` can exceed this for high-res photos. Upload silently fails with `413`. | Frontend must compress/resize before upload (already done in `ImagePickerField` + `CropModal`). When debugging "upload not working", first check the actual payload size in Network tab. |
+| J7 | `artifacts/api-server/src/lib/gcsMedia.ts:4` | `const REPLIT_SIDECAR = "http://127.0.0.1:1106";` | Hardcoded localhost. Only works inside Replit. On Render this code path silently returns nothing — so the Google Cloud Storage media branch is effectively disabled in production (Cloudinary path is used instead, which is fine). | Don't "fix" this by trying to call the sidecar from Render — it's intentional Replit-only fallback. If you ever want GCS in production, refactor the whole flow, don't patch the URL. |
+| J8 | `artifacts/api-server/src/app.ts:79` | `origin: process.env.ALLOWED_ORIGINS ? .split(",") : true` | If `ALLOWED_ORIGINS` is unset, CORS becomes `*` (allow ALL origins). Dangerous in production. | Render env must ALWAYS have `ALLOWED_ORIGINS` set. The day-1 checklist verifies this. |
+| J9 | `artifacts/api-server/src/routes/forms.ts:245` | `res.json({ success: true })` is sent AFTER `await sendEmail(...)` (blocking) | UX delay: when Resend is slow (1-3s), the user's form button shows "Submitting..." for too long. | Acceptable for now (gives user real success/failure feedback). If you ever decouple, write the lead to DB first, return 200, then fire-and-forget the email in `setImmediate()`. |
+| J10 | `artifacts/api-server/src/lib/gcsMedia.ts:36` | `(process.env.REPLIT_DOMAINS \|\| "").split(",")[0]` | Builds a public URL using Replit's domain env. On Render this is empty → URL becomes `https:///path/...` (malformed). | The code path is guarded by Cloudinary-credentials check, so it's currently dormant on Render. Don't enable the GCS branch on Render without also setting a `PUBLIC_BASE_URL` env var. |
+
+#### K. Admin pages still missing the "loaded" guard (will show Flash-of-Default-Content)
+
+The `loaded` flag pattern (Section G1) was applied to AdminHome / AdminAbout / AdminWork / AdminSettings / AdminBlog / AdminInfluencers / AdminDistributionPages. The audit found these pages still rendering defaults before the fetch resolves:
+
+```
+AdminResources.tsx      AdminCertificates.tsx     AdminLeads.tsx
+AdminTalentPoolLeads    AdminFooter.tsx           AdminNavbar.tsx
+AdminPortfolioShares    AdminPageVariants.tsx     AdminPageVisibility.tsx
+AdminTeam.tsx           AdminSEO.tsx              AdminLogos.tsx
+AdminCreatorSchool.tsx  AdminTalentPool.tsx
+```
+
+**Fix pattern (apply to each):**
+```tsx
+const [loaded, setLoaded] = useState(false);
+useEffect(() => {
+  api.get("/admin/content/<section>").then(r => { setData(r.data); setLoaded(true); });
+}, []);
+if (!loaded) return <div className="p-8 text-sm opacity-60">Loading content…</div>;
+```
+
+Don't bulk-refactor unless asked — but if you touch any of these files for any reason, add the guard while you're there.
+
+#### L. Slug-collision risk (Page Variants)
+
+| # | Where | Pattern | What could go wrong | Prevention |
+|---|---|---|---|---|
+| L1 | `App.tsx` route `<Route path="/:slug" component={VariantResolver} />` | A new page-variant slug equal to an existing core route (e.g. `about`, `contact`) silently hijacks the route. | Variants take precedence and the real page disappears. | When creating a variant in `/admin/page-variants`, validate the slug against `pageRegistry.ts` keys + the wouter route list. Reject reserved slugs in the admin UI. |
+
+#### M. Database hygiene
+
+| # | Pattern | What could go wrong | Prevention |
+|---|---|---|---|
+| M1 | `leads` table has NO index on `type`, `email`, `created_at` | At 10K+ leads, `/admin/leads` filtering becomes slow (full table scan). | Add Drizzle indexes (`index("leads_type_idx").on(t.type)`, same for `created_at desc`). Roll out via the startup `CREATE INDEX IF NOT EXISTS` pattern. |
+| M2 | `media_files.data` is base64 text in Postgres | DB bloat (1 MB image = ~1.3 MB DB row). Backups slow. | Prefer Cloudinary path for new uploads. Long-term: migrate existing base64 rows to Cloudinary and store only URLs. |
+| M3 | `growitbuddy_import.sql` has no `IF NOT EXISTS` guards | Re-running on an existing DB throws `relation already exists` errors AND can overwrite data with `COPY FROM stdin`. | Add a banner at top of the file: `-- DO NOT RUN ON A POPULATED DB.` and a `\set ON_ERROR_STOP on` line. Better: use `CREATE TABLE IF NOT EXISTS` + `INSERT ... ON CONFLICT DO NOTHING`. |
+
+#### N. Pre-existing TODOs to be aware of (not new bugs, just open items)
+
+- `artifacts/growitbuddy/src/pages/Verify.tsx` — 1 TODO comment
+- `artifacts/growitbuddy/src/pages/admin/AdminCertificates.tsx` — 1 TODO comment
+- `artifacts/growitbuddy/src/pages/Contact.tsx` — leftover `console.log` (1)
+- `artifacts/growitbuddy/src/pages/admin/AdminPortfolioShares.tsx` — 3 leftover `console.log`s
+
+Clean these up only if you're already touching the file. Don't make a separate "clean up logs" PR.
+
+#### O. Things The New Agent Must Verify On Day 1
 
 Run this mental checklist on the very first task — these are the "silent failure" landmines:
 
@@ -460,7 +521,35 @@ Run this mental checklist on the very first task — these are the "silent failu
    (rg -n "re_[a-zA-Z0-9]{20,}|postgresql://[^@]+@" .)
 ```
 
-### 16. User Preferences
+### 16. 🚨 Architecture Footguns — DO NOT touch without asking the owner
+
+These are intentional design choices that look weird, and have been "fixed" by previous agents → which broke production. The new Agent must leave these alone unless the owner explicitly asks for a refactor.
+
+1. **API server is bundled with esbuild, not tsx-watched.** Dev cycle is "edit → restart workflow". Do NOT try to switch to `tsx watch` or `nodemon` — Render's build pipeline depends on the bundle output. If you want faster dev, run `pnpm --filter @workspace/api-server run dev` in watch-mode separately, but never change the production build script.
+
+2. **`pnpm-workspace.yaml` `minimumReleaseAge: 1440`** is a supply-chain attack defence. Never lower it. If a package install fails because of it, the fix is `minimumReleaseAgeExclude: [trusted-pkg]`, NEVER deleting the setting.
+
+3. **Catalog dependencies (`"react": "catalog:"`)** — the version lives in `pnpm-workspace.yaml` under the `catalog:` block. Editing the `package.json` value to a real version string will be silently ignored on `pnpm install` (or break in lockfile resolution).
+
+4. **The `@workspace/db` package is at `lib/db`, not `packages/db`.** `pnpm-workspace.yaml` maps `packages: [artifacts/*, lib/*]`. Don't create a `packages/db` directory "to organise things".
+
+5. **Vercel `api/handler.mjs` is a serverless fallback only.** Primary API traffic goes to Render. Don't try to "consolidate" by moving everything to Vercel functions — Render gives you a real long-running Node process with native module support, which Vercel functions don't.
+
+6. **`growitbuddy_import.sql` in repo root** is a one-shot bootstrap file. NEVER auto-run it. NEVER re-import it on a populated DB.
+
+7. **The Replit local git repo will diverge from `origin/main`** because pushes happen via the GitHub REST API. `git status` showing "ahead by N" is NORMAL. Don't force-push or rebase to "fix" it. To re-sync local: `git fetch origin && git reset --hard origin/main`.
+
+8. **Admin auth is a hybrid system.** `/api/admin/login` uses env-based `ADMIN_PASSWORD` (super admin). `/api/admin/team/login` uses DB-stored bcrypt hashes with per-section permissions. Don't merge these — they serve different use cases.
+
+9. **Hardcoded service URLs exist in static files** (`public/robots.txt`, `AdminSEO.tsx`, `SEOGuide.tsx`, `lib/api.ts` comment). When the Render or Vercel URL changes, ALL of these must be updated together. Run `rg -n "onrender\.com|vercel\.app"` before pushing any URL-change commit.
+
+10. **Cloudinary is the canonical image store.** `media_files` table base64 storage exists for legacy uploads — do NOT make it the default path for new features. Always prefer Cloudinary upload.
+
+11. **The `growitbuddy_import.sql.gz`** in the repo root is a backup snapshot, ~5 MB. Don't bloat the repo by committing more snapshots. Use Neon's built-in branching/snapshots instead.
+
+12. **`vercel.json` SPA rewrites** route all non-`/api/*` paths to `/index.html`. Don't add specific rewrites for individual routes — the SPA router handles everything. If a new top-level path is needed (like `/.well-known/`), add it BEFORE the catch-all.
+
+### 17. User Preferences
 
 - **Language:** User communicates in Hindi (Devanagari + Roman). Reply in the same style — keep technical explanations clear but warm.
 - **Push method:** Commits go DIRECTLY to `main`, no PRs, no feature branches.
@@ -468,6 +557,9 @@ Run this mental checklist on the very first task — these are the "silent failu
 - **Validation:** Skip Replit's `mark_task_complete` validation runs — they don't apply here (real deployment is external).
 - **Email recipient:** All form notifications go to `cs.growitbuddy@gmail.com`.
 - **Never touch:** the Neon production DB (no DROP/TRUNCATE), the `minimumReleaseAge` setting, or random dependency bumps.
+- **Before every push:** run `rg -n "re_[a-zA-Z0-9]{20,}|postgresql://[^@]+@" .` to make sure no real secret slipped into a committed file.
+- **After every push:** report the commit SHA + the ~2-5 min Vercel/Render rebuild wait.
+- **Section 15 + 16 of this guide are the bug-prevention bible.** Re-read them whenever a task touches: forms, auth, SEO, sitemap, CORS, env vars, DB schema, the bundle config, or any admin page.
 
 ---
 
