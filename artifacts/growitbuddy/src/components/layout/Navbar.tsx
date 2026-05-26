@@ -28,6 +28,7 @@ const NAV_LINKS: NavLink[] = [
     label: "More",
     dropdown: [
       { href: "/blog",        label: "Blog",            subtitle: "" },
+      { href: "/resources",       label: "Resources",       subtitle: "" },
       { href: "/authority-audit", label: "Authority Audit", subtitle: "" },
       { href: "/contact",         label: "Contact",         subtitle: "" },
     ],
