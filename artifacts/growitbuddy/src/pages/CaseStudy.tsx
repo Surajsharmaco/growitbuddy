@@ -9,21 +9,31 @@ import BlockEditor from "@/components/blocks/BlockEditor";
 import CaseStudyInlineEditor from "@/components/CaseStudyInlineEditor";
 import { useAdmin } from "@/context/AdminContext";
 
+type MediaItem = { url: string; ratio?: string };
+type VideoItem = { url: string; ratio?: string };
+type SectionKey = "metrics" | "overview" | "gallery" | "approach" | "video" | "solution" | "testimonial";
+
 interface CaseStudyData {
   clientName?: string;
   clientLogoUrl?: string;
   coverImageUrl?: string;
   heroImageUrl?: string;
-  galleryImages?: string[];
+  heroImageRatio?: string;
+  galleryImages?: Array<string | MediaItem>;
   metrics?: Array<{ value: string; label: string }>;
   stack?: string[];
   testimonial?: { quote: string; author: string };
   overview?: string;
+  overviewExtras?: string[];
   challenge?: string;
   approach?: string;
+  approachExtras?: string[];
   approachBullets?: string[];
   solution?: string;
+  solutionExtras?: string[];
   videoUrl?: string;
+  videos?: VideoItem[];
+  hiddenSections?: SectionKey[];
 }
 
 interface PortfolioItem {
@@ -281,10 +291,21 @@ export default function CaseStudy() {
   };
 
   const heroImg = cs?.heroImageUrl || cs?.coverImageUrl || picsum(`${seeds[0]}-${item.id}`, 1600, 900);
-  const gallery = (cs?.galleryImages && cs.galleryImages.length > 0)
-    ? cs.galleryImages.slice(0, 2)
-    : [picsum(`${seeds[1]}-${item.id}`, 900, 600), picsum(`${seeds[2]}-${item.id}`, 900, 600)];
-  const embedUrl = getEmbedUrl(cs?.videoUrl || item.youtubeUrl);
+  const heroRatio = cs?.heroImageRatio || "16/9";
+  const gallery: MediaItem[] = (cs?.galleryImages && cs.galleryImages.length > 0)
+    ? cs.galleryImages.map((g) => typeof g === "string" ? { url: g } : g).filter((g) => g.url)
+    : [
+        { url: picsum(`${seeds[1]}-${item.id}`, 900, 600), ratio: "3/2" },
+        { url: picsum(`${seeds[2]}-${item.id}`, 900, 600), ratio: "3/2" },
+      ];
+  // New videos[] takes precedence; otherwise fall back to legacy videoUrl + portfolio youtubeUrl.
+  const videoList: VideoItem[] = (cs?.videos && cs.videos.length > 0)
+    ? cs.videos.filter((v) => v.url)
+    : (cs?.videoUrl || item.youtubeUrl ? [{ url: cs?.videoUrl || item.youtubeUrl, ratio: "16/9" }] : []);
+  const hidden = new Set<SectionKey>(cs?.hiddenSections ?? []);
+  const overviewExtras = cs?.overviewExtras ?? [];
+  const approachExtras = cs?.approachExtras ?? [];
+  const solutionExtras = cs?.solutionExtras ?? [];
   const categorySlug = params?.category ?? "";
   const yearLabel = new Date().getFullYear().toString();
   const roleLabel = item.category.includes("Web") ? "Design & Build"
@@ -438,13 +459,14 @@ export default function CaseStudy() {
               src={heroImg}
               alt={item.title}
               loading="eager"
-              style={{ display: "block", width: "100%", aspectRatio: "16/9", objectFit: "cover" }}
+              style={{ display: "block", width: "100%", aspectRatio: heroRatio, objectFit: "cover" }}
             />
           </motion.div>
         </div>
       </section>
 
       {/* ── METRICS STRIP — same visual language as Home stats ── */}
+      {!hidden.has("metrics") && (
       <section
         style={{
           borderTop: `1px solid ${RULE}`,
@@ -504,8 +526,10 @@ export default function CaseStudy() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ── OVERVIEW ── */}
+      {!hidden.has("overview") && (
       <Section label="Overview" heading="How we approached this project.">
         <p style={{ fontSize: 17, color: TEXT, lineHeight: 1.75, marginTop: 0, marginBottom: 22, fontWeight: 500 }}>
           {content.overview}
@@ -513,15 +537,20 @@ export default function CaseStudy() {
         <p style={{ fontSize: 16, color: MUTED, lineHeight: 1.75, margin: 0 }}>
           {content.challenge}
         </p>
+        {overviewExtras.filter(Boolean).map((p, i) => (
+          <p key={i} style={{ fontSize: 16, color: MUTED, lineHeight: 1.75, margin: "16px 0 0" }}>{p}</p>
+        ))}
       </Section>
+      )}
 
       {/* ── IMAGE GALLERY ── */}
+      {!hidden.has("gallery") && gallery.length > 0 && (
       <section style={{ padding: "0 24px 56px" }}>
         <div
           className="gallery-2"
           style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 22 }}
         >
-          {gallery.map((src, i) => (
+          {gallery.map((g, i) => (
             <div
               key={i}
               style={{
@@ -532,21 +561,26 @@ export default function CaseStudy() {
               }}
             >
               <img
-                src={src}
+                src={g.url}
                 alt=""
                 loading="lazy"
-                style={{ display: "block", width: "100%", aspectRatio: "3/2", objectFit: "cover" }}
+                style={{ display: "block", width: "100%", aspectRatio: g.ratio || "3/2", objectFit: "cover" }}
               />
             </div>
           ))}
         </div>
       </section>
+      )}
 
       {/* ── APPROACH ── */}
+      {!hidden.has("approach") && (
       <Section label="Approach" heading="First-principles, then execution.">
         <p style={{ fontSize: 17, color: TEXT, lineHeight: 1.75, marginTop: 0, marginBottom: 28, fontWeight: 500 }}>
           {content.approach}
         </p>
+        {approachExtras.filter(Boolean).map((p, i) => (
+          <p key={i} style={{ fontSize: 17, color: TEXT, lineHeight: 1.75, margin: "0 0 22px", fontWeight: 500 }}>{p}</p>
+        ))}
         <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 14 }}>
           {content.approachBullets.map((line, i) => (
             <li
@@ -571,9 +605,10 @@ export default function CaseStudy() {
           ))}
         </ul>
       </Section>
+      )}
 
-      {/* ── VIDEO ── */}
-      {embedUrl && (
+      {/* ── VIDEOS (multi) ── */}
+      {!hidden.has("video") && videoList.length > 0 && (
         <section style={{ padding: "24px 24px 48px" }}>
           <div style={{ maxWidth: 1200, margin: "0 auto" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20, justifyContent: "center" }}>
@@ -581,35 +616,48 @@ export default function CaseStudy() {
               <p style={eyebrow}>Project Walkthrough</p>
               <span style={{ width: 32, height: 1, background: GOLD }} />
             </div>
-            <div
-              style={{
-                borderRadius: 22,
-                overflow: "hidden",
-                border: `1px solid ${RULE}`,
-                background: TEXT,
-                boxShadow: "0 20px 60px -20px rgba(15,23,42,0.25)",
-              }}
-            >
-              <div style={{ position: "relative", aspectRatio: "16/9" }}>
-                <iframe
-                  src={embedUrl}
-                  title={item.title}
-                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  loading="lazy"
-                />
-              </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+              {videoList.map((v, idx) => {
+                const url = getEmbedUrl(v.url);
+                if (!url) return null;
+                return (
+                  <div
+                    key={idx}
+                    style={{
+                      borderRadius: 22,
+                      overflow: "hidden",
+                      border: `1px solid ${RULE}`,
+                      background: TEXT,
+                      boxShadow: "0 20px 60px -20px rgba(15,23,42,0.25)",
+                    }}
+                  >
+                    <div style={{ position: "relative", aspectRatio: v.ratio || "16/9" }}>
+                      <iframe
+                        src={url}
+                        title={`${item.title} — video ${idx + 1}`}
+                        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        loading="lazy"
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
       )}
 
       {/* ── SOLUTION + STACK ── */}
+      {!hidden.has("solution") && (
       <Section label="Solution" heading="The system we shipped.">
         <p style={{ fontSize: 17, color: TEXT, lineHeight: 1.75, marginTop: 0, marginBottom: 28, fontWeight: 500 }}>
           {content.solution}
         </p>
+        {solutionExtras.filter(Boolean).map((p, i) => (
+          <p key={i} style={{ fontSize: 17, color: TEXT, lineHeight: 1.75, margin: "0 0 22px", fontWeight: 500 }}>{p}</p>
+        ))}
         <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: MUTED_SOFT, marginBottom: 14 }}>
           Stack
         </p>
@@ -633,8 +681,10 @@ export default function CaseStudy() {
           ))}
         </div>
       </Section>
+      )}
 
       {/* ── TESTIMONIAL — dark slate card like Home problem section ── */}
+      {!hidden.has("testimonial") && (
       <section style={{ padding: "32px 24px 64px" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <motion.div
@@ -676,6 +726,7 @@ export default function CaseStudy() {
           </motion.div>
         </div>
       </section>
+      )}
 
       {/* ── CTA ── */}
       <section style={{ padding: "32px 24px 112px", textAlign: "center" }}>
