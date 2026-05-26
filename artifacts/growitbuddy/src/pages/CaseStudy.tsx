@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ArrowUpRight, CheckCircle2, Quote } from "lucide-react";
 
 import { API_BASE } from "@/lib/api";
+import BlockRenderer, { type Block } from "@/components/blocks/BlockRenderer";
 
 interface CaseStudyData {
   clientName?: string;
@@ -30,6 +31,9 @@ interface PortfolioItem {
   description: string | null;
   sortOrder: number;
   caseStudy?: CaseStudyData | null;
+  // Phase 1 inline-editor data model — when present, the public page renders
+  // via <BlockRenderer /> instead of the legacy hardcoded layout below.
+  blocks?: Block[] | null;
 }
 
 // ── Site theme constants (match Home / rest of site) ──
@@ -148,6 +152,26 @@ export default function CaseStudy() {
             ← Back to portfolio
           </Link>
         </div>
+      </div>
+    );
+  }
+
+  // NEW: if this case study has been migrated to the block-based editor,
+  // render via BlockRenderer and skip the legacy hardcoded layout entirely.
+  // Video editing categories never use blocks (excluded by product req).
+  if (Array.isArray(item.blocks) && item.blocks.length > 0) {
+    return (
+      <div style={{ minHeight: "100vh", background: BG, color: TEXT }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px" }}>
+          <Link
+            href={`${sharePrefix}/${params?.category ?? ""}`}
+            onClick={(e) => go(e as React.MouseEvent, `${sharePrefix}/${params?.category ?? ""}`)}
+            style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 13, color: MUTED, textDecoration: "none" }}
+          >
+            <ArrowLeft size={16} /> Back to {item.category}
+          </Link>
+        </div>
+        <BlockRenderer blocks={item.blocks} />
       </div>
     );
   }

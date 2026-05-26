@@ -71,6 +71,16 @@ async function runStartupMigrations() {
     logger.error({ err }, "Startup migration: failed to ensure custom_thumbnail_url column.");
   }
 
+  // Generic block-based content for the new Wix/Elementor-style Case Study
+  // editor. NULL = use legacy `case_study` JSONB renderer. Non-null array =
+  // render via <BlockRenderer />. Backward-compatible by design.
+  try {
+    await pool.query(`ALTER TABLE portfolio_items ADD COLUMN IF NOT EXISTS blocks jsonb`);
+    logger.info("Startup migration: portfolio_items.blocks column ensured.");
+  } catch (err) {
+    logger.error({ err }, "Startup migration: failed to ensure blocks column.");
+  }
+
   // Optional admin remark/feedback shown on the public certificate page
   // (e.g. "Outstanding work on the AI growth sprint.").
   try {

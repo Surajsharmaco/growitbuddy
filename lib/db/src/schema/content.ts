@@ -71,6 +71,43 @@ export type CaseStudyData = {
   videoUrl?: string;
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Block-based editor data model for Case Study pages (Wix/Elementor-style).
+// A case study can EITHER have legacy `case_study` JSONB (old hardcoded layout)
+// OR a `blocks` array (new generic block renderer). The frontend prefers
+// `blocks` when present and falls back to `case_study` otherwise.
+// ─────────────────────────────────────────────────────────────────────────────
+export type BlockStyle = {
+  padding?: string;        // e.g. "32px 0"
+  margin?: string;
+  bg?: string;             // background color (hex / css color)
+  color?: string;          // text color
+  align?: "left" | "center" | "right";
+  maxWidth?: number;       // px — clamp the block content width
+};
+
+export type BlockType =
+  | "heading"        // { level: 1|2|3, text, eyebrow? }
+  | "paragraph"      // { html } (rich text — will be TipTap-edited in Phase 2)
+  | "image"          // { src, alt, caption?, width: 'full'|'wide'|'normal' }
+  | "video"          // { url } (uses videoEmbed util)
+  | "metricsGrid"    // { items: Array<{ value, label }> }
+  | "bulletList"     // { items: string[], style: 'check'|'dot' }
+  | "testimonial"    // { quote, author, role? }
+  | "tagList"        // { label?, items: string[] }
+  | "gallery"        // { images: string[], columns: 2|3 }
+  | "divider"        // {}
+  | "spacer"         // { size: 'sm'|'md'|'lg'|'xl' }
+  | "button"         // { label, href, variant: 'primary'|'secondary' }
+  | "columns";       // { columns: Block[][], gap?: number } — Phase 4
+
+export type Block = {
+  id: string;                              // stable client-generated UUID
+  type: BlockType;
+  props: Record<string, unknown>;
+  style?: BlockStyle;
+};
+
 export const portfolioItems = pgTable("portfolio_items", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
@@ -81,6 +118,11 @@ export const portfolioItems = pgTable("portfolio_items", {
   isHidden: boolean("is_hidden").notNull().default(false),
   customThumbnailUrl: text("custom_thumbnail_url"),
   caseStudy: jsonb("case_study").$type<CaseStudyData>(),
+  // NEW (Phase 1 of inline-editor work): generic block-based content.
+  // When non-null, the public Case Study page renders these blocks instead
+  // of the legacy hardcoded layout. Excluded categories ("Video Editing",
+  // "Video Editing Global") MUST NOT receive blocks (admin UI enforces).
+  blocks: jsonb("blocks").$type<Block[]>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
