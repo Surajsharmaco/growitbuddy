@@ -109,7 +109,7 @@ export default function CaseStudy() {
 
   const [location, setLocation] = useLocation();
   const { isAuthenticated, hasPermission } = useAdmin();
-  const canEdit = isAuthenticated && (hasPermission("portfolio") || hasPermission("all"));
+  const canEdit = isAuthenticated && hasPermission("work");
 
   // Edit mode is enabled via ?edit=1 in the URL (admin-only). Re-evaluate
   // when the URL string changes (wouter doesn't expose search separately).
