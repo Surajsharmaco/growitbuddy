@@ -19,12 +19,14 @@ export type BlockStyle = {
   maxWidth?: number;
 };
 
+export type BlockType =
+  | "heading" | "paragraph" | "image" | "video" | "metricsGrid"
+  | "bulletList" | "testimonial" | "tagList" | "gallery" | "divider"
+  | "spacer" | "button" | "columns";
+
 export type Block = {
   id: string;
-  type:
-    | "heading" | "paragraph" | "image" | "video" | "metricsGrid"
-    | "bulletList" | "testimonial" | "tagList" | "gallery" | "divider"
-    | "spacer" | "button" | "columns";
+  type: BlockType;
   props: Record<string, unknown>;
   style?: BlockStyle;
 };

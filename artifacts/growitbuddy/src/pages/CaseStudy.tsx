@@ -5,6 +5,9 @@ import { ArrowLeft, ArrowUpRight, CheckCircle2, Quote } from "lucide-react";
 
 import { API_BASE } from "@/lib/api";
 import BlockRenderer, { type Block } from "@/components/blocks/BlockRenderer";
+import BlockEditor from "@/components/blocks/BlockEditor";
+import { legacyToBlocks } from "@/components/blocks/blockDefaults";
+import { useAdmin } from "@/context/AdminContext";
 
 interface CaseStudyData {
   clientName?: string;
@@ -104,7 +107,17 @@ export default function CaseStudy() {
   const shareSlug = sharedParams?.slug ?? null;
   const sharePrefix = shareSlug ? `/portfolio/shared/${shareSlug}` : "/portfolio";
 
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
+  const { isAuthenticated, hasPermission } = useAdmin();
+  const canEdit = isAuthenticated && (hasPermission("portfolio") || hasPermission("all"));
+
+  // Edit mode is enabled via ?edit=1 in the URL (admin-only). Re-evaluate
+  // when the URL string changes (wouter doesn't expose search separately).
+  const editFlag = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("edit") === "1";
+  const editing = canEdit && editFlag;
+
+  // Video Editing categories are excluded from the block editor by product req.
+  const VIDEO_EDITING_CATS = new Set(["Video Editing", "Video Editing Global"]);
 
   const [item, setItem] = useState<PortfolioItem | null>(null);
   const [loading, setLoading] = useState(true);
@@ -156,13 +169,33 @@ export default function CaseStudy() {
     );
   }
 
-  // NEW: if this case study has been migrated to the block-based editor,
-  // render via BlockRenderer and skip the legacy hardcoded layout entirely.
-  // Video editing categories never use blocks (excluded by product req).
+  const isExcludedCategory = VIDEO_EDITING_CATS.has(item.category);
+
+  // ── Inline editor mode (?edit=1 + admin logged in) ─────────────────────
+  if (editing && !isExcludedCategory) {
+    // Seed blocks from legacy data if this case study hasn't been migrated yet.
+    const seed = Array.isArray(item.blocks) && item.blocks.length > 0
+      ? item.blocks
+      : legacyToBlocks(item.caseStudy as unknown as Record<string, unknown> | null, item.title);
+    return (
+      <BlockEditor
+        portfolioId={item.id}
+        initialBlocks={seed}
+        onSaved={(blocks) => setItem({ ...item, blocks })}
+        onExit={() => {
+          // Strip ?edit=1 from URL and stay on the same page.
+          const base = window.location.pathname;
+          setLocation(base);
+        }}
+      />
+    );
+  }
+
+  // ── Public block-rendered mode (case study already migrated) ───────────
   if (Array.isArray(item.blocks) && item.blocks.length > 0) {
     return (
       <div style={{ minHeight: "100vh", background: BG, color: TEXT }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Link
             href={`${sharePrefix}/${params?.category ?? ""}`}
             onClick={(e) => go(e as React.MouseEvent, `${sharePrefix}/${params?.category ?? ""}`)}
@@ -170,11 +203,25 @@ export default function CaseStudy() {
           >
             <ArrowLeft size={16} /> Back to {item.category}
           </Link>
+          {canEdit && !isExcludedCategory && (
+            <a
+              href={`${window.location.pathname}?edit=1`}
+              style={{
+                fontSize: 12, fontWeight: 700, padding: "6px 12px",
+                borderRadius: 999, background: SLATE, color: BG, textDecoration: "none",
+                display: "inline-flex", alignItems: "center", gap: 6,
+              }}
+            >
+              ✎ Edit inline
+            </a>
+          )}
         </div>
         <BlockRenderer blocks={item.blocks} />
       </div>
     );
   }
+
+  // ── Legacy-layout mode: show floating admin button to switch to blocks ─
 
   const cs = item.caseStudy ?? null;
   const fallback = dummyContent(item);
@@ -227,7 +274,7 @@ export default function CaseStudy() {
     <div style={{ minHeight: "100vh", background: BG, color: TEXT, fontFamily: "'Inter', sans-serif" }}>
       {/* ── Back strip ── */}
       <div style={{ borderBottom: `1px solid ${RULE}`, background: BG }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "20px 24px" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <a
             href={`${sharePrefix}/${categorySlug}`}
             onClick={(e) => go(e, `${sharePrefix}/${categorySlug}`)}
@@ -241,6 +288,20 @@ export default function CaseStudy() {
           >
             <ArrowLeft size={14} /> {item.category}
           </a>
+          {canEdit && !isExcludedCategory && (
+            <a
+              href={`${window.location.pathname}?edit=1`}
+              style={{
+                fontSize: 12, fontWeight: 700, padding: "8px 14px",
+                borderRadius: 999, background: SLATE, color: BG, textDecoration: "none",
+                display: "inline-flex", alignItems: "center", gap: 6,
+                boxShadow: "0 2px 8px rgba(30,41,59,0.18)",
+              }}
+              title="Open the inline editor (admin only)"
+            >
+              ✎ Edit inline
+            </a>
+          )}
         </div>
       </div>
 
