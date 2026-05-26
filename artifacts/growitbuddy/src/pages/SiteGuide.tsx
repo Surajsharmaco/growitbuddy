@@ -74,7 +74,7 @@ const PUBLIC_PAGES: Page[] = [
 
 interface AdminPage { url: string; name: string; what: string; }
 const ADMIN_PAGES: AdminPage[] = [
-  { url: "/admin",                     name: "Dashboard",         what: "Overview of recent leads, content sections, quick links." },
+  { url: "/admin",                     name: "Dashboard",         what: "At-a-glance home screen: stat cards (total blog posts, influencers, total leads, sections saved), a horizontal bar chart of 'Leads by Type', a 'Recent Saves' timeline, and a status grid of every editable section on the site." },
   { url: "/admin/home",                name: "Home page editor",  what: "Edit hero text, stats, services preview, testimonials on the homepage." },
   { url: "/admin/about",               name: "About editor",      what: "Edit founder story, team, mission text on /about." },
   { url: "/admin/services",            name: "Services editor",   what: "Edit services list and descriptions." },
@@ -99,13 +99,13 @@ const ADMIN_PAGES: AdminPage[] = [
   { url: "/admin/leads",               name: "Leads (CRM)",       what: "ALL form submissions — contact, newsletter, creator, page-owner, freelancer, full-time, internship. Searchable + exportable." },
   { url: "/admin/talent-pool-leads",   name: "Talent Pool Leads", what: "Separate inbox just for talent-pool applications, grouped by pool type." },
   { url: "/admin/certificates",        name: "Certificates",      what: "Issue & manage certificates verifiable at /verify/:id." },
-  { url: "/admin/media",               name: "Media Library",     what: "Upload & manage images. Used by any image picker in admin." },
+  { url: "/admin/media",               name: "Media Library",     what: "Drag-and-drop multi-file uploader, search by filename, full-screen lightbox preview, one-click 'Copy URL' for cross-linking the image into any other editor. Every image picker in the admin reads from here." },
   { url: "/admin/team",                name: "Team Members",      what: "Create login accounts for team members. Role-based: 'super' admins see everything; 'member' accounts can be limited to specific sections only (e.g. just Leads, or just Blog) so a writer can publish without ever seeing leads or settings." },
-  { url: "/admin/seo",                 name: "SEO settings",      what: "Per-page title, description, OG image, canonical URL. Per-page schema overrides." },
+  { url: "/admin/seo",                 name: "SEO settings",      what: "Full control centre: GLOBAL master 'Site Indexing' toggle (kill-switch that adds noindex,nofollow site-wide and empties sitemap), then per-page — indexing on/off, follow on/off, include-in-sitemap on/off, title, description, canonical URL, custom Facebook/OG (title + description + image), custom Twitter card (type + title + description + image), and a JSON-LD editor with live validation. Live SERP / Twitter / Facebook preview cards update as you type. Auto-warns if title or description is too long/short." },
   { url: "/admin/navbar",              name: "Navbar editor",     what: "Edit navigation menu items, links, order." },
   { url: "/admin/footer",              name: "Footer editor",     what: "Edit footer columns, links, social handles." },
-  { url: "/admin/settings",            name: "Site Settings",     what: "Logo, favicon, brand colors, contact info, social links — site-wide." },
-  { url: "/admin/page-visibility",     name: "Page Visibility",   what: "Hide/show pages from public (returns 404 to visitors when hidden)." },
+  { url: "/admin/settings",            name: "Site Settings",     what: "Site-wide: logo, favicon, contact info, social links, PLUS design controls — primary + accent color pickers with preset palettes (Midnight, Forest, etc.), global font-scale slider (80%–130%), custom-cursor toggle and page-intro animation toggle, with a live theme-preview card." },
+  { url: "/admin/page-visibility",     name: "Page Visibility",   what: "Hide any page from the public with one of two modes: 'Maintenance' (shows a maintenance screen) or 'Coming Soon' (shows a teaser screen). Each mode has its own editable headline + message. Hidden pages are automatically removed from sitemap.xml." },
   { url: "/admin/optimize",            name: "Optimizer",         what: "Performance toggles + one-click warm-up. Keep DB warm, cache stable public reads (60s/5min), long-cache images, clear caches, run VACUUM ANALYZE. All safe — defaults are OFF, never deletes content." },
 ];
 
@@ -214,7 +214,7 @@ export default function SiteGuide() {
           <p style={{
             fontSize: 11, fontWeight: 700, letterSpacing: "0.2em",
             textTransform: "uppercase", color: C.accent, marginBottom: 16,
-          }}>Complete Site Guide · v1.3</p>
+          }}>Complete Site Guide · v1.4</p>
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -665,42 +665,206 @@ export default function SiteGuide() {
       </Section>
 
       {/* ── 10. SEO ──────────────────────────────────────────────────────── */}
-      <Section id="seo" eyebrow="10" title="SEO — how each page is found on Google">
-        <p style={{ fontSize: 16, color: C.text2, lineHeight: 1.7, marginTop: 0 }}>
-          Every page on the site has SEO metadata: a <strong>title</strong> (what shows in
-          the Google search result), a <strong>description</strong> (the snippet under the
-          title), an <strong>OG image</strong> (the preview when shared on WhatsApp / X /
-          LinkedIn), and an optional <strong>canonical URL</strong>.
+      <Section id="seo" eyebrow="10" title="SEO — the complete, beginner-friendly playbook">
+        <p style={{ fontSize: 17, lineHeight: 1.8, color: C.text2, marginTop: 0 }}>
+          SEO simply means: <strong style={{ color: C.text }}>making sure your pages show up
+          when people search on Google</strong>. You don't need any technical skill — every
+          control lives in <code style={{ background: C.bg2, padding: "2px 6px", borderRadius: 4, fontSize: 13 }}>/admin/seo</code> as
+          plain text fields. This section walks through every single one of them, in order,
+          with concrete examples.
         </p>
 
+        {/* ── A. The vocabulary ── */}
+        <h3 style={{ fontSize: 22, fontWeight: 800, color: C.text, marginTop: 44, marginBottom: 12 }}>
+          A. The 6 words you'll see everywhere — explained in 1 line each
+        </h3>
         <Card>
-          <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 12px", color: C.text, display: "flex", alignItems: "center", gap: 8 }}>
-            <Search size={18} color={C.accent} /> Two ways SEO is controlled
-          </h3>
-          <ol style={{ margin: 0, paddingLeft: 22, fontSize: 15, lineHeight: 1.9, color: C.text2 }}>
-            <li><strong>Default (in code):</strong> Every page ships with a sensible default title + description.</li>
-            <li><strong>Override (in admin):</strong> Go to <code style={{ background: C.bg2, padding: "2px 6px", borderRadius: 4, fontSize: 13 }}>/admin/seo</code> → pick any page → set custom title, description, OG image, and canonical URL. Your override takes priority and is live on Google within minutes.</li>
-          </ol>
+          <ul style={{ margin: 0, paddingLeft: 22, fontSize: 15, lineHeight: 2, color: C.text2 }}>
+            <li><strong>Title</strong> — the big blue clickable line in a Google result. ~50–60 characters.</li>
+            <li><strong>Meta Description</strong> — the small grey paragraph under the title. ~140–160 characters.</li>
+            <li><strong>Canonical URL</strong> — the "official" web address of this page. Stops Google from treating duplicates as separate pages.</li>
+            <li><strong>OG Image</strong> — the preview picture shown when the link is shared on WhatsApp / Facebook / LinkedIn / X. Size: 1200 × 630 px.</li>
+            <li><strong>Robots / Indexing</strong> — instruction to Google: "show this page in search results, or hide it?".</li>
+            <li><strong>JSON-LD (Schema)</strong> — a small hidden snippet that tells Google <em>what</em> the page is (an article, a FAQ, a product, etc.). Helps you get rich results.</li>
+          </ul>
         </Card>
 
-        <h3 style={{ fontSize: 20, fontWeight: 700, color: C.text, marginTop: 36, marginBottom: 16 }}>
-          How to optimize a page for Google
+        {/* ── B. Two layers of control ── */}
+        <h3 style={{ fontSize: 22, fontWeight: 800, color: C.text, marginTop: 44, marginBottom: 12 }}>
+          B. How SEO is controlled — two layers
+        </h3>
+        <Card>
+          <h4 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 8px", color: C.text }}>1. The Global Site-Indexing master switch</h4>
+          <p style={{ margin: 0, fontSize: 15, color: C.text2, lineHeight: 1.7 }}>
+            At the very top of <code style={{ background: C.bg2, padding: "2px 6px", borderRadius: 4, fontSize: 13 }}>/admin/seo</code> there
+            is one big green/red toggle: <strong>"Allow Google &amp; other search engines to
+            index this entire site"</strong>. When this is OFF, the whole site is hidden
+            from Google (a <code style={{ background: C.bg2, padding: "1px 6px", borderRadius: 4, fontSize: 13 }}>noindex, nofollow</code> tag
+            is added to every page and the sitemap is emptied). Use it when the site is
+            in pre-launch / private mode. Keep it ON in production.
+          </p>
+        </Card>
+        <Card>
+          <h4 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 8px", color: C.text }}>2. Per-page settings (one row per page)</h4>
+          <p style={{ margin: 0, fontSize: 15, color: C.text2, lineHeight: 1.7 }}>
+            Below the global switch is the page list. Click any page (Home, Services, a
+            specific blog post, etc.) to open its full SEO form. Whatever you set here
+            <strong> overrides</strong> the default that ships with the page. Save once and
+            it's live on Google within a few hours.
+          </p>
+        </Card>
+
+        {/* ── C. Every field, top to bottom ── */}
+        <h3 style={{ fontSize: 22, fontWeight: 800, color: C.text, marginTop: 44, marginBottom: 12 }}>
+          C. Every field inside a per-page SEO form — top to bottom
+        </h3>
+
+        <Card accent>
+          <h4 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 8px", color: C.text }}>1) Indexability toggles (3 switches)</h4>
+          <ul style={{ margin: 0, paddingLeft: 22, fontSize: 15, lineHeight: 1.9, color: C.text2 }}>
+            <li><strong>Allow Search Engine Indexing</strong> — ON = page can appear in Google results. OFF = page is hidden from Google (<code style={{ background: "#fff", padding: "1px 6px", borderRadius: 4, fontSize: 13 }}>noindex</code>).</li>
+            <li><strong>Allow Search Engine Following</strong> — ON = Google can follow the links on this page. OFF = links are ignored (<code style={{ background: "#fff", padding: "1px 6px", borderRadius: 4, fontSize: 13 }}>nofollow</code>). Almost always keep ON.</li>
+            <li><strong>Include in Sitemap</strong> — ON = page is listed in <code style={{ background: "#fff", padding: "1px 6px", borderRadius: 4, fontSize: 13 }}>/sitemap.xml</code> so Google can find it quickly. OFF = it still works but Google has to discover it on its own.</li>
+          </ul>
+        </Card>
+
+        <Card>
+          <h4 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 8px", color: C.text }}>2) Title</h4>
+          <p style={{ margin: "0 0 8px", fontSize: 15, color: C.text2, lineHeight: 1.7 }}>
+            Aim for <strong>50–60 characters</strong>. Put the main keyword first, then a
+            small benefit, then your brand.
+          </p>
+          <div style={{ background: C.bg2, padding: 14, borderRadius: 8, fontSize: 14, color: C.text2, lineHeight: 1.7 }}>
+            <strong style={{ color: C.text }}>Bad:</strong> "Home"<br/>
+            <strong style={{ color: C.text }}>Good:</strong> "Content &amp; Distribution Agency for Founders — GrowitBuddy"
+          </div>
+          <p style={{ margin: "10px 0 0", fontSize: 14, color: C.muted, lineHeight: 1.7 }}>
+            If too long, Google chops the end with "…". The admin warns you in red when you exceed 60 chars.
+          </p>
+        </Card>
+
+        <Card>
+          <h4 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 8px", color: C.text }}>3) Meta Description</h4>
+          <p style={{ margin: "0 0 8px", fontSize: 15, color: C.text2, lineHeight: 1.7 }}>
+            <strong>140–160 characters.</strong> Treat it like an ad — sell the click. Mention
+            who the page is for, the benefit, and a verb (Learn / Join / Download / Book).
+          </p>
+          <div style={{ background: C.bg2, padding: 14, borderRadius: 8, fontSize: 14, color: C.text2, lineHeight: 1.7 }}>
+            <strong style={{ color: C.text }}>Good:</strong> "Authority, content and distribution systems for founders and modern brands. Book a free strategy call and see what a 90-day plan looks like."
+          </div>
+        </Card>
+
+        <Card>
+          <h4 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 8px", color: C.text }}>4) Canonical URL</h4>
+          <p style={{ margin: 0, fontSize: 15, color: C.text2, lineHeight: 1.7 }}>
+            Usually leave blank — the page's own URL is used automatically. Only fill it
+            when the same content lives at two URLs and you want Google to treat one as
+            the official one. Use the full URL with <code style={{ background: C.bg2, padding: "1px 6px", borderRadius: 4, fontSize: 13 }}>https://</code>.
+          </p>
+        </Card>
+
+        <Card>
+          <h4 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 8px", color: C.text }}>5) Facebook / OG preview (when shared on WhatsApp, LinkedIn, FB)</h4>
+          <ul style={{ margin: 0, paddingLeft: 22, fontSize: 15, lineHeight: 1.9, color: C.text2 }}>
+            <li><strong>OG Title</strong> — usually same as the SEO title. Override if you want a snappier social headline.</li>
+            <li><strong>OG Description</strong> — same as meta description by default. Override for social-only tone.</li>
+            <li><strong>OG Image</strong> — <strong>1200 × 630 px</strong> JPG/PNG, &lt; 1 MB. This is what people SEE in their feed — invest 10 minutes on it.</li>
+          </ul>
+        </Card>
+
+        <Card>
+          <h4 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 8px", color: C.text }}>6) Twitter / X preview</h4>
+          <ul style={{ margin: 0, paddingLeft: 22, fontSize: 15, lineHeight: 1.9, color: C.text2 }}>
+            <li><strong>Twitter Card Type</strong> — pick <em>Summary Large Image</em> 99% of the time (the big image card). Use <em>Summary</em> only for short profile-style pages.</li>
+            <li><strong>Twitter Title / Description / Image</strong> — separate fields if you want a different feel on X vs LinkedIn. Otherwise leave blank and the OG values are used.</li>
+          </ul>
+        </Card>
+
+        <Card>
+          <h4 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 8px", color: C.text }}>7) JSON-LD (Custom Schema)</h4>
+          <p style={{ margin: "0 0 8px", fontSize: 15, color: C.text2, lineHeight: 1.7 }}>
+            This is the "tell Google what the page IS" snippet. Most pages already inject
+            sensible schema automatically (Organization on home, Article on blog,
+            CollectionPage on Resources, BreadcrumbList on every page). Only paste a
+            custom JSON-LD object here if you want to add or override one. The editor:
+          </p>
+          <ul style={{ margin: 0, paddingLeft: 22, fontSize: 15, lineHeight: 1.9, color: C.text2 }}>
+            <li>Live-validates the JSON syntax as you type (red border = broken).</li>
+            <li>Accepts any valid <code style={{ background: C.bg2, padding: "1px 6px", borderRadius: 4, fontSize: 13 }}>https://schema.org</code> type — Product, Event, LocalBusiness, Course, Recipe, etc.</li>
+            <li>If you don't know JSON, leave this empty — the auto-generated schema is already good.</li>
+          </ul>
+        </Card>
+
+        <Card>
+          <h4 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 8px", color: C.text }}>8) Live preview cards (right side of the form)</h4>
+          <p style={{ margin: 0, fontSize: 15, color: C.text2, lineHeight: 1.7 }}>
+            As you type, three preview cards on the right update in real time:
+          </p>
+          <ul style={{ margin: "8px 0 0", paddingLeft: 22, fontSize: 15, lineHeight: 1.9, color: C.text2 }}>
+            <li><strong>Google SERP card</strong> — exactly how your title + URL + description will look on Google.</li>
+            <li><strong>Twitter card</strong> — your headline + image as the timeline will render it.</li>
+            <li><strong>Facebook / LinkedIn / WhatsApp card</strong> — same preview those platforms use.</li>
+          </ul>
+        </Card>
+
+        {/* ── D. Step-by-step workflow ── */}
+        <h3 style={{ fontSize: 22, fontWeight: 800, color: C.text, marginTop: 44, marginBottom: 12 }}>
+          D. Step-by-step: optimise any single page in 5 minutes
         </h3>
         <Steps items={[
-          "Go to /admin/seo and select the page you want to optimize.",
-          "Set a Title — 50-60 characters, include your main keyword + brand (e.g. 'Creator Network — Join GrowitBuddy').",
-          "Set a Description — 140-160 characters, sell the click (what will the visitor get?).",
-          "Upload an OG Image — 1200x630 px works best. This is the preview when someone shares the page on social media.",
-          "Save. Test by sharing the URL on WhatsApp — you should see the new preview within 1-2 minutes.",
-          "For Google: it usually re-indexes within a few hours to days. You can speed it up via Google Search Console → URL Inspection → Request Indexing.",
+          "Open /admin/seo and click the page you want to optimise (e.g. 'Home').",
+          "Confirm the 3 indexability switches are ON (Indexing, Following, Sitemap).",
+          "Write a Title (50–60 chars). Keyword first, benefit, brand. Watch the character counter.",
+          "Write a Meta Description (140–160 chars). Treat it like an ad — sell the click.",
+          "Leave the Canonical empty unless you have a duplicate-content reason to set it.",
+          "Upload an OG Image at 1200×630 px. Use a clear headline + brand logo overlay.",
+          "Pick Twitter Card Type = 'Summary Large Image'. Leave Twitter fields blank to reuse OG.",
+          "Glance at the 3 live preview cards on the right — make sure the title isn't truncated and the image looks crisp.",
+          "Click Save. The change is live on your site within seconds.",
+          "Re-share the URL on WhatsApp to yourself — the new preview should appear within 1–2 minutes.",
+          "Optional but recommended: open Google Search Console → URL Inspection → paste the URL → click 'Request Indexing' so Google re-crawls within hours instead of days.",
         ]} />
 
-        <h3 style={{ fontSize: 20, fontWeight: 700, color: C.text, marginTop: 48, marginBottom: 16 }}>
-          Sitemap & robots
+        {/* ── E. Sitemap & robots ── */}
+        <h3 style={{ fontSize: 22, fontWeight: 800, color: C.text, marginTop: 44, marginBottom: 12 }}>
+          E. Sitemap, robots.txt &amp; Google Search Console
         </h3>
-        <p style={{ fontSize: 15, color: C.text2, lineHeight: 1.7 }}>
-          The site auto-generates a sitemap at <code style={{ background: C.bg2, padding: "2px 6px", borderRadius: 4, fontSize: 13 }}>/sitemap.xml</code> — submit this to Google Search Console. Hidden pages (Page Visibility → off) are automatically excluded from the sitemap.
-        </p>
+        <Card>
+          <ul style={{ margin: 0, paddingLeft: 22, fontSize: 15, lineHeight: 1.9, color: C.text2 }}>
+            <li><strong>Sitemap</strong> — auto-generated live at <code style={{ background: C.bg2, padding: "1px 6px", borderRadius: 4, fontSize: 13 }}>/sitemap.xml</code>. It always reflects your current pages. Hidden pages (Page Visibility off, or Include-in-Sitemap off) are automatically excluded.</li>
+            <li><strong>robots.txt</strong> — auto-generated at <code style={{ background: C.bg2, padding: "1px 6px", borderRadius: 4, fontSize: 13 }}>/robots.txt</code> and points Google to the sitemap. If the global Site-Indexing master switch is OFF, robots.txt blocks every crawler.</li>
+            <li><strong>Google Search Console setup</strong> — go to <code style={{ background: C.bg2, padding: "1px 6px", borderRadius: 4, fontSize: 13 }}>search.google.com/search-console</code>, add your domain, verify it (DNS record is easiest), then in 'Sitemaps' submit <code style={{ background: C.bg2, padding: "1px 6px", borderRadius: 4, fontSize: 13 }}>https://yourdomain.com/sitemap.xml</code>. Within a few days Google will index everything.</li>
+            <li><strong>Forcing a re-index</strong> — for any single URL: Search Console → URL Inspection → paste the URL → 'Request Indexing'. Usually live in Google within a few hours.</li>
+          </ul>
+        </Card>
+
+        {/* ── F. Beyond the basics ── */}
+        <h3 style={{ fontSize: 22, fontWeight: 800, color: C.text, marginTop: 44, marginBottom: 12 }}>
+          F. Beyond the basics — AI Search, Blog SEO, Resources GEO/AEO
+        </h3>
+        <Card>
+          <ul style={{ margin: 0, paddingLeft: 22, fontSize: 15, lineHeight: 1.9, color: C.text2 }}>
+            <li><strong>Blog posts</strong> have a full live SEO Suite right inside <code style={{ background: C.bg2, padding: "1px 6px", borderRadius: 4, fontSize: 13 }}>/admin/blog</code> — score ring (aim 80+), Yoast-style checks, search-intent detector, power-word analysis, internal-link suggester. See the 'Power Features' section above.</li>
+            <li><strong>Resources page</strong> has its own GEO / AEO / AISEO controls (AI Quick-Answer, AI keywords, primary entity, audience, geo location, factual claims, FAQs). See the 'Resources Library' section above.</li>
+            <li><strong>Page Variants</strong> each get their own independent SEO — perfect for A/B testing meta titles.</li>
+            <li><strong>WhatsApp / iMessage preview</strong> = same as OG. There's nothing extra to configure for those platforms.</li>
+          </ul>
+        </Card>
+
+        {/* ── G. Mistakes to avoid ── */}
+        <h3 style={{ fontSize: 22, fontWeight: 800, color: C.text, marginTop: 44, marginBottom: 12 }}>
+          G. Common mistakes to avoid
+        </h3>
+        <div style={{ background: "#FEF5EC", border: "1px solid #F0D9C0", borderRadius: 12, padding: 24 }}>
+          <ul style={{ margin: 0, paddingLeft: 22, fontSize: 15, lineHeight: 1.9, color: C.text2 }}>
+            <li>Turning the global Site-Indexing switch OFF and forgetting about it after launch — your site disappears from Google.</li>
+            <li>Using the same Title and Description on every page — Google sees this as "thin / duplicate" content.</li>
+            <li>Uploading a tiny OG image (e.g. 400×400) — looks blurry on LinkedIn and stretched on Facebook. Always 1200×630.</li>
+            <li>Putting the brand name first in every Title — wastes precious characters. Keyword first, brand last.</li>
+            <li>Pasting random JSON-LD copied from another website — Search Console will throw schema errors. Leave the JSON-LD box empty unless you know exactly what you're adding.</li>
+            <li>Hiding a page via Page Visibility but expecting it to still rank — Google treats it as 404 and drops it.</li>
+          </ul>
+        </div>
       </Section>
 
       {/* ── 11. EMAIL ────────────────────────────────────────────────────── */}
