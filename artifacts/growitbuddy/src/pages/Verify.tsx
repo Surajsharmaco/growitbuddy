@@ -55,8 +55,9 @@ function ResultCard({ cert }: { cert: CertResult }) {
             <ShieldX size={22} style={{ color: "#f87171" }} />
           )}
         </div>
-        <div>
+        <div style={{ minWidth: 0, flex: 1 }}>
           <p
+            className="verify-header-eyebrow"
             style={{
               fontSize: 12,
               fontWeight: 700,
@@ -68,7 +69,7 @@ function ResultCard({ cert }: { cert: CertResult }) {
           >
             {isVerified ? "Certificate Verified" : "Certificate Revoked"}
           </p>
-          <p style={{ fontSize: 13, color: "#7A7A85", fontWeight: 500 }}>
+          <p className="verify-header-sub" style={{ fontSize: 13, color: "#7A7A85", fontWeight: 500, lineHeight: 1.45 }}>
             {isVerified
               ? "This certificate is authentic and valid."
               : "This certificate has been revoked by GrowitBuddy."}
@@ -83,9 +84,9 @@ function ResultCard({ cert }: { cert: CertResult }) {
             { label: "Role / Program", value: cert.role },
             { label: "Issued By", value: "GrowitBuddy" },
             { label: "Issue Date", value: cert.issueDate },
-            { label: "Certificate ID", value: cert.certificateId, mono: true },
-          ].map(({ label, value, mono }) => (
-            <div key={label}>
+            { label: "Certificate ID", value: cert.certificateId, mono: true, full: true },
+          ].map(({ label, value, mono, full }) => (
+            <div key={label} style={{ minWidth: 0, gridColumn: full ? "1 / -1" : undefined }}>
               <p
                 style={{
                   fontSize: 11,
@@ -99,12 +100,16 @@ function ResultCard({ cert }: { cert: CertResult }) {
                 {label}
               </p>
               <p
+                className={mono ? "verify-value-mono" : "verify-value"}
                 style={{
-                  fontSize: 15,
+                  fontSize: mono ? 14 : 15,
                   fontWeight: 600,
                   color: "#0A0A0A",
-                  fontFamily: mono ? "monospace" : undefined,
+                  fontFamily: mono ? "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" : undefined,
                   letterSpacing: mono ? "0.02em" : undefined,
+                  lineHeight: 1.4,
+                  wordBreak: "break-word",
+                  overflowWrap: "anywhere",
                 }}
               >
                 {value}
@@ -156,11 +161,16 @@ export default function Verify() {
         .verify-result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 32px; }
         .verify-result-header { padding: 24px 32px; }
         .verify-result-body { padding: 28px 32px; }
+        .verify-value-mono { font-size: 14px; }
         @media (max-width: 520px) {
           .verify-search-btn { padding: 14px 16px; }
-          .verify-result-grid { grid-template-columns: 1fr; gap: 16px; }
-          .verify-result-header { padding: 20px 20px; }
-          .verify-result-body { padding: 20px 20px; }
+          .verify-result-grid { grid-template-columns: 1fr; gap: 18px; }
+          .verify-result-header { padding: 18px 18px; gap: 12px !important; }
+          .verify-result-body { padding: 20px 18px; }
+          .verify-header-eyebrow { font-size: 11px !important; letter-spacing: 0.12em !important; }
+          .verify-header-sub { font-size: 12.5px !important; }
+          .verify-value { font-size: 14.5px !important; }
+          .verify-value-mono { font-size: 12.5px !important; }
         }
       `}</style>
       <SEOMeta
