@@ -108,8 +108,11 @@ function ResultCard({ cert }: { cert: CertResult }) {
                   fontFamily: mono ? "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" : undefined,
                   letterSpacing: mono ? "0.02em" : undefined,
                   lineHeight: 1.4,
-                  wordBreak: "break-word",
-                  overflowWrap: "anywhere",
+                  // Mono IDs may not have natural break points, so allow
+                  // anywhere-breaking. Normal text only breaks at spaces.
+                  wordBreak: mono ? "break-all" : "normal",
+                  overflowWrap: mono ? "anywhere" : "break-word",
+                  margin: 0,
                 }}
               >
                 {value}
@@ -158,19 +161,28 @@ export default function Verify() {
     <div style={{ background: "#F8F8F6", fontFamily: "'Inter', sans-serif", minHeight: "100vh" }}>
       <style>{`
         .verify-search-btn { padding: 16px 24px; white-space: nowrap; }
-        .verify-result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 32px; }
+        /* Fluid grid: auto-fit to keep each cell at least 200px wide.
+           Collapses to a single column on narrow screens automatically, so
+           labels and brand names never get squeezed mid-word. */
+        .verify-result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px 32px; }
         .verify-result-header { padding: 24px 32px; }
         .verify-result-body { padding: 28px 32px; }
         .verify-value-mono { font-size: 14px; }
+        /* Labels — uppercase eyebrows. "Certificate ID" has a natural space
+           so it wraps cleanly across two lines if needed; never mid-word. */
+        .verify-result-grid p:first-child { word-break: keep-all; overflow-wrap: normal; hyphens: none; }
+        @media (max-width: 640px) {
+          .verify-result-header { padding: 20px 22px; }
+          .verify-result-body { padding: 22px 22px; }
+        }
         @media (max-width: 520px) {
           .verify-search-btn { padding: 14px 16px; }
-          .verify-result-grid { grid-template-columns: 1fr; gap: 18px; }
           .verify-result-header { padding: 18px 18px; gap: 12px !important; }
           .verify-result-body { padding: 20px 18px; }
           .verify-header-eyebrow { font-size: 11px !important; letter-spacing: 0.12em !important; }
           .verify-header-sub { font-size: 12.5px !important; }
           .verify-value { font-size: 14.5px !important; }
-          .verify-value-mono { font-size: 12.5px !important; }
+          .verify-value-mono { font-size: 13px !important; }
         }
       `}</style>
       <SEOMeta
