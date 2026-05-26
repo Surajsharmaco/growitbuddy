@@ -771,9 +771,27 @@ export default function AdminPortfolio() {
                   <Card>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
                       <h2 style={{ fontWeight: 700, fontSize: 15, color: "#0A0A0A" }}>Edit Item</h2>
-                      <button onClick={() => setEditId(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#8A8A8A" }}>
-                        <X size={16} />
-                      </button>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        {!["Video Editing", "Video Editing Global"].includes(item.category) && (
+                          <a
+                            href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/portfolio/${encodeURIComponent(item.category)}/case/${item.id}?edit=1`}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                              fontSize: 12, fontWeight: 700, padding: "8px 14px",
+                              borderRadius: 999, background: "#1E293B", color: "#F8F8F6",
+                              textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6,
+                              boxShadow: "0 2px 8px rgba(30,41,59,0.18)",
+                            }}
+                            title="Open the Wix-style inline editor in a new tab"
+                          >
+                            ✎ Open inline editor
+                          </a>
+                        )}
+                        <button onClick={() => setEditId(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#8A8A8A" }}>
+                          <X size={16} />
+                        </button>
+                      </div>
                     </div>
                     <ItemForm
                       initial={{
