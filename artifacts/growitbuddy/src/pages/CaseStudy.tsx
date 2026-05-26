@@ -58,7 +58,7 @@ interface PortfolioItem {
   description: string | null;
   sortOrder: number;
   caseStudy?: CaseStudyData | null;
-  // Phase 1 inline-editor data model — when present, the public page renders
+  // Phase 1 inline-editor data model - when present, the public page renders
   // via <BlockRenderer /> instead of the legacy hardcoded layout below.
   blocks?: Block[] | null;
 }
@@ -99,9 +99,9 @@ function dummyContent(item: PortfolioItem) {
   const cat = item.category;
   const verb = cat.includes("Web") ? "build" : cat.includes("AI") ? "automate" : "scale";
   return {
-    overview: `${item.title} — a deep-dive case study on how we helped a founder ${verb} their ${cat.toLowerCase()} system end-to-end. From positioning and architecture to launch and post-launch optimization, this engagement compounded into a long-term growth engine.`,
-    challenge: `The client came to us with a fractured ${cat.toLowerCase()} setup — inconsistent execution, no measurement framework, and a brand voice that didn't match their level. They needed a partner who could think strategically and ship at pace.`,
-    approach: `We started with a discovery sprint, mapped the existing surface area, and rebuilt the system from first principles. Every decision was tied to a measurable outcome — clarity over cleverness, compounding over campaigns.`,
+    overview: `${item.title} - a deep-dive case study on how we helped a founder ${verb} their ${cat.toLowerCase()} system end-to-end. From positioning and architecture to launch and post-launch optimization, this engagement compounded into a long-term growth engine.`,
+    challenge: `The client came to us with a fractured ${cat.toLowerCase()} setup - inconsistent execution, no measurement framework, and a brand voice that didn't match their level. They needed a partner who could think strategically and ship at pace.`,
+    approach: `We started with a discovery sprint, mapped the existing surface area, and rebuilt the system from first principles. Every decision was tied to a measurable outcome - clarity over cleverness, compounding over campaigns.`,
     solution: `A unified ${cat.toLowerCase()} stack that pairs an opinionated framework with a flexible production engine. Owned by the founder, operated by our team, instrumented from day one.`,
     metrics: [
       { label: "Increase in qualified inbound", value: "+247%" },
@@ -110,7 +110,7 @@ function dummyContent(item: PortfolioItem) {
       { label: "Time-to-launch", value: "−61%" },
     ],
     testimonial: {
-      quote: `GrowitBuddy didn't just ship deliverables — they built a system we now operate ourselves. Best money we've spent on ${cat.toLowerCase()}, full stop.`,
+      quote: `GrowitBuddy didn't just ship deliverables - they built a system we now operate ourselves. Best money we've spent on ${cat.toLowerCase()}, full stop.`,
       author: "Founder, Series-A SaaS",
     },
     stack: cat.includes("Web")
@@ -140,7 +140,7 @@ function FloatingEditBtn({ excluded }: { excluded: boolean }) {
           boxShadow: "0 4px 14px rgba(0,0,0,0.18)", cursor: "not-allowed", opacity: 0.85,
         }}
       >
-        ✎ Inline edit — N/A for Video
+        ✎ Inline edit - N/A for Video
       </div>
     );
   }
@@ -242,7 +242,7 @@ export default function CaseStudy() {
   const isExcludedCategory = VIDEO_EDITING_CATS.has(item.category);
 
   // ── Inline editor mode (?edit=1 + admin logged in) ─────────────────────
-  // For legacy case studies we use the WYSIWYG CaseStudyInlineEditor — it
+  // For legacy case studies we use the WYSIWYG CaseStudyInlineEditor - it
   // renders a 1:1 visual replica of the public page layout. For already-
   // migrated case studies (blocks present) we still use the generic
   // BlockEditor since the public page renders blocks via BlockRenderer.
@@ -480,7 +480,7 @@ export default function CaseStudy() {
         </div>
       </section>
 
-      {/* ── METRICS STRIP — same visual language as Home stats ── */}
+      {/* ── METRICS STRIP - same visual language as Home stats ── */}
       {!hidden.has("metrics") && (
       <section
         style={{
@@ -650,7 +650,7 @@ export default function CaseStudy() {
                       <div style={{ position: "relative", aspectRatio: v.ratio || "16/9" }}>
                         <iframe
                           src={url}
-                          title={`${item.title} — video ${idx + 1}`}
+                          title={`${item.title} - video ${idx + 1}`}
                           style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           allowFullScreen
@@ -700,7 +700,7 @@ export default function CaseStudy() {
       </Section>
       )}
 
-      {/* ── TESTIMONIAL — dark slate card like Home problem section ── */}
+      {/* ── TESTIMONIAL - dark slate card like Home problem section ── */}
       {!hidden.has("testimonial") && (
       <section style={{ padding: "32px 24px 64px" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>

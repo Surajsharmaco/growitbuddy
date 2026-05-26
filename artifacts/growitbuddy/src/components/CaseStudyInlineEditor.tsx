@@ -9,7 +9,7 @@ import { API_BASE, resolveMediaUrl } from "@/lib/api";
 import { getEmbedUrl as buildEmbedUrl } from "@/lib/videoEmbed";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CaseStudyInlineEditor — Wix-style WYSIWYG editor that renders a 1:1 visual
+// CaseStudyInlineEditor - Wix-style WYSIWYG editor that renders a 1:1 visual
 // replica of the public case study page and gives the admin true Wix freedom:
 //   • Per-section toolbar (hide / show, when applicable)
 //   • Aspect-ratio control on any image or video (16/9, 4/3, 1/1, 9/16, 21/9)
@@ -22,7 +22,7 @@ import { getEmbedUrl as buildEmbedUrl } from "@/lib/videoEmbed";
 // legacy fields when the new ones aren't present).
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Theme — must match pages/CaseStudy.tsx
+// Theme - must match pages/CaseStudy.tsx
 const BG = "#F8F8F6";
 const BG_ALT = "#EFEFEA";
 const CARD = "#FFFFFF";
@@ -104,7 +104,7 @@ interface Props {
   onExit?: () => void;
 }
 
-// Normalizers — keep old-shape data working transparently
+// Normalizers - keep old-shape data working transparently
 function normalizeGallery(input: Array<string | MediaItem> | undefined): MediaItem[] {
   if (!Array.isArray(input)) return [];
   return input.map((x) => typeof x === "string" ? { url: x } : { url: x.url, ratio: x.ratio, width: x.width });
@@ -213,7 +213,7 @@ export default function CaseStudyInlineEditor({ item: initialItem, onSaved, onEx
         onSaved?.(item);
         setTimeout(() => setSaveMsg(null), 2500);
       }
-    } catch { setSaveMsg("Network error — try again."); }
+    } catch { setSaveMsg("Network error - try again."); }
     finally { setSaving(false); }
   }
   function exitEditor() {
@@ -250,7 +250,7 @@ export default function CaseStudyInlineEditor({ item: initialItem, onSaved, onEx
         </div>
       </div>
 
-      {/* ── HERO (always visible — can't hide your own title) ─────────────── */}
+      {/* ── HERO (always visible - can't hide your own title) ─────────────── */}
       <SectionFrame label="Hero">
         <section style={{ padding: "80px 24px 56px" }}>
           <div style={{ maxWidth: 1200, margin: "0 auto" }}>
@@ -557,7 +557,7 @@ export default function CaseStudyInlineEditor({ item: initialItem, onSaved, onEx
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Section frame — adds the per-section hover toolbar (Hide / Show)
+// Section frame - adds the per-section hover toolbar (Hide / Show)
 // ─────────────────────────────────────────────────────────────────────────────
 
 function SectionFrame({ label, hidden, onToggleHide, children }: {
@@ -586,7 +586,7 @@ function SectionFrame({ label, hidden, onToggleHide, children }: {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MediaTile — image with hover toolbar (replace / ratio / duplicate / remove)
+// MediaTile - image with hover toolbar (replace / ratio / duplicate / remove)
 // ─────────────────────────────────────────────────────────────────────────────
 
 function MediaTile({ src, alt, ratio, widthPct, onUpload, onChangeRatio, onChangeWidth, onDuplicate, onRemove, placeholder }: {
@@ -630,7 +630,7 @@ function MediaTile({ src, alt, ratio, widthPct, onUpload, onChangeRatio, onChang
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// VideoTile — embed + URL input + per-video aspect ratio + duplicate / remove
+// VideoTile - embed + URL input + per-video aspect ratio + duplicate / remove
 // ─────────────────────────────────────────────────────────────────────────────
 
 function VideoTile({ video, onChangeUrl, onChangeRatio, onChangeWidth, onDuplicate, onRemove }: {
@@ -686,7 +686,7 @@ function EmptyVideoSlot({ onAdd }: { onAdd: (url: string) => void }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Extra paragraphs — adds N freeform paragraphs to a text section
+// Extra paragraphs - adds N freeform paragraphs to a text section
 // ─────────────────────────────────────────────────────────────────────────────
 
 function ExtraParagraphs({ items, onChange, muted }: { items: string[]; onChange: (next: string[]) => void; muted?: boolean }) {
@@ -781,9 +781,9 @@ function SectionShell({ label, heading, onChangeLabel, onChangeHeading, children
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// WidthBox — wraps any element with a centered width % container and a
+// WidthBox - wraps any element with a centered width % container and a
 // Wix-style corner drag handle to resize. Used to shrink hero / gallery /
-// video tiles. Width clamped 20-100. Pure CSS resize — no layout thrash.
+// video tiles. Width clamped 20-100. Pure CSS resize - no layout thrash.
 // ─────────────────────────────────────────────────────────────────────────────
 
 function WidthBox({ widthPct, onChange, children }: {
