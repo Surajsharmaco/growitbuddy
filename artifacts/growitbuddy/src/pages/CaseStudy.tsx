@@ -28,6 +28,12 @@ interface CaseStudyData {
   solutionLabel?: string;
   solutionHeading?: string;
   videoEyebrow?: string;
+  bylineClientLabel?: string;
+  bylineCategoryLabel?: string;
+  bylineRoleLabel?: string;
+  bylineYearLabel?: string;
+  bylineRoleValue?: string;
+  bylineYearValue?: string;
   metrics?: Array<{ value: string; label: string }>;
   stack?: string[];
   testimonial?: { quote: string; author: string };
@@ -407,10 +413,10 @@ export default function CaseStudy() {
             }}
           >
             {[
-              { label: "Client", value: cs?.clientName || "Confidential" },
-              { label: "Category", value: item.category },
-              { label: "Role", value: roleLabel },
-              { label: "Year", value: yearLabel },
+              { label: cs?.bylineClientLabel || "Client", value: cs?.clientName || "Confidential" },
+              { label: cs?.bylineCategoryLabel || "Category", value: item.category },
+              { label: cs?.bylineRoleLabel || "Role", value: cs?.bylineRoleValue || roleLabel },
+              { label: cs?.bylineYearLabel || "Year", value: cs?.bylineYearValue || yearLabel },
             ].map((m) => (
               <div key={m.label}>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: GOLD, marginBottom: 8 }}>
@@ -558,7 +564,7 @@ export default function CaseStudy() {
       <section style={{ padding: "0 24px 56px" }}>
         <div
           className="gallery-2"
-          style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 22 }}
+          style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gridTemplateColumns: gallery.length === 1 ? "1fr" : "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: 22 }}
         >
           {gallery.map((g, i) => (
             <div key={i} style={{ width: `${g.width ?? 100}%`, margin: "0 auto" }}>

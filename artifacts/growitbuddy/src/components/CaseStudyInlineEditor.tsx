@@ -58,6 +58,12 @@ interface CaseStudyData {
   heroImageUrl?: string;
   heroImageRatio?: string;
   heroImageWidth?: number;                      // % width 20-100 (default 100)
+  bylineClientLabel?: string;
+  bylineCategoryLabel?: string;
+  bylineRoleLabel?: string;
+  bylineYearLabel?: string;
+  bylineRoleValue?: string;
+  bylineYearValue?: string;
   galleryImages?: Array<string | MediaItem>;   // legacy: string[]; new: MediaItem[]
   metrics?: Array<{ value: string; label: string }>;
   stack?: string[];
@@ -252,13 +258,21 @@ export default function CaseStudyInlineEditor({ item: initialItem, onSaved, onEx
             <Editable as="p" multiline value={item.description ?? ""} onChange={(v) => setItemField("description", v)} placeholder="One-line description (optional)…"
               style={{ fontSize: "clamp(17px, 1.6vw, 20px)", color: MUTED, lineHeight: 1.6, marginTop: 24, marginBottom: 0, maxWidth: "62ch", fontWeight: 500 }} />
             <div className="byline" style={{ marginTop: 48, paddingTop: 24, borderTop: `1px solid ${RULE}`, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24 }}>
-              <BylineCell label="Client">
+              <BylineCell label={cs.bylineClientLabel ?? "Client"} onChangeLabel={(v) => setCs({ bylineClientLabel: v })}>
                 <Editable value={cs.clientName ?? ""} onChange={(v) => setCs({ clientName: v })} placeholder="Client name"
                   style={{ fontSize: 15, fontWeight: 700, color: TEXT, letterSpacing: "-0.01em" }} />
               </BylineCell>
-              <BylineCell label="Category"><span style={{ fontSize: 15, fontWeight: 700, color: TEXT }}>{item.category}</span></BylineCell>
-              <BylineCell label="Role"><span style={{ fontSize: 15, fontWeight: 700, color: TEXT }}>{roleLabel}</span></BylineCell>
-              <BylineCell label="Year"><span style={{ fontSize: 15, fontWeight: 700, color: TEXT }}>{yearLabel}</span></BylineCell>
+              <BylineCell label={cs.bylineCategoryLabel ?? "Category"} onChangeLabel={(v) => setCs({ bylineCategoryLabel: v })}>
+                <span style={{ fontSize: 15, fontWeight: 700, color: TEXT }}>{item.category}</span>
+              </BylineCell>
+              <BylineCell label={cs.bylineRoleLabel ?? "Role"} onChangeLabel={(v) => setCs({ bylineRoleLabel: v })}>
+                <Editable value={cs.bylineRoleValue ?? roleLabel} onChange={(v) => setCs({ bylineRoleValue: v })} placeholder="Role"
+                  style={{ fontSize: 15, fontWeight: 700, color: TEXT }} />
+              </BylineCell>
+              <BylineCell label={cs.bylineYearLabel ?? "Year"} onChangeLabel={(v) => setCs({ bylineYearLabel: v })}>
+                <Editable value={cs.bylineYearValue ?? yearLabel} onChange={(v) => setCs({ bylineYearValue: v })} placeholder="Year"
+                  style={{ fontSize: 15, fontWeight: 700, color: TEXT }} />
+              </BylineCell>
             </div>
           </div>
         </section>
@@ -335,7 +349,7 @@ export default function CaseStudyInlineEditor({ item: initialItem, onSaved, onEx
       {/* ── GALLERY ───────────────────────────────────────────────────────── */}
       <SectionFrame label="Gallery" hidden={isHidden("gallery")} onToggleHide={() => toggleHidden("gallery")}>
         <section style={{ padding: "0 24px 56px" }}>
-          <div className="gallery-2" style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 22 }}>
+          <div className="gallery-2" style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gridTemplateColumns: gallery.length === 1 ? "1fr" : "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: 22 }}>
             {gallery.map((g, i) => (
               <WidthBox key={i} widthPct={g.width ?? 100}
                 onChange={(w) => setCs({ galleryImages: gallery.map((x, idx) => idx === i ? { ...x, width: w } : x) })}>
@@ -743,10 +757,13 @@ function Editable({ value, onChange, style, placeholder, multiline, as: As = "sp
   });
 }
 
-function BylineCell({ label, children }: { label: string; children: React.ReactNode }) {
+function BylineCell({ label, onChangeLabel, children }: { label: string; onChangeLabel?: (v: string) => void; children: React.ReactNode }) {
+  const labelStyle: React.CSSProperties = { fontSize: 10, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: GOLD, marginBottom: 8 };
   return (
     <div>
-      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: GOLD, marginBottom: 8 }}>{label}</div>
+      {onChangeLabel
+        ? <Editable as="div" value={label} onChange={onChangeLabel} placeholder="Label…" style={labelStyle} />
+        : <div style={labelStyle}>{label}</div>}
       <div>{children}</div>
     </div>
   );
