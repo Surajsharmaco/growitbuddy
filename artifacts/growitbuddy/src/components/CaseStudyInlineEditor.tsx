@@ -101,7 +101,7 @@ interface Props {
 // Normalizers — keep old-shape data working transparently
 function normalizeGallery(input: Array<string | MediaItem> | undefined): MediaItem[] {
   if (!Array.isArray(input)) return [];
-  return input.map((x) => typeof x === "string" ? { url: x } : { url: x.url, ratio: x.ratio });
+  return input.map((x) => typeof x === "string" ? { url: x } : { url: x.url, ratio: x.ratio, width: x.width });
 }
 function normalizeVideos(cs: CaseStudyData): VideoItem[] {
   if (Array.isArray(cs.videos) && cs.videos.length > 0) return cs.videos;

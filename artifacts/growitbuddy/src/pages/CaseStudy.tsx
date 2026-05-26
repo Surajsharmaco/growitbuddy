@@ -428,6 +428,7 @@ export default function CaseStudy() {
       {/* ── HERO IMAGE ── */}
       <section style={{ padding: "0 24px 88px" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+         <div style={{ width: `${cs?.heroImageWidth ?? 100}%`, margin: "0 auto" }}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -463,15 +464,14 @@ export default function CaseStudy() {
                 )}
               </div>
             )}
-            <div style={{ width: `${cs?.heroImageWidth ?? 100}%`, margin: "0 auto" }}>
-              <img
-                src={heroImg}
-                alt={item.title}
-                loading="eager"
-                style={{ display: "block", width: "100%", aspectRatio: heroRatio, objectFit: "cover" }}
-              />
-            </div>
+            <img
+              src={heroImg}
+              alt={item.title}
+              loading="eager"
+              style={{ display: "block", width: "100%", aspectRatio: heroRatio, objectFit: "cover" }}
+            />
           </motion.div>
+         </div>
         </div>
       </section>
 
@@ -624,7 +624,7 @@ export default function CaseStudy() {
           <div style={{ maxWidth: 1200, margin: "0 auto" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20, justifyContent: "center" }}>
               <span style={{ width: 32, height: 1, background: GOLD }} />
-              <p style={eyebrow}>Project Walkthrough</p>
+              <p style={eyebrow}>{cs?.videoEyebrow || "Project Walkthrough"}</p>
               <span style={{ width: 32, height: 1, background: GOLD }} />
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
