@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft, ArrowUpRight, CheckCircle2, Quote, ImagePlus, Plus, X, Save,
-  Eye, EyeOff, Copy, Trash2, Crop,
+  Eye, EyeOff, Copy, Trash2, Crop, Maximize2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAdmin } from "@/context/AdminContext";
@@ -44,9 +44,9 @@ const RATIOS: Array<{ label: string; value: string }> = [
   { label: "21:9", value: "21/9" },
 ];
 
-// Media types kept rich enough to carry per-item aspect ratio.
-type MediaItem = { url: string; ratio?: string };
-type VideoItem = { url: string; ratio?: string };
+// Media types kept rich enough to carry per-item aspect ratio + width %.
+type MediaItem = { url: string; ratio?: string; width?: number };
+type VideoItem = { url: string; ratio?: string; width?: number };
 
 // Section keys eligible for hide/show. Hero is always visible.
 type SectionKey = "metrics" | "overview" | "gallery" | "approach" | "video" | "solution" | "testimonial";
@@ -57,20 +57,28 @@ interface CaseStudyData {
   coverImageUrl?: string;
   heroImageUrl?: string;
   heroImageRatio?: string;
+  heroImageWidth?: number;                      // % width 20-100 (default 100)
   galleryImages?: Array<string | MediaItem>;   // legacy: string[]; new: MediaItem[]
   metrics?: Array<{ value: string; label: string }>;
   stack?: string[];
   testimonial?: { quote: string; author: string };
   overview?: string;
+  overviewLabel?: string;
+  overviewHeading?: string;
   overviewExtras?: string[];
   challenge?: string;
   approach?: string;
+  approachLabel?: string;
+  approachHeading?: string;
   approachExtras?: string[];
   approachBullets?: string[];
   solution?: string;
+  solutionLabel?: string;
+  solutionHeading?: string;
   solutionExtras?: string[];
   videoUrl?: string;                            // legacy single
   videos?: VideoItem[];                         // new multi
+  videoEyebrow?: string;
   hiddenSections?: SectionKey[];
 }
 
@@ -258,18 +266,22 @@ export default function CaseStudyInlineEditor({ item: initialItem, onSaved, onEx
         {/* ── HERO IMAGE ── */}
         <section style={{ padding: "0 24px 88px" }}>
           <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-            <div style={{ position: "relative", borderRadius: 22, overflow: "hidden", border: `1px solid ${RULE}`, background: BG_ALT, boxShadow: "0 30px 80px -30px rgba(10,10,10,0.25)" }}>
-              <ClientLogoChip logoUrl={cs.clientLogoUrl ?? ""} clientName={cs.clientName ?? ""}
-                onUpload={async (f) => { const u = await uploadImage(f); if (u) setCs({ clientLogoUrl: u }); }}
-                onRemove={() => setCs({ clientLogoUrl: undefined })} />
-              <MediaTile
-                src={heroImg} alt={item.title} ratio={heroRatio}
-                onUpload={async (f) => { const u = await uploadImage(f); if (u) setCs({ heroImageUrl: u, coverImageUrl: cs.coverImageUrl ?? u }); }}
-                onChangeRatio={(r) => setCs({ heroImageRatio: r })}
-                onRemove={() => setCs({ heroImageUrl: undefined, coverImageUrl: undefined })}
-                placeholder="Click to upload hero image"
-              />
-            </div>
+            <WidthBox widthPct={cs.heroImageWidth ?? 100} onChange={(w) => setCs({ heroImageWidth: w })}>
+              <div style={{ position: "relative", borderRadius: 22, overflow: "hidden", border: `1px solid ${RULE}`, background: BG_ALT, boxShadow: "0 30px 80px -30px rgba(10,10,10,0.25)" }}>
+                <ClientLogoChip logoUrl={cs.clientLogoUrl ?? ""} clientName={cs.clientName ?? ""}
+                  onUpload={async (f) => { const u = await uploadImage(f); if (u) setCs({ clientLogoUrl: u }); }}
+                  onRemove={() => setCs({ clientLogoUrl: undefined })} />
+                <MediaTile
+                  src={heroImg} alt={item.title} ratio={heroRatio}
+                  widthPct={cs.heroImageWidth ?? 100}
+                  onChangeWidth={(w) => setCs({ heroImageWidth: w })}
+                  onUpload={async (f) => { const u = await uploadImage(f); if (u) setCs({ heroImageUrl: u, coverImageUrl: cs.coverImageUrl ?? u }); }}
+                  onChangeRatio={(r) => setCs({ heroImageRatio: r })}
+                  onRemove={() => setCs({ heroImageUrl: undefined, coverImageUrl: undefined })}
+                  placeholder="Click to upload hero image"
+                />
+              </div>
+            </WidthBox>
           </div>
         </section>
       </SectionFrame>
@@ -306,7 +318,12 @@ export default function CaseStudyInlineEditor({ item: initialItem, onSaved, onEx
 
       {/* ── OVERVIEW ──────────────────────────────────────────────────────── */}
       <SectionFrame label="Overview" hidden={isHidden("overview")} onToggleHide={() => toggleHidden("overview")}>
-        <SectionShell label="Overview" heading="How we approached this project.">
+        <SectionShell
+          label={cs.overviewLabel ?? "Overview"}
+          heading={cs.overviewHeading ?? "How we approached this project."}
+          onChangeLabel={(v) => setCs({ overviewLabel: v })}
+          onChangeHeading={(v) => setCs({ overviewHeading: v })}
+        >
           <Editable as="div" multiline value={cs.overview ?? ""} onChange={(v) => setCs({ overview: v })} placeholder="Overview paragraph…"
             style={{ fontSize: 17, color: TEXT, lineHeight: 1.75, marginTop: 0, marginBottom: 22, fontWeight: 500 }} />
           <Editable as="div" multiline value={cs.challenge ?? ""} onChange={(v) => setCs({ challenge: v })} placeholder="Challenge paragraph…"
@@ -320,20 +337,25 @@ export default function CaseStudyInlineEditor({ item: initialItem, onSaved, onEx
         <section style={{ padding: "0 24px 56px" }}>
           <div className="gallery-2" style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 22 }}>
             {gallery.map((g, i) => (
-              <div key={i} style={{ borderRadius: 22, overflow: "hidden", border: `1px solid ${RULE}`, background: BG_ALT, position: "relative" }}>
-                <MediaTile
-                  src={g.url} alt="" ratio={g.ratio ?? "3/2"}
-                  onUpload={async (f) => {
-                    const u = await uploadImage(f); if (!u) return;
-                    const arr = gallery.map((x, idx) => idx === i ? { ...x, url: u } : x);
-                    setCs({ galleryImages: arr });
-                  }}
-                  onChangeRatio={(r) => setCs({ galleryImages: gallery.map((x, idx) => idx === i ? { ...x, ratio: r } : x) })}
-                  onDuplicate={() => setCs({ galleryImages: [...gallery.slice(0, i + 1), { ...g }, ...gallery.slice(i + 1)] })}
-                  onRemove={() => setCs({ galleryImages: gallery.filter((_, idx) => idx !== i) })}
-                  placeholder={`Click to upload image ${i + 1}`}
-                />
-              </div>
+              <WidthBox key={i} widthPct={g.width ?? 100}
+                onChange={(w) => setCs({ galleryImages: gallery.map((x, idx) => idx === i ? { ...x, width: w } : x) })}>
+                <div style={{ borderRadius: 22, overflow: "hidden", border: `1px solid ${RULE}`, background: BG_ALT, position: "relative" }}>
+                  <MediaTile
+                    src={g.url} alt="" ratio={g.ratio ?? "3/2"}
+                    widthPct={g.width ?? 100}
+                    onChangeWidth={(w) => setCs({ galleryImages: gallery.map((x, idx) => idx === i ? { ...x, width: w } : x) })}
+                    onUpload={async (f) => {
+                      const u = await uploadImage(f); if (!u) return;
+                      const arr = gallery.map((x, idx) => idx === i ? { ...x, url: u } : x);
+                      setCs({ galleryImages: arr });
+                    }}
+                    onChangeRatio={(r) => setCs({ galleryImages: gallery.map((x, idx) => idx === i ? { ...x, ratio: r } : x) })}
+                    onDuplicate={() => setCs({ galleryImages: [...gallery.slice(0, i + 1), { ...g }, ...gallery.slice(i + 1)] })}
+                    onRemove={() => setCs({ galleryImages: gallery.filter((_, idx) => idx !== i) })}
+                    placeholder={`Click to upload image ${i + 1}`}
+                  />
+                </div>
+              </WidthBox>
             ))}
             <button onClick={async () => {
               // Add an empty slot so user can click and upload
@@ -348,7 +370,12 @@ export default function CaseStudyInlineEditor({ item: initialItem, onSaved, onEx
 
       {/* ── APPROACH ──────────────────────────────────────────────────────── */}
       <SectionFrame label="Approach" hidden={isHidden("approach")} onToggleHide={() => toggleHidden("approach")}>
-        <SectionShell label="Approach" heading="First-principles, then execution.">
+        <SectionShell
+          label={cs.approachLabel ?? "Approach"}
+          heading={cs.approachHeading ?? "First-principles, then execution."}
+          onChangeLabel={(v) => setCs({ approachLabel: v })}
+          onChangeHeading={(v) => setCs({ approachHeading: v })}
+        >
           <Editable as="div" multiline value={cs.approach ?? ""} onChange={(v) => setCs({ approach: v })} placeholder="Approach paragraph…"
             style={{ fontSize: 17, color: TEXT, lineHeight: 1.75, marginTop: 0, marginBottom: 28, fontWeight: 500 }} />
           <ExtraParagraphs items={approachExtras} onChange={(arr) => setCs({ approachExtras: arr })} />
@@ -378,7 +405,8 @@ export default function CaseStudyInlineEditor({ item: initialItem, onSaved, onEx
           <div style={{ maxWidth: 1200, margin: "0 auto" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20, justifyContent: "center" }}>
               <span style={{ width: 32, height: 1, background: GOLD }} />
-              <p style={eyebrowSty}>Project Walkthrough</p>
+              <Editable as="p" value={cs.videoEyebrow ?? "Project Walkthrough"}
+                onChange={(v) => setCs({ videoEyebrow: v })} placeholder="Video eyebrow…" style={eyebrowSty} />
               <span style={{ width: 32, height: 1, background: GOLD }} />
             </div>
             {videos.length === 0 ? (
@@ -386,13 +414,17 @@ export default function CaseStudyInlineEditor({ item: initialItem, onSaved, onEx
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
                 {videos.map((v, i) => (
-                  <VideoTile key={i}
-                    video={v}
-                    onChangeUrl={(url) => setCs({ videos: videos.map((x, idx) => idx === i ? { ...x, url } : x) })}
-                    onChangeRatio={(r) => setCs({ videos: videos.map((x, idx) => idx === i ? { ...x, ratio: r } : x) })}
-                    onDuplicate={() => setCs({ videos: [...videos.slice(0, i + 1), { ...v }, ...videos.slice(i + 1)] })}
-                    onRemove={() => setCs({ videos: videos.filter((_, idx) => idx !== i) })}
-                  />
+                  <WidthBox key={i} widthPct={v.width ?? 100}
+                    onChange={(w) => setCs({ videos: videos.map((x, idx) => idx === i ? { ...x, width: w } : x) })}>
+                    <VideoTile
+                      video={v}
+                      onChangeUrl={(url) => setCs({ videos: videos.map((x, idx) => idx === i ? { ...x, url } : x) })}
+                      onChangeRatio={(r) => setCs({ videos: videos.map((x, idx) => idx === i ? { ...x, ratio: r } : x) })}
+                      onChangeWidth={(w) => setCs({ videos: videos.map((x, idx) => idx === i ? { ...x, width: w } : x) })}
+                      onDuplicate={() => setCs({ videos: [...videos.slice(0, i + 1), { ...v }, ...videos.slice(i + 1)] })}
+                      onRemove={() => setCs({ videos: videos.filter((_, idx) => idx !== i) })}
+                    />
+                  </WidthBox>
                 ))}
                 <button onClick={() => setCs({ videos: [...videos, { url: "", ratio: "16/9" }] })}
                   style={{ ...addLinkBtn, alignSelf: "center" }}>
@@ -406,7 +438,12 @@ export default function CaseStudyInlineEditor({ item: initialItem, onSaved, onEx
 
       {/* ── SOLUTION + STACK ──────────────────────────────────────────────── */}
       <SectionFrame label="Solution" hidden={isHidden("solution")} onToggleHide={() => toggleHidden("solution")}>
-        <SectionShell label="Solution" heading="The system we shipped.">
+        <SectionShell
+          label={cs.solutionLabel ?? "Solution"}
+          heading={cs.solutionHeading ?? "The system we shipped."}
+          onChangeLabel={(v) => setCs({ solutionLabel: v })}
+          onChangeHeading={(v) => setCs({ solutionHeading: v })}
+        >
           <Editable as="div" multiline value={cs.solution ?? ""} onChange={(v) => setCs({ solution: v })} placeholder="Solution paragraph…"
             style={{ fontSize: 17, color: TEXT, lineHeight: 1.75, marginTop: 0, marginBottom: 28, fontWeight: 500 }} />
           <ExtraParagraphs items={solutionExtras} onChange={(arr) => setCs({ solutionExtras: arr })} />
@@ -525,10 +562,12 @@ function SectionFrame({ label, hidden, onToggleHide, children }: {
 // MediaTile — image with hover toolbar (replace / ratio / duplicate / remove)
 // ─────────────────────────────────────────────────────────────────────────────
 
-function MediaTile({ src, alt, ratio, onUpload, onChangeRatio, onDuplicate, onRemove, placeholder }: {
+function MediaTile({ src, alt, ratio, widthPct, onUpload, onChangeRatio, onChangeWidth, onDuplicate, onRemove, placeholder }: {
   src: string; alt: string; ratio: string;
+  widthPct?: number;
   onUpload: (f: File) => Promise<void> | void;
   onChangeRatio?: (r: string) => void;
+  onChangeWidth?: (w: number) => void;
   onDuplicate?: () => void;
   onRemove?: () => void;
   placeholder?: string;
@@ -563,6 +602,15 @@ function MediaTile({ src, alt, ratio, onUpload, onChangeRatio, onDuplicate, onRe
             </select>
           </label>
         )}
+        {onChangeWidth && (
+          <span style={{ ...mediaToolBtn, display: "inline-flex", alignItems: "center", gap: 4 }} title={`Width: ${widthPct ?? 100}%`}>
+            <Maximize2 size={12} />
+            <input type="range" min={20} max={100} step={1} value={widthPct ?? 100}
+              onChange={(e) => onChangeWidth(parseInt(e.target.value, 10))}
+              style={{ width: 70, accentColor: ACCENT, cursor: "pointer" }} />
+            <span style={{ fontSize: 10, opacity: 0.85, minWidth: 26, textAlign: "right" }}>{widthPct ?? 100}%</span>
+          </span>
+        )}
         {onDuplicate && <button onClick={onDuplicate} style={mediaToolBtn} title="Duplicate"><Copy size={13} /></button>}
         {onRemove && <button onClick={onRemove} style={{ ...mediaToolBtn, color: "#fca5a5" }} title="Remove"><Trash2 size={13} /></button>}
       </div>
@@ -574,10 +622,11 @@ function MediaTile({ src, alt, ratio, onUpload, onChangeRatio, onDuplicate, onRe
 // VideoTile — embed + URL input + per-video aspect ratio + duplicate / remove
 // ─────────────────────────────────────────────────────────────────────────────
 
-function VideoTile({ video, onChangeUrl, onChangeRatio, onDuplicate, onRemove }: {
+function VideoTile({ video, onChangeUrl, onChangeRatio, onChangeWidth, onDuplicate, onRemove }: {
   video: VideoItem;
   onChangeUrl: (url: string) => void;
   onChangeRatio: (r: string) => void;
+  onChangeWidth?: (w: number) => void;
   onDuplicate: () => void;
   onRemove: () => void;
 }) {
@@ -609,6 +658,15 @@ function VideoTile({ video, onChangeUrl, onChangeRatio, onDuplicate, onRemove }:
             {RATIOS.map(r => <option key={r.value} value={r.value} style={{ color: "#000" }}>{r.label}</option>)}
           </select>
         </label>
+        {onChangeWidth && (
+          <span style={{ ...mediaToolBtn, display: "inline-flex", alignItems: "center", gap: 4 }} title={`Width: ${video.width ?? 100}%`}>
+            <Maximize2 size={12} />
+            <input type="range" min={20} max={100} step={1} value={video.width ?? 100}
+              onChange={(e) => onChangeWidth(parseInt(e.target.value, 10))}
+              style={{ width: 70, accentColor: ACCENT, cursor: "pointer" }} />
+            <span style={{ fontSize: 10, opacity: 0.85, minWidth: 26, textAlign: "right" }}>{video.width ?? 100}%</span>
+          </span>
+        )}
         <button onClick={onDuplicate} style={mediaToolBtn} title="Duplicate"><Copy size={13} /></button>
         <button onClick={onRemove} style={{ ...mediaToolBtn, color: "#fca5a5" }} title="Remove"><Trash2 size={13} /></button>
       </div>
@@ -694,20 +752,79 @@ function BylineCell({ label, children }: { label: string; children: React.ReactN
   );
 }
 
-function SectionShell({ label, heading, children }: { label: string; heading: string; children: React.ReactNode }) {
+function SectionShell({ label, heading, onChangeLabel, onChangeHeading, children }: {
+  label: string; heading: string;
+  onChangeLabel?: (v: string) => void;
+  onChangeHeading?: (v: string) => void;
+  children: React.ReactNode;
+}) {
+  const labelStyle: React.CSSProperties = { fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: GOLD, margin: 0 };
+  const headingStyle: React.CSSProperties = { fontWeight: 800, fontSize: "clamp(26px, 3.4vw, 40px)", letterSpacing: "-0.035em", lineHeight: 1.1, color: TEXT, margin: 0 };
   return (
     <section style={{ padding: "72px 24px" }}>
       <div className="two-col" style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 48, alignItems: "start" }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
             <span style={{ width: 20, height: 1, background: GOLD }} />
-            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: GOLD, margin: 0 }}>{label}</p>
+            {onChangeLabel
+              ? <Editable as="p" value={label} onChange={onChangeLabel} placeholder="Section label…" style={labelStyle} />
+              : <p style={labelStyle}>{label}</p>}
           </div>
-          <h2 style={{ fontWeight: 800, fontSize: "clamp(26px, 3.4vw, 40px)", letterSpacing: "-0.035em", lineHeight: 1.1, color: TEXT, margin: 0 }}>{heading}</h2>
+          {onChangeHeading
+            ? <Editable as="h2" multiline value={heading} onChange={onChangeHeading} placeholder="Section heading…" style={headingStyle} />
+            : <h2 style={headingStyle}>{heading}</h2>}
         </div>
         <div>{children}</div>
       </div>
     </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WidthBox — wraps any element with a centered width % container and a
+// Wix-style corner drag handle to resize. Used to shrink hero / gallery /
+// video tiles. Width clamped 20-100. Pure CSS resize — no layout thrash.
+// ─────────────────────────────────────────────────────────────────────────────
+
+function WidthBox({ widthPct, onChange, children }: {
+  widthPct: number; onChange: (w: number) => void; children: React.ReactNode;
+}) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const startDrag = (e: React.MouseEvent) => {
+    e.preventDefault(); e.stopPropagation();
+    const parent = wrapRef.current?.parentElement;
+    const containerW = parent?.getBoundingClientRect().width || 1000;
+    const startX = e.clientX;
+    const startPct = widthPct;
+    const onMove = (ev: MouseEvent) => {
+      const dx = ev.clientX - startX;
+      // Centered box grows on both sides => 2x effective delta
+      const next = Math.max(20, Math.min(100, startPct + (dx / containerW) * 100 * 2));
+      onChange(Math.round(next));
+    };
+    const onUp = () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+    };
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "nwse-resize";
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  };
+  return (
+    <div ref={wrapRef} style={{ width: `${widthPct}%`, margin: "0 auto", position: "relative" }}>
+      {children}
+      <div onMouseDown={startDrag} title={`Drag to resize · ${widthPct}%`}
+        style={{
+          position: "absolute", right: -10, bottom: -10, width: 22, height: 22,
+          background: ACCENT, border: "3px solid #fff", borderRadius: 6,
+          cursor: "nwse-resize", boxShadow: "0 2px 10px rgba(0,0,0,0.35)",
+          zIndex: 12, opacity: 0.95,
+        }}
+      />
+    </div>
   );
 }
 

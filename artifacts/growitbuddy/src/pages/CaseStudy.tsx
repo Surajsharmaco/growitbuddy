@@ -9,8 +9,8 @@ import BlockEditor from "@/components/blocks/BlockEditor";
 import CaseStudyInlineEditor from "@/components/CaseStudyInlineEditor";
 import { useAdmin } from "@/context/AdminContext";
 
-type MediaItem = { url: string; ratio?: string };
-type VideoItem = { url: string; ratio?: string };
+type MediaItem = { url: string; ratio?: string; width?: number };
+type VideoItem = { url: string; ratio?: string; width?: number };
 type SectionKey = "metrics" | "overview" | "gallery" | "approach" | "video" | "solution" | "testimonial";
 
 interface CaseStudyData {
@@ -19,7 +19,15 @@ interface CaseStudyData {
   coverImageUrl?: string;
   heroImageUrl?: string;
   heroImageRatio?: string;
+  heroImageWidth?: number;
   galleryImages?: Array<string | MediaItem>;
+  overviewLabel?: string;
+  overviewHeading?: string;
+  approachLabel?: string;
+  approachHeading?: string;
+  solutionLabel?: string;
+  solutionHeading?: string;
+  videoEyebrow?: string;
   metrics?: Array<{ value: string; label: string }>;
   stack?: string[];
   testimonial?: { quote: string; author: string };
@@ -455,12 +463,14 @@ export default function CaseStudy() {
                 )}
               </div>
             )}
-            <img
-              src={heroImg}
-              alt={item.title}
-              loading="eager"
-              style={{ display: "block", width: "100%", aspectRatio: heroRatio, objectFit: "cover" }}
-            />
+            <div style={{ width: `${cs?.heroImageWidth ?? 100}%`, margin: "0 auto" }}>
+              <img
+                src={heroImg}
+                alt={item.title}
+                loading="eager"
+                style={{ display: "block", width: "100%", aspectRatio: heroRatio, objectFit: "cover" }}
+              />
+            </div>
           </motion.div>
         </div>
       </section>
@@ -530,7 +540,7 @@ export default function CaseStudy() {
 
       {/* ── OVERVIEW ── */}
       {!hidden.has("overview") && (
-      <Section label="Overview" heading="How we approached this project.">
+      <Section label={cs?.overviewLabel || "Overview"} heading={cs?.overviewHeading || "How we approached this project."}>
         <p style={{ fontSize: 17, color: TEXT, lineHeight: 1.75, marginTop: 0, marginBottom: 22, fontWeight: 500 }}>
           {content.overview}
         </p>
@@ -551,21 +561,22 @@ export default function CaseStudy() {
           style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 22 }}
         >
           {gallery.map((g, i) => (
-            <div
-              key={i}
-              style={{
-                borderRadius: 22,
-                overflow: "hidden",
-                border: `1px solid ${RULE}`,
-                background: BG_ALT,
-              }}
-            >
-              <img
-                src={g.url}
-                alt=""
-                loading="lazy"
-                style={{ display: "block", width: "100%", aspectRatio: g.ratio || "3/2", objectFit: "cover" }}
-              />
+            <div key={i} style={{ width: `${g.width ?? 100}%`, margin: "0 auto" }}>
+              <div
+                style={{
+                  borderRadius: 22,
+                  overflow: "hidden",
+                  border: `1px solid ${RULE}`,
+                  background: BG_ALT,
+                }}
+              >
+                <img
+                  src={g.url}
+                  alt=""
+                  loading="lazy"
+                  style={{ display: "block", width: "100%", aspectRatio: g.ratio || "3/2", objectFit: "cover" }}
+                />
+              </div>
             </div>
           ))}
         </div>
@@ -574,7 +585,7 @@ export default function CaseStudy() {
 
       {/* ── APPROACH ── */}
       {!hidden.has("approach") && (
-      <Section label="Approach" heading="First-principles, then execution.">
+      <Section label={cs?.approachLabel || "Approach"} heading={cs?.approachHeading || "First-principles, then execution."}>
         <p style={{ fontSize: 17, color: TEXT, lineHeight: 1.75, marginTop: 0, marginBottom: 28, fontWeight: 500 }}>
           {content.approach}
         </p>
@@ -621,25 +632,26 @@ export default function CaseStudy() {
                 const url = getEmbedUrl(v.url);
                 if (!url) return null;
                 return (
-                  <div
-                    key={idx}
-                    style={{
-                      borderRadius: 22,
-                      overflow: "hidden",
-                      border: `1px solid ${RULE}`,
-                      background: TEXT,
-                      boxShadow: "0 20px 60px -20px rgba(15,23,42,0.25)",
-                    }}
-                  >
-                    <div style={{ position: "relative", aspectRatio: v.ratio || "16/9" }}>
-                      <iframe
-                        src={url}
-                        title={`${item.title} — video ${idx + 1}`}
-                        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        loading="lazy"
-                      />
+                  <div key={idx} style={{ width: `${v.width ?? 100}%`, margin: "0 auto" }}>
+                    <div
+                      style={{
+                        borderRadius: 22,
+                        overflow: "hidden",
+                        border: `1px solid ${RULE}`,
+                        background: TEXT,
+                        boxShadow: "0 20px 60px -20px rgba(15,23,42,0.25)",
+                      }}
+                    >
+                      <div style={{ position: "relative", aspectRatio: v.ratio || "16/9" }}>
+                        <iframe
+                          src={url}
+                          title={`${item.title} — video ${idx + 1}`}
+                          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          loading="lazy"
+                        />
+                      </div>
                     </div>
                   </div>
                 );
@@ -651,7 +663,7 @@ export default function CaseStudy() {
 
       {/* ── SOLUTION + STACK ── */}
       {!hidden.has("solution") && (
-      <Section label="Solution" heading="The system we shipped.">
+      <Section label={cs?.solutionLabel || "Solution"} heading={cs?.solutionHeading || "The system we shipped."}>
         <p style={{ fontSize: 17, color: TEXT, lineHeight: 1.75, marginTop: 0, marginBottom: 28, fontWeight: 500 }}>
           {content.solution}
         </p>
