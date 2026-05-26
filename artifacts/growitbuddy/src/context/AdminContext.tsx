@@ -194,7 +194,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     } catch { /* no-op */ }
     if (!slug || !isAuthenticated) { setCurrentVariant(null); return; }
     let cancelled = false;
-    fetch(`${API_BASE}/admin/public/variants`, { cache: "no-store" })
+    // Use the auth-protected admin list so HIDDEN variants are also resolved
+    // — otherwise edits to a draft variant would silently overwrite the base
+    // page's content. The public list filters out non-live variants.
+    authFetch(`${API_BASE}/admin/variants`)
       .then((r) => (r.ok ? r.json() : []))
       .then((rows: Array<{ slug: string; sourceKey: string; label: string }>) => {
         if (cancelled) return;
@@ -203,7 +206,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       })
       .catch(() => { if (!cancelled) setCurrentVariant(null); });
     return () => { cancelled = true; };
-  }, [location, isAuthenticated]);
+  }, [location, isAuthenticated, authFetch]);
 
   const resolveSection = useCallback(
     (section: string) =>

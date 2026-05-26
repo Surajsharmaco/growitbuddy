@@ -341,14 +341,14 @@ router.get("/public/variants", async (_req, res) => {
   } catch { res.json([]); }
 });
 
-// Admin: list ALL variants.
-router.get("/variants", authMiddleware, async (_req, res) => {
+// Admin: list ALL variants (including hidden — admin needs these for editing).
+router.get("/variants", authMiddleware, superAdminOnly, async (_req, res) => {
   const rows = await db.select().from(pageVariants).orderBy(desc(pageVariants.createdAt));
   res.json(rows);
 });
 
 // Admin: create variant. Optionally copies base content as starting point.
-router.post("/variants", authMiddleware, async (req, res) => {
+router.post("/variants", authMiddleware, superAdminOnly, async (req, res) => {
   const { sourceKey, slug, label, isLive, copyFromBase } = req.body ?? {};
   if (!sourceKey || typeof sourceKey !== "string") { res.status(400).json({ error: "sourceKey required" }); return; }
   if (!slug || !isSafeSlug(String(slug))) { res.status(400).json({ error: "slug must be lowercase letters, digits, dashes (max 80 chars)" }); return; }
@@ -380,7 +380,9 @@ router.post("/variants", authMiddleware, async (req, res) => {
 });
 
 // Admin: update variant (rename slug, label, toggle live).
-router.put("/variants/:id", authMiddleware, async (req, res) => {
+// Slug rename is atomic via a SQL transaction so site_content and
+// page_variants can't diverge if either step fails.
+router.put("/variants/:id", authMiddleware, superAdminOnly, async (req, res) => {
   const id = parseInt(String(req.params.id));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const { slug, label, isLive } = req.body ?? {};
@@ -389,31 +391,43 @@ router.put("/variants/:id", authMiddleware, async (req, res) => {
   const cur = existing[0];
   const newSlug = typeof slug === "string" ? slug : cur.slug;
   if (!isSafeSlug(newSlug)) { res.status(400).json({ error: "slug must be lowercase letters, digits, dashes (max 80 chars)" }); return; }
+  const newLabel = typeof label === "string" ? label : cur.label;
+  const newIsLive = typeof isLive === "boolean" ? isLive : cur.isLive;
+
+  // Pre-check slug uniqueness BEFORE touching site_content — saves a rollback
+  // when the rename would obviously fail.
+  if (newSlug !== cur.slug) {
+    const clash = await db.select({ id: pageVariants.id }).from(pageVariants).where(eq(pageVariants.slug, newSlug));
+    if (clash.length > 0) { res.status(409).json({ error: `Slug "${newSlug}" is already taken.` }); return; }
+  }
+
+  const client = await pool.connect();
   try {
-    // If slug changes, also rename the underlying site_content key so prior
-    // edits aren't orphaned.
+    await client.query("BEGIN");
     if (newSlug !== cur.slug) {
       const oldKey = variantKey(cur.sourceKey, cur.slug);
       const newKey = variantKey(cur.sourceKey, newSlug);
-      await pool.query(`UPDATE site_content SET section = $1 WHERE section = $2`, [newKey, oldKey]);
+      await client.query(`UPDATE site_content SET section = $1 WHERE section = $2`, [newKey, oldKey]);
     }
-    const updated = await db.update(pageVariants).set({
-      slug: newSlug,
-      label: typeof label === "string" ? label : cur.label,
-      isLive: typeof isLive === "boolean" ? isLive : cur.isLive,
-      updatedAt: new Date(),
-    }).where(eq(pageVariants.id, id)).returning();
-    res.json(updated[0]);
+    const updated = await client.query(
+      `UPDATE page_variants SET slug = $1, label = $2, is_live = $3, updated_at = now() WHERE id = $4 RETURNING *`,
+      [newSlug, newLabel, newIsLive, id],
+    );
+    await client.query("COMMIT");
+    res.json(updated.rows[0]);
   } catch (err) {
+    await client.query("ROLLBACK").catch(() => {});
     const msg = err instanceof Error ? err.message : "Update failed";
     if (/unique|duplicate/i.test(msg)) { res.status(409).json({ error: `Slug "${newSlug}" is already taken.` }); return; }
     logger.error({ err }, "Update variant failed");
     res.status(500).json({ error: msg });
+  } finally {
+    client.release();
   }
 });
 
 // Admin: delete variant + its content row.
-router.delete("/variants/:id", authMiddleware, async (req, res) => {
+router.delete("/variants/:id", authMiddleware, superAdminOnly, async (req, res) => {
   const id = parseInt(String(req.params.id));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const existing = await db.select().from(pageVariants).where(eq(pageVariants.id, id));
