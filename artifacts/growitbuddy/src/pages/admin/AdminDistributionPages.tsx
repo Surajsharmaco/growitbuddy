@@ -3,7 +3,7 @@ import { useAdmin } from "@/context/AdminContext";
 import { distributionPages as DEFAULT_PAGES, DISTRIBUTION_NICHES, DISTRIBUTION_COUNTRIES, type DistributionPage } from "@/data/distributionPages";
 import { PageHeader, Card, Input, SaveBar } from "@/components/admin/AdminField";
 import { ImagePickerField } from "@/components/admin/ImagePickerField";
-import { Plus, Trash2, Search, X, Eye, EyeOff, ChevronDown, ChevronUp, Settings2, Clock, Download, Zap } from "lucide-react";
+import { Plus, Trash2, Search, X, Eye, EyeOff, ChevronDown, ChevronUp, Settings2, Clock, Download, Zap, Copy, ExternalLink } from "lucide-react";
 import * as XLSX from "xlsx";
 
 type DistPage = DistributionPage & { updatedAt?: string };
@@ -41,26 +41,45 @@ function isComplete(p: DistPage) {
   return p.name.trim().length > 0;
 }
 
+function slugify(input: string): string {
+  return input
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 function PageRow({
   page,
   index,
   niches,
   countries,
+  allSlugs,
   onChange,
   onDelete,
+  onDuplicate,
   defaultOpen = false,
 }: {
   page: DistPage;
   index: number;
   niches: string[];
   countries: string[];
+  allSlugs: string[];
   onChange: (i: number, val: DistPage) => void;
   onDelete: (i: number) => void;
+  onDuplicate: (i: number) => void;
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const [slugCopied, setSlugCopied] = useState(false);
   const set = (patch: Partial<DistPage>) => onChange(index, { ...page, ...patch });
   const enabled = page.profileEnabled !== false;
+  const slugTaken =
+    page.slug.trim().length > 0 &&
+    allSlugs.filter((s) => s === page.slug).length > 1;
+  const publicUrl = page.slug ? `${import.meta.env.BASE_URL}distribution/${page.slug}` : "";
 
   return (
     <Card className="p-0 overflow-hidden">
@@ -126,7 +145,14 @@ function PageRow({
             {enabled ? "Live" : "Hidden"}
           </button>
           <button
-            onClick={() => onDelete(index)}
+            onClick={(e) => { e.stopPropagation(); onDuplicate(index); }}
+            title="Duplicate this page (copies all fields, opens it for editing with a new URL)"
+            className="p-1.5 rounded hover:bg-[#0B0B0B]/8 text-[#0B0B0B]/35 hover:text-[#0B0B0B] transition-colors"
+          >
+            <Copy size={14} />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(index); }}
             className="p-1.5 rounded hover:bg-red-50 hover:text-red-500 text-[#0B0B0B]/30 transition-colors"
           >
             <Trash2 size={14} />
@@ -148,6 +174,58 @@ function PageRow({
               />
             </div>
             <div className="flex-1 grid grid-cols-2 gap-3 pt-1">
+              <div className="col-span-2">
+                <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-1.5 uppercase tracking-wider">
+                  URL Slug <span className="text-[#0B0B0B]/35 font-normal normal-case tracking-normal">— this becomes /distribution/<strong className="font-semibold text-[#0B0B0B]/60">{page.slug || "your-slug"}</strong></span>
+                </label>
+                <div className="flex gap-2">
+                  <div className="flex-1 flex items-stretch border border-[#0B0B0B]/12 rounded-xl overflow-hidden bg-white focus-within:border-[#0B0B0B]/40">
+                    <span className="px-3 py-2.5 text-[12px] text-[#0B0B0B]/35 bg-[#0B0B0B]/4 border-r border-[#0B0B0B]/8 font-mono whitespace-nowrap flex items-center">/distribution/</span>
+                    <input
+                      value={page.slug}
+                      onChange={(e) => set({ slug: slugify(e.target.value) })}
+                      placeholder="hustle-empire"
+                      className="flex-1 px-3 py-2.5 text-[13px] text-[#0B0B0B] placeholder-[#0B0B0B]/30 outline-none font-mono"
+                    />
+                  </div>
+                  {!page.slug && page.name && (
+                    <button
+                      type="button"
+                      onClick={() => set({ slug: slugify(page.name) })}
+                      className="px-3 py-2 text-[12px] font-semibold text-[#0B0B0B]/60 hover:text-[#0B0B0B] bg-[#0B0B0B]/6 rounded-xl hover:bg-[#0B0B0B]/10 transition-colors shrink-0 whitespace-nowrap"
+                    >
+                      Use name
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+                  {slugTaken && (
+                    <p className="text-[11px] text-red-500 font-semibold">⚠ Another page already uses this slug — change it.</p>
+                  )}
+                  {page.slug && !slugTaken && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const full = `${window.location.origin}${publicUrl}`;
+                          navigator.clipboard.writeText(full).then(() => { setSlugCopied(true); setTimeout(() => setSlugCopied(false), 1500); });
+                        }}
+                        className="flex items-center gap-1 text-[11px] text-[#0B0B0B]/50 hover:text-[#0B0B0B] transition-colors"
+                      >
+                        <Copy size={10} /> {slugCopied ? "Copied!" : "Copy public link"}
+                      </button>
+                      <a
+                        href={publicUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-[11px] text-[#0B0B0B]/50 hover:text-[#0B0B0B] transition-colors"
+                      >
+                        <ExternalLink size={10} /> Open
+                      </a>
+                    </>
+                  )}
+                </div>
+              </div>
               <Input label="Page Name" value={page.name} onChange={(e) => set({ name: e.target.value })} placeholder="Hustle Empire" />
               <Input label="Handle" value={page.handle} onChange={(e) => set({ handle: e.target.value })} placeholder="@hustleempire" />
               <Input label="Followers (display)" value={page.followers} onChange={(e) => set({ followers: e.target.value })} placeholder="3.4M" />
@@ -300,6 +378,39 @@ export default function AdminDistributionPages() {
         if (i === newIndex) setNewIndex(null);
         else if (i < newIndex) setNewIndex(newIndex - 1);
       }
+      return next;
+    });
+  }
+
+  function handleDuplicate(i: number) {
+    setSaved(false);
+    setItems((prev) => {
+      const source = prev[i];
+      if (!source) return prev;
+      const usedSlugs = new Set(prev.map((p) => p.slug).filter(Boolean));
+      // Pick the next available "<slug>-copy", "-copy-2", etc.
+      const baseSlug = source.slug ? `${source.slug}-copy` : "new-page-copy";
+      let candidate = baseSlug;
+      let n = 2;
+      while (usedSlugs.has(candidate)) {
+        candidate = `${baseSlug}-${n}`;
+        n += 1;
+      }
+      const clone: DistPage = {
+        ...source,
+        slug: candidate,
+        name: source.name ? `${source.name} (Copy)` : "",
+        profileEnabled: false, // hidden by default so the duplicate doesn't go live until you're ready
+        updatedAt: new Date().toISOString(),
+      };
+      const insertAt = i + 1;
+      const next = [...prev.slice(0, insertAt), clone, ...prev.slice(insertAt)];
+      setNewIndex(insertAt);
+      // adjust scroll/focus by clearing filters so the duplicate is visible
+      setSearch("");
+      setNicheFilter("All");
+      setCountryFilter("All");
+      setDateFilter("all");
       return next;
     });
   }
@@ -561,8 +672,10 @@ export default function AdminDistributionPages() {
               index={realIndex}
               niches={niches}
               countries={countries}
+              allSlugs={items.map((p) => p.slug)}
               onChange={handleChange}
               onDelete={handleDelete}
+              onDuplicate={handleDuplicate}
               defaultOpen={realIndex === newIndex}
             />
           );
