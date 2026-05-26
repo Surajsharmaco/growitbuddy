@@ -78,48 +78,59 @@ function ResultCard({ cert }: { cert: CertResult }) {
       </div>
 
       <div className="verify-result-body">
-        <div className="verify-result-grid">
+        <ul className="verify-result-list">
           {[
             { label: "Name", value: cert.name },
             { label: "Role / Program", value: cert.role },
             { label: "Issued By", value: "GrowitBuddy" },
             { label: "Issue Date", value: cert.issueDate },
-            { label: "Certificate ID", value: cert.certificateId, mono: true, full: true },
-          ].map(({ label, value, mono, full }) => (
-            <div key={label} style={{ minWidth: 0, gridColumn: full ? "1 / -1" : undefined }}>
-              <p
+            { label: "Certificate ID", value: cert.certificateId, mono: true },
+          ].map(({ label, value, mono }, idx, arr) => (
+            <li
+              key={label}
+              className="verify-row"
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "baseline",
+                gap: 20,
+                padding: "14px 0",
+                borderBottom: idx < arr.length - 1 ? "1px solid #EFEFEA" : "none",
+              }}
+            >
+              <span
+                className="verify-row-label"
                 style={{
                   fontSize: 11,
                   fontWeight: 700,
                   letterSpacing: "0.14em",
                   textTransform: "uppercase",
                   color: "#7A7A85",
-                  marginBottom: 4,
+                  flexShrink: 0,
+                  whiteSpace: "nowrap",
                 }}
               >
                 {label}
-              </p>
-              <p
-                className={mono ? "verify-value-mono" : "verify-value"}
+              </span>
+              <span
+                className="verify-row-value"
                 style={{
-                  fontSize: mono ? 14 : 15,
+                  fontSize: 15,
                   fontWeight: 600,
                   color: "#0A0A0A",
                   fontFamily: mono ? "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" : undefined,
                   letterSpacing: mono ? "0.02em" : undefined,
-                  lineHeight: 1.4,
-                  // Mono IDs may not have natural break points, so allow
-                  // anywhere-breaking. Normal text only breaks at spaces.
+                  textAlign: "right",
                   wordBreak: mono ? "break-all" : "normal",
-                  overflowWrap: mono ? "anywhere" : "break-word",
-                  margin: 0,
+                  overflowWrap: "break-word",
+                  minWidth: 0,
                 }}
               >
                 {value}
-              </p>
-            </div>
+              </span>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </motion.div>
   );
@@ -161,28 +172,28 @@ export default function Verify() {
     <div style={{ background: "#F8F8F6", fontFamily: "'Inter', sans-serif", minHeight: "100vh" }}>
       <style>{`
         .verify-search-btn { padding: 16px 24px; white-space: nowrap; }
-        /* Fluid grid: auto-fit to keep each cell at least 200px wide.
-           Collapses to a single column on narrow screens automatically, so
-           labels and brand names never get squeezed mid-word. */
-        .verify-result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px 32px; }
         .verify-result-header { padding: 24px 32px; }
-        .verify-result-body { padding: 28px 32px; }
-        .verify-value-mono { font-size: 14px; }
-        /* Labels — uppercase eyebrows. "Certificate ID" has a natural space
-           so it wraps cleanly across two lines if needed; never mid-word. */
-        .verify-result-grid p:first-child { word-break: keep-all; overflow-wrap: normal; hyphens: none; }
-        @media (max-width: 640px) {
-          .verify-result-header { padding: 20px 22px; }
-          .verify-result-body { padding: 22px 22px; }
-        }
-        @media (max-width: 520px) {
-          .verify-search-btn { padding: 14px 16px; }
+        .verify-result-body { padding: 12px 32px 20px; }
+        .verify-result-list { list-style: none; margin: 0; padding: 0; }
+        /* On mobile each row becomes label-above-value so the value always
+           gets the full card width — no squeezing, no mid-word wraps. */
+        @media (max-width: 560px) {
           .verify-result-header { padding: 18px 18px; gap: 12px !important; }
-          .verify-result-body { padding: 20px 18px; }
+          .verify-result-body { padding: 8px 18px 16px; }
+          .verify-search-btn { padding: 14px 16px; }
           .verify-header-eyebrow { font-size: 11px !important; letter-spacing: 0.12em !important; }
           .verify-header-sub { font-size: 12.5px !important; }
-          .verify-value { font-size: 14.5px !important; }
-          .verify-value-mono { font-size: 13px !important; }
+          .verify-row {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 4px !important;
+            padding: 12px 0 !important;
+          }
+          .verify-row-value {
+            text-align: left !important;
+            font-size: 15px !important;
+            width: 100%;
+          }
         }
       `}</style>
       <SEOMeta
