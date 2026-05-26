@@ -71,6 +71,15 @@ async function runStartupMigrations() {
     logger.error({ err }, "Startup migration: failed to ensure custom_thumbnail_url column.");
   }
 
+  // Optional admin remark/feedback shown on the public certificate page
+  // (e.g. "Outstanding work on the AI growth sprint.").
+  try {
+    await pool.query(`ALTER TABLE certificates ADD COLUMN IF NOT EXISTS remark text`);
+    logger.info("Startup migration: certificates.remark column ensured.");
+  } catch (err) {
+    logger.error({ err }, "Startup migration: failed to ensure remark column.");
+  }
+
   // Video editing categories: India -> "Video Editing", US -> "Video Editing Global".
   // Also remaps the short-lived Long-Form/Short-Form names from the previous
   // migration. Idempotent: rows already on the target names are untouched.

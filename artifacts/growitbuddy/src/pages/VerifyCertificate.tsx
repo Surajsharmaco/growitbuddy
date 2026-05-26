@@ -12,6 +12,7 @@ interface CertResult {
   role: string;
   issueDate: string;
   status: "verified" | "revoked";
+  remark?: string | null;
 }
 
 export default function VerifyCertificate() {
@@ -226,6 +227,33 @@ export default function VerifyCertificate() {
                   ))}
                 </div>
               </div>
+
+              {/* Admin remark / feedback */}
+              {cert.remark && cert.remark.trim() && (
+                <div style={{ position: "relative", padding: "0 36px 28px" }}>
+                  <div style={{
+                    background: "linear-gradient(180deg, rgba(194,168,120,0.06) 0%, rgba(194,168,120,0.02) 100%)",
+                    border: "1px solid rgba(194,168,120,0.25)",
+                    borderRadius: 14,
+                    padding: "20px 24px",
+                    position: "relative",
+                  }}>
+                    <p style={{
+                      fontSize: 10, fontWeight: 700, letterSpacing: "0.2em",
+                      textTransform: "uppercase", color: "var(--gb-gold)", marginBottom: 10,
+                    }}>
+                      Remark from GrowitBuddy
+                    </p>
+                    <p style={{
+                      fontSize: 14.5, color: "#2A2A2A", lineHeight: 1.65,
+                      fontStyle: "italic", fontWeight: 500,
+                      wordBreak: "normal", overflowWrap: "break-word",
+                    }}>
+                      &ldquo;{cert.remark}&rdquo;
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Signature footer band */}
               <div style={{

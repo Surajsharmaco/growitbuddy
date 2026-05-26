@@ -506,6 +506,7 @@ router.get("/public/certificate/:certificateId", async (req, res) => {
       role: cert.role,
       issueDate: cert.issueDate,
       status: cert.status,
+      remark: cert.remark,
     });
   } catch {
     res.status(500).json({ error: "Lookup failed" });
@@ -518,7 +519,7 @@ router.get("/certificates", authMiddleware, async (_req, res) => {
 });
 
 router.post("/certificates", authMiddleware, async (req, res) => {
-  const { certificateId, name, email, role, issueDate, status } = req.body;
+  const { certificateId, name, email, role, issueDate, status, remark } = req.body;
   if (!certificateId || !name || !role || !issueDate) {
     res.status(400).json({ error: "certificateId, name, role, and issueDate are required" });
     return;
@@ -531,9 +532,10 @@ router.post("/certificates", authMiddleware, async (req, res) => {
     res.status(409).json({ error: "Certificate ID already exists" });
     return;
   }
+  const trimmedRemark = typeof remark === "string" ? remark.trim() : "";
   const rows = await db
     .insert(certificates)
-    .values({ certificateId, name, email: email || null, role, issueDate, status: status || "verified" })
+    .values({ certificateId, name, email: email || null, role, issueDate, status: status || "verified", remark: trimmedRemark || null })
     .returning();
   logger.info({ certificateId }, "Certificate created");
   res.status(201).json(rows[0]);
@@ -542,10 +544,15 @@ router.post("/certificates", authMiddleware, async (req, res) => {
 router.put("/certificates/:id", authMiddleware, async (req, res) => {
   const id = parseInt(String(req.params.id));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
-  const { name, email, role, issueDate, status } = req.body;
+  const { name, email, role, issueDate, status, remark } = req.body;
+  // remark: undefined = leave existing value, "" / null = clear, string = set
+  const remarkPatch =
+    remark === undefined
+      ? {}
+      : { remark: typeof remark === "string" && remark.trim() ? remark.trim() : null };
   const rows = await db
     .update(certificates)
-    .set({ name, email: email || null, role, issueDate, status, updatedAt: new Date() })
+    .set({ name, email: email || null, role, issueDate, status, ...remarkPatch, updatedAt: new Date() })
     .where(eq(certificates.id, id))
     .returning();
   if (rows.length === 0) { res.status(404).json({ error: "Certificate not found" }); return; }

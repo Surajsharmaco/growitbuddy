@@ -11,6 +11,7 @@ interface CertResult {
   role: string;
   issueDate: string;
   status: "verified" | "revoked";
+  remark?: string | null;
 }
 
 function ResultCard({ cert }: { cert: CertResult }) {
@@ -78,6 +79,29 @@ function ResultCard({ cert }: { cert: CertResult }) {
       </div>
 
       <div className="verify-result-body">
+        {cert.remark && cert.remark.trim() && (
+          <div style={{
+            background: "linear-gradient(180deg, rgba(194,168,120,0.07) 0%, rgba(194,168,120,0.02) 100%)",
+            border: "1px solid rgba(194,168,120,0.28)",
+            borderRadius: 12,
+            padding: "16px 18px",
+            marginBottom: 6,
+          }}>
+            <p style={{
+              fontSize: 10, fontWeight: 700, letterSpacing: "0.18em",
+              textTransform: "uppercase", color: "#8A7548", marginBottom: 8,
+            }}>
+              Remark from GrowitBuddy
+            </p>
+            <p style={{
+              fontSize: 14, color: "#2A2A2A", lineHeight: 1.6,
+              fontStyle: "italic", fontWeight: 500,
+              overflowWrap: "break-word",
+            }}>
+              &ldquo;{cert.remark}&rdquo;
+            </p>
+          </div>
+        )}
         <ul className="verify-result-list">
           {[
             { label: "Name", value: cert.name },

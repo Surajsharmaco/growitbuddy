@@ -19,6 +19,7 @@ interface Certificate {
   role: string;
   issueDate: string;
   status: "verified" | "revoked";
+  remark: string | null;
   createdAt: string;
 }
 
@@ -75,7 +76,7 @@ function CertRow({
   onDelete: (id: number) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ ...cert });
+  const [form, setForm] = useState({ ...cert, remark: cert.remark ?? "" });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -89,7 +90,7 @@ function CertRow({
       const res = await authFetch(`${API_BASE}/admin/certificates/${cert.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: form.name, email: form.email, role: form.role, issueDate: form.issueDate, status: form.status }),
+        body: JSON.stringify({ name: form.name, email: form.email, role: form.role, issueDate: form.issueDate, status: form.status, remark: form.remark }),
       });
       if (!res.ok) { const err = await res.json().catch(() => ({})); alert(err.error || "Save failed"); return; }
       const updated = await res.json();
@@ -138,6 +139,18 @@ function CertRow({
             <Input label="Email (optional)" value={form.email || ""} onChange={(e) => set({ email: e.target.value })} />
             <Input label="Role / Program" value={form.role} onChange={(e) => set({ role: e.target.value })} placeholder="Intern, Contributor, etc." />
             <Input label="Issue Date" value={form.issueDate} onChange={(e) => set({ issueDate: e.target.value })} placeholder="e.g. January 2025" />
+            <div className="col-span-2">
+              <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-2 uppercase tracking-wider">Remark / Feedback <span className="text-[#0B0B0B]/35 font-normal normal-case tracking-normal">— optional, shown on the public certificate</span></label>
+              <textarea
+                value={form.remark}
+                onChange={(e) => set({ remark: e.target.value })}
+                placeholder="e.g. Outstanding contribution during the Q1 growth sprint — consistently delivered above expectations."
+                rows={3}
+                maxLength={400}
+                className="w-full px-3 py-2.5 border border-[#0B0B0B]/12 rounded-xl text-[13px] text-[#0B0B0B] placeholder-[#0B0B0B]/30 outline-none focus:border-[#0B0B0B]/30 bg-white resize-y leading-relaxed"
+              />
+              <p className="text-[10px] text-[#0B0B0B]/35 mt-1">{form.remark.length}/400</p>
+            </div>
             <div className="col-span-2">
               <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-2 uppercase tracking-wider">Status</label>
               <div className="flex gap-2">
@@ -194,7 +207,7 @@ export default function AdminCertificates() {
   const [page, setPage]             = useState(1);
   const [newForm, setNewForm]       = useState({
     certificateId: generateId(),
-    name: "", email: "", role: "", issueDate: "",
+    name: "", email: "", role: "", issueDate: "", remark: "",
     status: "verified" as "verified" | "revoked",
   });
 
@@ -229,7 +242,7 @@ export default function AdminCertificates() {
       if (!res.ok) { alert(data.error || "Creation failed"); return; }
       setCerts((p) => [data, ...p]);
       setShowNew(false);
-      setNewForm({ certificateId: generateId(), name: "", email: "", role: "", issueDate: "", status: "verified" });
+      setNewForm({ certificateId: generateId(), name: "", email: "", role: "", issueDate: "", remark: "", status: "verified" });
     } finally {
       setCreating(false);
     }
@@ -368,6 +381,18 @@ export default function AdminCertificates() {
             <Input label="Email (optional)" value={newForm.email} onChange={(e) => setNewForm((p) => ({ ...p, email: e.target.value }))} />
             <Input label="Role / Program" value={newForm.role} onChange={(e) => setNewForm((p) => ({ ...p, role: e.target.value }))} placeholder="Content Marketing Intern" />
             <Input label="Issue Date" value={newForm.issueDate} onChange={(e) => setNewForm((p) => ({ ...p, issueDate: e.target.value }))} placeholder="January 2025" />
+            <div className="col-span-2">
+              <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-2 uppercase tracking-wider">Remark / Feedback <span className="text-[#0B0B0B]/35 font-normal normal-case tracking-normal">— optional, shown on the public certificate</span></label>
+              <textarea
+                value={newForm.remark}
+                onChange={(e) => setNewForm((p) => ({ ...p, remark: e.target.value }))}
+                placeholder="e.g. Outstanding contribution during the Q1 growth sprint — consistently delivered above expectations."
+                rows={3}
+                maxLength={400}
+                className="w-full px-3 py-2.5 border border-[#0B0B0B]/12 rounded-xl text-[13px] text-[#0B0B0B] placeholder-[#0B0B0B]/30 outline-none focus:border-[#0B0B0B]/30 bg-white resize-y leading-relaxed"
+              />
+              <p className="text-[10px] text-[#0B0B0B]/35 mt-1">{newForm.remark.length}/400</p>
+            </div>
             <div className="col-span-2">
               <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-2 uppercase tracking-wider">Status</label>
               <div className="flex gap-2">

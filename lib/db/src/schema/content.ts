@@ -31,6 +31,7 @@ export const certificates = pgTable("certificates", {
   role: text("role").notNull(),
   issueDate: text("issue_date").notNull(),
   status: text("status").notNull().default("verified"),
+  remark: text("remark"),
   isHidden: boolean("is_hidden").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
