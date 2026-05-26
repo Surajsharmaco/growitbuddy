@@ -30,8 +30,8 @@ This document has **3 parts**:
 | Service | Login URL | क्या-क्या already setup है |
 |---|---|---|
 | **GitHub** | github.com — `Surajsharmaco/growitbuddy` | पूरा source code, branch `main` |
-| **Vercel** | vercel.com | Frontend `growitbuddy.vercel.app` — `main` से auto-deploy |
-| **Render** | dashboard.render.com | API `growitbuddy-api.onrender.com` — `main` से auto-deploy |
+| **Vercel** | vercel.com | Frontend `growitbuddy-growitbuddy.vercel.app` — `main` से auto-deploy |
+| **Render** | dashboard.render.com | API `garden-planner-newzip.onrender.com` — `main` से auto-deploy |
 | **Neon** | console.neon.tech | Postgres database — already populated |
 | **Resend** | resend.com | Email sender — API key already on Render |
 | **Cloudinary** | cloudinary.com | Image hosting — credentials already on Render |
@@ -65,10 +65,10 @@ pnpm install
 
 ये केवल health-check है — कुछ change नहीं करना:
 
-1. `https://growitbuddy.vercel.app` खोलिए → site load हो रही है? ✅
-2. `https://growitbuddy-api.onrender.com/api/healthz` खोलिए → `{"status":"ok"}` मिलना चाहिए ✅ (पहली बार 30 sec लग सकते हैं cold-start की वजह से)
-3. `growitbuddy.vercel.app/admin` पर login कीजिए ✅
-4. `growitbuddy.vercel.app/contact` से एक test form submit कीजिए → 1-2 min में `cs.growitbuddy@gmail.com` पर email आना चाहिए ✅
+1. `https://growitbuddy-growitbuddy.vercel.app` खोलिए → site load हो रही है? ✅
+2. `https://garden-planner-newzip.onrender.com/api/healthz` खोलिए → `{"status":"ok"}` मिलना चाहिए ✅ (पहली बार 30 sec लग सकते हैं cold-start की वजह से)
+3. `growitbuddy-growitbuddy.vercel.app/admin` पर login कीजिए ✅
+4. `growitbuddy-growitbuddy.vercel.app/contact` से एक test form submit कीजिए → 1-2 min में `cs.growitbuddy@gmail.com` पर email आना चाहिए ✅
 
 अगर email नहीं आया: Render → `growitbuddy-api` → Environment → check कीजिए कि `RESEND_API_KEY` set है। यही 95% cases में missing piece होता है।
 
@@ -94,8 +94,8 @@ Read these two files end-to-end, in this order:
 
 STEP 2 — UNDERSTAND THE TOPOLOGY (do not change any of this)
   - Source of truth: GitHub repo `Surajsharmaco/growitbuddy`, branch `main`.
-  - Frontend: React + Vite SPA → auto-deployed to Vercel (`growitbuddy.vercel.app`) on every push to `main`.
-  - API: Express server → auto-deployed to Render (`growitbuddy-api.onrender.com`) on every push to `main`.
+  - Frontend: React + Vite SPA → auto-deployed to Vercel (`growitbuddy-growitbuddy.vercel.app`) on every push to `main`.
+  - API: Express server → auto-deployed to Render (`garden-planner-newzip.onrender.com`) on every push to `main`.
   - Database: Neon Postgres (already populated with live data — do NOT reset or re-seed).
   - Email: Resend. Images: Cloudinary. Both are already wired into Render's env vars.
   - The Replit workspace is for DEVELOPMENT ONLY. It does NOT host anything. Pushing to `main` is what deploys.
@@ -141,8 +141,8 @@ That's it. Read the two files now, do the 4 steps, and wait for my first real ta
 
 **GrowitBuddy** is a premium content authority & marketing agency website with a full admin CMS, blog (with Yoast-style SEO suite), influencer directory, 9-pool talent network, portfolio shares (trackable shareable links), page-variant A/B system, full per-page SEO control with JSON-LD, and lead capture system.
 
-- **Live frontend:** `https://growitbuddy.vercel.app` (or custom domain)
-- **Live API:** `https://growitbuddy-api.onrender.com`
+- **Live frontend:** `https://growitbuddy-growitbuddy.vercel.app` (or custom domain)
+- **Live API:** `https://garden-planner-newzip.onrender.com`
 - **GitHub:** `https://github.com/Surajsharmaco/growitbuddy` (branch: `main`)
 - **Owner notification email:** `cs.growitbuddy@gmail.com`
 - **Built-in onboarding page for new team members:** `/guide` (SiteGuide.tsx, currently v1.4) — covers every feature top-to-bottom with a beginner-friendly SEO chapter. Also `/seo-guide`.
@@ -231,11 +231,11 @@ The API server runs `pnpm build && pnpm start` on dev — it's a bundled esbuild
 Same as above PLUS:
 - `NODE_ENV` = `production`
 - `PORT` = `10000`
-- `ALLOWED_ORIGINS` = `https://growitbuddy.vercel.app` (CORS allowlist, comma-separated; add custom domains here)
+- `ALLOWED_ORIGINS` = `https://growitbuddy-growitbuddy.vercel.app` (CORS allowlist, comma-separated; add custom domains here)
 - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` (for image uploads)
 
 **Production — Vercel (frontend):**
-- `VITE_API_URL` = `https://growitbuddy-api.onrender.com/api`
+- `VITE_API_URL` = `https://garden-planner-newzip.onrender.com/api`
 
 ### 6. Database Schema (Drizzle, `lib/db/src/schema/`)
 
@@ -385,8 +385,8 @@ For the owner, after the migration:
 - [ ] `pnpm install` completed
 - [ ] Replit Secrets set: `DATABASE_URL`, `ADMIN_PASSWORD`, `RESEND_API_KEY` (and optionally `GITHUB_TOKEN`)
 - [ ] Run button works — all 3 workflows running
-- [ ] `growitbuddy.vercel.app` loads
-- [ ] `growitbuddy-api.onrender.com/api/healthz` returns `{"status":"ok"}`
+- [ ] `growitbuddy-growitbuddy.vercel.app` loads
+- [ ] `garden-planner-newzip.onrender.com/api/healthz` returns `{"status":"ok"}`
 - [ ] Admin login works at `/admin`
 - [ ] Test form on `/contact` → email arrives at `cs.growitbuddy@gmail.com` within 2 min
 - [ ] Render env vars verified (especially `RESEND_API_KEY`)

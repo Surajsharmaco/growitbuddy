@@ -346,7 +346,7 @@ export default function SEOGuide() {
       <section id="sitemap">
         <h2>11. Sitemap behaviour</h2>
         <p>The dynamic sitemap lives at:</p>
-        <pre>{`https://growitbuddy-api.onrender.com/api/sitemap.xml`}</pre>
+        <pre>{`https://garden-planner-newzip.onrender.com/api/sitemap.xml`}</pre>
         <p>It's referenced from <code>robots.txt</code> and submitted to Google Search Console. It auto-updates from the admin panel:</p>
         <ul>
           <li>Includes all 24 managed pages by default.</li>
