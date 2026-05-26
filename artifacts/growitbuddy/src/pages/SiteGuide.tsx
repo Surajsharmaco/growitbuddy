@@ -33,6 +33,7 @@ const TOC = [
   { id: "admin",      label: "Admin Panel",         icon: Lock },
   { id: "variants",   label: "Page Variants",       icon: CopyIcon },
   { id: "resources",  label: "Resources Library",   icon: Download },
+  { id: "power",      label: "Power Features",      icon: Sparkles },
   { id: "crm",        label: "CRM / Leads",         icon: Inbox },
   { id: "talent",     label: "Talent Pool System",  icon: Users },
   { id: "seo",        label: "SEO Management",      icon: Search },
@@ -48,7 +49,11 @@ const PUBLIC_PAGES: Page[] = [
   { path: "/services",      name: "Services",              what: "Detailed services offered (content production, distribution, authority building)." },
   { path: "/work",          name: "Work / Portfolio",      what: "Case studies and client logos. Showcases past work." },
   { path: "/framework",     name: "Framework",             what: "Your 4-step methodology: Positioning → Production → Distribution → Inbound Demand." },
-  { path: "/blog",      name: "Blog / Insights",       what: "All blog posts. Each post has its own /blog/:slug URL." },
+  { path: "/blog",          name: "Blog / Insights",       what: "All blog posts listing page." },
+  { path: "/blog/:slug",    name: "Blog Post",             what: "Individual blog post page — auto-generated for every post you publish in /admin/blog." },
+  { path: "/portfolio",     name: "Portfolio",             what: "Full portfolio grid — all case studies / project work." },
+  { path: "/portfolio/:category", name: "Portfolio Category", what: "Filtered portfolio view by category (auto-routed from category tags)." },
+  { path: "/portfolio/shared/:slug", name: "Shared Portfolio", what: "Private, trackable portfolio link generated from /admin/portfolio-shares — share with one prospect at a time." },
   { path: "/about",         name: "About",                 what: "Founder story, team, mission." },
   { path: "/contact",       name: "Contact",               what: "Contact form — submissions land in your inbox + Admin Leads." },
   { path: "/creators",      name: "Creator Network",       what: "Sign-up form for content creators wanting to join your network." },
@@ -60,8 +65,10 @@ const PUBLIC_PAGES: Page[] = [
   { path: "/resources",     name: "Resources",             what: "Free resource library — unlimited eBooks, PDFs, Drive links, Notion templates, videos, toolkits and more. Featured strip, category filter, FAQ section, AI Quick-Answer block, rich JSON-LD." },
   { path: "/:slug",         name: "Page Variants (catch-all)", what: "Any published page variant lives at its own URL slug (e.g. /home-v2, /services-bold). Created from Admin → Page Variants. Used for A/B tests or campaign-specific landing pages." },
   { path: "/creator-school",  name: "Creator School",      what: "Onboarding hub with VSL, guidelines, FAQ." },
-  { path: "/designers-pool", name: "Talent Pools (9 pages)", what: "Designers, Thumbnail Designers, Writers, Social Managers, Motion, AI, UGC, Meme, Video Editors — each has its own landing page + form." },
+  { path: "/designers-pool", name: "Talent Pools (9 pages)", what: "Each pool has its own URL: /designers-pool · /thumbnail-designers · /writers-pool · /social-media-managers · /motion-designers · /ai-creators · /ugc-creators · /meme-designers · /video-editors. Each has landing page + dedicated form." },
   { path: "/verify",        name: "Certificate Verify",    what: "Public certificate verification page." },
+  { path: "/guide",         name: "Site Guide (this page)", what: "The team onboarding guide you're reading right now. Bookmark and share with every new member." },
+  { path: "/seo-guide",     name: "SEO Strategy Guide",    what: "Standalone internal SEO playbook — how to optimise each page, write meta titles, structure keywords, etc." },
   { path: "/privacy",       name: "Privacy & Terms",       what: "Legal pages." },
 ];
 
@@ -75,24 +82,25 @@ const ADMIN_PAGES: AdminPage[] = [
   { url: "/admin/portfolio",           name: "Portfolio items",   what: "Add/edit/hide individual case studies shown on /work." },
   { url: "/admin/logos",               name: "Client Logos",      what: "Upload & re-order client logos shown on the Work page." },
   { url: "/admin/framework",           name: "Framework editor",  what: "Edit the 4-step methodology page." },
-  { url: "/admin/blog",                name: "Blog / Insights",   what: "Add, edit, delete blog posts. Supports rich text + cover image." },
+  { url: "/admin/blog",                name: "Blog / Insights",   what: "Add, edit, delete blog posts (rich text + cover image) PLUS a full SEO suite: live SEO Score ring (0-100), Yoast-style checks (keyword density, title/meta inclusion, paragraph length), Search-Intent detector (Informational / Commercial / Transactional), Power-Word analysis on titles, and an Internal-Link Suggester that recommends other posts to link to based on content similarity." },
   { url: "/admin/influencers",         name: "Influencers DB",    what: "Add/edit influencer profiles shown in directory." },
   { url: "/admin/influencer-explore",  name: "Influencer page",   what: "Edit the /influencers landing page (hero, filters)." },
   { url: "/admin/distribution-network", name: "Distribution page", what: "Edit /distribution landing page content." },
   { url: "/admin/distribution-pages",  name: "Page-Owner content", what: "Edit /join/page-owner application page." },
   { url: "/admin/join-network",        name: "Join Network",      what: "Edit /join landing page (path-choosing screen)." },
   { url: "/admin/contact",             name: "Contact page",      what: "Edit /contact page text, form labels." },
-  { url: "/admin/career",              name: "Career page",       what: "Edit /career page (full-time, internship, freelancer tabs)." },
+  { url: "/admin/career",              name: "Career page",       what: "Unified editor for /career — manages full-time, internship and freelancer tabs in one place. The freelancer form now includes a 'Clipping' skill option alongside the existing creative skills. (Legacy URLs /admin/freelancers and /admin/full-time redirect here.)" },
   { url: "/admin/authority-audit",     name: "Authority Audit",   what: "Edit the audit tool's content & questions." },
   { url: "/admin/resources",           name: "Resources",         what: "Add unlimited resources of any format (eBook, PDF, Drive, Notion, video, template, toolkit, course, sheet, Figma, audio, link). Per-resource: primary + secondary CTA buttons, corner badges, cover image, file format/size, gated/featured toggles, keywords + AI summary. Page-level: FAQs (auto-FAQPage schema), AI Quick-Answer, AI keywords, primary entity, related topics, audience, geo, factual claims — all baked into JSON-LD." },
   { url: "/admin/page-variants",       name: "Page Variants",     what: "Create alternate versions of any page (Home, Services, etc.) at custom URLs (e.g. /home-v2). Each variant has its own editable content, separate SEO, and can be published or kept as draft. Useful for A/B tests, campaign landers, or experimenting without breaking the live page." },
   { url: "/admin/editors-pool",        name: "Creator School",    what: "Edit Creator School hub content." },
-  { url: "/admin/pool-designers",      name: "Talent Pool editors (9)", what: "9 separate editors for each talent pool landing page (designers, writers, motion, etc)." },
+  { url: "/admin/pool-designers",      name: "Talent Pool editors (9)", what: "9 separate editors, one per pool: /admin/pool-designers · /pool-thumbnail-designers · /pool-writers · /pool-social-managers · /pool-motion-designers · /pool-ai-creators · /pool-ugc-creators · /pool-meme-designers · /pool-editors." },
+  { url: "/admin/portfolio-shares",    name: "Portfolio Share Links", what: "Generate unique, trackable shared-portfolio URLs (live at /portfolio/shared/:slug) to send to individual prospects. See open counts and revoke any link any time." },
   { url: "/admin/leads",               name: "Leads (CRM)",       what: "ALL form submissions — contact, newsletter, creator, page-owner, freelancer, full-time, internship. Searchable + exportable." },
   { url: "/admin/talent-pool-leads",   name: "Talent Pool Leads", what: "Separate inbox just for talent-pool applications, grouped by pool type." },
   { url: "/admin/certificates",        name: "Certificates",      what: "Issue & manage certificates verifiable at /verify/:id." },
   { url: "/admin/media",               name: "Media Library",     what: "Upload & manage images. Used by any image picker in admin." },
-  { url: "/admin/team",                name: "Team Members",      what: "Create login accounts for team members (limited access)." },
+  { url: "/admin/team",                name: "Team Members",      what: "Create login accounts for team members. Role-based: 'super' admins see everything; 'member' accounts can be limited to specific sections only (e.g. just Leads, or just Blog) so a writer can publish without ever seeing leads or settings." },
   { url: "/admin/seo",                 name: "SEO settings",      what: "Per-page title, description, OG image, canonical URL. Per-page schema overrides." },
   { url: "/admin/navbar",              name: "Navbar editor",     what: "Edit navigation menu items, links, order." },
   { url: "/admin/footer",              name: "Footer editor",     what: "Edit footer columns, links, social handles." },
@@ -206,7 +214,7 @@ export default function SiteGuide() {
           <p style={{
             fontSize: 11, fontWeight: 700, letterSpacing: "0.2em",
             textTransform: "uppercase", color: C.accent, marginBottom: 16,
-          }}>Complete Site Guide · v1.2</p>
+          }}>Complete Site Guide · v1.3</p>
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -495,8 +503,81 @@ export default function SiteGuide() {
         </p>
       </Section>
 
-      {/* ── 7. CRM / LEADS ───────────────────────────────────────────────── */}
-      <Section id="crm" eyebrow="07" title="CRM — managing every lead">
+      {/* ── 7. POWER FEATURES ────────────────────────────────────────────── */}
+      <Section id="power" eyebrow="07" title="Power features — Blog SEO Suite, Roles & Portfolio Shares">
+        <p style={{ fontSize: 16, color: C.text2, lineHeight: 1.7, marginTop: 0 }}>
+          A few high-value tools tucked inside the admin that most teams miss on day one.
+          Take 5 minutes here — these save hours later.
+        </p>
+
+        <Card>
+          <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 12px", color: C.text, display: "flex", alignItems: "center", gap: 8 }}>
+            <Search size={18} color={C.accent} /> Blog SEO Suite (built into /admin/blog)
+          </h3>
+          <p style={{ margin: "0 0 12px", fontSize: 15, color: C.text2, lineHeight: 1.7 }}>
+            Open any blog post in the admin and the right rail shows a live SEO analysis as
+            you type — no plugin required:
+          </p>
+          <ul style={{ margin: 0, paddingLeft: 22, fontSize: 15, lineHeight: 1.9, color: C.text2 }}>
+            <li><strong>SEO Score Ring</strong> — a 0-100 ring chart updating live. Aim for 80+ before publishing.</li>
+            <li><strong>Yoast-style checks</strong> — keyword density, keyword in title/meta/H1, paragraph length, internal-link count, image alt-text coverage. Each check turns green / yellow / red.</li>
+            <li><strong>Search-Intent Detector</strong> — auto-classifies the post as <em>Informational</em>, <em>Commercial</em>, or <em>Transactional</em> based on title + body. Helps you align CTAs to intent.</li>
+            <li><strong>Power-Word Analysis</strong> — flags titles missing high-conversion words ("ultimate", "proven", "free", "step-by-step", etc.).</li>
+            <li><strong>Internal-Link Suggester</strong> — analyses your existing posts and recommends 3-5 related ones to link to from the current draft. One-click insert.</li>
+          </ul>
+        </Card>
+
+        <Card>
+          <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 12px", color: C.text, display: "flex", alignItems: "center", gap: 8 }}>
+            <Users size={18} color={C.accent} /> Role-based team permissions (/admin/team)
+          </h3>
+          <p style={{ margin: "0 0 12px", fontSize: 15, color: C.text2, lineHeight: 1.7 }}>
+            You can hand out admin access without giving everyone the keys to the kingdom:
+          </p>
+          <ul style={{ margin: 0, paddingLeft: 22, fontSize: 15, lineHeight: 1.9, color: C.text2 }}>
+            <li><strong>Super admin</strong> — full access (you).</li>
+            <li><strong>Member</strong> — pick exactly which sections they can edit (e.g. only Blog, only Leads, only Talent Pool Leads).</li>
+            <li>Hidden sections simply don't appear in their sidebar — they can't even browse to the URL.</li>
+            <li>Perfect for: a writer who needs Blog access only, a sales person who only needs the CRM, a designer who only needs Media Library.</li>
+          </ul>
+        </Card>
+
+        <Card>
+          <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 12px", color: C.text, display: "flex", alignItems: "center", gap: 8 }}>
+            <Briefcase size={18} color={C.accent} /> Portfolio Share Links (/admin/portfolio-shares)
+          </h3>
+          <p style={{ margin: "0 0 12px", fontSize: 15, color: C.text2, lineHeight: 1.7 }}>
+            Instead of sending your public /portfolio link to every prospect, generate a
+            private, trackable link for each one:
+          </p>
+          <ul style={{ margin: 0, paddingLeft: 22, fontSize: 15, lineHeight: 1.9, color: C.text2 }}>
+            <li>Generate a unique slug per prospect — link lives at <code style={{ background: C.bg2, padding: "1px 6px", borderRadius: 4, fontSize: 13 }}>/portfolio/shared/:slug</code>.</li>
+            <li>Optionally filter which case studies show up (so you can curate per client).</li>
+            <li>See open count + last-opened date — know exactly when a prospect is engaging.</li>
+            <li>Revoke any link any time — the URL instantly 404s.</li>
+          </ul>
+        </Card>
+
+        <Card>
+          <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 12px", color: C.text, display: "flex", alignItems: "center", gap: 8 }}>
+            <SettingsIcon size={18} color={C.accent} /> Site Optimizer (/admin/optimize)
+          </h3>
+          <p style={{ margin: "0 0 12px", fontSize: 15, color: C.text2, lineHeight: 1.7 }}>
+            Safe performance toggles for the whole site. All defaults are OFF — nothing
+            here ever deletes content:
+          </p>
+          <ul style={{ margin: 0, paddingLeft: 22, fontSize: 15, lineHeight: 1.9, color: C.text2 }}>
+            <li><strong>Database Keep-Alive</strong> — pings Neon every few minutes so the database never goes idle (no cold starts).</li>
+            <li><strong>Public-read cache</strong> — 60-second / 5-minute caching of public content reads (massive speed boost, safe defaults).</li>
+            <li><strong>Long-cache images</strong> — instructs browsers + CDN to hold image responses for 30 days.</li>
+            <li><strong>Clear caches</strong> — one-click flush after a content change if a viewer still sees an old version.</li>
+            <li><strong>VACUUM ANALYZE</strong> — one-click DB maintenance, runs in the background.</li>
+          </ul>
+        </Card>
+      </Section>
+
+      {/* ── 8. CRM / LEADS ───────────────────────────────────────────────── */}
+      <Section id="crm" eyebrow="08" title="CRM — managing every lead">
         <p style={{ fontSize: 16, color: C.text2, lineHeight: 1.7, marginTop: 0 }}>
           Every form on the public site (contact, newsletter, talent pool, career, etc.)
           saves automatically into a single database called <strong style={{ color: C.text }}>Leads</strong>.
@@ -535,8 +616,8 @@ export default function SiteGuide() {
         </p>
       </Section>
 
-      {/* ── 8. TALENT POOL SYSTEM ────────────────────────────────────────── */}
-      <Section id="talent" eyebrow="08" title="Talent Pool — 9 specialized landing pages">
+      {/* ── 9. TALENT POOL SYSTEM ────────────────────────────────────────── */}
+      <Section id="talent" eyebrow="09" title="Talent Pool — 9 specialized landing pages">
         <p style={{ fontSize: 16, color: C.text2, lineHeight: 1.7, marginTop: 0 }}>
           Talent pools are dedicated landing pages for each creative speciality. Each has its
           own URL, its own editable content, its own application form, and submissions go to a
@@ -583,8 +664,8 @@ export default function SiteGuide() {
         ]} />
       </Section>
 
-      {/* ── 9. SEO ───────────────────────────────────────────────────────── */}
-      <Section id="seo" eyebrow="09" title="SEO — how each page is found on Google">
+      {/* ── 10. SEO ──────────────────────────────────────────────────────── */}
+      <Section id="seo" eyebrow="10" title="SEO — how each page is found on Google">
         <p style={{ fontSize: 16, color: C.text2, lineHeight: 1.7, marginTop: 0 }}>
           Every page on the site has SEO metadata: a <strong>title</strong> (what shows in
           the Google search result), a <strong>description</strong> (the snippet under the
@@ -622,8 +703,8 @@ export default function SiteGuide() {
         </p>
       </Section>
 
-      {/* ── 10. EMAIL ────────────────────────────────────────────────────── */}
-      <Section id="email" eyebrow="10" title="Email Notifications — every lead lands in your inbox">
+      {/* ── 11. EMAIL ────────────────────────────────────────────────────── */}
+      <Section id="email" eyebrow="11" title="Email Notifications — every lead lands in your inbox">
         <Card>
           <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 12px", color: C.text, display: "flex", alignItems: "center", gap: 8 }}>
             <Send size={18} color={C.accent} /> How it works
@@ -679,8 +760,8 @@ export default function SiteGuide() {
         </div>
       </Section>
 
-      {/* ── 11. MEDIA ────────────────────────────────────────────────────── */}
-      <Section id="media" eyebrow="11" title="Media Library — managing images">
+      {/* ── 12. MEDIA ────────────────────────────────────────────────────── */}
+      <Section id="media" eyebrow="12" title="Media Library — managing images">
         <p style={{ fontSize: 16, color: C.text2, lineHeight: 1.7, marginTop: 0 }}>
           The Media Library at <code style={{ background: C.bg2, padding: "2px 8px", borderRadius: 4, fontSize: 13 }}>/admin/media</code> is your central image storage.
           Every image picker in the admin panel can either:
@@ -703,8 +784,8 @@ export default function SiteGuide() {
         </Card>
       </Section>
 
-      {/* ── 12. TECH STACK ───────────────────────────────────────────────── */}
-      <Section id="tech" eyebrow="12" title="Tech behind the scenes (you don't need to touch this)">
+      {/* ── 13. TECH STACK ───────────────────────────────────────────────── */}
+      <Section id="tech" eyebrow="13" title="Tech behind the scenes (you don't need to touch this)">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
           {[
             ["Frontend",   "React 19 + Vite 7 + Tailwind v4. Hosted on Vercel (free, global CDN, auto-deploy from GitHub)."],
@@ -722,8 +803,8 @@ export default function SiteGuide() {
         </div>
       </Section>
 
-      {/* ── 13. FAQ ──────────────────────────────────────────────────────── */}
-      <Section id="faq" eyebrow="13" title="Frequently asked questions">
+      {/* ── 14. FAQ ──────────────────────────────────────────────────────── */}
+      <Section id="faq" eyebrow="14" title="Frequently asked questions">
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "4px 24px" }}>
           {[
             {
@@ -781,6 +862,22 @@ export default function SiteGuide() {
             {
               q: "Where does the Resources link live in the navigation?",
               a: "It's in the Navbar 'More' dropdown (alongside Blog, Authority Audit and Contact) and also in the footer.",
+            },
+            {
+              q: "How do I send a personal portfolio to a specific prospect?",
+              a: "Go to /admin/portfolio-shares → 'Generate Link' → pick which case studies to include (optional) → copy the unique URL. The prospect sees a clean private page at /portfolio/shared/:slug. You can see open counts and revoke the link any time.",
+            },
+            {
+              q: "Can I give a writer access to ONLY the blog (not leads, settings, etc.)?",
+              a: "Yes. /admin/team → create a 'member' account → tick only 'Blog' in the permissions. Everything else stays hidden in their sidebar — they cannot even open the URL.",
+            },
+            {
+              q: "How do I get a 90+ SEO score on a blog post?",
+              a: "Open /admin/blog → edit any post → check the SEO Score ring on the right. Address each red/yellow check: include your target keyword in title + meta + first paragraph, keep paragraphs short, add 2-3 internal links (use the Internal-Link Suggester), make sure every image has alt text. Score updates live as you type.",
+            },
+            {
+              q: "The site feels slow first thing in the morning. What can I do?",
+              a: "That's a Render free-plan cold start. Go to /admin/optimize and turn ON 'Database Keep-Alive' and the 'Public-read cache' — both are safe defaults and instantly improve perceived speed. For a permanent fix, upgrade Render to the $7/mo plan.",
             },
           ].map((f) => (
             <FAQItem key={f.q} q={f.q} a={f.a} />
