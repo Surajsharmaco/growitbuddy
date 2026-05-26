@@ -6,6 +6,7 @@ import {
   Mail, Settings as SettingsIcon, Search, Inbox, Image as ImageIcon,
   Shield, Database, Send, ChevronRight, ChevronDown, ExternalLink,
   Globe, Lock, BookOpen, Sparkles, AlertTriangle, CheckCircle2,
+  Copy as CopyIcon, Download,
 } from "lucide-react";
 import SEOMeta from "@/components/SEOMeta";
 
@@ -30,6 +31,8 @@ const TOC = [
   { id: "structure",  label: "Website Structure",   icon: LayoutIcon },
   { id: "pages",      label: "Public Pages",        icon: Globe },
   { id: "admin",      label: "Admin Panel",         icon: Lock },
+  { id: "variants",   label: "Page Variants",       icon: CopyIcon },
+  { id: "resources",  label: "Resources Library",   icon: Download },
   { id: "crm",        label: "CRM / Leads",         icon: Inbox },
   { id: "talent",     label: "Talent Pool System",  icon: Users },
   { id: "seo",        label: "SEO Management",      icon: Search },
@@ -54,7 +57,8 @@ const PUBLIC_PAGES: Page[] = [
   { path: "/distribution",  name: "Distribution Network",  what: "Information about page-owner / distribution partnership." },
   { path: "/join/page-owner", name: "Page Owner Apply",    what: "Application form for Instagram/social page owners." },
   { path: "/authority-audit", name: "Authority Audit",     what: "Free audit lead-magnet tool." },
-  { path: "/resources",     name: "Resources",             what: "Free templates, playbooks, guides for visitors." },
+  { path: "/resources",     name: "Resources",             what: "Free resource library — unlimited eBooks, PDFs, Drive links, Notion templates, videos, toolkits and more. Featured strip, category filter, FAQ section, AI Quick-Answer block, rich JSON-LD." },
+  { path: "/:slug",         name: "Page Variants (catch-all)", what: "Any published page variant lives at its own URL slug (e.g. /home-v2, /services-bold). Created from Admin → Page Variants. Used for A/B tests or campaign-specific landing pages." },
   { path: "/creator-school",  name: "Creator School",      what: "Onboarding hub with VSL, guidelines, FAQ." },
   { path: "/designers-pool", name: "Talent Pools (9 pages)", what: "Designers, Thumbnail Designers, Writers, Social Managers, Motion, AI, UGC, Meme, Video Editors — each has its own landing page + form." },
   { path: "/verify",        name: "Certificate Verify",    what: "Public certificate verification page." },
@@ -80,7 +84,8 @@ const ADMIN_PAGES: AdminPage[] = [
   { url: "/admin/contact",             name: "Contact page",      what: "Edit /contact page text, form labels." },
   { url: "/admin/career",              name: "Career page",       what: "Edit /career page (full-time, internship, freelancer tabs)." },
   { url: "/admin/authority-audit",     name: "Authority Audit",   what: "Edit the audit tool's content & questions." },
-  { url: "/admin/resources",           name: "Resources",         what: "Add/edit/delete resource cards on /resources." },
+  { url: "/admin/resources",           name: "Resources",         what: "Add unlimited resources of any format (eBook, PDF, Drive, Notion, video, template, toolkit, course, sheet, Figma, audio, link). Per-resource: primary + secondary CTA buttons, corner badges, cover image, file format/size, gated/featured toggles, keywords + AI summary. Page-level: FAQs (auto-FAQPage schema), AI Quick-Answer, AI keywords, primary entity, related topics, audience, geo, factual claims — all baked into JSON-LD." },
+  { url: "/admin/page-variants",       name: "Page Variants",     what: "Create alternate versions of any page (Home, Services, etc.) at custom URLs (e.g. /home-v2). Each variant has its own editable content, separate SEO, and can be published or kept as draft. Useful for A/B tests, campaign landers, or experimenting without breaking the live page." },
   { url: "/admin/editors-pool",        name: "Creator School",    what: "Edit Creator School hub content." },
   { url: "/admin/pool-designers",      name: "Talent Pool editors (9)", what: "9 separate editors for each talent pool landing page (designers, writers, motion, etc)." },
   { url: "/admin/leads",               name: "Leads (CRM)",       what: "ALL form submissions — contact, newsletter, creator, page-owner, freelancer, full-time, internship. Searchable + exportable." },
@@ -201,7 +206,7 @@ export default function SiteGuide() {
           <p style={{
             fontSize: 11, fontWeight: 700, letterSpacing: "0.2em",
             textTransform: "uppercase", color: C.accent, marginBottom: 16,
-          }}>Complete Site Guide · v1.0</p>
+          }}>Complete Site Guide · v1.2</p>
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -365,8 +370,133 @@ export default function SiteGuide() {
         </div>
       </Section>
 
-      {/* ── 5. CRM / LEADS ───────────────────────────────────────────────── */}
-      <Section id="crm" eyebrow="05" title="CRM — managing every lead">
+      {/* ── 5. PAGE VARIANTS ─────────────────────────────────────────────── */}
+      <Section id="variants" eyebrow="05" title="Page Variants — A/B test any page without breaking the live one">
+        <p style={{ fontSize: 16, color: C.text2, lineHeight: 1.7, marginTop: 0 }}>
+          Page Variants let you create <strong style={{ color: C.text }}>alternate versions of any page</strong> —
+          Home, Services, Resources, etc. — and publish each one at its own URL.
+          The original page stays untouched. Perfect for A/B testing copy, running
+          campaign-specific landing pages, or trying a bold redesign without risking
+          the live page.
+        </p>
+
+        <Card>
+          <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 12px", color: C.text, display: "flex", alignItems: "center", gap: 8 }}>
+            <CopyIcon size={18} color={C.accent} /> How a variant works
+          </h3>
+          <ul style={{ margin: 0, paddingLeft: 22, fontSize: 15, lineHeight: 1.9, color: C.text2 }}>
+            <li>Lives at its own URL slug (e.g. <code style={{ background: C.bg2, padding: "2px 6px", borderRadius: 4, fontSize: 13 }}>/home-v2</code>, <code style={{ background: C.bg2, padding: "2px 6px", borderRadius: 4, fontSize: 13 }}>/services-bold</code>).</li>
+            <li>Has its <strong>own editable content</strong>, fully isolated from the original page.</li>
+            <li>Has its <strong>own SEO</strong> (title, description, OG image, canonical, schema).</li>
+            <li>Can be <strong>draft</strong> (only you see it via admin) or <strong>published</strong> (live to the public).</li>
+            <li>Shows a small gold <strong>"Variant"</strong> banner at the top so you never confuse it with the original.</li>
+            <li>All published variants appear in the admin sidebar under the <strong>"Published Variants"</strong> group for one-click access.</li>
+          </ul>
+        </Card>
+
+        <h3 style={{ fontSize: 20, fontWeight: 700, color: C.text, marginTop: 36, marginBottom: 16 }}>
+          How to create a new variant
+        </h3>
+        <Steps items={[
+          "Go to /admin/page-variants → click 'Add Variant'.",
+          "Pick the base page you want to clone (e.g. 'Home').",
+          "Give it a URL slug — keep it short and descriptive (e.g. 'home-launch', 'services-q1').",
+          "Optionally set a label (only visible in admin) to remember what you're testing.",
+          "Save as draft first — the variant URL becomes editable but is not yet public.",
+          "Open the variant URL (e.g. /home-launch) — you'll see the original content as a starting point with a gold 'Variant' banner at the top.",
+          "Edit the content from its dedicated admin editor — changes apply only to the variant.",
+          "Toggle 'Published' when you're happy — the public can now reach it directly via the URL.",
+        ]} />
+
+        <div style={{ background: "#FEF5EC", border: "1px solid #F0D9C0", borderRadius: 12, padding: 24, marginTop: 28 }}>
+          <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 12px", color: C.accent, display: "flex", alignItems: "center", gap: 8 }}>
+            <AlertTriangle size={18} /> A few things to know
+          </h3>
+          <ul style={{ margin: 0, paddingLeft: 22, fontSize: 15, lineHeight: 1.9, color: C.text2 }}>
+            <li>The original page at its real URL (e.g. <code style={{ background: "#fff", padding: "2px 6px", borderRadius: 4, fontSize: 13 }}>/</code>) is <strong>never affected</strong> by any variant.</li>
+            <li>Don't use a slug that already exists as a real page (e.g. <code style={{ background: "#fff", padding: "2px 6px", borderRadius: 4, fontSize: 13 }}>/contact</code>) — the real page always wins.</li>
+            <li>To send traffic to a variant: paste its URL directly into ads / emails / posts. Nothing on the main site links to variants automatically.</li>
+            <li>Delete a variant from <code style={{ background: "#fff", padding: "2px 6px", borderRadius: 4, fontSize: 13 }}>/admin/page-variants</code> when the test is over — the URL will then 404.</li>
+          </ul>
+        </div>
+      </Section>
+
+      {/* ── 6. RESOURCES LIBRARY ─────────────────────────────────────────── */}
+      <Section id="resources" eyebrow="06" title="Resources Library — unlimited free downloads with tagda SEO">
+        <p style={{ fontSize: 16, color: C.text2, lineHeight: 1.7, marginTop: 0 }}>
+          The <code style={{ background: C.bg2, padding: "2px 8px", borderRadius: 4, fontSize: 13 }}>/resources</code> page is a
+          full self-serve content library — add unlimited resources of any format and
+          each one is automatically optimised for Google + AI search (ChatGPT, Perplexity,
+          Google AI Overviews) through rich structured data.
+        </p>
+
+        <Card>
+          <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 12px", color: C.text, display: "flex", alignItems: "center", gap: 8 }}>
+            <Download size={18} color={C.accent} /> 13 resource formats you can add
+          </h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
+            {[
+              "eBook", "PDF", "Google Drive", "Notion", "Video",
+              "Template", "Toolkit", "Guide", "Course",
+              "Spreadsheet", "Figma File", "Audio", "External Link",
+            ].map((f) => (
+              <div key={f} style={{ padding: "8px 12px", background: C.bg2, borderRadius: 6, fontSize: 13, color: C.text, textAlign: "center" }}>{f}</div>
+            ))}
+          </div>
+        </Card>
+
+        <h3 style={{ fontSize: 20, fontWeight: 700, color: C.text, marginTop: 36, marginBottom: 16 }}>
+          How to add a new resource
+        </h3>
+        <Steps items={[
+          "Open /admin/resources and click 'Add resource'.",
+          "Pick the resource type (eBook, PDF, Drive, Notion, etc.) — this sets the icon, badge label and default CTA text.",
+          "Fill in Title, Short Description (the card preview), and a Long Description (used in structured data + AI citations).",
+          "Paste the Primary Link — your Drive / Notion / file URL. This becomes the main 'Download' or 'Open' button.",
+          "Optional: add a Secondary Link + Label (e.g. 'Preview', 'Watch walkthrough') — a second outlined button appears on the card.",
+          "Add a Corner Badge (e.g. 'New', 'Most popular', 'Updated') for emphasis.",
+          "Optional: cover image, file format, file size, author, published date — used both visually and in structured data.",
+          "Toggle 'Featured' to surface the resource in the featured strip at the top of the page.",
+          "Toggle 'Gated' if access requires an email (shows an 'Email required' badge).",
+          "Fill the per-resource Keywords + AI Summary — these go straight into the page's JSON-LD so LLMs cite this resource correctly.",
+          "Reorder with the up/down arrows, duplicate with the copy icon, delete with the trash icon. Save when done.",
+        ]} />
+
+        <h3 style={{ fontSize: 20, fontWeight: 700, color: C.text, marginTop: 48, marginBottom: 16 }}>
+          The page-level SEO controls (GEO / AEO / AIO / AISEO)
+        </h3>
+        <p style={{ fontSize: 15, color: C.text2, lineHeight: 1.7 }}>
+          Below the resources list in the admin, there are two SEO blocks. <strong style={{ color: C.text }}>SEO Basics</strong> covers
+          page title, meta description, canonical URL, OG image — the standard stuff. The
+          <strong style={{ color: C.text }}> SEO Advanced (AI / GEO / AEO / AISEO)</strong> block is what makes the page rank in AI
+          answers and Google's AI Overviews:
+        </p>
+        <Card>
+          <ul style={{ margin: 0, paddingLeft: 22, fontSize: 15, lineHeight: 1.9, color: C.text2 }}>
+            <li><strong>AI Quick-Answer Summary</strong> — 2-3 sentences answering "what is this page?". Shown as a visible gold-accent block at the top of the page AND fed to JSON-LD <code style={{ background: C.bg2, padding: "1px 6px", borderRadius: 4, fontSize: 13 }}>abstract</code> for LLM citation.</li>
+            <li><strong>AI Target Keywords</strong> — comma-separated. Drives the page's JSON-LD <code style={{ background: C.bg2, padding: "1px 6px", borderRadius: 4, fontSize: 13 }}>keywords</code>.</li>
+            <li><strong>Primary Entity + Related Topics</strong> — entity SEO + topical authority signals. Help Google understand exactly what the page is about.</li>
+            <li><strong>Audience</strong> — fed to <code style={{ background: C.bg2, padding: "1px 6px", borderRadius: 4, fontSize: 13 }}>schema:Audience</code> so Google knows who the page is for.</li>
+            <li><strong>Geo Location + Language</strong> — Generative Engine Optimization signals for regional / multilingual ranking.</li>
+            <li><strong>Factual Claims</strong> — one verifiable fact per line. Rendered as a bullet list under the Quick Answer block (great for AEO / People-Also-Ask) and used by AI assistants as a citation source.</li>
+            <li><strong>FAQs section</strong> (separate card above) — Q&amp;A pairs that emit as <code style={{ background: C.bg2, padding: "1px 6px", borderRadius: 4, fontSize: 13 }}>FAQPage</code> schema, the same kind Google uses for People-Also-Ask boxes.</li>
+          </ul>
+        </Card>
+
+        <p style={{ fontSize: 15, color: C.text2, lineHeight: 1.7, marginTop: 20 }}>
+          All of the above is auto-injected into a structured-data graph that includes a
+          <code style={{ background: C.bg2, padding: "2px 6px", borderRadius: 4, fontSize: 13 }}>CollectionPage</code>, an
+          <code style={{ background: C.bg2, padding: "2px 6px", borderRadius: 4, fontSize: 13 }}>ItemList</code> of
+          <code style={{ background: C.bg2, padding: "2px 6px", borderRadius: 4, fontSize: 13 }}>DigitalDocument</code> nodes (one per
+          resource, with format / date / author / keywords / license), a
+          <code style={{ background: C.bg2, padding: "2px 6px", borderRadius: 4, fontSize: 13 }}>FAQPage</code>, and a
+          <code style={{ background: C.bg2, padding: "2px 6px", borderRadius: 4, fontSize: 13 }}>BreadcrumbList</code> — no
+          developer work required, just fill in the form.
+        </p>
+      </Section>
+
+      {/* ── 7. CRM / LEADS ───────────────────────────────────────────────── */}
+      <Section id="crm" eyebrow="07" title="CRM — managing every lead">
         <p style={{ fontSize: 16, color: C.text2, lineHeight: 1.7, marginTop: 0 }}>
           Every form on the public site (contact, newsletter, talent pool, career, etc.)
           saves automatically into a single database called <strong style={{ color: C.text }}>Leads</strong>.
@@ -405,8 +535,8 @@ export default function SiteGuide() {
         </p>
       </Section>
 
-      {/* ── 6. TALENT POOL SYSTEM ────────────────────────────────────────── */}
-      <Section id="talent" eyebrow="06" title="Talent Pool — 9 specialized landing pages">
+      {/* ── 8. TALENT POOL SYSTEM ────────────────────────────────────────── */}
+      <Section id="talent" eyebrow="08" title="Talent Pool — 9 specialized landing pages">
         <p style={{ fontSize: 16, color: C.text2, lineHeight: 1.7, marginTop: 0 }}>
           Talent pools are dedicated landing pages for each creative speciality. Each has its
           own URL, its own editable content, its own application form, and submissions go to a
@@ -453,8 +583,8 @@ export default function SiteGuide() {
         ]} />
       </Section>
 
-      {/* ── 7. SEO ───────────────────────────────────────────────────────── */}
-      <Section id="seo" eyebrow="07" title="SEO — how each page is found on Google">
+      {/* ── 9. SEO ───────────────────────────────────────────────────────── */}
+      <Section id="seo" eyebrow="09" title="SEO — how each page is found on Google">
         <p style={{ fontSize: 16, color: C.text2, lineHeight: 1.7, marginTop: 0 }}>
           Every page on the site has SEO metadata: a <strong>title</strong> (what shows in
           the Google search result), a <strong>description</strong> (the snippet under the
@@ -492,8 +622,8 @@ export default function SiteGuide() {
         </p>
       </Section>
 
-      {/* ── 8. EMAIL ─────────────────────────────────────────────────────── */}
-      <Section id="email" eyebrow="08" title="Email Notifications — every lead lands in your inbox">
+      {/* ── 10. EMAIL ────────────────────────────────────────────────────── */}
+      <Section id="email" eyebrow="10" title="Email Notifications — every lead lands in your inbox">
         <Card>
           <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 12px", color: C.text, display: "flex", alignItems: "center", gap: 8 }}>
             <Send size={18} color={C.accent} /> How it works
@@ -549,8 +679,8 @@ export default function SiteGuide() {
         </div>
       </Section>
 
-      {/* ── 9. MEDIA ─────────────────────────────────────────────────────── */}
-      <Section id="media" eyebrow="09" title="Media Library — managing images">
+      {/* ── 11. MEDIA ────────────────────────────────────────────────────── */}
+      <Section id="media" eyebrow="11" title="Media Library — managing images">
         <p style={{ fontSize: 16, color: C.text2, lineHeight: 1.7, marginTop: 0 }}>
           The Media Library at <code style={{ background: C.bg2, padding: "2px 8px", borderRadius: 4, fontSize: 13 }}>/admin/media</code> is your central image storage.
           Every image picker in the admin panel can either:
@@ -573,8 +703,8 @@ export default function SiteGuide() {
         </Card>
       </Section>
 
-      {/* ── 10. TECH STACK ───────────────────────────────────────────────── */}
-      <Section id="tech" eyebrow="10" title="Tech behind the scenes (you don't need to touch this)">
+      {/* ── 12. TECH STACK ───────────────────────────────────────────────── */}
+      <Section id="tech" eyebrow="12" title="Tech behind the scenes (you don't need to touch this)">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
           {[
             ["Frontend",   "React 19 + Vite 7 + Tailwind v4. Hosted on Vercel (free, global CDN, auto-deploy from GitHub)."],
@@ -592,8 +722,8 @@ export default function SiteGuide() {
         </div>
       </Section>
 
-      {/* ── 11. FAQ ──────────────────────────────────────────────────────── */}
-      <Section id="faq" eyebrow="11" title="Frequently asked questions">
+      {/* ── 13. FAQ ──────────────────────────────────────────────────────── */}
+      <Section id="faq" eyebrow="13" title="Frequently asked questions">
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "4px 24px" }}>
           {[
             {
@@ -635,6 +765,22 @@ export default function SiteGuide() {
             {
               q: "How do I issue a certificate to a creator?",
               a: "Go to /admin/certificates → 'Add New' → fill in name, course, date, image (optional) → Save. They get a unique URL at /verify/:id that they can share publicly.",
+            },
+            {
+              q: "What is a Page Variant and when should I use one?",
+              a: "A variant is a separate, fully-editable copy of any page (Home, Services, Resources, etc.) at its own URL like /home-v2. Use it to A/B test new copy, run campaign-specific landers, or try a redesign without touching the live page. Create one at /admin/page-variants. Once published, it appears in the admin sidebar under 'Published Variants'.",
+            },
+            {
+              q: "How do I add a free eBook / Drive link / Notion template to the Resources page?",
+              a: "Open /admin/resources → 'Add resource' → pick the type (PDF, Drive, Notion, video…) → paste your link in 'Primary Link' → fill title and short description → save. The card becomes live and clickable immediately. You can also add a secondary preview button and a corner badge like 'New' or 'Most popular'.",
+            },
+            {
+              q: "What is the AI / GEO / AEO / AISEO block in Resources admin for?",
+              a: "Those fields control how Google's AI Overviews, ChatGPT, and Perplexity describe and cite your Resources page. Fill in the AI Quick-Answer Summary, AI keywords, primary entity, audience, geo location, and factual claims. The page automatically renders a Quick-Answer block at the top AND injects everything into JSON-LD structured data — no developer needed.",
+            },
+            {
+              q: "Where does the Resources link live in the navigation?",
+              a: "It's in the Navbar 'More' dropdown (alongside Blog, Authority Audit and Contact) and also in the footer.",
             },
           ].map((f) => (
             <FAQItem key={f.q} q={f.q} a={f.a} />
