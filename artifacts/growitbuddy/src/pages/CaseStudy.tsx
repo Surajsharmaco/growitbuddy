@@ -564,7 +564,7 @@ export default function CaseStudy() {
       <section style={{ padding: "0 24px 56px" }}>
         <div
           className="gallery-2"
-          style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gridTemplateColumns: gallery.length === 1 ? "1fr" : "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: 22 }}
+          style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gridTemplateColumns: gallery.length === 1 ? "1fr" : "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: 22 }}
         >
           {gallery.map((g, i) => (
             <div key={i} style={{ width: `${g.width ?? 100}%`, margin: "0 auto" }}>
