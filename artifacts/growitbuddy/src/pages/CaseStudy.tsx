@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowUpRight, CheckCircle2, Quote } from "lucide-react";
 import { API_BASE } from "@/lib/api";
 import BlockRenderer, { type Block } from "@/components/blocks/BlockRenderer";
 import BlockEditor from "@/components/blocks/BlockEditor";
-import { legacyToBlocks } from "@/components/blocks/blockDefaults";
+import CaseStudyInlineEditor from "@/components/CaseStudyInlineEditor";
 import { useAdmin } from "@/context/AdminContext";
 
 interface CaseStudyData {
@@ -212,21 +212,27 @@ export default function CaseStudy() {
   const isExcludedCategory = VIDEO_EDITING_CATS.has(item.category);
 
   // ── Inline editor mode (?edit=1 + admin logged in) ─────────────────────
+  // For legacy case studies we use the WYSIWYG CaseStudyInlineEditor — it
+  // renders a 1:1 visual replica of the public page layout. For already-
+  // migrated case studies (blocks present) we still use the generic
+  // BlockEditor since the public page renders blocks via BlockRenderer.
   if (editing && !isExcludedCategory) {
-    // Seed blocks from legacy data if this case study hasn't been migrated yet.
-    const seed = Array.isArray(item.blocks) && item.blocks.length > 0
-      ? item.blocks
-      : legacyToBlocks(item.caseStudy as unknown as Record<string, unknown> | null, item.title);
+    const exitToView = () => setLocation(window.location.pathname);
+    if (Array.isArray(item.blocks) && item.blocks.length > 0) {
+      return (
+        <BlockEditor
+          portfolioId={item.id}
+          initialBlocks={item.blocks}
+          onSaved={(blocks) => setItem({ ...item, blocks })}
+          onExit={exitToView}
+        />
+      );
+    }
     return (
-      <BlockEditor
-        portfolioId={item.id}
-        initialBlocks={seed}
-        onSaved={(blocks) => setItem({ ...item, blocks })}
-        onExit={() => {
-          // Strip ?edit=1 from URL and stay on the same page.
-          const base = window.location.pathname;
-          setLocation(base);
-        }}
+      <CaseStudyInlineEditor
+        item={item}
+        onSaved={(updated) => setItem(updated)}
+        onExit={exitToView}
       />
     );
   }
