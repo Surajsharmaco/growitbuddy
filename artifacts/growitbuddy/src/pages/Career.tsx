@@ -38,7 +38,7 @@ const FREELANCE_SKILLS = [
   "Video Editing", "Graphic Design", "Motion Design", "Thumbnail Design",
   "Script Writing", "Content Strategy", "Copywriting", "Social Media Management",
   "UGC Creation", "AI Automation", "AI Chatbots", "Web Design", "Funnel Building",
-  "Distribution & Growth", "Community Management", "Podcast Editing", "Brand Strategy",
+  "Distribution & Growth", "Clipping", "Community Management", "Podcast Editing", "Brand Strategy",
   "LinkedIn Growth", "YouTube Growth", "Email Marketing", "Meme Creation", "Other",
 ];
 

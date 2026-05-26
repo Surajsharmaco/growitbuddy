@@ -58,7 +58,7 @@ export const SERVICES_DEFAULTS: ServicesData = {
       subtitle: "03 | Amplification Systems",
       headline: "Distribution infrastructure that amplifies reach.",
       description: "Distribution infrastructure designed to amplify reach, compound attention, and generate inbound demand.",
-      features: ["Distribution Campaigns", "Influencer Campaigns", "Meta Ads", "Google Ads", "Lead Generation", "Newsletter Systems", "Viral Distribution", "Growth Systems", "YouTube Distribution", "Community Growth"],
+      features: ["Distribution Campaigns", "Influencer Campaigns", "Meta Ads", "Google Ads", "Lead Generation", "Newsletter Systems", "Viral Distribution", "Growth Systems", "YouTube Distribution", "Community Growth", "Clipping"],
       cta: "Scale Reach",
     },
     {
