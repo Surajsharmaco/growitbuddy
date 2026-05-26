@@ -46,6 +46,15 @@ export default function AdminPageVariants() {
       setError(err instanceof Error ? err.message : "Failed to load variants.");
     } finally { setLoading(false); }
   }
+
+  // Tell the sidebar (AdminLayout) to refresh its "Published Variants" group
+  // immediately after any create/update/delete. localStorage fires `storage`
+  // in other tabs; the custom event handles the SAME tab where this admin
+  // form lives (storage doesn't dispatch within the originating tab).
+  function broadcastVariantsChanged() {
+    try { localStorage.setItem("gb-variants-updated", String(Date.now())); } catch { /* no-op */ }
+    try { window.dispatchEvent(new CustomEvent("gb-variants-updated")); } catch { /* no-op */ }
+  }
   useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const existingSlugs = useMemo(() => new Set(rows.map((r) => r.slug)), [rows]);
@@ -98,6 +107,7 @@ export default function AdminPageVariants() {
       }
       setCreating(false);
       await load();
+      broadcastVariantsChanged();
     } catch (err) {
       setCreateError(err instanceof Error ? err.message : "Create failed.");
     } finally { setSaving(false); }
@@ -114,6 +124,7 @@ export default function AdminPageVariants() {
       throw new Error((body as { error?: string }).error ?? `Save failed (${r.status})`);
     }
     await load();
+    broadcastVariantsChanged();
   }
 
   async function deleteRow(id: number, slug: string) {
@@ -124,6 +135,7 @@ export default function AdminPageVariants() {
       return;
     }
     await load();
+    broadcastVariantsChanged();
   }
 
   function duplicateVariant(v: VariantRow) {

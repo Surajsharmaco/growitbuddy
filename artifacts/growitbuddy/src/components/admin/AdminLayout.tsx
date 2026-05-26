@@ -7,8 +7,10 @@ import {
   Share2, Scan, BookOpen, ShieldCheck, UserCog, Zap, Play, TrendingUp, EyeOff, Search, Copy as CopyIcon,
 } from "lucide-react";
 import { VariantBanner } from "@/components/admin/VariantBanner";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
+import { API_BASE } from "@/lib/api";
+import { findVariantSource } from "@/lib/variantSources";
 
 interface NavGroup { label: string; items: NavItem[]; }
 interface NavItem { label: string; path: string; icon: ReactNode; permission?: string; anyPermission?: string[]; superOnly?: boolean; }
@@ -86,14 +88,93 @@ const navGroups: NavGroup[] = [
   },
 ];
 
+interface VariantNavRow { id: number; slug: string; sourceKey: string; label: string; isLive: boolean; }
+
 export function AdminLayout({ children }: { children: ReactNode }) {
-  const { logout, hasPermission, isSuperAdmin, role } = useAdmin();
+  const { logout, hasPermission, isSuperAdmin, role, authFetch } = useAdmin();
   const [location] = useLocation();
   const [collapsed, setCollapsed] = useState(false);
 
+  // ── Published Variants in the sidebar ────────────────────────────────────
+  // Fetch live variants and render them as a dedicated nav group so admin can
+  // jump straight to a variant editor without going through Page Variants
+  // list. Refreshes when the variants list changes (cross-tab "storage"
+  // broadcast from AdminPageVariants save) or when the admin returns to the
+  // tab, so newly-published variants appear immediately.
+  const [variants, setVariants] = useState<VariantNavRow[]>([]);
+  useEffect(() => {
+    if (!isSuperAdmin) return;
+    let cancelled = false;
+    function load() {
+      authFetch(`${API_BASE}/admin/variants`)
+        .then((r) => (r.ok ? r.json() : []))
+        .then((rows: VariantNavRow[]) => { if (!cancelled) setVariants(Array.isArray(rows) ? rows : []); })
+        .catch(() => { /* leave previous list */ });
+    }
+    load();
+    // Cross-tab refresh: AdminPageVariants doesn't broadcast yet, but the
+    // generic "gb-variants-updated" key gives us a hook for future use. We
+    // also refresh on tab focus so any change made elsewhere shows up.
+    function onStorage(e: StorageEvent) { if (e.key === "gb-variants-updated") load(); }
+    function onVisible() { if (document.visibilityState === "visible") load(); }
+    function onSameTab() { load(); }
+    window.addEventListener("storage", onStorage);
+    document.addEventListener("visibilitychange", onVisible);
+    // Same-tab event — storage doesn't fire in the originating tab, so the
+    // Page Variants admin form dispatches a CustomEvent after saves.
+    window.addEventListener("gb-variants-updated", onSameTab);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("storage", onStorage);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("gb-variants-updated", onSameTab);
+    };
+  }, [isSuperAdmin, authFetch]);
+
+  // Build a synthetic nav group from LIVE variants only. Each item links to
+  // the source page's existing admin editor with ?variant=<slug> appended —
+  // the VariantBanner + AdminContext make the editing experience seamless.
+  const variantGroup: NavGroup | null = (() => {
+    if (!isSuperAdmin) return null;
+    const live = variants.filter((v) => v.isLive);
+    if (live.length === 0) return null;
+    const items: NavItem[] = live
+      .map((v) => {
+        const src = findVariantSource(v.sourceKey);
+        if (!src) return null;
+        return {
+          label: v.label || `/${v.slug}`,
+          path: `${src.adminPath}?variant=${encodeURIComponent(v.slug)}`,
+          icon: <CopyIcon size={15} />,
+          superOnly: true,
+        } as NavItem;
+      })
+      .filter((x): x is NavItem => x !== null)
+      .sort((a, b) => a.label.localeCompare(b.label));
+    return items.length > 0 ? { label: "Published Variants", items } : null;
+  })();
+
+  // isActive must distinguish variant routes from their base page — e.g.
+  // /admin/home?variant=home-students must NOT highlight the base "Home Page"
+  // nav item. We parse the query string for ?variant= and treat any href
+  // containing it as a distinct route.
   function isActive(path: string) {
-    if (path === "/admin") return location === "/admin";
-    return location.startsWith(path);
+    if (path === "/admin") return location === "/admin" && !currentVariantSlug();
+    const [hrefPath, hrefQuery = ""] = path.split("?");
+    const hrefVariant = new URLSearchParams(hrefQuery).get("variant") ?? "";
+    const curVariant = currentVariantSlug() ?? "";
+    if (hrefVariant) {
+      // Variant nav item — match only when path AND variant slug match exactly.
+      return location.startsWith(hrefPath) && curVariant === hrefVariant;
+    }
+    // Base nav item — match path but only when NO variant is active, so the
+    // base "Home Page" item doesn't light up while editing a variant of it.
+    return location.startsWith(hrefPath) && !curVariant;
+  }
+
+  function currentVariantSlug(): string | null {
+    try { return new URLSearchParams(window.location.search).get("variant"); }
+    catch { return null; }
   }
 
   function canSee(item: NavItem): boolean {
@@ -103,7 +184,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
     return hasPermission(item.permission);
   }
 
-  const visibleGroups = navGroups
+  const visibleGroups = [...navGroups, ...(variantGroup ? [variantGroup] : [])]
     .map((g) => ({ ...g, items: g.items.filter(canSee) }))
     .filter((g) => g.items.length > 0);
 
