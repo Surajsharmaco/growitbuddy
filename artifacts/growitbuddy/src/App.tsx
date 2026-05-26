@@ -12,6 +12,7 @@ import { AdminProvider, useAdmin } from "@/context/AdminContext";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { PageGate } from "@/components/PageGate";
 import DynamicPageSEO from "@/components/DynamicPageSEO";
+import { VariantResolver } from "@/components/VariantResolver";
 
 // ── Lazy-loaded public pages ──────────────────────────────────────────────────
 // Home stays eager (it's the LCP page). Everything else loads on demand.
@@ -84,6 +85,7 @@ const AdminCreatorSchool      = lazy(() => import("@/pages/admin/AdminCreatorSch
 const AdminTalentPool         = lazy(() => import("@/pages/admin/AdminTalentPool"));
 const AdminPageVisibility     = lazy(() => import("@/pages/admin/AdminPageVisibility"));
 const AdminSEO                = lazy(() => import("@/pages/admin/AdminSEO"));
+const AdminPageVariants       = lazy(() => import("@/pages/admin/AdminPageVariants"));
 
 // ── Minimal spinner (no layout shift, no external deps) ──────────────────────
 function PageSpinner() {
@@ -162,6 +164,7 @@ function AdminRoutes() {
       <Route path="/admin/pool-editors">{() => <AdminGuard><AdminTalentPool poolKey="pool-editors" label="Video Editors Pool" description="Manage the /video-editors landing page." pageUrl="/video-editors" /></AdminGuard>}</Route>
       <Route path="/admin/page-visibility">{() => <AdminGuard><AdminPageVisibility /></AdminGuard>}</Route>
       <Route path="/admin/seo">{() => <AdminGuard><AdminSEO /></AdminGuard>}</Route>
+      <Route path="/admin/page-variants">{() => <AdminGuard><AdminPageVariants /></AdminGuard>}</Route>
       <Route path="/admin">{() => <AdminGuard><AdminDashboard /></AdminGuard>}</Route>
     </Switch>
   );
@@ -282,6 +285,9 @@ function App() {
                       <Route path="/ugc-creators">{() => <PageGate slug="ugc-creators"><UGCCreatorsPool /></PageGate>}</Route>
                       <Route path="/meme-designers">{() => <PageGate slug="meme-designers"><MemeDesignersPool /></PageGate>}</Route>
                       <Route path="/video-editors">{() => <PageGate slug="video-editors"><EditorsPool /></PageGate>}</Route>
+                      {/* Page Variants — catch-all that resolves /:slug to a variant of a source page.
+                          Falls through to NotFound if the slug doesn't match a live variant. */}
+                      <Route path="/:slug" component={VariantResolver} />
                       <Route component={NotFound} />
                     </Switch>
                   </Suspense>

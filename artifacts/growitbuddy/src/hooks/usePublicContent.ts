@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { API_BASE } from "@/lib/api";
+import { useVariant } from "@/context/VariantContext";
+import { variantContentKey } from "@/lib/variantSources";
 
 // Session-level cache - persists for the lifetime of the tab
 const cache = new Map<string, object>();
@@ -110,9 +112,19 @@ export function usePublicContent<T extends object>(
   section: string,
   defaults: T,
 ): T {
+  // When rendered inside a variant page (via VariantResolver), redirect the
+  // fetch for the matching sourceKey to the namespaced variant key so each
+  // variant can have its own content. Sections that don't match (e.g. shared
+  // "navbar", "settings") still read from the base key.
+  const variant = useVariant();
+  const effectiveSection =
+    variant && variant.sourceKey === section
+      ? variantContentKey(variant.sourceKey, variant.slug)
+      : section;
+
   // Initialize from cache immediately - no flash on repeat visits or after prefetch
   const [data, setData] = useState<T>(() => {
-    const cached = cache.get(section);
+    const cached = cache.get(effectiveSection);
     return cached ? { ...defaults, ...(cached as Partial<T>) } : defaults;
   });
 
@@ -123,7 +135,7 @@ export function usePublicContent<T extends object>(
       if (cancelled || !fresh) return;
       // Guard against out-of-order responses: only apply if this is still
       // the latest version we've requested for this section.
-      if (myVersion !== currentVersion(section)) return;
+      if (myVersion !== currentVersion(effectiveSection)) return;
       setData((prev) => {
         const next = { ...prev, ...(fresh as Partial<T>) } as T;
         // Skip the state update (and re-render) when nothing actually
@@ -135,23 +147,23 @@ export function usePublicContent<T extends object>(
     function refresh() {
       // Clear in-memory cache so we actually hit the network instead of
       // resolving with a stale value from the previous fetch.
-      cache.delete(section);
-      inFlight.delete(section);
-      const myVersion = nextVersion(section);
-      fetchSection(section).then((fresh) => applyIfCurrent(myVersion, fresh));
+      cache.delete(effectiveSection);
+      inFlight.delete(effectiveSection);
+      const myVersion = nextVersion(effectiveSection);
+      fetchSection(effectiveSection).then((fresh) => applyIfCurrent(myVersion, fresh));
     }
 
     // Initial silent refresh on mount to pick up any admin edits made since
     // the cache was warmed.
-    const initialVersion = nextVersion(section);
-    fetchSection(section).then((fresh) => applyIfCurrent(initialVersion, fresh));
+    const initialVersion = nextVersion(effectiveSection);
+    fetchSection(effectiveSection).then((fresh) => applyIfCurrent(initialVersion, fresh));
 
     // Cross-tab live update: when the admin saves, BROADCAST_KEY changes
     // and we re-fetch immediately so the public tab never shows stale data.
     function onStorage(e: StorageEvent) {
       if (e.key !== BROADCAST_KEY) return;
       const sec = parseBroadcast(e.newValue);
-      if (sec === section) refresh();
+      if (sec === effectiveSection) refresh();
     }
     // When the tab regains focus, also re-validate — covers the case where
     // a user updates the admin in one window and switches back to the public
@@ -167,7 +179,7 @@ export function usePublicContent<T extends object>(
       window.removeEventListener("storage", onStorage);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [section]);
+  }, [effectiveSection]);
 
   return data;
 }

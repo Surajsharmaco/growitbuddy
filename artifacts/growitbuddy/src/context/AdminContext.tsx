@@ -1,10 +1,18 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from "react";
 import type { AdminRole } from "./adminPermissions";
+import { useLocation } from "wouter";
 
 import { API_BASE } from "@/lib/api";
+import { variantContentKey } from "@/lib/variantSources";
 const TOKEN_KEY = "gb_admin_token";
 
 export type { AdminRole };
+
+export interface AdminVariantInfo {
+  slug: string;
+  sourceKey: string;
+  label: string;
+}
 
 interface AdminContextValue {
   token: string | null;
@@ -20,6 +28,10 @@ interface AdminContextValue {
   getContent: (section: string) => Promise<Record<string, unknown> | null>;
   saveContent: (section: string, data: Record<string, unknown>) => Promise<void>;
   authFetch: (input: RequestInfo, init?: RequestInit) => Promise<Response>;
+  // When admin is editing a variant (URL contains ?variant=<slug>), this is set.
+  // getContent/saveContent automatically namespace their section key when
+  // editing a section that matches the active variant's sourceKey.
+  currentVariant: AdminVariantInfo | null;
 }
 
 const AdminContext = createContext<AdminContextValue | null>(null);
@@ -166,21 +178,58 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     clearSession();
   }, [clearSession]);
 
+  // ── Variant-aware editing ──
+  // When admin navigates to e.g. /admin/home?variant=home-students, all
+  // getContent/saveContent calls for section "home" are transparently
+  // redirected to the namespaced key `home__v__home-students` — so the same
+  // existing admin forms (AdminHome, AdminAbout, etc.) edit variant content
+  // without any per-page changes.
+  const [location] = useLocation();
+  const [currentVariant, setCurrentVariant] = useState<AdminVariantInfo | null>(null);
+  useEffect(() => {
+    // Pull ?variant= from window.location (wouter doesn't track query string).
+    let slug: string | null = null;
+    try {
+      slug = new URLSearchParams(window.location.search).get("variant");
+    } catch { /* no-op */ }
+    if (!slug || !isAuthenticated) { setCurrentVariant(null); return; }
+    let cancelled = false;
+    fetch(`${API_BASE}/admin/public/variants`, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((rows: Array<{ slug: string; sourceKey: string; label: string }>) => {
+        if (cancelled) return;
+        const match = rows.find((v) => v.slug === slug);
+        setCurrentVariant(match ? { slug: match.slug, sourceKey: match.sourceKey, label: match.label } : null);
+      })
+      .catch(() => { if (!cancelled) setCurrentVariant(null); });
+    return () => { cancelled = true; };
+  }, [location, isAuthenticated]);
+
+  const resolveSection = useCallback(
+    (section: string) =>
+      currentVariant && currentVariant.sourceKey === section
+        ? variantContentKey(currentVariant.sourceKey, currentVariant.slug)
+        : section,
+    [currentVariant],
+  );
+
   const getContent = useCallback(
     async (section: string): Promise<Record<string, unknown> | null> => {
-      const r = await authFetch(`${API_BASE}/admin/content/${section}`, {
+      const key = resolveSection(section);
+      const r = await authFetch(`${API_BASE}/admin/content/${key}`, {
         headers: { "Content-Type": "application/json" },
       });
       if (!r.ok) return null;
       const row = await r.json();
       return row.data ?? null;
     },
-    [authFetch],
+    [authFetch, resolveSection],
   );
 
   const saveContent = useCallback(
     async (section: string, data: Record<string, unknown>) => {
-      const r = await authFetch(`${API_BASE}/admin/content/${section}`, {
+      const key = resolveSection(section);
+      const r = await authFetch(`${API_BASE}/admin/content/${key}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ data }),
@@ -195,10 +244,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       // section/timestamp separator because section names themselves may
       // contain ":" (e.g. "seo:home").
       try {
-        localStorage.setItem("gb-content-updated", `${section}|${Date.now()}`);
+        localStorage.setItem("gb-content-updated", `${key}|${Date.now()}`);
       } catch { /* localStorage may be unavailable */ }
     },
-    [authFetch],
+    [authFetch, resolveSection],
   );
 
   return (
@@ -217,6 +266,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         getContent,
         saveContent,
         authFetch,
+        currentVariant,
       }}
     >
       {children}

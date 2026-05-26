@@ -91,6 +91,26 @@ async function runStartupMigrations() {
     logger.error({ err }, "Startup migration: failed to rename video editing categories.");
   }
 
+  // Page Variants — clone any source page (home/about/etc) at a new URL with
+  // its own per-section content. Variant content stored in site_content under
+  // key `${sourceKey}__v__${slug}`. See variantContentKey() in frontend.
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS page_variants (
+        id serial PRIMARY KEY,
+        source_key text NOT NULL,
+        slug text NOT NULL UNIQUE,
+        label text NOT NULL DEFAULT '',
+        is_live boolean NOT NULL DEFAULT false,
+        created_at timestamp NOT NULL DEFAULT now(),
+        updated_at timestamp NOT NULL DEFAULT now()
+      )
+    `);
+    logger.info("Startup migration: page_variants table ensured.");
+  } catch (err) {
+    logger.error({ err }, "Startup migration: failed to ensure page_variants table.");
+  }
+
   // Shareable portfolio links — admin hides some categories/items per share.
   try {
     await pool.query(`

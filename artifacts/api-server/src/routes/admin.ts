@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { randomBytes, createHmac, timingSafeEqual, scrypt, randomUUID } from "crypto";
-import { db, pool, siteContent, leads, certificates, teamMembers, portfolioItems, portfolioShares, clientLogos, revokedTokens as revokedTokensTable, adminActionLogs, mediaFiles } from "@workspace/db";
+import { db, pool, siteContent, leads, certificates, teamMembers, portfolioItems, portfolioShares, clientLogos, revokedTokens as revokedTokensTable, adminActionLogs, mediaFiles, pageVariants } from "@workspace/db";
 import { eq, desc, count, asc, lt } from "drizzle-orm";
 import { logger } from "../lib/logger";
 import multer from "multer";
@@ -322,6 +322,106 @@ router.delete("/team/:id", authMiddleware, superAdminOnly, async (req, res) => {
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   await db.delete(teamMembers).where(eq(teamMembers.id, id));
   logger.info({ id }, "Team member deleted");
+  res.json({ success: true });
+});
+
+// ── Page Variants — duplicate any source page at a new URL with its own content ──
+// Variant content is stored in site_content under key `${sourceKey}__v__${slug}`.
+function variantKey(sourceKey: string, slug: string) { return `${sourceKey}__v__${slug}`; }
+function isSafeSlug(s: string) { return /^[a-z0-9][a-z0-9-]{0,79}$/.test(s); }
+
+// Public: list LIVE variants only (slug -> sourceKey resolver for frontend router).
+router.get("/public/variants", async (_req, res) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  try {
+    const rows = await db.select({
+      slug: pageVariants.slug, sourceKey: pageVariants.sourceKey, label: pageVariants.label,
+    }).from(pageVariants).where(eq(pageVariants.isLive, true));
+    res.json(rows);
+  } catch { res.json([]); }
+});
+
+// Admin: list ALL variants.
+router.get("/variants", authMiddleware, async (_req, res) => {
+  const rows = await db.select().from(pageVariants).orderBy(desc(pageVariants.createdAt));
+  res.json(rows);
+});
+
+// Admin: create variant. Optionally copies base content as starting point.
+router.post("/variants", authMiddleware, async (req, res) => {
+  const { sourceKey, slug, label, isLive, copyFromBase } = req.body ?? {};
+  if (!sourceKey || typeof sourceKey !== "string") { res.status(400).json({ error: "sourceKey required" }); return; }
+  if (!slug || !isSafeSlug(String(slug))) { res.status(400).json({ error: "slug must be lowercase letters, digits, dashes (max 80 chars)" }); return; }
+  try {
+    const inserted = await db.insert(pageVariants).values({
+      sourceKey: String(sourceKey),
+      slug: String(slug),
+      label: String(label ?? ""),
+      isLive: Boolean(isLive),
+    }).returning();
+    // Seed content: copy base sourceKey's siteContent into the variant key so admin
+    // can immediately edit. If no base content exists, leave variant key empty.
+    if (copyFromBase) {
+      const base = await db.select().from(siteContent).where(eq(siteContent.section, String(sourceKey)));
+      if (base.length > 0) {
+        await db.insert(siteContent)
+          .values({ section: variantKey(String(sourceKey), String(slug)), data: base[0].data })
+          .onConflictDoUpdate({ target: siteContent.section, set: { data: base[0].data, updatedAt: new Date() } });
+      }
+    }
+    logger.info({ slug, sourceKey }, "Page variant created");
+    res.json(inserted[0]);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Create failed";
+    if (/unique|duplicate/i.test(msg)) { res.status(409).json({ error: `Slug "${slug}" is already taken.` }); return; }
+    logger.error({ err }, "Create variant failed");
+    res.status(500).json({ error: msg });
+  }
+});
+
+// Admin: update variant (rename slug, label, toggle live).
+router.put("/variants/:id", authMiddleware, async (req, res) => {
+  const id = parseInt(String(req.params.id));
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+  const { slug, label, isLive } = req.body ?? {};
+  const existing = await db.select().from(pageVariants).where(eq(pageVariants.id, id));
+  if (existing.length === 0) { res.status(404).json({ error: "Variant not found" }); return; }
+  const cur = existing[0];
+  const newSlug = typeof slug === "string" ? slug : cur.slug;
+  if (!isSafeSlug(newSlug)) { res.status(400).json({ error: "slug must be lowercase letters, digits, dashes (max 80 chars)" }); return; }
+  try {
+    // If slug changes, also rename the underlying site_content key so prior
+    // edits aren't orphaned.
+    if (newSlug !== cur.slug) {
+      const oldKey = variantKey(cur.sourceKey, cur.slug);
+      const newKey = variantKey(cur.sourceKey, newSlug);
+      await pool.query(`UPDATE site_content SET section = $1 WHERE section = $2`, [newKey, oldKey]);
+    }
+    const updated = await db.update(pageVariants).set({
+      slug: newSlug,
+      label: typeof label === "string" ? label : cur.label,
+      isLive: typeof isLive === "boolean" ? isLive : cur.isLive,
+      updatedAt: new Date(),
+    }).where(eq(pageVariants.id, id)).returning();
+    res.json(updated[0]);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Update failed";
+    if (/unique|duplicate/i.test(msg)) { res.status(409).json({ error: `Slug "${newSlug}" is already taken.` }); return; }
+    logger.error({ err }, "Update variant failed");
+    res.status(500).json({ error: msg });
+  }
+});
+
+// Admin: delete variant + its content row.
+router.delete("/variants/:id", authMiddleware, async (req, res) => {
+  const id = parseInt(String(req.params.id));
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+  const existing = await db.select().from(pageVariants).where(eq(pageVariants.id, id));
+  if (existing.length === 0) { res.json({ success: true }); return; }
+  const cur = existing[0];
+  await db.delete(siteContent).where(eq(siteContent.section, variantKey(cur.sourceKey, cur.slug)));
+  await db.delete(pageVariants).where(eq(pageVariants.id, id));
+  logger.info({ id, slug: cur.slug }, "Page variant deleted");
   res.json({ success: true });
 });
 

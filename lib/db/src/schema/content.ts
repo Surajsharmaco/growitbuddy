@@ -132,6 +132,22 @@ export const clientLogos = pgTable("client_logos", {
 export type ClientLogo = typeof clientLogos.$inferSelect;
 export type InsertClientLogo = typeof clientLogos.$inferInsert;
 
+// Page Variants — duplicate any source page (home/about/services/etc) at a
+// new URL with its own content. Variant content lives in site_content under
+// the namespaced key `${sourceKey}__v__${slug}` (see variantContentKey()).
+export const pageVariants = pgTable("page_variants", {
+  id: serial("id").primaryKey(),
+  sourceKey: text("source_key").notNull(),
+  slug: text("slug").notNull().unique(),
+  label: text("label").notNull().default(""),
+  isLive: boolean("is_live").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type PageVariant = typeof pageVariants.$inferSelect;
+export type InsertPageVariant = typeof pageVariants.$inferInsert;
+
 export const mediaFiles = pgTable("media_files", {
   id: serial("id").primaryKey(),
   filename: text("filename").notNull(),
