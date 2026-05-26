@@ -536,8 +536,16 @@ export default function CaseStudyInlineEditor({ item: initialItem, onSaved, onEx
           content: ""; position: absolute; inset: 0; pointer-events: none;
           background: repeating-linear-gradient(45deg, rgba(148,163,184,0.06) 0 12px, transparent 12px 24px);
         }
-        .gb-media-tools { opacity: 0; transition: opacity 120ms; }
+        .gb-media-tools { opacity: 0.75; transition: opacity 120ms; }
         .gb-media-wrap:hover .gb-media-tools { opacity: 1; }
+        .gb-ratio-pop { display: none; position: absolute; top: 100%; right: 0; margin-top: 6px;
+          background: #0A0A0A; border-radius: 8px; padding: 4px; gap: 2px; z-index: 20;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.35); flex-direction: column; min-width: 110px; }
+        .gb-ratio-wrap:hover .gb-ratio-pop, .gb-ratio-wrap:focus-within .gb-ratio-pop { display: flex; }
+        .gb-ratio-opt { background: transparent; color: #fff; border: 0; padding: 6px 10px;
+          text-align: left; font-size: 11px; font-weight: 700; cursor: pointer; border-radius: 4px; }
+        .gb-ratio-opt:hover { background: rgba(255,255,255,0.12); }
+        .gb-ratio-opt.active { background: ${ACCENT}; }
       `}</style>
     </div>
   );
@@ -607,26 +615,10 @@ function MediaTile({ src, alt, ratio, widthPct, onUpload, onChangeRatio, onChang
         <button onClick={() => fileRef.current?.click()} disabled={uploading} style={mediaToolBtn} title="Replace image">
           <ImagePlus size={13} /> {uploading ? "…" : "Replace"}
         </button>
-        {onChangeRatio && (
-          <label style={{ ...mediaToolBtn, display: "inline-flex", alignItems: "center", gap: 4, cursor: "pointer" }} title="Change aspect ratio">
-            <Crop size={13} />
-            <select value={ratio} onChange={(e) => onChangeRatio(e.target.value)}
-              style={{ background: "transparent", color: "#fff", border: 0, fontSize: 11, fontWeight: 700, cursor: "pointer", outline: "none" }}>
-              {RATIOS.map(r => <option key={r.value} value={r.value} style={{ color: "#000" }}>{r.label}</option>)}
-            </select>
-          </label>
-        )}
-        {onChangeWidth && (
-          <span style={{ ...mediaToolBtn, display: "inline-flex", alignItems: "center", gap: 4 }} title={`Width: ${widthPct ?? 100}%`}>
-            <Maximize2 size={12} />
-            <input type="range" min={20} max={100} step={1} value={widthPct ?? 100}
-              onChange={(e) => onChangeWidth(parseInt(e.target.value, 10))}
-              style={{ width: 70, accentColor: ACCENT, cursor: "pointer" }} />
-            <span style={{ fontSize: 10, opacity: 0.85, minWidth: 26, textAlign: "right" }}>{widthPct ?? 100}%</span>
-          </span>
-        )}
-        {onDuplicate && <button onClick={onDuplicate} style={mediaToolBtn} title="Duplicate"><Copy size={13} /></button>}
-        {onRemove && <button onClick={onRemove} style={{ ...mediaToolBtn, color: "#fca5a5" }} title="Remove"><Trash2 size={13} /></button>}
+        {onChangeRatio && <RatioMenu value={ratio} onChange={onChangeRatio} />}
+        {onChangeWidth && <WidthSlider value={widthPct ?? 100} onChange={onChangeWidth} />}
+        {onDuplicate && <button onClick={onDuplicate} style={mediaToolBtn} title="Duplicate"><Copy size={13} /> Copy</button>}
+        {onRemove && <button onClick={onRemove} style={{ ...mediaToolBtn, color: "#fca5a5" }} title="Remove"><Trash2 size={13} /> Remove</button>}
       </div>
     </div>
   );
@@ -665,24 +657,10 @@ function VideoTile({ video, onChangeUrl, onChangeRatio, onChangeWidth, onDuplica
         style={{ display: "block", marginTop: 12, width: "100%", maxWidth: 560, marginLeft: "auto", marginRight: "auto",
           padding: "8px 12px", border: `1px solid ${RULE}`, borderRadius: 8, fontSize: 13, color: MUTED, background: "#fff" }} />
       <div className="gb-media-tools" style={{ ...mediaToolbarStyle, top: 12 }}>
-        <label style={{ ...mediaToolBtn, display: "inline-flex", alignItems: "center", gap: 4, cursor: "pointer" }} title="Change aspect ratio">
-          <Crop size={13} />
-          <select value={ratio} onChange={(e) => onChangeRatio(e.target.value)}
-            style={{ background: "transparent", color: "#fff", border: 0, fontSize: 11, fontWeight: 700, cursor: "pointer", outline: "none" }}>
-            {RATIOS.map(r => <option key={r.value} value={r.value} style={{ color: "#000" }}>{r.label}</option>)}
-          </select>
-        </label>
-        {onChangeWidth && (
-          <span style={{ ...mediaToolBtn, display: "inline-flex", alignItems: "center", gap: 4 }} title={`Width: ${video.width ?? 100}%`}>
-            <Maximize2 size={12} />
-            <input type="range" min={20} max={100} step={1} value={video.width ?? 100}
-              onChange={(e) => onChangeWidth(parseInt(e.target.value, 10))}
-              style={{ width: 70, accentColor: ACCENT, cursor: "pointer" }} />
-            <span style={{ fontSize: 10, opacity: 0.85, minWidth: 26, textAlign: "right" }}>{video.width ?? 100}%</span>
-          </span>
-        )}
-        <button onClick={onDuplicate} style={mediaToolBtn} title="Duplicate"><Copy size={13} /></button>
-        <button onClick={onRemove} style={{ ...mediaToolBtn, color: "#fca5a5" }} title="Remove"><Trash2 size={13} /></button>
+        <RatioMenu value={ratio} onChange={onChangeRatio} />
+        {onChangeWidth && <WidthSlider value={video.width ?? 100} onChange={onChangeWidth} />}
+        <button onClick={onDuplicate} style={mediaToolBtn} title="Duplicate"><Copy size={13} /> Copy</button>
+        <button onClick={onRemove} style={{ ...mediaToolBtn, color: "#fca5a5" }} title="Remove"><Trash2 size={13} /> Remove</button>
       </div>
     </div>
   );
@@ -892,6 +870,36 @@ function IconBtn({ children, onClick, title, danger }: { children: React.ReactNo
 // ─────────────────────────────────────────────────────────────────────────────
 // Styles
 // ─────────────────────────────────────────────────────────────────────────────
+
+function RatioMenu({ value, onChange }: { value: string; onChange: (r: string) => void }) {
+  return (
+    <span className="gb-ratio-wrap" tabIndex={0} style={{ ...mediaToolBtn, position: "relative", display: "inline-flex", alignItems: "center", gap: 4, cursor: "pointer", outline: "none" }} title="Change aspect ratio">
+      <Crop size={13} /> {RATIOS.find(r => r.value === value)?.label ?? value}
+      <div className="gb-ratio-pop">
+        {RATIOS.map(r => (
+          <button key={r.value} type="button"
+            className={`gb-ratio-opt${r.value === value ? " active" : ""}`}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onChange(r.value); (e.currentTarget.closest(".gb-ratio-wrap") as HTMLElement | null)?.blur(); }}>
+            {r.label}
+          </button>
+        ))}
+      </div>
+    </span>
+  );
+}
+
+function WidthSlider({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  return (
+    <span style={{ ...mediaToolBtn, display: "inline-flex", alignItems: "center", gap: 6, cursor: "default" }} title={`Width: ${value}%`}>
+      <Maximize2 size={12} />
+      <input type="range" min={20} max={100} step={1} value={value}
+        onChange={(e) => onChange(parseInt(e.target.value, 10))}
+        onMouseDown={(e) => e.stopPropagation()}
+        style={{ width: 90, accentColor: ACCENT, cursor: "pointer" }} />
+      <span style={{ fontSize: 10, opacity: 0.9, minWidth: 28, textAlign: "right" }}>{value}%</span>
+    </span>
+  );
+}
 
 const mediaToolbarStyle: React.CSSProperties = {
   position: "absolute", top: 14, right: 14, zIndex: 5,
