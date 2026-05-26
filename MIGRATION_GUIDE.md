@@ -366,7 +366,101 @@ pnpm --filter @workspace/api-spec run codegen
 psql "$DATABASE_URL" < growitbuddy_import.sql
 ```
 
-### 15. User Preferences
+### 15. ⚠️ Common Pitfalls — Bugs That Have ACTUALLY Bitten Us Before
+
+> **Read this section twice.** Every item here is a real production issue that has happened in this project, with the fix and the prevention rule. The new Agent must check these on day one and never re-introduce them.
+
+#### A. Email & Notifications
+
+| # | Bug | Symptom | Root cause | Prevention |
+|---|---|---|---|---|
+| A1 | Form submissions appear successful but no email arrives | User submits `/contact`, sees "Thanks!", but inbox stays empty for hours | `RESEND_API_KEY` not set on Render. `sendEmail()` logs an error and returns silently (form still returns success). | **Render → Environment → `RESEND_API_KEY` must be present.** Verify by checking Render logs for `"RESEND_API_KEY not set"` after a test submission. |
+| A2 | Emails sent but rejected by Resend | Render logs show Resend error, no email arrives | Default sender is `onboarding@resend.dev`. This shared sender ONLY delivers to the email that owns the Resend account. | Either (a) ensure the Resend account is registered with `cs.growitbuddy@gmail.com`, OR (b) verify a custom domain in Resend and set `EMAIL_FROM=GrowitBuddy <notifications@yourdomain.com>`. |
+| A3 | First few emails went to Spam | Owner says "I don't get any email" but they're in Gmail Promotions/Spam | Cold sender reputation from `onboarding@resend.dev`. | One-time fix: open Gmail Spam → find email → "Not spam" → "Move to Inbox". Future ones land in Inbox. |
+
+#### B. SEO & Google Indexing
+
+| # | Bug | Symptom | Root cause | Prevention |
+|---|---|---|---|---|
+| B1 | Blog posts not appearing in Google after weeks | Sitemap submitted, posts published, but Google Search Console shows 0 indexed | `public/robots.txt` had a hardcoded sitemap URL pointing to a non-existent Render domain. Google fetched 404, never found the sitemap. | **Never hardcode the API/sitemap URL in static files.** When the Render service URL changes, update `robots.txt`, `AdminSEO.tsx`, `SEOGuide.tsx`, and `lib/api.ts` together. Run `rg -n "onrender\.com|vercel\.app"` to find every hardcoded URL before pushing. |
+| B2 | Entire site disappears from Google after a few days | Indexed pages drop to 0 | Someone toggled the global Site-Indexing master switch in `/admin/seo` to OFF (often pre-launch) and forgot to turn it back ON. | On every deployment day, verify the master toggle in `/admin/seo` is GREEN (Indexing allowed). Document it in handover. |
+| B3 | Duplicate pages competing for the same keyword | Google ranks wrong URL, or ranks neither | Page Variants enabled (`/admin/page-variants`) for A/B testing but both variants had identical SEO. | When creating a variant, ALWAYS edit its SEO in `/admin/seo` independently — different title or set `noindex` on the variant. |
+| B4 | Hidden page still showing in Google | Page hidden via Page Visibility but still ranks for old queries | Hiding a page returns 404 but Google takes weeks to drop it. | If you need an instant drop: also set `noindex` on the page in `/admin/seo` BEFORE hiding it. Then Google removes it within a day. |
+
+#### C. CORS / Frontend ↔ API connectivity
+
+| # | Bug | Symptom | Root cause | Prevention |
+|---|---|---|---|---|
+| C1 | Frontend loads but every API call fails | Browser console: `CORS error: blocked by Access-Control-Allow-Origin` | `ALLOWED_ORIGINS` on Render doesn't include the Vercel URL (or has trailing slash, or `http` vs `https` mismatch). | Render → Environment → `ALLOWED_ORIGINS` = exact `https://growitbuddy-growitbuddy.vercel.app` (no trailing slash). Add custom domains comma-separated. |
+| C2 | Frontend calls hit wrong API | Console: `404` or `CORS` on `growitbuddy.vercel.app/api/...` | `VITE_API_URL` is missing or stale on Vercel — falls back to relative `/api` which goes to the Vercel serverless fallback, not Render. | Vercel → Settings → Environment Variables → `VITE_API_URL=https://garden-planner-newzip.onrender.com/api`. After change, **redeploy** (env var change alone doesn't rebuild). |
+| C3 | API returns CORS error only in production, not in dev | Works fine in Replit preview, breaks on vercel.app | Replit serves same-origin (no CORS issue). Production goes cross-origin. | Always test the live `vercel.app` URL with browser DevTools open after every deployment that touches CORS or API URLs. |
+
+#### D. Database
+
+| # | Bug | Symptom | Root cause | Prevention |
+|---|---|---|---|---|
+| D1 | API crashes at startup with `ECONNREFUSED` | Render logs: `getaddrinfo ENOTFOUND` or SSL handshake error | `DATABASE_URL` missing `?sslmode=require` (Neon mandates SSL). | Always copy Neon's **Pooled** connection string — it includes the SSL param. Never hand-edit it. |
+| D2 | "Relation does not exist" after deploy | Render restarts, API 500s on every request | Schema drift: a new column was added in dev (`pnpm db push`) but production Neon DB wasn't migrated. | API has idempotent `ADD COLUMN IF NOT EXISTS` startup migrations in `index.ts` — extend them for every new column. Never rely solely on `db push` for production. |
+| D3 | Lost ALL admin content overnight | All sections show defaults again | Someone ran `psql $DATABASE_URL < growitbuddy_import.sql` against the live DB. The seed file OVERWRITES data. | NEVER re-import `growitbuddy_import.sql` on the production Neon DB. Use it only on a brand-new empty database. Add a guard comment at the top of the file. |
+| D4 | Slow queries / connection pool exhausted | Render logs: `too many connections` | Using the direct (non-pooled) Neon connection string. | Always use the **Pooled connection** (port 6543 / `-pooler` host) in `DATABASE_URL`. |
+
+#### E. Deployment & Build
+
+| # | Bug | Symptom | Root cause | Prevention |
+|---|---|---|---|---|
+| E1 | "I edited the API code but nothing changed" | Local dev still shows old behaviour | API server is **bundled with esbuild**, not run via tsx watch. Changes need a rebuild. | After every API code change, **restart the `artifacts/api-server: API Server` workflow** in Replit. |
+| E2 | `pnpm install` fails on a new package | `ERR_PNPM_PACKAGE_TOO_NEW` | `pnpm-workspace.yaml` has `minimumReleaseAge: 1440` (24h) as a supply-chain attack defence. | DO NOT disable the setting. Wait 24 hours, or add the specific trusted package to `minimumReleaseAgeExclude`. |
+| E3 | "Wrong dependency version installed" | `package.json` says `"react": "catalog:"` but a different version is installed | The version lives in `pnpm-workspace.yaml` under the `catalog:` block, not in individual `package.json`s. | When upgrading: edit `pnpm-workspace.yaml` `catalog:` entry, then `pnpm install`. Never edit `package.json` directly for catalog deps. |
+| E4 | Import error `Cannot find module '@workspace/db'` | TypeScript error or build fail | New Agent assumed package lives at `packages/db`. It's actually `lib/db`. `pnpm-workspace.yaml` maps `lib/*`. | Check `pnpm-workspace.yaml` `packages:` field before guessing paths. |
+| E5 | Render deploy succeeds but API throws on first request | Logs show `Cannot find module …` | esbuild bundle excluded a runtime dependency (e.g. native module). | Check `artifacts/api-server/scripts/build.mjs` `external:` array. Native deps must be listed there AND in `package.json` `dependencies`. |
+| E6 | Vercel deploy succeeds but frontend is blank white screen | Browser console: 404 on a JS chunk OR `Failed to fetch dynamically imported module` | Stale browser cache after a deploy, OR a route was added without rebuilding. | Hard refresh (Ctrl+Shift+R). For users: Vercel automatically cache-busts; if persistent, check `vercel.json` rewrites still send all non-`/api/*` paths to `/index.html`. |
+| E7 | "Push succeeded but Vercel didn't deploy" | GitHub shows commit; Vercel dashboard shows nothing | Vercel is connected to a different branch, or the GitHub App was uninstalled. | Vercel → Settings → Git → "Production Branch" must be `main`. GitHub → Settings → Integrations → Vercel must have repo access. |
+
+#### F. Push / Source Control
+
+| # | Bug | Symptom | Root cause | Prevention |
+|---|---|---|---|---|
+| F1 | `git push` from Replit fails: 403 | Shell shows `Permission denied` | Replit's stored git credentials are stale or never set. | Use the GitHub REST API push pattern instead (see Section 12 — `/tmp/push.mjs`). Needs `GITHUB_TOKEN` in Secrets with `Contents: Read & Write`. |
+| F2 | "Replit says local repo is ahead by 50 commits — is it broken?" | `git status` shows divergence | Agent pushed via REST API; Replit's local git clone wasn't updated. | Normal. Ignore. Optionally `git fetch && git reset --hard origin/main` to re-sync locally. |
+| F3 | Accidentally pushed huge binary file (e.g. uploaded photo) | Repo size balloons; pulls take forever | Image saved to `artifacts/uploads/` and committed. | All uploads must go through Cloudinary (`/api/admin/upload`) or be stored in `media_files` table as base64. Never commit files in `artifacts/uploads/`. |
+| F4 | Secret accidentally committed to GitHub | GitHub auto-revokes the token; secret-scanning alert email arrives | Pasted a Neon URL or Resend key into a markdown file or comment. | NEVER paste real secrets into chat, code, comments, or docs. Always use `process.env.*` and Replit Secrets. If it happens: rotate the secret IMMEDIATELY, don't bother trying to scrub git history. |
+
+#### G. Admin Panel UX
+
+| # | Bug | Symptom | Root cause | Prevention |
+|---|---|---|---|---|
+| G1 | "Flash of default content" in admin | For a split-second admin shows hardcoded defaults, then real DB data | React mounts with empty state, then fetches. The old code didn't gate rendering on the fetch. | Use the `loaded` flag pattern: render `<div>Loading content…</div>` until the fetch resolves, then swap. Already applied to Home, About, Work, Settings, Blog, Influencers, DistributionPages — apply the same to any new admin editor. |
+| G2 | Save button shows "Saved!" but reload reverts | Editor saved old/stale data | A field was edited but not included in the save payload because state didn't update. | Always log the payload sent to `/api/admin/content/:section` in dev. After any new field is added, re-test save → reload → values persist. |
+| G3 | Logged-in admin user gets logged out randomly | Cookie expires, or Render restarted | Sessions are in-memory (resetting on cold start) — Render free plan cold-starts after 15 min idle. | Acceptable for now (admin re-logs in). If becomes painful, move sessions to DB-backed store. |
+| G4 | Team member sees pages they shouldn't | Member-role account opens admin sections that weren't granted | Permission check missing on a newly-added admin route. | Every new admin route must check the team member's `permissions` JSONB (or be super-only). Add the check in the route guard, not just in the sidebar visibility. |
+
+#### H. Render Free Plan Quirks
+
+| # | Bug | Symptom | Root cause | Prevention |
+|---|---|---|---|---|
+| H1 | "API is dead!" first request after a while | First request takes 30+ seconds, then everything works | Render free plan cold-starts after 15 min of no traffic. | Expected. If unacceptable, upgrade Render plan OR set up an external pinger (cron-job.org → hit `/api/healthz` every 10 min). |
+| H2 | Rate-limit counters reset randomly | Form spam not throttled as expected | Rate limits are in-memory (`formLimit = 5/60s`). They reset on every Render restart (cold start, deploy). | Acceptable for current traffic. If abuse appears, move limits to Redis or DB. |
+
+#### I. Things The New Agent Must Verify On Day 1
+
+Run this mental checklist on the very first task — these are the "silent failure" landmines:
+
+```
+☐ Replit Secrets contain DATABASE_URL, ADMIN_PASSWORD, RESEND_API_KEY
+☐ Render env has the same 3 + ALLOWED_ORIGINS + CLOUDINARY_* + NODE_ENV + PORT=10000
+☐ Vercel env has VITE_API_URL pointing to the LIVE Render URL (currently
+  https://garden-planner-newzip.onrender.com/api)
+☐ public/robots.txt sitemap URL matches the live Render URL
+☐ /admin/seo global Site-Indexing master toggle is ON (green)
+☐ /api/healthz returns {"status":"ok"} (allow 30s for cold start)
+☐ Submitting /contact form delivers email within 2 min
+☐ pnpm-workspace.yaml minimumReleaseAge is still 1440 (do not lower)
+☐ No new files inside artifacts/uploads/ (must be empty or git-ignored)
+☐ No real secrets pasted in any markdown / source file
+   (rg -n "re_[a-zA-Z0-9]{20,}|postgresql://[^@]+@" .)
+```
+
+### 16. User Preferences
 
 - **Language:** User communicates in Hindi (Devanagari + Roman). Reply in the same style — keep technical explanations clear but warm.
 - **Push method:** Commits go DIRECTLY to `main`, no PRs, no feature branches.
