@@ -192,40 +192,50 @@ export default function VerifyCertificate() {
                 </p>
               </div>
 
-              {/* Detail grid in framed band */}
-              <div style={{ position: "relative", padding: "0 36px 32px" }}>
-                <div style={{
+              {/* Detail list in framed band — stacked one-by-one so every value
+                  gets full width on every screen (no squeeze, no cut-off). */}
+              <div style={{ position: "relative", padding: "0 28px 32px" }}>
+                <ul style={{
                   background: "#F8F8F6",
                   border: "1px solid rgba(30,41,59,0.08)",
                   borderRadius: 14,
-                  padding: "24px 28px",
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "20px 32px",
+                  padding: "8px 22px",
+                  listStyle: "none",
+                  margin: 0,
                 }}>
                   {[
                     { label: "Issued By", value: "GrowitBuddy" },
                     { label: "Role / Program", value: cert.role },
                     { label: "Issue Date", value: cert.issueDate },
                     { label: "Certificate ID", value: cert.certificateId, mono: true },
-                  ].map(({ label, value, mono }) => (
-                    <div key={label}>
+                  ].map(({ label, value, mono }, idx, arr) => (
+                    <li
+                      key={label}
+                      style={{
+                        display: "block",
+                        padding: "14px 0",
+                        borderBottom: idx < arr.length - 1 ? "1px solid rgba(30,41,59,0.08)" : "none",
+                      }}
+                    >
                       <p style={{
-                        fontSize: 10, fontWeight: 700, letterSpacing: "0.18em",
-                        textTransform: "uppercase", color: "var(--gb-gold)", marginBottom: 5,
+                        fontSize: 10, fontWeight: 700, letterSpacing: "0.2em",
+                        textTransform: "uppercase", color: "var(--gb-gold)", marginBottom: 6,
                       }}>
                         {label}
                       </p>
                       <p style={{
-                        fontSize: 14, fontWeight: 700, color: "#0A0A0A",
-                        fontFamily: mono ? "monospace" : undefined,
-                        letterSpacing: mono ? "0.04em" : "-0.01em",
+                        fontSize: 15, fontWeight: 700, color: "#0A0A0A",
+                        lineHeight: 1.4,
+                        fontFamily: mono ? "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" : undefined,
+                        letterSpacing: mono ? "0.02em" : "-0.01em",
+                        wordBreak: mono ? "break-all" : "normal",
+                        overflowWrap: "break-word",
                       }}>
                         {value}
                       </p>
-                    </div>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
 
               {/* Admin remark / feedback */}
