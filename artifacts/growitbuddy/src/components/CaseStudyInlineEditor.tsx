@@ -179,6 +179,11 @@ export default function CaseStudyInlineEditor({ item: initialItem, onSaved, onEx
   async function save() {
     setSaving(true); setSaveMsg(null);
     try {
+      // Drop empty gallery/video tiles so the admin can save without first
+      // filling every "Add image"/"Add video" slot. Empty entries clutter
+      // the JSON and re-appear as empty tiles on reload.
+      const cleanGallery = gallery.filter((g) => g && g.url && String(g.url).trim());
+      const cleanVideos = videos.filter((v) => v && v.url && String(v.url).trim());
       const body = {
         title: item.title,
         category: item.category,
@@ -188,9 +193,9 @@ export default function CaseStudyInlineEditor({ item: initialItem, onSaved, onEx
         caseStudy: {
           ...cs,
           metrics, approachBullets, stack,
-          galleryImages: gallery,           // canonical: MediaItem[]
-          videos,                            // canonical: VideoItem[]
-          videoUrl: videos[0]?.url ?? "",   // keep legacy field in sync for old renderers
+          galleryImages: cleanGallery,         // canonical: MediaItem[]
+          videos: cleanVideos,                  // canonical: VideoItem[]
+          videoUrl: cleanVideos[0]?.url ?? "", // keep legacy field in sync for old renderers
           overviewExtras, approachExtras, solutionExtras,
           heroImageRatio: heroRatio,
           hiddenSections: Array.from(hiddenSet),
