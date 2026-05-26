@@ -88,46 +88,38 @@ function ResultCard({ cert }: { cert: CertResult }) {
           ].map(({ label, value, mono }, idx, arr) => (
             <li
               key={label}
-              className="verify-row"
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "baseline",
-                gap: 20,
+                display: "block",
                 padding: "14px 0",
                 borderBottom: idx < arr.length - 1 ? "1px solid #EFEFEA" : "none",
               }}
             >
-              <span
-                className="verify-row-label"
+              <div
                 style={{
                   fontSize: 11,
                   fontWeight: 700,
                   letterSpacing: "0.14em",
                   textTransform: "uppercase",
                   color: "#7A7A85",
-                  flexShrink: 0,
-                  whiteSpace: "nowrap",
+                  marginBottom: 6,
                 }}
               >
                 {label}
-              </span>
-              <span
-                className="verify-row-value"
+              </div>
+              <div
                 style={{
-                  fontSize: 15,
+                  fontSize: 16,
                   fontWeight: 600,
                   color: "#0A0A0A",
                   fontFamily: mono ? "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" : undefined,
                   letterSpacing: mono ? "0.02em" : undefined,
-                  textAlign: "right",
+                  lineHeight: 1.4,
                   wordBreak: mono ? "break-all" : "normal",
                   overflowWrap: "break-word",
-                  minWidth: 0,
                 }}
               >
                 {value}
-              </span>
+              </div>
             </li>
           ))}
         </ul>
@@ -175,25 +167,12 @@ export default function Verify() {
         .verify-result-header { padding: 24px 32px; }
         .verify-result-body { padding: 12px 32px 20px; }
         .verify-result-list { list-style: none; margin: 0; padding: 0; }
-        /* On mobile each row becomes label-above-value so the value always
-           gets the full card width — no squeezing, no mid-word wraps. */
         @media (max-width: 560px) {
           .verify-result-header { padding: 18px 18px; gap: 12px !important; }
           .verify-result-body { padding: 8px 18px 16px; }
           .verify-search-btn { padding: 14px 16px; }
           .verify-header-eyebrow { font-size: 11px !important; letter-spacing: 0.12em !important; }
           .verify-header-sub { font-size: 12.5px !important; }
-          .verify-row {
-            flex-direction: column !important;
-            align-items: flex-start !important;
-            gap: 4px !important;
-            padding: 12px 0 !important;
-          }
-          .verify-row-value {
-            text-align: left !important;
-            font-size: 15px !important;
-            width: 100%;
-          }
         }
       `}</style>
       <SEOMeta
