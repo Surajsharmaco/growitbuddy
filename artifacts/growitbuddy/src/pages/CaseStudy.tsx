@@ -99,6 +99,44 @@ function dummyContent(item: PortfolioItem) {
   };
 }
 
+// Fixed-position floating button so the admin can always find "Edit inline"
+// regardless of where they scroll. On excluded categories (Video Editing),
+// shows a disabled state with explanatory tooltip rather than hiding silently
+// (silent hiding caused real confusion when the button "wasn't there").
+function FloatingEditBtn({ excluded }: { excluded: boolean }) {
+  if (excluded) {
+    return (
+      <div
+        title="Inline editor isn't available for Video Editing categories"
+        style={{
+          position: "fixed", top: 80, right: 20, zIndex: 80,
+          fontSize: 12, fontWeight: 700, padding: "10px 16px",
+          borderRadius: 999, background: "#94A3B8", color: "#fff",
+          display: "inline-flex", alignItems: "center", gap: 6,
+          boxShadow: "0 4px 14px rgba(0,0,0,0.18)", cursor: "not-allowed", opacity: 0.85,
+        }}
+      >
+        ✎ Inline edit — N/A for Video
+      </div>
+    );
+  }
+  return (
+    <a
+      href={`${window.location.pathname}?edit=1`}
+      title="Open the Wix-style inline editor"
+      style={{
+        position: "fixed", top: 80, right: 20, zIndex: 80,
+        fontSize: 13, fontWeight: 700, padding: "10px 18px",
+        borderRadius: 999, background: "#1E293B", color: "#F8F8F6", textDecoration: "none",
+        display: "inline-flex", alignItems: "center", gap: 6,
+        boxShadow: "0 4px 14px rgba(30,41,59,0.32)",
+      }}
+    >
+      ✎ Edit inline
+    </a>
+  );
+}
+
 export default function CaseStudy() {
   // Support both /portfolio/:category/case/:id and /portfolio/shared/:slug/:category/case/:id
   const [, sharedParams] = useRoute<{ slug: string; category: string; id: string }>("/portfolio/shared/:slug/:category/case/:id");
@@ -107,9 +145,11 @@ export default function CaseStudy() {
   const shareSlug = sharedParams?.slug ?? null;
   const sharePrefix = shareSlug ? `/portfolio/shared/${shareSlug}` : "/portfolio";
 
-  const [location, setLocation] = useLocation();
-  const { isAuthenticated, hasPermission } = useAdmin();
-  const canEdit = isAuthenticated && hasPermission("work");
+  const [, setLocation] = useLocation();
+  const { isAuthenticated } = useAdmin();
+  // Show the Edit-inline button to any logged-in admin (permission gating
+  // is enforced server-side on PUT /portfolio/:id, so this is safe).
+  const canEdit = isAuthenticated;
 
   // Edit mode is enabled via ?edit=1 in the URL (admin-only). Re-evaluate
   // when the URL string changes (wouter doesn't expose search separately).
@@ -195,7 +235,8 @@ export default function CaseStudy() {
   if (Array.isArray(item.blocks) && item.blocks.length > 0) {
     return (
       <div style={{ minHeight: "100vh", background: BG, color: TEXT }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        {canEdit && <FloatingEditBtn excluded={isExcludedCategory} />}
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px" }}>
           <Link
             href={`${sharePrefix}/${params?.category ?? ""}`}
             onClick={(e) => go(e as React.MouseEvent, `${sharePrefix}/${params?.category ?? ""}`)}
@@ -203,18 +244,6 @@ export default function CaseStudy() {
           >
             <ArrowLeft size={16} /> Back to {item.category}
           </Link>
-          {canEdit && !isExcludedCategory && (
-            <a
-              href={`${window.location.pathname}?edit=1`}
-              style={{
-                fontSize: 12, fontWeight: 700, padding: "6px 12px",
-                borderRadius: 999, background: SLATE, color: BG, textDecoration: "none",
-                display: "inline-flex", alignItems: "center", gap: 6,
-              }}
-            >
-              ✎ Edit inline
-            </a>
-          )}
         </div>
         <BlockRenderer blocks={item.blocks} />
       </div>
@@ -272,9 +301,10 @@ export default function CaseStudy() {
 
   return (
     <div style={{ minHeight: "100vh", background: BG, color: TEXT, fontFamily: "'Inter', sans-serif" }}>
+      {canEdit && <FloatingEditBtn excluded={isExcludedCategory} />}
       {/* ── Back strip ── */}
       <div style={{ borderBottom: `1px solid ${RULE}`, background: BG }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "20px 24px" }}>
           <a
             href={`${sharePrefix}/${categorySlug}`}
             onClick={(e) => go(e, `${sharePrefix}/${categorySlug}`)}
@@ -288,20 +318,6 @@ export default function CaseStudy() {
           >
             <ArrowLeft size={14} /> {item.category}
           </a>
-          {canEdit && !isExcludedCategory && (
-            <a
-              href={`${window.location.pathname}?edit=1`}
-              style={{
-                fontSize: 12, fontWeight: 700, padding: "8px 14px",
-                borderRadius: 999, background: SLATE, color: BG, textDecoration: "none",
-                display: "inline-flex", alignItems: "center", gap: 6,
-                boxShadow: "0 2px 8px rgba(30,41,59,0.18)",
-              }}
-              title="Open the inline editor (admin only)"
-            >
-              ✎ Edit inline
-            </a>
-          )}
         </div>
       </div>
 
