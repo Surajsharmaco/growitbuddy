@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "GrowitBuddy"
+version = "1.0.0"
+id = "artifacts/growitbuddy"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19922
+
+[services.development]
+run = "pnpm --filter @workspace/growitbuddy run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/growitbuddy", "run", "build" ]
+publicDir = "artifacts/growitbuddy/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19922"
+BASE_PATH = "/"
