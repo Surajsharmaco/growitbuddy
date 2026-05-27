@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { API_BASE } from "@/lib/api";
-import { GitCommit, ExternalLink, RefreshCw, CheckCircle2, XCircle, Clock, Loader2 } from "lucide-react";
+import { GitCommit, ExternalLink, RefreshCw, Clock, Loader2, CheckCircle2, XCircle, Rocket } from "lucide-react";
 
 interface Deployment {
   id: number;
@@ -31,6 +31,9 @@ interface DeployData {
   checkRuns?: CheckRun[];
   error?: string;
 }
+
+type RedeployTarget = "vercel" | "render" | "all";
+type RedeployState = "idle" | "loading" | "done" | "error";
 
 function StateIcon({ state, conclusion }: { state: string; conclusion?: string | null }) {
   if (state === "in_progress" || state === "pending" || state === "queued") {
@@ -69,10 +72,20 @@ function envLabel(env: string) {
 }
 
 export function DeployStatus() {
-  const { authFetch } = useAdmin();
+  const { authFetch, isSuperAdmin } = useAdmin();
   const [data, setData] = useState<DeployData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [redeployState, setRedeployState] = useState<Record<RedeployTarget, RedeployState>>({
+    vercel: "idle",
+    render: "idle",
+    all: "idle",
+  });
+  const [redeployMsg, setRedeployMsg] = useState<Record<RedeployTarget, string>>({
+    vercel: "",
+    render: "",
+    all: "",
+  });
 
   async function load(showRefresh = false) {
     if (showRefresh) setRefreshing(true);
@@ -89,6 +102,36 @@ export function DeployStatus() {
     }
   }
 
+  async function triggerRedeploy(target: RedeployTarget) {
+    setRedeployState((s) => ({ ...s, [target]: "loading" }));
+    setRedeployMsg((s) => ({ ...s, [target]: "" }));
+    try {
+      const res = await authFetch(`${API_BASE}/admin/redeploy`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target }),
+      });
+      const json = await res.json();
+      if (!res.ok || json.error) {
+        setRedeployState((s) => ({ ...s, [target]: "error" }));
+        setRedeployMsg((s) => ({ ...s, [target]: json.error ?? "Failed" }));
+      } else {
+        setRedeployState((s) => ({ ...s, [target]: "done" }));
+        const msgs = Object.entries(json.results as Record<string, string>)
+          .map(([k, v]) => `${k}: ${v}`)
+          .join(", ");
+        setRedeployMsg((s) => ({ ...s, [target]: msgs }));
+        setTimeout(() => {
+          setRedeployState((prev) => ({ ...prev, [target]: "idle" }));
+          load(true);
+        }, 4000);
+      }
+    } catch (err) {
+      setRedeployState((s) => ({ ...s, [target]: "error" }));
+      setRedeployMsg((s) => ({ ...s, [target]: (err as Error).message }));
+    }
+  }
+
   useEffect(() => { load(); }, []);
 
   const deploys = data?.deployments ?? [];
@@ -97,8 +140,43 @@ export function DeployStatus() {
     c.name.toLowerCase().includes("render") ||
     c.name.toLowerCase().includes("deploy")
   );
-
   const shown = deploys.length > 0 ? deploys : [];
+
+  function RedeployBtn({ target, label }: { target: RedeployTarget; label: string }) {
+    const state = redeployState[target];
+    const msg = redeployMsg[target];
+    return (
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => triggerRedeploy(target)}
+          disabled={state === "loading"}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+            state === "done"
+              ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+              : state === "error"
+              ? "bg-red-50 text-red-600 border border-red-200"
+              : state === "loading"
+              ? "bg-[#0B0B0B]/5 text-[#0B0B0B]/40 cursor-not-allowed border border-[#0B0B0B]/8"
+              : "bg-[#0B0B0B] text-white hover:bg-[#0B0B0B]/80 border border-transparent"
+          }`}
+        >
+          {state === "loading" ? (
+            <Loader2 size={11} className="animate-spin" />
+          ) : state === "done" ? (
+            <CheckCircle2 size={11} />
+          ) : state === "error" ? (
+            <XCircle size={11} />
+          ) : (
+            <Rocket size={11} />
+          )}
+          {state === "loading" ? "Triggering..." : state === "done" ? "Triggered!" : state === "error" ? "Failed" : label}
+        </button>
+        {msg && (
+          <span className="text-[10px] text-[#0B0B0B]/35 truncate max-w-[180px]" title={msg}>{msg}</span>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white border border-[#0B0B0B]/8 rounded-2xl p-5">
@@ -168,7 +246,7 @@ export function DeployStatus() {
           )}
 
           {shown.length > 0 ? (
-            <div className="space-y-2">
+            <div className="space-y-2 mb-5">
               {shown.slice(0, 5).map((d) => (
                 <div key={d.id} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -190,10 +268,19 @@ export function DeployStatus() {
               ))}
             </div>
           ) : checks.length === 0 ? (
-            <p className="text-[12px] text-[#0B0B0B]/30 py-2 text-center">
+            <p className="text-[12px] text-[#0B0B0B]/30 py-2 mb-3 text-center">
               No deployments found. Push to GitHub to trigger Vercel and Render.
             </p>
           ) : null}
+
+          {isSuperAdmin && (
+            <div className="border-t border-[#0B0B0B]/6 pt-4 space-y-2.5">
+              <p className="text-[11px] font-bold text-[#0B0B0B]/40 uppercase tracking-wide mb-3">Trigger Redeploy</p>
+              <RedeployBtn target="vercel" label="Redeploy Vercel" />
+              <RedeployBtn target="render" label="Redeploy Render API" />
+              <RedeployBtn target="all" label="Redeploy Both" />
+            </div>
+          )}
 
           <a
             href="https://github.com/Surajsharmaco/growitbuddy/deployments"

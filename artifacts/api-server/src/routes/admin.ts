@@ -1434,5 +1434,41 @@ router.get("/deploy-status", authMiddleware, async (_req, res) => {
   }
 });
 
+// ── Trigger redeploy via deploy hooks ────────────────────────────────────────
+router.post("/redeploy", authMiddleware, superAdminOnly, async (req, res) => {
+  const { target } = req.body as { target?: string };
+  const renderHook = process.env.RENDER_DEPLOY_HOOK_URL;
+  const vercelHook = process.env.VERCEL_DEPLOY_HOOK_URL;
+
+  const results: Record<string, string> = {};
+
+  async function triggerHook(name: string, url: string) {
+    try {
+      const r = await fetch(url, { method: "POST" });
+      results[name] = r.ok ? "triggered" : `error:${r.status}`;
+    } catch (err) {
+      results[name] = `failed:${(err as Error).message}`;
+    }
+  }
+
+  const tasks: Promise<void>[] = [];
+
+  if (target === "render" || target === "all") {
+    if (renderHook) tasks.push(triggerHook("render", renderHook));
+    else results["render"] = "RENDER_DEPLOY_HOOK_URL not set";
+  }
+  if (target === "vercel" || target === "all") {
+    if (vercelHook) tasks.push(triggerHook("vercel", vercelHook));
+    else results["vercel"] = "VERCEL_DEPLOY_HOOK_URL not set";
+  }
+  if (!target || (target !== "render" && target !== "vercel" && target !== "all")) {
+    return res.status(400).json({ error: "target must be 'render', 'vercel', or 'all'" });
+  }
+
+  await Promise.all(tasks);
+  logger.info({ target, results }, "redeploy triggered");
+  return res.json({ success: true, results });
+});
+
 export { authMiddleware };
 export default router;
