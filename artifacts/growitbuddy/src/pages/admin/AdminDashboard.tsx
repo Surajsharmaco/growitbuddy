@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { useAdmin } from "@/context/AdminContext";
 import { Card } from "@/components/admin/AdminField";
+import { DeployStatus } from "@/components/admin/DeployStatus";
 import {
   Settings, Users, FileText, Briefcase, Home, Layers,
   Info, AlignLeft, Menu as MenuIcon, Inbox, TrendingUp,
@@ -133,6 +134,10 @@ export default function AdminDashboard() {
             </div>
           </Link>
         ))}
+      </div>
+
+      <div className="mb-7">
+        <DeployStatus />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-7">

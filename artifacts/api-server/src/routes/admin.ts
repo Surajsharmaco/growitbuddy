@@ -1362,5 +1362,77 @@ router.delete("/logos/:id", authMiddleware, async (req, res) => {
   }
 });
 
+// ── Deploy status (GitHub API proxy) ─────────────────────────────────────────
+router.get("/deploy-status", authMiddleware, async (_req, res) => {
+  const token = process.env.GITHUB_TOKEN;
+  const repo = "Surajsharmaco/growitbuddy";
+  if (!token) {
+    return res.json({ error: "GITHUB_TOKEN not set", deployments: [] });
+  }
+  try {
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/vnd.github+json",
+      "User-Agent": "growitbuddy-admin",
+      "X-GitHub-Api-Version": "2022-11-28",
+    };
+    // Get latest commit SHA on main
+    const commitRes = await fetch(
+      `https://api.github.com/repos/${repo}/commits/main`,
+      { headers }
+    );
+    if (!commitRes.ok) {
+      return res.json({ error: "GitHub API error", deployments: [] });
+    }
+    const commitData = await commitRes.json() as { sha: string; commit: { message: string; author: { date: string } } };
+    const sha = commitData.sha;
+    const commitMsg = commitData.commit?.message?.split("\n")[0] ?? "";
+    const commitDate = commitData.commit?.author?.date ?? "";
+
+    // Get deployment statuses for this commit
+    const statusRes = await fetch(
+      `https://api.github.com/repos/${repo}/commits/${sha}/statuses`,
+      { headers }
+    );
+    const statuses = statusRes.ok ? await statusRes.json() as Array<{ context: string; state: string; target_url: string; updated_at: string }> : [];
+
+    // Get check runs (Vercel/Render report here)
+    const checkRes = await fetch(
+      `https://api.github.com/repos/${repo}/commits/${sha}/check-runs`,
+      { headers }
+    );
+    const checkData = checkRes.ok ? await checkRes.json() as { check_runs: Array<{ name: string; status: string; conclusion: string | null; details_url: string; completed_at: string | null }> } : { check_runs: [] };
+
+    // Get recent deployments
+    const deployRes = await fetch(
+      `https://api.github.com/repos/${repo}/deployments?per_page=10`,
+      { headers }
+    );
+    const deployments = deployRes.ok ? await deployRes.json() as Array<{ id: number; environment: string; created_at: string }> : [];
+
+    // Fetch status for each deployment
+    const deployWithStatus = await Promise.all(
+      deployments.slice(0, 6).map(async (d) => {
+        const sRes = await fetch(
+          `https://api.github.com/repos/${repo}/deployments/${d.id}/statuses?per_page=1`,
+          { headers }
+        );
+        const sData = sRes.ok ? await sRes.json() as Array<{ state: string; environment_url: string }> : [];
+        return { ...d, state: sData[0]?.state ?? "pending", url: sData[0]?.environment_url ?? "" };
+      })
+    );
+
+    return res.json({
+      commit: { sha: sha.slice(0, 7), message: commitMsg, date: commitDate },
+      statuses: Array.isArray(statuses) ? statuses.slice(0, 10) : [],
+      checkRuns: checkData.check_runs ?? [],
+      deployments: deployWithStatus,
+    });
+  } catch (err) {
+    logger.error({ err }, "deploy-status fetch failed");
+    return res.status(500).json({ error: "Failed to fetch deploy status", deployments: [] });
+  }
+});
+
 export { authMiddleware };
 export default router;
