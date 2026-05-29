@@ -30,7 +30,7 @@ export const SERVICES_DEFAULTS: ServicesData = {
   subtext: "Four ways we help founders, creators, and brands build the authority that converts.",
   stats: [
     { num: "700M+", label: "Views Generated Across Content Networks" },
-    { num: "200+",  label: "Founders & Brands Served" },
+    { num: "250+",  label: "Founders & Brands Served" },
     { num: "90K+",  label: "Content Assets Created Across High-Volume Pages" },
   ],
   services: [

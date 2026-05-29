@@ -5,7 +5,6 @@ import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { prefetchSections, usePublicContent } from "@/hooks/usePublicContent";
 import { prefetchInfluencers } from "@/hooks/useLiveInfluencers";
 import Home from "@/pages/Home";
-import CustomCursor from "@/components/effects/CustomCursor";
 import PageIntro from "@/components/effects/PageIntro";
 import ScrollToTop from "@/components/ScrollToTop";
 import { AdminProvider, useAdmin } from "@/context/AdminContext";
@@ -223,7 +222,6 @@ function App() {
         <FaviconInjector />
         <DynamicPageSEO />
         <ScrollToTop />
-        <CustomCursor />
         <Switch>
           <Route path="/admin/:rest*" component={AdminRoutes} />
           <Route path="/admin" component={AdminRoutes} />
