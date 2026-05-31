@@ -154,9 +154,11 @@ export default function DynamicPageSEO() {
 
     async function loadGlobalIndexable(): Promise<boolean> {
       try {
+        const ctrl = new AbortController();
+        setTimeout(() => ctrl.abort(), 8000);
         const r = await fetch(
           `${API_BASE}/admin/public/content/seo-global?t=${Date.now()}`,
-          { cache: "no-store" },
+          { cache: "no-store", signal: ctrl.signal },
         );
         if (!r.ok) return true;
         const body = (await r.json()) as { data: { siteIndexable?: boolean } | null };
@@ -167,10 +169,13 @@ export default function DynamicPageSEO() {
     async function load() {
       const myId = ++loadId;
       try {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 8000);
         const [r, globalIndexable] = await Promise.all([
-          fetch(`${API_BASE}/seo/${encodeURIComponent(entry!.slug)}?t=${Date.now()}`, { cache: "no-store" }),
+          fetch(`${API_BASE}/seo/${encodeURIComponent(entry!.slug)}?t=${Date.now()}`, { cache: "no-store", signal: ctrl.signal }),
           loadGlobalIndexable(),
         ]);
+        clearTimeout(timer);
         if (cancelled || myId !== loadId) return;
         if (!r.ok) { applySEO(entry!, {}, location, globalIndexable); return; }
         const body = (await r.json()) as { data: PageSEOData | null };

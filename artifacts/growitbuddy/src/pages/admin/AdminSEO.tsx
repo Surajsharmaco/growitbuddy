@@ -267,7 +267,7 @@ export default function AdminSEO() {
           <>Manage indexing, meta, social previews, and structured data for every public page.{" "}
             <a href="/seo-guide" target="_blank" rel="noopener noreferrer" className="underline">Read the team guide</a>
             {" · "}
-            <a href="https://garden-planner-newzip.onrender.com/api/sitemap.xml" target="_blank" rel="noopener noreferrer" className="underline">View live sitemap</a>
+            <a href="https://growitbuddy-api.onrender.com/api/sitemap.xml" target="_blank" rel="noopener noreferrer" className="underline">View live sitemap</a>
           </>
         }
       />

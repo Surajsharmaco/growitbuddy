@@ -1,7 +1,7 @@
 // Central API base URL - supports both Replit (same-origin proxy) and
 // split-deploy (Render API + Vercel frontend).
 //
-// On Vercel: set VITE_API_URL=https://garden-planner-newzip.onrender.com/api
+// On Vercel: set VITE_API_URL=https://growitbuddy-api.onrender.com/api
 // On Replit / local dev: falls back to relative /api path via BASE_URL
 export const API_BASE: string =
   (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ??
