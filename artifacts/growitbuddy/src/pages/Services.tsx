@@ -405,6 +405,7 @@ export default function Services() {
           .svc-bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; max-width: 1200px; margin: 0 auto; }
           .svc-bento-card { position: relative; border-radius: 22px; padding: 32px 30px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(10,10,10,0.06); box-shadow: 0 12px 34px -18px rgba(30,41,59,0.22); transition: transform 0.3s ease, box-shadow 0.3s ease; }
           .svc-bento-card:hover { transform: translateY(-4px); box-shadow: 0 22px 46px -18px rgba(30,41,59,0.3); }
+          .svc-bento-card > *:not([aria-hidden="true"]) { position: relative; z-index: 1; }
           .svc-bento-ico { width: 50px; height: 50px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 22px; background: rgba(255,255,255,0.55); color: #9A7B43; border: 1px solid rgba(255,255,255,0.7); }
           .svc-bento-sub { font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #8A7B5E; margin-bottom: 12px; }
           .svc-bento-title { font-weight: 800; font-size: 22px; letter-spacing: -0.03em; line-height: 1.2; color: #0A0A0A; margin-bottom: 12px; }
@@ -445,9 +446,9 @@ export default function Services() {
             {services.map((s, i) => {
               const Icon = SVC_ICONS[i % SVC_ICONS.length];
               const bentoGrads = [
-                "radial-gradient(130% 120% at 18% 8%, #F8F0E1 0%, rgba(248,240,225,0) 55%), radial-gradient(130% 130% at 92% 95%, #EAD3A9 0%, rgba(234,211,169,0) 62%), linear-gradient(140deg, #FBF6EC 0%, #F0E1C6 100%)",
-                "radial-gradient(130% 120% at 15% 12%, #ECEFF5 0%, rgba(236,239,245,0) 55%), radial-gradient(130% 130% at 88% 92%, #C8D4E6 0%, rgba(200,212,230,0) 62%), linear-gradient(140deg, #F3F6FA 0%, #DAE2EF 100%)",
-                "radial-gradient(130% 120% at 20% 10%, #F0F2E6 0%, rgba(240,242,230,0) 55%), radial-gradient(130% 130% at 90% 90%, #D4DCBC 0%, rgba(212,220,188,0) 62%), linear-gradient(140deg, #F5F6ED 0%, #E0E6CC 100%)",
+                "radial-gradient(130% 120% at 18% 8%, #FAF6EF 0%, rgba(250,246,239,0) 58%), radial-gradient(130% 130% at 92% 95%, #EFE3CB 0%, rgba(239,227,203,0) 64%), linear-gradient(140deg, #FBF8F2 0%, #F1E8D7 100%)",
+                "radial-gradient(130% 120% at 15% 12%, #F3F5F9 0%, rgba(243,245,249,0) 58%), radial-gradient(130% 130% at 88% 92%, #DEE5F0 0%, rgba(222,229,240,0) 64%), linear-gradient(140deg, #F6F8FB 0%, #E8EDF5 100%)",
+                "radial-gradient(130% 120% at 20% 10%, #F4F5EE 0%, rgba(244,245,238,0) 58%), radial-gradient(130% 130% at 90% 90%, #E1E7D2 0%, rgba(225,231,210,0) 64%), linear-gradient(140deg, #F6F7F0 0%, #E9EDDC 100%)",
               ];
               return (
                 <motion.div
@@ -460,7 +461,8 @@ export default function Services() {
                   id={`service-${s.id}`}
                   style={{ scrollMarginTop: 80, background: bentoGrads[i % 3] }}
                 >
-                  <div className="svc-bento-ico"><Icon strokeWidth={2} size={26} /></div>
+                  <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat", opacity: 0.55, pointerEvents: "none", zIndex: 0 }} />
+                  <div className="svc-bento-ico" style={{ position: "relative", zIndex: 1 }}><Icon strokeWidth={2} size={26} /></div>
                   <div className="svc-bento-sub">{s.subtitle}</div>
                   <h3 className="svc-bento-title">{s.title}</h3>
                   <p className="svc-bento-desc">{s.description}</p>
