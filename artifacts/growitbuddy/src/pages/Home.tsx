@@ -631,16 +631,19 @@ export default function Home() {
                 title: "Ecommerce Brands",
                 problem: "Ad spend with no organic flywheel",
                 outcome: "Brand equity and organic reach through content that converts browsers into buyers.",
+                grad: "radial-gradient(130% 120% at 18% 8%, #F8F0E1 0%, rgba(248,240,225,0) 55%), radial-gradient(130% 130% at 92% 95%, #EAD3A9 0%, rgba(234,211,169,0) 62%), linear-gradient(140deg, #FBF6EC 0%, #F0E1C6 100%)",
               },
               {
                 title: "SaaS Companies",
                 problem: "Long sales cycles and low organic visibility",
                 outcome: "Thought leadership content that shortens deal cycles and brings qualified inbound consistently.",
+                grad: "radial-gradient(130% 120% at 15% 12%, #ECEFF5 0%, rgba(236,239,245,0) 55%), radial-gradient(130% 130% at 88% 92%, #C8D4E6 0%, rgba(200,212,230,0) 62%), linear-gradient(140deg, #F3F6FA 0%, #DAE2EF 100%)",
               },
               {
                 title: "Coaches & Experts",
                 problem: "Premium knowledge packaged poorly",
                 outcome: "A distribution-first brand that attracts premium clients and positions you as the obvious authority.",
+                grad: "radial-gradient(130% 120% at 20% 10%, #F0F2E6 0%, rgba(240,242,230,0) 55%), radial-gradient(130% 130% at 90% 90%, #D4DCBC 0%, rgba(212,220,188,0) 62%), linear-gradient(140deg, #F5F6ED 0%, #E0E6CC 100%)",
               },
             ].map((card, i) => (
               <m.div
@@ -650,25 +653,23 @@ export default function Home() {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.07, duration: 0.5 }}
                 style={{
-                  background: i === 1 ? "#1E293B" : "#F8F8F6",
-                  backgroundImage: i === 1 ? "var(--gb-grain)" : undefined,
-                  backgroundSize: i === 1 ? "150px 150px" : undefined,
-                  backgroundRepeat: i === 1 ? "repeat" : undefined,
-                  border: i === 1 ? "none" : "1.5px solid #E5E5E0",
+                  background: card.grad,
+                  border: "1px solid rgba(10,10,10,0.06)",
                   borderRadius: 16,
                   padding: "32px 28px",
                   display: "flex",
                   flexDirection: "column",
                   gap: 0,
+                  boxShadow: "0 12px 34px -18px rgba(30,41,59,0.22)",
                 }}
               >
-                <h3 style={{ fontWeight: 800, fontSize: 20, letterSpacing: "-0.025em", color: i === 1 ? "#FFFFFF" : "#0A0A0A", marginBottom: 12 }}>
+                <h3 style={{ fontWeight: 800, fontSize: 20, letterSpacing: "-0.025em", color: "#0A0A0A", marginBottom: 12 }}>
                   {card.title}
                 </h3>
-                <p style={{ fontSize: 13, fontWeight: 600, color: i === 1 ? "rgba(194,168,120,0.8)" : "var(--gb-accent)", marginBottom: 16, letterSpacing: "0.01em" }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: "var(--gb-accent)", marginBottom: 16, letterSpacing: "0.01em" }}>
                   ↳ {card.problem}
                 </p>
-                <p style={{ fontSize: 14, color: i === 1 ? "rgba(255,255,255,0.6)" : "#5F5F5F", lineHeight: "1.75", marginTop: "auto" }}>
+                <p style={{ fontSize: 14, color: "#4A4A45", lineHeight: "1.75", marginTop: "auto" }}>
                   {card.outcome}
                 </p>
               </m.div>
