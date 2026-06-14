@@ -84,18 +84,34 @@ function VideoPlayer({ url }: { url: string }) {
     return () => clearTimeout(t);
   }, [url, embedSrc]);
 
+  const hasVideo = !!(url && embedSrc);
+
   return (
     <div style={{
       width: "100%",
       maxWidth: isVertical ? 380 : "100%",
       margin: "0 auto",
       aspectRatio: ratio,
-      borderRadius: 16,
+      borderRadius: 18,
       overflow: "hidden",
       position: "relative",
-      boxShadow: "0 24px 64px rgba(0,0,0,0.22)",
-      background: "#0F172A",
+      boxShadow: hasVideo
+        ? "0 24px 64px rgba(0,0,0,0.22)"
+        : "0 1px 2px rgba(10,10,10,0.04), 0 20px 50px rgba(139,111,61,0.10)",
+      background: hasVideo
+        ? "#0F172A"
+        : "linear-gradient(160deg, #FFFFFF 0%, #FBF6EC 55%, #F5ECD8 100%)",
+      border: hasVideo ? "none" : "1px solid rgba(194,168,120,0.30)",
     }}>
+      {/* Decorative gold glow for the empty/placeholder state */}
+      {!hasVideo && !playing && (
+        <span aria-hidden style={{
+          position: "absolute", top: "-30%", left: "50%", transform: "translateX(-50%)",
+          width: "70%", height: "80%", pointerEvents: "none",
+          background: "radial-gradient(ellipse at center, rgba(194,168,120,0.22) 0%, rgba(194,168,120,0) 70%)",
+        }} />
+      )}
+
       {/* Thumbnail — always visible until iframe loads */}
       {thumbUrl && (
         <img
@@ -118,22 +134,27 @@ function VideoPlayer({ url }: { url: string }) {
       {/* Play button overlay — shown before autoplay kicks in */}
       {!playing && (
         <div
-          onClick={() => url && embedSrc && setPlaying(true)}
-          style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", cursor: url && embedSrc ? "pointer" : "default", background: thumbUrl ? "rgba(0,0,0,0.25)" : "transparent" }}
+          onClick={() => hasVideo && setPlaying(true)}
+          style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", cursor: hasVideo ? "pointer" : "default", background: thumbUrl ? "rgba(0,0,0,0.25)" : "transparent" }}
         >
-          <div style={{ textAlign: "center" }}>
+          <div style={{ textAlign: "center", position: "relative" }}>
             <div style={{
-              width: 72, height: 72, borderRadius: "50%",
-              background: url && embedSrc ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.06)",
+              width: 76, height: 76, borderRadius: "50%",
+              background: hasVideo
+                ? "rgba(255,255,255,0.92)"
+                : "linear-gradient(135deg, #FFFFFF 0%, #F6ECD6 100%)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              margin: "0 auto 12px",
-              boxShadow: url && embedSrc ? "0 8px 32px rgba(0,0,0,0.3)" : "none",
+              margin: "0 auto 16px",
+              boxShadow: hasVideo
+                ? "0 8px 32px rgba(0,0,0,0.3)"
+                : "0 10px 30px rgba(139,111,61,0.22)",
+              border: hasVideo ? "none" : "1px solid rgba(194,168,120,0.45)",
               transition: "transform 0.15s",
             }}>
-              <Play size={28} color={url && embedSrc ? "#1E293B" : "#ffffff20"} fill={url && embedSrc ? "#1E293B" : "#ffffff20"} style={{ marginLeft: 5 }} />
+              <Play size={28} color={hasVideo ? "#1E293B" : "#8B6F3D"} fill={hasVideo ? "#1E293B" : "#8B6F3D"} style={{ marginLeft: 5 }} />
             </div>
-            {!url && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.18)", letterSpacing: "0.12em", textTransform: "uppercase" }}>Demo video coming soon</span>}
-            {url && !embedSrc && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em", textTransform: "uppercase" }}>Unsupported video URL</span>}
+            {!url && <span style={{ fontSize: 11, fontWeight: 700, color: "#8B6F3D", letterSpacing: "0.16em", textTransform: "uppercase" }}>Demo video coming soon</span>}
+            {url && !embedSrc && <span style={{ fontSize: 11, fontWeight: 700, color: "#B4452F", letterSpacing: "0.12em", textTransform: "uppercase" }}>Unsupported video URL</span>}
             {parsed.source === "drive" && !playing && (
               <span style={{ display: "block", fontSize: 10, color: "rgba(255,255,255,0.5)", marginTop: 6, letterSpacing: "0.06em" }}>
                 Drive video — make sure it's shared "Anyone with link"
