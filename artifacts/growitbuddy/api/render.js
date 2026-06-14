@@ -78,6 +78,18 @@ var SITE = SITE_URL;
 var SITE_NAME = "GrowitBuddy";
 var DEFAULT_IMAGE = `${SITE}/opengraph.jpg`;
 var TWITTER_HANDLE = "@growitbuddy";
+var EXTRA_CONTENT_SECTIONS = {
+  insights: ["blog"],
+  // /blog (Insights.tsx)
+  career: ["fulltime", "internship", "freelancers"],
+  // /career (Career.tsx)
+  distribution: ["distribution-network", "distribution-pages"],
+  // /distribution
+  influencers: ["influencer-explore"],
+  // /influencers (InfluencerExplore.tsx)
+  join: ["joinnetwork"]
+  // /join (JoinNetwork.tsx)
+};
 var DATA_TIMEOUT_MS = 2500;
 function escAttr(s) {
   return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -217,7 +229,13 @@ async function handler(req, res) {
       return;
     }
     const sections = Array.from(
-      /* @__PURE__ */ new Set([entry.slug, "navbar", "footer", "settings"])
+      /* @__PURE__ */ new Set([
+        entry.slug,
+        ...EXTRA_CONTENT_SECTIONS[entry.slug] || [],
+        "navbar",
+        "footer",
+        "settings"
+      ])
     );
     const bundle = await loadData(entry.slug, sections);
     const html = buildHtml(template, entry, pathname, bundle);

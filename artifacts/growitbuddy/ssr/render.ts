@@ -43,6 +43,20 @@ const SITE_NAME = "GrowitBuddy";
 const DEFAULT_IMAGE = `${SITE}/opengraph.jpg`;
 const TWITTER_HANDLE = "@growitbuddy";
 
+// Most pages read their admin content from a section whose key === the registry
+// slug, so loadData(entry.slug) already bootstraps them. These pages, however,
+// read content from section key(s) that DIFFER from the slug (verified against
+// every usePublicContent() call site in src/). Without bootstrapping these keys
+// the page first-paints defaults and then swaps to live content (the "flash").
+// Keep this in lockstep with the usePublicContent() keys used by each page.
+const EXTRA_CONTENT_SECTIONS: Record<string, string[]> = {
+  insights: ["blog"], // /blog (Insights.tsx)
+  career: ["fulltime", "internship", "freelancers"], // /career (Career.tsx)
+  distribution: ["distribution-network", "distribution-pages"], // /distribution
+  influencers: ["influencer-explore"], // /influencers (InfluencerExplore.tsx)
+  join: ["joinnetwork"], // /join (JoinNetwork.tsx)
+};
+
 // Hard cap on how long we wait for live data before falling back to defaults.
 // Googlebot won't wait long, and a cold Render API can take 30-60s, so we
 // bail fast and let the CDN + post-deploy priming hold good HTML.
@@ -265,9 +279,16 @@ export default async function handler(req: any, res: any): Promise<void> {
       return;
     }
 
-    // Bootstrap the page's own content section (by slug) plus shared globals.
+    // Bootstrap the page's own content section(s) plus shared globals. Most
+    // pages key content by slug; some use different keys (EXTRA_CONTENT_SECTIONS).
     const sections = Array.from(
-      new Set([entry.slug, "navbar", "footer", "settings"]),
+      new Set([
+        entry.slug,
+        ...(EXTRA_CONTENT_SECTIONS[entry.slug] || []),
+        "navbar",
+        "footer",
+        "settings",
+      ]),
     );
     const bundle = await loadData(entry.slug, sections);
     const html = buildHtml(template, entry, pathname, bundle);
