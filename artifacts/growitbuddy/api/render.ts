@@ -23,14 +23,16 @@
  * @workspace/seo is the single source of truth for the page list + defaults.
  */
 
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import {
   findEntryByPath,
   SITE_URL,
   type PageRegistryEntry,
   type PageSEOData,
 } from "@workspace/seo";
+// The built index.html (with hashed asset tags) is embedded at build time by
+// scripts/postbuild-ssr.mjs as a generated, import-only module. esbuild bundles
+// the string straight into this function — no runtime fs reads, no includeFiles.
+import { TEMPLATE } from "./_template.js";
 
 const API_BASE =
   process.env.SSR_API_BASE?.replace(/\/$/, "") ||
@@ -45,31 +47,6 @@ const TWITTER_HANDLE = "@growitbuddy";
 // Googlebot won't wait long, and a cold Render API can take 30-60s, so we
 // bail fast and let the CDN + post-deploy priming hold good HTML.
 const DATA_TIMEOUT_MS = 2500;
-
-/* ───────────────────────── template loading ───────────────────────── */
-// Cached across warm invocations. The built index.html (with hashed asset
-// tags) is copied to dist/server/index.html by scripts/postbuild-ssr.mjs and
-// bundled into this function via vercel.json "includeFiles".
-let TEMPLATE: string | null | undefined;
-function loadTemplate(): string | null {
-  if (TEMPLATE !== undefined) return TEMPLATE;
-  const cwd = process.cwd();
-  const candidates = [
-    join(cwd, "dist/server/index.html"),
-    join(cwd, "dist/public/index.html"),
-    join(cwd, "index.html"),
-  ];
-  for (const p of candidates) {
-    try {
-      TEMPLATE = readFileSync(p, "utf8");
-      return TEMPLATE;
-    } catch {
-      /* try next candidate */
-    }
-  }
-  TEMPLATE = null;
-  return TEMPLATE;
-}
 
 /* ───────────────────────── escaping helpers ───────────────────────── */
 function escAttr(s: unknown): string {
@@ -261,9 +238,9 @@ function sendHtml(res: any, html: string, cacheControl: string): void {
 
 /* ──────────────────────────── handler ─────────────────────────────── */
 export default async function handler(req: any, res: any): Promise<void> {
-  const template = loadTemplate();
+  const template = TEMPLATE;
 
-  // If the template is somehow unreadable, emit a minimal noindex shell rather
+  // If the template is somehow missing, emit a minimal noindex shell rather
   // than a 500 (which would surface a broken page). Should never happen.
   if (!template) {
     sendHtml(
