@@ -39,6 +39,13 @@ export const BRAND = {
     name: "Suraj Sharma",
     jobTitle: "Founder & CEO",
   },
+  /** Social / external profiles — strengthens entity recognition for AI engines (GEO). */
+  sameAs: [
+    "https://instagram.com/growitbuddy",
+    "https://youtube.com/@growitbuddy",
+    "https://x.com/growitbuddy",
+    "https://www.linkedin.com/company/growitbuddy",
+  ],
 } as const;
 
 /* ────────────────────────────────────────────────────────────────────────────
@@ -199,12 +206,35 @@ export function buildOrganizationSchema() {
     logo: { "@type": "ImageObject", url: BRAND.logo },
     description: BRAND.description,
     email: BRAND.email,
+    sameAs: BRAND.sameAs,
+    contactPoint: {
+      "@type": "ContactPoint",
+      email: BRAND.email,
+      contactType: "customer support",
+      availableLanguage: ["en", "hi"],
+    },
     founder: {
       "@type": "Person",
       "@id": BRAND.founder.id,
       name: BRAND.founder.name,
       jobTitle: BRAND.founder.jobTitle,
     },
+  } as const;
+}
+
+/**
+ * Build FAQPage JSON-LD for Answer Engine Optimization (AEO).
+ * Only use this where the same Q&A pairs are visible on the page — AI engines
+ * and Google require structured FAQ data to match on-page content.
+ */
+export function buildFAQSchema(faqs: Array<{ question: string; answer: string }>) {
+  return {
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.question,
+      acceptedAnswer: { "@type": "Answer", text: f.answer },
+    })),
   } as const;
 }
 

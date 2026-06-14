@@ -6,6 +6,7 @@ import { ImageCropUploader } from "@/components/admin/ImageCropUploader";
 import { ImagePickerField } from "@/components/admin/ImagePickerField";
 import { Card } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
+import WordPressPostsCard from "@/pages/admin/WordPressPostsCard";
 import {
   Plus, ArrowLeft, Bold, Italic, List, ListOrdered, Quote,
   Link2, AlignLeft, AlignCenter, AlignRight, AlignJustify,
@@ -2598,7 +2599,8 @@ export default function AdminBlog() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      <WordPressPostsCard />
       <PostList
         posts={posts}
         onEdit={(post) => setEditing({ post: { ...post }, isNew: false })}

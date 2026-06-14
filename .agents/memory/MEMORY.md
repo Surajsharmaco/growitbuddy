@@ -1,2 +1,3 @@
 - [GrowitBuddy SEO single source](growitbuddy-seo.md) — page list, sitemaps & JSON-LD all derive from `@workspace/seo`; blog canonical `/blog`; composite lib needs built `dist/` (TS6305 gotcha).
 - [GrowitBuddy admin↔public field audit](growitbuddy-admin-audit.md) — grep each field key in the public page before removing admin sections; automated audits gave false positives.
+- [robots.txt per-agent override](robots-txt-per-agent-override.md) — named bot blocks ignore the wildcard block; repeat global Disallow rules in each.
