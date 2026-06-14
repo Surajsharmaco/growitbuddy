@@ -8,7 +8,8 @@
     "build": "vite build --config vite.config.ts",
     "serve": "vite preview --config vite.config.ts --host 0.0.0.0",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "gen:sitemap": "tsx scripts/generate-sitemap.ts"
+    "gen:sitemap": "tsx scripts/generate-sitemap.ts",
+    "check:sitemap": "tsx scripts/check-sitemap.ts"
   },
   "devDependencies": {
     "@hookform/resolvers": "^3.10.0",
