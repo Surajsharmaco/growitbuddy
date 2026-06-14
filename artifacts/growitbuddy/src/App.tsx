@@ -24,6 +24,7 @@ const Creators             = lazy(() => import("@/pages/Creators"));
 const Career               = lazy(() => import("@/pages/Career"));
 const InfluencerExplore    = lazy(() => import("@/pages/InfluencerExplore"));
 const DistributionNetwork  = lazy(() => import("@/pages/DistributionNetwork"));
+const Links                = lazy(() => import("@/pages/Links"));
 const JoinNetwork          = lazy(() => import("@/pages/JoinNetwork"));
 const PageOwnerApply       = lazy(() => import("@/pages/PageOwnerApply"));
 const AuthorityAudit       = lazy(() => import("@/pages/AuthorityAudit"));
@@ -71,6 +72,7 @@ const AdminCareer             = lazy(() => import("@/pages/admin/AdminCareer"));
 const AdminFramework          = lazy(() => import("@/pages/admin/AdminFramework"));
 const AdminDistributionNetwork = lazy(() => import("@/pages/admin/AdminDistributionNetwork"));
 const AdminDistributionPages  = lazy(() => import("@/pages/admin/AdminDistributionPages"));
+const AdminLinks              = lazy(() => import("@/pages/admin/AdminLinks"));
 const AdminInfluencerExplore  = lazy(() => import("@/pages/admin/AdminInfluencerExplore"));
 const AdminAuthorityAudit     = lazy(() => import("@/pages/admin/AdminAuthorityAudit"));
 const AdminResources          = lazy(() => import("@/pages/admin/AdminResources"));
@@ -142,6 +144,7 @@ function AdminRoutes() {
       <Route path="/admin/framework">{() => <AdminGuard><AdminFramework /></AdminGuard>}</Route>
       <Route path="/admin/distribution-network">{() => <AdminGuard><AdminDistributionNetwork /></AdminGuard>}</Route>
       <Route path="/admin/distribution-pages">{() => <AdminGuard><AdminDistributionPages /></AdminGuard>}</Route>
+      <Route path="/admin/links">{() => <AdminGuard><AdminLinks /></AdminGuard>}</Route>
       <Route path="/admin/influencer-explore">{() => <AdminGuard><AdminInfluencerExplore /></AdminGuard>}</Route>
       <Route path="/admin/authority-audit">{() => <AdminGuard><AdminAuthorityAudit /></AdminGuard>}</Route>
       <Route path="/admin/resources">{() => <AdminGuard><AdminResources /></AdminGuard>}</Route>
@@ -173,7 +176,7 @@ const ALL_SECTIONS = [
   "home", "about", "contact", "framework", "services", "work",
   "resources", "joinnetwork", "freelancers", "fulltime", "internship",
   "influencer-explore", "authority-audit", "distribution-network",
-  "distribution-pages", "blog", "creator-school", "settings",
+  "distribution-pages", "links", "blog", "creator-school", "settings",
   "pool-designers", "pool-thumbnail-designers", "pool-writers",
   "pool-social-managers", "pool-motion-designers", "pool-ai-creators",
   "pool-ugc-creators", "pool-meme-designers", "pool-editors", "page_visibility",
@@ -228,6 +231,9 @@ function App() {
 
           {/* Internal SEO guide — standalone (no layout chrome), permanently noindex via the page itself */}
           <Route path="/seo-guide">{() => <Suspense fallback={<PageSpinner />}><SEOGuide /></Suspense>}</Route>
+
+          {/* Bio link page — standalone (no site navbar/footer chrome) */}
+          <Route path="/links">{() => <Suspense fallback={<PageSpinner />}><PageGate slug="links"><Links /></PageGate></Suspense>}</Route>
 
           <Route>
             {() => (

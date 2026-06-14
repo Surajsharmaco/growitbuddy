@@ -15,6 +15,7 @@ export const ALL_PERMISSIONS = [
   { key: "influencer-explore", label: "Influencer Explore" },
   { key: "distribution-network", label: "Distribution Network" },
   { key: "distribution-pages", label: "Distribution Pages" },
+  { key: "links", label: "Links Page" },
   { key: "authority-audit", label: "Authority Audit" },
   { key: "join-network", label: "Join Network" },
   { key: "freelancers", label: "Careers — Talent Network tab" },
