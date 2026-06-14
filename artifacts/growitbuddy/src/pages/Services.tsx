@@ -403,7 +403,7 @@ export default function Services() {
           .svc-bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; max-width: 1200px; margin: 0 auto; }
           .svc-bento-card { position: relative; background: #FFFFFF; border-radius: 24px; padding: 38px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(10,10,10,0.05); box-shadow: 0 4px 20px -12px rgba(10,10,10,0.08); transition: transform 0.3s ease, box-shadow 0.3s ease; }
           .svc-bento-card:hover { transform: translateY(-4px); box-shadow: 0 16px 36px -14px rgba(10,10,10,0.14); }
-          .svc-bento-card.dark { background: linear-gradient(165deg, #243246 0%, #1B2636 100%); border-color: rgba(255,255,255,0.08); box-shadow: 0 16px 44px -16px rgba(20,30,46,0.5); }
+          .svc-bento-card.dark { background-color: #1B2636; background-image: url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%27160%27%20height=%27160%27%3E%3Cfilter%20id=%27n%27%3E%3CfeTurbulence%20type=%27fractalNoise%27%20baseFrequency=%270.9%27%20numOctaves=%272%27%20stitchTiles=%27stitch%27/%3E%3CfeColorMatrix%20type=%27saturate%27%20values=%270%27/%3E%3C/filter%3E%3Crect%20width=%27160%27%20height=%27160%27%20filter=%27url(%23n)%27%20opacity=%270.55%27/%3E%3C/svg%3E"), linear-gradient(165deg, #243246 0%, #1B2636 100%); background-size: 160px 160px, auto; background-repeat: repeat, no-repeat; background-blend-mode: soft-light, normal; border-color: rgba(255,255,255,0.08); box-shadow: 0 16px 44px -16px rgba(20,30,46,0.5); }
           .svc-bento-card:nth-child(1) { grid-column: span 2; }
           .svc-bento-card:nth-child(4) { grid-column: span 2; }
           .svc-bento-card:nth-child(5) { grid-column: span 2; }
@@ -576,7 +576,7 @@ export default function Services() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="svc-cta-section" style={{ padding: "96px 24px", background: "#1E293B" }}>
+      <section className="svc-cta-section" style={{ padding: "96px 24px", backgroundColor: "#1E293B", backgroundImage: 'url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%27160%27%20height=%27160%27%3E%3Cfilter%20id=%27n%27%3E%3CfeTurbulence%20type=%27fractalNoise%27%20baseFrequency=%270.9%27%20numOctaves=%272%27%20stitchTiles=%27stitch%27/%3E%3CfeColorMatrix%20type=%27saturate%27%20values=%270%27/%3E%3C/filter%3E%3Crect%20width=%27160%27%20height=%27160%27%20filter=%27url(%23n)%27%20opacity=%270.55%27/%3E%3C/svg%3E")', backgroundSize: "160px 160px", backgroundRepeat: "repeat", backgroundBlendMode: "soft-light" }}>
         <div className="max-w-[700px] mx-auto" style={{ textAlign: "center" }}>
           <motion.div
             initial={{ opacity: 0, y: 14 }}
