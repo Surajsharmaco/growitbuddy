@@ -403,34 +403,22 @@ export default function Services() {
       <section className="svc-what-section" style={{ padding: "96px 24px 100px", background: "#F8F8F6", borderTop: "1px solid #E5E5E0" }}>
         <style>{`
           .svc-bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; max-width: 1200px; margin: 0 auto; }
-          .svc-bento-card { position: relative; background: #FFFFFF; border-radius: 24px; padding: 38px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(10,10,10,0.05); box-shadow: 0 4px 20px -12px rgba(10,10,10,0.08); transition: transform 0.3s ease, box-shadow 0.3s ease; }
-          .svc-bento-card:hover { transform: translateY(-4px); box-shadow: 0 16px 36px -14px rgba(10,10,10,0.14); }
-          .svc-bento-card.dark { background-color: #151D29; background-image: var(--gb-grain); background-size: 150px 150px; background-repeat: repeat; border-color: rgba(255,255,255,0.10); box-shadow: 0 16px 44px -16px rgba(20,30,46,0.5); }
-          .svc-bento-card:nth-child(1) { grid-column: span 2; }
-          .svc-bento-card:nth-child(4) { grid-column: span 2; }
-          .svc-bento-card:nth-child(5) { grid-column: span 2; }
-          .svc-bento-ico { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; background: rgba(194,168,120,0.13); color: #9A7B43; }
-          .svc-bento-card.dark .svc-bento-ico { background: rgba(194,168,120,0.2); color: #D8BE8E; }
-          .svc-bento-sub { font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #9A9A92; margin-bottom: 12px; }
-          .svc-bento-card.dark .svc-bento-sub { color: rgba(255,255,255,0.45); }
-          .svc-bento-title { font-weight: 800; font-size: 23px; letter-spacing: -0.03em; line-height: 1.2; color: #0A0A0A; margin-bottom: 14px; }
-          .svc-bento-card.dark .svc-bento-title { color: #FFFFFF; }
-          .svc-bento-desc { font-size: 14.5px; line-height: 1.7; color: #5F5F5F; margin-bottom: 26px; max-width: 62ch; }
-          .svc-bento-card.dark .svc-bento-desc { color: rgba(255,255,255,0.6); }
-          .svc-bento-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 30px; flex: 1; align-content: flex-start; }
-          .svc-bento-pill { padding: 7px 14px; border-radius: 100px; font-size: 12.5px; font-weight: 500; background: #F5F5F2; color: #44474D; border: 1px solid rgba(10,10,10,0.05); }
-          .svc-bento-card.dark .svc-bento-pill { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.88); border-color: rgba(255,255,255,0.1); }
+          .svc-bento-card { position: relative; border-radius: 22px; padding: 32px 30px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(10,10,10,0.06); box-shadow: 0 12px 34px -18px rgba(30,41,59,0.22); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+          .svc-bento-card:hover { transform: translateY(-4px); box-shadow: 0 22px 46px -18px rgba(30,41,59,0.3); }
+          .svc-bento-ico { width: 50px; height: 50px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 22px; background: rgba(255,255,255,0.55); color: #9A7B43; border: 1px solid rgba(255,255,255,0.7); }
+          .svc-bento-sub { font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #8A7B5E; margin-bottom: 12px; }
+          .svc-bento-title { font-weight: 800; font-size: 22px; letter-spacing: -0.03em; line-height: 1.2; color: #0A0A0A; margin-bottom: 12px; }
+          .svc-bento-desc { font-size: 14px; line-height: 1.7; color: #4A4A45; margin-bottom: 22px; }
+          .svc-bento-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 26px; flex: 1; align-content: flex-start; }
+          .svc-bento-pill { padding: 7px 13px; border-radius: 100px; font-size: 12px; font-weight: 500; background: rgba(255,255,255,0.55); color: #3A3A38; border: 1px solid rgba(255,255,255,0.7); }
           .svc-bento-cta { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; margin-top: auto; font-size: 13.5px; font-weight: 700; color: #1E293B; cursor: pointer; transition: gap 0.2s ease, opacity 0.2s ease; }
           .svc-bento-cta:hover { gap: 12px; opacity: 0.85; }
-          .svc-bento-card.dark .svc-bento-cta { color: #C2A878; }
           @media (max-width: 980px) {
             .svc-bento-grid { grid-template-columns: repeat(2, 1fr); }
-            .svc-bento-card { grid-column: span 2; }
-            .svc-bento-card:nth-child(2), .svc-bento-card:nth-child(3) { grid-column: span 1; }
           }
           @media (max-width: 680px) {
             .svc-bento-grid { grid-template-columns: 1fr; }
-            .svc-bento-card { grid-column: span 1 !important; padding: 30px 24px; }
+            .svc-bento-card { padding: 28px 22px; }
           }
         `}</style>
         <div className="max-w-[1200px] mx-auto">
@@ -455,18 +443,22 @@ export default function Services() {
 
           <div className="svc-bento-grid">
             {services.map((s, i) => {
-              const isDark = i === 4;
               const Icon = SVC_ICONS[i % SVC_ICONS.length];
+              const bentoGrads = [
+                "radial-gradient(130% 120% at 18% 8%, #F8F0E1 0%, rgba(248,240,225,0) 55%), radial-gradient(130% 130% at 92% 95%, #EAD3A9 0%, rgba(234,211,169,0) 62%), linear-gradient(140deg, #FBF6EC 0%, #F0E1C6 100%)",
+                "radial-gradient(130% 120% at 15% 12%, #ECEFF5 0%, rgba(236,239,245,0) 55%), radial-gradient(130% 130% at 88% 92%, #C8D4E6 0%, rgba(200,212,230,0) 62%), linear-gradient(140deg, #F3F6FA 0%, #DAE2EF 100%)",
+                "radial-gradient(130% 120% at 20% 10%, #F0F2E6 0%, rgba(240,242,230,0) 55%), radial-gradient(130% 130% at 90% 90%, #D4DCBC 0%, rgba(212,220,188,0) 62%), linear-gradient(140deg, #F5F6ED 0%, #E0E6CC 100%)",
+              ];
               return (
                 <motion.div
                   key={s.id}
-                  className={`svc-bento-card${isDark ? " dark" : ""}`}
+                  className="svc-bento-card"
                   initial={{ opacity: 0, y: 24 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.07, duration: 0.5 }}
                   id={`service-${s.id}`}
-                  style={{ scrollMarginTop: 80 }}
+                  style={{ scrollMarginTop: 80, background: bentoGrads[i % 3] }}
                 >
                   <div className="svc-bento-ico"><Icon strokeWidth={2} size={26} /></div>
                   <div className="svc-bento-sub">{s.subtitle}</div>
