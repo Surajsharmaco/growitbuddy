@@ -3,6 +3,7 @@
   "buildCommand": "pnpm run build",
   "outputDirectory": "dist/public",
   "rewrites": [
+    { "source": "/", "destination": "/api/render?path=/" },
     { "source": "/(.*)", "destination": "/api/render?path=/$1" }
   ]
 }
