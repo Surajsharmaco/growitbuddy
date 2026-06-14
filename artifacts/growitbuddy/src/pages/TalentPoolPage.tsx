@@ -343,7 +343,7 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
         .tp-eyebrow {
           display: block;
           font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
-          color: var(--tp-text-muted);
+          color: var(--gb-gold);
           margin-bottom: 18px;
         }
 
