@@ -424,7 +424,7 @@ export default function Services() {
           @media (max-width: 980px) {
             .svc-bento-grid { grid-template-columns: repeat(2, 1fr); }
             .svc-bento-card { grid-column: span 2; }
-            .svc-bento-card:nth-child(2), .svc-bento-card:nth-child(3), .svc-bento-card:nth-child(6) { grid-column: span 1; }
+            .svc-bento-card:nth-child(2), .svc-bento-card:nth-child(3) { grid-column: span 1; }
           }
           @media (max-width: 680px) {
             .svc-bento-grid { grid-template-columns: 1fr; }
