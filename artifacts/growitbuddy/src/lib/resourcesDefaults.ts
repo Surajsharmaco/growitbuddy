@@ -5,6 +5,7 @@
 export type ResourceType =
   | "ebook"
   | "pdf"
+  | "doc"
   | "drive"
   | "notion"
   | "video"

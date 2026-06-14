@@ -10,7 +10,7 @@ import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar, Field } from 
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
 import {
   Plus, Trash2, ChevronUp, ChevronDown, Copy as CopyIcon, ChevronRight,
-  Star, Eye, EyeOff, Sparkles, FileText, BookOpen, Video, Database,
+  Star, Eye, EyeOff, Sparkles, FileText, FileType, BookOpen, Video, Database,
   PenTool, Layout, Zap, GraduationCap, Sheet, Figma, Headphones, Link2,
 } from "lucide-react";
 import {
@@ -21,6 +21,7 @@ import {
 const TYPE_OPTIONS: { value: ResourceType; label: string; icon: ReactNode }[] = [
   { value: "ebook",    label: "eBook",          icon: <BookOpen size={13} /> },
   { value: "pdf",      label: "PDF",            icon: <FileText size={13} /> },
+  { value: "doc",      label: "Document",       icon: <FileType size={13} /> },
   { value: "drive",    label: "Google Drive",   icon: <Database size={13} /> },
   { value: "notion",   label: "Notion",         icon: <PenTool size={13} /> },
   { value: "video",    label: "Video",          icon: <Video size={13} /> },

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
-  ArrowRight, Download, ExternalLink, FileText, BookOpen, Video, Database,
+  ArrowRight, Download, ExternalLink, FileText, FileType, BookOpen, Video, Database,
   PenTool, Layout, Zap, GraduationCap, Sheet, Figma, Headphones, Link2, Lock,
 } from "lucide-react";
 import SEOMeta from "@/components/SEOMeta";
@@ -16,6 +16,7 @@ function typeIcon(t?: ResourceType) {
   switch (t) {
     case "ebook":    return <BookOpen {...props} />;
     case "pdf":      return <FileText {...props} />;
+    case "doc":      return <FileType {...props} />;
     case "drive":    return <Database {...props} />;
     case "notion":   return <PenTool {...props} />;
     case "video":    return <Video {...props} />;
@@ -34,7 +35,7 @@ function typeIcon(t?: ResourceType) {
 function typeLabel(item: ResourceItem): string {
   if (item.fileFormat) return item.fileFormat;
   const map: Record<string, string> = {
-    ebook: "eBook", pdf: "PDF", drive: "Google Drive", notion: "Notion",
+    ebook: "eBook", pdf: "PDF", doc: "Document", drive: "Google Drive", notion: "Notion",
     video: "Video", template: "Template", toolkit: "Toolkit", guide: "Guide",
     course: "Course", sheet: "Spreadsheet", figma: "Figma", audio: "Audio", link: "Link",
   };
