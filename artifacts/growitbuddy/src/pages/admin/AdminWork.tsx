@@ -4,100 +4,12 @@ import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/comp
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
 import { ImageCropUploader } from "@/components/admin/ImageCropUploader";
 import { ImageUrlField } from "@/components/admin/ImageUrlField";
-import { Plus, Trash2, ChevronDown, ChevronUp, Pencil, X, Check, GripVertical, Image } from "lucide-react";
+import { Plus, Trash2, Pencil, X, Check, Image } from "lucide-react";
 
 import { API_BASE } from "@/lib/api";
 
-import { WORK_DEFAULTS, type WorkData, type WorkItem, type WorkItemStat as WorkStat, type WorkHeroStat as HeroStat, type ClientLogo } from "@/lib/workDefaults";
-const DEFAULT_WORK = WORK_DEFAULTS.items;
+import { WORK_DEFAULTS, type WorkHeroStat as HeroStat, type ClientLogo } from "@/lib/workDefaults";
 const DEFAULT_STATS = WORK_DEFAULTS.heroStats;
-
-// ─── Work Case Study Row ──────────────────────────────────────────────────────
-
-function WorkRow({
-  item, index, onChange, onDelete,
-}: {
-  item: WorkItem;
-  index: number;
-  onChange: (i: number, val: WorkItem) => void;
-  onDelete: (i: number) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const set = (patch: Partial<WorkItem>) => onChange(index, { ...item, ...patch });
-
-  return (
-    <Card className="p-0 overflow-hidden">
-      <div className="flex items-center gap-2 pr-3 hover:bg-[#0B0B0B]/3 transition-colors">
-        <button
-          onClick={() => setOpen((p) => !p)}
-          className="flex-1 flex items-center gap-3 px-5 py-3.5 text-left min-w-0"
-        >
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold text-[#0B0B0B]/50 bg-[#0B0B0B]/6 px-2 py-0.5 rounded-full shrink-0">{item.category}</span>
-              <p className="text-[13px] font-semibold text-[#0B0B0B] truncate">{item.title || "Untitled Case Study"}</p>
-            </div>
-            <p className="text-[11px] text-[#0B0B0B]/40 mt-0.5">{item.subtitle}</p>
-          </div>
-          {open ? <ChevronUp size={14} className="text-[#0B0B0B]/40 shrink-0" /> : <ChevronDown size={14} className="text-[#0B0B0B]/40 shrink-0" />}
-        </button>
-        <button
-          onClick={() => onDelete(index)}
-          className="p-1.5 rounded hover:bg-red-50 hover:text-red-500 text-[#0B0B0B]/30 transition-colors shrink-0"
-        >
-          <Trash2 size={14} />
-        </button>
-      </div>
-
-      {open && (
-        <div className="border-t border-[#0B0B0B]/8 px-5 py-5 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <Input label="Title" value={item.title} onChange={(e) => set({ title: e.target.value })} />
-            <Input label="Subtitle" value={item.subtitle} onChange={(e) => set({ subtitle: e.target.value })} />
-            <Input label="Category" value={item.category} onChange={(e) => set({ category: e.target.value })} placeholder="Founder Brand" />
-            <div className="col-span-2">
-              <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-2 uppercase tracking-wider">Case Study Image</label>
-              <ImageCropUploader value={item.imageUrl} onChange={(url) => set({ imageUrl: url })} hint="Recommended: 1200 × 800 px • JPG or PNG • Use 3:2 ratio so the image isn't cropped on cards" />
-            </div>
-            <Input label="Key Metric" value={item.metric} onChange={(e) => set({ metric: e.target.value })} placeholder="10x" />
-            <Input label="Metric Label" value={item.metricLabel} onChange={(e) => set({ metricLabel: e.target.value })} placeholder="inbound leads in 90 days" />
-          </div>
-          <Textarea
-            label="One-liner outcome (shown as → result line on card)"
-            value={item.description}
-            onChange={(e) => set({ description: e.target.value })}
-            rows={2}
-          />
-          <Input
-            label="Tags (comma-separated)"
-            value={item.tags.join(", ")}
-            onChange={(e) => set({ tags: e.target.value.split(",").map((t) => t.trim()).filter(Boolean) })}
-            placeholder="LinkedIn, B2B SaaS, Content Strategy"
-          />
-          <div>
-            <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-2 uppercase tracking-wider">Stats (up to 3)</label>
-            <div className="space-y-2">
-              {(item.stats.length > 0 ? item.stats : [{ label: "", value: "" }]).map((stat, si) => (
-                <div key={si} className="flex gap-2 items-center">
-                  <Input value={stat.label} onChange={(e) => { const u = [...item.stats]; u[si] = { ...stat, label: e.target.value }; set({ stats: u }); }} placeholder="Stat label" />
-                  <Input value={stat.value} onChange={(e) => { const u = [...item.stats]; u[si] = { ...stat, value: e.target.value }; set({ stats: u }); }} placeholder="+420%" />
-                  <button onClick={() => set({ stats: item.stats.filter((_, sIdx) => sIdx !== si) })} className="p-1.5 text-[#0B0B0B]/25 hover:text-red-500 shrink-0">
-                    <Trash2 size={13} />
-                  </button>
-                </div>
-              ))}
-              {item.stats.length < 3 && (
-                <button onClick={() => set({ stats: [...item.stats, { label: "", value: "" }] })} className="text-[12px] text-[#0B0B0B]/40 hover:text-[#0B0B0B] flex items-center gap-1">
-                  <Plus size={12} /> Add stat
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </Card>
-  );
-}
 
 // ─── Logos Section ────────────────────────────────────────────────────────────
 
@@ -424,7 +336,6 @@ function LogosSection() {
 
 export default function AdminWork() {
   const { getContent, saveContent } = useAdmin();
-  const [items, setItems] = useState<WorkItem[]>(DEFAULT_WORK);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [headline, setHeadline] = useState("Proof of authority at scale.");
@@ -436,7 +347,6 @@ export default function AdminWork() {
     getContent("work")
       .then((d) => {
         if (!d) return;
-        if (d.items) setItems(d.items as WorkItem[]);
         if (d.headline) setHeadline(d.headline as string);
         if (d.subtext) setSubtext(d.subtext as string);
         if (d.heroStats) setHeroStats(d.heroStats as HeroStat[]);
@@ -447,7 +357,7 @@ export default function AdminWork() {
   async function handleSave() {
     setSaving(true);
     try {
-      await saveContent("work", { headline, subtext, heroStats, items });
+      await saveContent("work", { headline, subtext, heroStats });
       setSaved(true);
     } finally {
       setSaving(false);
@@ -462,7 +372,7 @@ export default function AdminWork() {
   if (!loaded) {
     return (
       <div>
-        <PageHeader title="Work / Portfolio" description="Manage the work page hero, stats, client logos, and case studies." />
+        <PageHeader title="Work / Portfolio" description="Manage the work page hero, stats, and client logos." />
         <div className="flex items-center justify-center py-24 text-[13px] text-[#0B0B0B]/40">Loading content…</div>
       </div>
     );
@@ -470,7 +380,7 @@ export default function AdminWork() {
 
   return (
     <div>
-      <PageHeader title="Work / Portfolio" description="Manage the work page hero, stats, client logos, and case studies." />
+      <PageHeader title="Work / Portfolio" description="Manage the work page hero, stats, and client logos." />
 
       <Card className="mb-5">
         <SectionTitle>Hero Copy</SectionTitle>
@@ -500,27 +410,6 @@ export default function AdminWork() {
 
       {/* ── Client Logos Manager ── */}
       <LogosSection />
-
-      <div className="flex justify-end mb-4">
-        <button
-          onClick={() => { setSaved(false); setItems((p) => [...p, { id: Date.now().toString(), title: "", subtitle: "", category: "", metric: "", metricLabel: "", description: "", tags: [], stats: [], imageUrl: "" }]); }}
-          className="flex items-center gap-2 bg-[#0B0B0B] text-white text-[13px] font-semibold px-4 py-2.5 rounded-xl hover:bg-[#0B0B0B]/85 transition-colors"
-        >
-          <Plus size={15} /> Add Case Study
-        </button>
-      </div>
-
-      <div className="space-y-3">
-        {items.map((item, i) => (
-          <WorkRow
-            key={item.id + i}
-            item={item}
-            index={i}
-            onChange={(idx, val) => { setSaved(false); setItems((p) => p.map((x, xi) => xi === idx ? val : x)); }}
-            onDelete={(idx) => { if (!confirm("Remove?")) return; setSaved(false); setItems((p) => p.filter((_, xi) => xi !== idx)); }}
-          />
-        ))}
-      </div>
 
       <PageVisibilityCard slug="work" />
       <SaveBar onSave={handleSave} saving={saving} saved={saved} />
