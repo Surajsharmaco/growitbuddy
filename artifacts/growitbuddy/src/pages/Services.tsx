@@ -104,7 +104,9 @@ export default function Services() {
           transform: translateY(-4px);
         }
         .svc-card.dark {
-          background: linear-gradient(165deg, #243246 0%, #1B2636 100%);
+          background-image: var(--gb-grain), linear-gradient(165deg, #243246 0%, #1B2636 100%);
+          background-size: 150px 150px, cover;
+          background-repeat: repeat, no-repeat;
           border-color: rgba(255,255,255,0.08);
           box-shadow: 0 8px 30px -12px rgba(10,15,25,0.5);
         }
@@ -403,7 +405,7 @@ export default function Services() {
           .svc-bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; max-width: 1200px; margin: 0 auto; }
           .svc-bento-card { position: relative; background: #FFFFFF; border-radius: 24px; padding: 38px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(10,10,10,0.05); box-shadow: 0 4px 20px -12px rgba(10,10,10,0.08); transition: transform 0.3s ease, box-shadow 0.3s ease; }
           .svc-bento-card:hover { transform: translateY(-4px); box-shadow: 0 16px 36px -14px rgba(10,10,10,0.14); }
-          .svc-bento-card.dark { background-color: #1B2636; background-image: url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%27150%27%20height=%27150%27%3E%3Cfilter%20id=%27gw%27%3E%3CfeTurbulence%20type=%27fractalNoise%27%20baseFrequency=%270.62%27%20numOctaves=%272%27%20seed=%272%27%20stitchTiles=%27stitch%27/%3E%3CfeColorMatrix%20type=%27matrix%27%20values=%270%200%200%200%201%200%200%200%200%201%200%200%200%200%201%200.22%200%200%200%200%27/%3E%3CfeComponentTransfer%3E%3CfeFuncA%20type=%27gamma%27%20amplitude=%271%27%20exponent=%271.45%27%20offset=%270%27/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect%20width=%27150%27%20height=%27150%27%20filter=%27url(%23gw)%27/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%27150%27%20height=%27150%27%3E%3Cfilter%20id=%27gb%27%3E%3CfeTurbulence%20type=%27fractalNoise%27%20baseFrequency=%270.62%27%20numOctaves=%272%27%20seed=%278%27%20stitchTiles=%27stitch%27/%3E%3CfeColorMatrix%20type=%27matrix%27%20values=%270%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200.20%200%200%200%200%27/%3E%3CfeComponentTransfer%3E%3CfeFuncA%20type=%27gamma%27%20amplitude=%271%27%20exponent=%271.45%27%20offset=%270%27/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect%20width=%27150%27%20height=%27150%27%20filter=%27url(%23gb)%27/%3E%3C/svg%3E"); background-size: 150px 150px, 150px 150px; background-repeat: repeat, repeat; background-blend-mode: normal, normal; border-color: rgba(255,255,255,0.10); box-shadow: 0 16px 44px -16px rgba(20,30,46,0.5); }
+          .svc-bento-card.dark { background-color: #1B2636; background-image: var(--gb-grain); background-size: 150px 150px; background-repeat: repeat; border-color: rgba(255,255,255,0.10); box-shadow: 0 16px 44px -16px rgba(20,30,46,0.5); }
           .svc-bento-card:nth-child(1) { grid-column: span 2; }
           .svc-bento-card:nth-child(4) { grid-column: span 2; }
           .svc-bento-card:nth-child(5) { grid-column: span 2; }
@@ -576,7 +578,7 @@ export default function Services() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="svc-cta-section" style={{ padding: "96px 24px", backgroundColor: "#1E293B", backgroundImage: 'url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%27150%27%20height=%27150%27%3E%3Cfilter%20id=%27gw%27%3E%3CfeTurbulence%20type=%27fractalNoise%27%20baseFrequency=%270.62%27%20numOctaves=%272%27%20seed=%272%27%20stitchTiles=%27stitch%27/%3E%3CfeColorMatrix%20type=%27matrix%27%20values=%270%200%200%200%201%200%200%200%200%201%200%200%200%200%201%200.22%200%200%200%200%27/%3E%3CfeComponentTransfer%3E%3CfeFuncA%20type=%27gamma%27%20amplitude=%271%27%20exponent=%271.45%27%20offset=%270%27/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect%20width=%27150%27%20height=%27150%27%20filter=%27url(%23gw)%27/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%27150%27%20height=%27150%27%3E%3Cfilter%20id=%27gb%27%3E%3CfeTurbulence%20type=%27fractalNoise%27%20baseFrequency=%270.62%27%20numOctaves=%272%27%20seed=%278%27%20stitchTiles=%27stitch%27/%3E%3CfeColorMatrix%20type=%27matrix%27%20values=%270%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200.20%200%200%200%200%27/%3E%3CfeComponentTransfer%3E%3CfeFuncA%20type=%27gamma%27%20amplitude=%271%27%20exponent=%271.45%27%20offset=%270%27/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect%20width=%27150%27%20height=%27150%27%20filter=%27url(%23gb)%27/%3E%3C/svg%3E")', backgroundSize: "150px 150px, 150px 150px", backgroundRepeat: "repeat, repeat", backgroundBlendMode: "normal, normal" }}>
+      <section className="svc-cta-section" style={{ padding: "96px 24px", backgroundColor: "#1E293B", backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat" }}>
         <div className="max-w-[700px] mx-auto" style={{ textAlign: "center" }}>
           <motion.div
             initial={{ opacity: 0, y: 14 }}

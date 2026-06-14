@@ -17,6 +17,9 @@ export function Footer() {
     <footer
       style={{
         background: "#1E293B",
+        backgroundImage: "var(--gb-grain)",
+        backgroundSize: "150px 150px",
+        backgroundRepeat: "repeat",
         borderTop: "1px solid rgba(255,255,255,0.06)",
         padding: "60px 24px 32px",
       }}

@@ -307,7 +307,7 @@ export default function Work() {
       </section>
 
       {/* ── Dark CTA ── */}
-      <section style={{ padding: "88px 24px", background: "#1E293B" }}>
+      <section style={{ padding: "88px 24px", background: "#1E293B", backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat" }}>
         <div className="max-w-[700px] mx-auto" style={{ textAlign: "center" }}>
           <motion.div
             initial={{ opacity: 0, y: 16 }}

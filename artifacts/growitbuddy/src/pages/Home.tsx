@@ -374,7 +374,7 @@ export default function Home() {
       </section>
 
       {/* ══ 3. PROBLEM ══ */}
-      <section className="home-problem-section" style={{ background: "#1E293B", position: "relative", overflow: "hidden" }}>
+      <section className="home-problem-section" style={{ background: "#1E293B", backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat", position: "relative", overflow: "hidden" }}>
         <HalftoneDots
           style={{ position: "absolute", bottom: 0, right: 0, opacity: 0.07, pointerEvents: "none" }}
           origin="bottom-right" width={400} height={300} maxRadius={2.8} spacing={18}

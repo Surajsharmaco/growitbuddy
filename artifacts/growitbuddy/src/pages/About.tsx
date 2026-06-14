@@ -117,6 +117,9 @@ export default function About() {
             viewport={{ once: true }}
             style={{
               background: "#1E293B",
+              backgroundImage: "var(--gb-grain)",
+              backgroundSize: "150px 150px",
+              backgroundRepeat: "repeat",
               borderRadius: 24,
               padding: "48px 40px",
               display: "flex",
@@ -358,7 +361,7 @@ export default function About() {
       )}
 
       {/* ── CTA ── */}
-      <section style={{ padding: "96px 24px", background: "#1E293B" }}>
+      <section style={{ padding: "96px 24px", background: "#1E293B", backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat" }}>
         <div className="max-w-[720px] mx-auto" style={{ textAlign: "center" }}>
           <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 20 }}>
             Work with us
