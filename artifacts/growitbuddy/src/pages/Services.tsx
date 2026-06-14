@@ -142,6 +142,7 @@ export default function Services() {
           .svc-stats-grid { grid-template-columns: 1fr; }
           .svc-stats-grid > div { border-right: none !important; border-bottom: 1px solid rgba(10,10,10,0.05); padding: 28px 20px; }
           .svc-stats-grid > div:last-child { border-bottom: none; }
+          .svc-feature-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 580px) {
           .svc-card-grid { grid-template-columns: 1fr; }
