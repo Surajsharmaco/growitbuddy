@@ -57,10 +57,10 @@ export interface PoolConfig {
 }
 
 const FI = (delay = 0) => ({
-  initial: { opacity: 0, y: 30 },
+  initial: { opacity: 0, y: 24 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true, margin: "-50px" },
-  transition: { duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
+  transition: { duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
 });
 
 function VideoPlayer({ url }: { url: string }) {
@@ -86,23 +86,23 @@ function VideoPlayer({ url }: { url: string }) {
       maxWidth: isVertical ? 380 : "100%",
       margin: "0 auto",
       aspectRatio: ratio,
-      borderRadius: 24,
+      borderRadius: 16,
       overflow: "hidden",
       position: "relative",
       boxShadow: hasVideo
-        ? "0 30px 80px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.1)"
-        : "0 2px 4px rgba(139,111,61,0.05), 0 30px 60px rgba(139,111,61,0.12)",
+        ? "0 24px 60px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.08)"
+        : "0 2px 4px rgba(0,0,0,0.04), 0 24px 50px rgba(30,41,59,0.08)",
       background: hasVideo
         ? "#0F172A"
-        : "linear-gradient(145deg, #FFFFFF 0%, #FAF5EB 50%, #F0E6D2 100%)",
-      border: hasVideo ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(194,168,120,0.3)",
+        : "linear-gradient(145deg, #FFFFFF 0%, #F5F5F2 100%)",
+      border: hasVideo ? "1px solid rgba(255,255,255,0.1)" : "1px solid var(--gb-border, #E5E5E0)",
       transform: "translateZ(0)",
     }}>
       {!hasVideo && !playing && (
         <span aria-hidden style={{
           position: "absolute", top: "-40%", left: "50%", transform: "translateX(-50%)",
           width: "80%", height: "90%", pointerEvents: "none",
-          background: "radial-gradient(ellipse at center, rgba(194,168,120,0.25) 0%, rgba(194,168,120,0) 70%)",
+          background: "radial-gradient(ellipse at center, rgba(30,41,59,0.08) 0%, rgba(30,41,59,0) 70%)",
         }} />
       )}
 
@@ -132,21 +132,19 @@ function VideoPlayer({ url }: { url: string }) {
         >
           <div style={{ textAlign: "center", position: "relative" }}>
             <div style={{
-              width: 84, height: 84, borderRadius: "50%",
-              background: hasVideo
-                ? "rgba(255,255,255,0.95)"
-                : "linear-gradient(135deg, #FFFFFF 0%, #F8F1E3 100%)",
+              width: 76, height: 76, borderRadius: "50%",
+              background: hasVideo ? "rgba(255,255,255,0.95)" : "#FFFFFF",
               display: "flex", alignItems: "center", justifyContent: "center",
               margin: "0 auto 16px",
               boxShadow: hasVideo
                 ? "0 12px 40px rgba(0,0,0,0.4)"
-                : "0 12px 36px rgba(139,111,61,0.25)",
-              border: hasVideo ? "none" : "1px solid rgba(194,168,120,0.5)",
+                : "0 10px 30px rgba(30,41,59,0.18)",
+              border: hasVideo ? "none" : "1px solid var(--gb-border, #E5E5E0)",
               transition: "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease",
             }} className={hasVideo ? "group-hover:scale-110 group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)]" : ""}>
-              <Play size={32} color={hasVideo ? "#1E293B" : "#8B6F3D"} fill={hasVideo ? "#1E293B" : "#8B6F3D"} style={{ marginLeft: 6 }} />
+              <Play size={30} color="#1E293B" fill="#1E293B" style={{ marginLeft: 5 }} />
             </div>
-            {!url && <span style={{ fontSize: 11, fontWeight: 700, color: "#8B6F3D", letterSpacing: "0.2em", textTransform: "uppercase" }}>Demo Coming Soon</span>}
+            {!url && <span style={{ fontSize: 11, fontWeight: 700, color: "#8A8A8A", letterSpacing: "0.18em", textTransform: "uppercase" }}>Demo Coming Soon</span>}
             {url && !embedSrc && <span style={{ fontSize: 11, fontWeight: 700, color: "#B4452F", letterSpacing: "0.12em", textTransform: "uppercase" }}>Unsupported URL</span>}
             {parsed.source === "drive" && !playing && (
               <span style={{ display: "block", fontSize: 11, color: "rgba(255,255,255,0.7)", marginTop: 8, letterSpacing: "0.06em" }}>
@@ -266,18 +264,18 @@ function PoolForm({ d, formVariant, poolType, submitLabel }: PoolFormProps) {
 
   if (status === "sent") return (
     <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} ref={successRef}>
-      <div style={{ textAlign: "center", padding: "64px 24px 48px", background: "#FFFFFF", borderRadius: 20, border: "1px solid #EAEAE4" }}>
-        <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(194,168,120,0.12)", border: "1px solid rgba(194,168,120,0.25)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" }}>
-          <CheckCircle size={28} color="#8B6F3D" />
+      <div style={{ textAlign: "center", padding: "48px 24px 40px", background: "#FFFFFF", borderRadius: 16, border: "1px solid #E5E5E0" }}>
+        <div style={{ width: 60, height: 60, borderRadius: "50%", background: "rgba(30,41,59,0.06)", border: "1px solid rgba(30,41,59,0.12)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+          <CheckCircle size={26} color="#1E293B" />
         </div>
-        <h3 style={{ fontSize: 22, fontWeight: 800, color: "#0A0A0A", marginBottom: 12, letterSpacing: "-0.02em" }}>
+        <h3 style={{ fontSize: 22, fontWeight: 800, color: "#0A0A0A", marginBottom: 10, letterSpacing: "-0.02em" }}>
           {successMessages[formVariant] ?? "Submission received — thank you."}
         </h3>
-        <p style={{ fontSize: 16, color: "#5F5F5F", maxWidth: 420, margin: "0 auto", lineHeight: 1.6 }}>
+        <p style={{ fontSize: 15, color: "#5F5F5F", maxWidth: 420, margin: "0 auto", lineHeight: 1.65 }}>
           You're now part of the GrowitBuddy creator ecosystem. We'll reach out when new opportunities align with your craft.
         </p>
       </div>
-      <div style={{ marginTop: 24 }}>
+      <div style={{ marginTop: 20 }}>
         <EcosystemOptIn
           context={VARIANT_TO_CONTEXT[formVariant] ?? "freelancer"}
           prefillEmail={submittedEmail}
@@ -288,7 +286,7 @@ function PoolForm({ d, formVariant, poolType, submitLabel }: PoolFormProps) {
 
   return (
     <div ref={successRef} className="tp-form-container">
-      <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         <div className="tp-form-grid">
           {inp("Full Name", base.name, v => sb("name", v), "text", "Your full name")}
           {inp("Email Address", base.email, v => sb("email", v), "email", "you@example.com")}
@@ -301,7 +299,7 @@ function PoolForm({ d, formVariant, poolType, submitLabel }: PoolFormProps) {
             placeholder="Anything specific you'd like us to know about your work or availability..." rows={4}
             className="gb-input tp-input" style={{ resize: "vertical" }} />
         </div>
-        <div style={{ marginTop: 16, borderTop: "1px solid #EAEAE4", paddingTop: 32, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 20 }}>
+        <div style={{ marginTop: 8, borderTop: "1px solid #E5E5E0", paddingTop: 24, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 18 }}>
           <p style={{ fontSize: 13, color: "#8A8A8A", maxWidth: 380, lineHeight: 1.6 }}>
             Your details are kept private and only used to match you with relevant creative opportunities.
           </p>
@@ -333,131 +331,118 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
           --tp-card-bg: #FFFFFF;
           --tp-text: #0A0A0A;
           --tp-text-muted: #5F5F5F;
-          --tp-gold: #C2A878;
-          --tp-gold-dark: #8B6F3D;
           --tp-border: #E5E5E0;
           font-family: 'Inter', sans-serif;
         }
-        
-        .tp-container { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
-        .tp-container-sm { max-width: 840px; margin: 0 auto; padding: 0 40px; }
-        .tp-container-xs { max-width: 680px; margin: 0 auto; padding: 0 40px; }
-        
-        /* Typography */
+
+        .tp-container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+        .tp-container-sm { max-width: 820px; margin: 0 auto; padding: 0 24px; }
+        .tp-container-xs { max-width: 660px; margin: 0 auto; padding: 0 24px; }
+
+        /* Typography — site editorial scale */
         .tp-eyebrow {
-          display: inline-flex; align-items: center; gap: 10px;
-          padding: 8px 18px 8px 14px;
-          border: 1px solid rgba(194,168,120,0.4);
-          background: rgba(194,168,120,0.08);
-          border-radius: 100px;
-          font-size: 12px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
-          color: var(--tp-gold-dark);
-          margin-bottom: 32px;
-          backdrop-filter: blur(8px);
+          display: block;
+          font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
+          color: var(--tp-text-muted);
+          margin-bottom: 18px;
         }
-        .tp-eyebrow::before {
-          content: ""; width: 6px; height: 6px; border-radius: 50%;
-          background: var(--tp-gold); box-shadow: 0 0 0 3px rgba(194,168,120,0.2);
-        }
-        
+
         .tp-hero-h1 {
-          font-size: clamp(40px, 6vw, 76px);
-          font-weight: 800; line-height: 1.05; letter-spacing: -0.03em;
-          color: var(--tp-text); margin-bottom: 28px;
-          text-wrap: balance; -webkit-text-wrap: balance;
+          font-size: clamp(32px, 5vw, 60px);
+          font-weight: 800; line-height: 1.08; letter-spacing: -0.04em;
+          color: var(--tp-text); margin-bottom: 20px;
+          text-wrap: balance;
         }
-        
+
         .tp-hero-lead {
-          font-size: clamp(18px, 2vw, 22px); color: var(--tp-text-muted); line-height: 1.6;
-          max-width: 640px; margin: 0 auto 48px;
-          text-wrap: pretty; -webkit-text-wrap: pretty;
+          font-size: clamp(16px, 2vw, 19px); color: var(--tp-text-muted); line-height: 1.7;
+          max-width: 600px; margin: 0 auto 36px;
+          text-wrap: pretty;
+        }
+
+        .tp-section-label {
+          display: block; margin-bottom: 12px;
+          font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+          color: #8A8A8A;
         }
 
         .tp-section-h2 {
-          font-size: clamp(28px, 4vw, 48px);
+          font-size: clamp(24px, 3vw, 40px);
           font-weight: 800; color: var(--tp-text);
-          letter-spacing: -0.03em; line-height: 1.1;
-          margin-bottom: 16px;
+          letter-spacing: -0.03em; line-height: 1.15;
+          margin-bottom: 14px;
         }
 
         /* Sections */
         .tp-hero-section {
-          padding: 140px 0 80px;
+          padding: 116px 0 72px;
           position: relative;
-          background: linear-gradient(180deg, #FAF9F6 0%, var(--tp-bg) 100%);
+          background: #FFFFFF;
           border-bottom: 1px solid var(--tp-border);
           overflow: hidden;
         }
-        
+
         .tp-hero-glow {
           position: absolute; top: -20%; left: 50%; transform: translateX(-50%);
-          width: 80vw; height: 600px; pointer-events: none;
-          background: radial-gradient(ellipse at center, rgba(194,168,120,0.15) 0%, rgba(194,168,120,0) 60%);
+          width: 70vw; height: 520px; pointer-events: none;
+          background: radial-gradient(ellipse at center, rgba(30,41,59,0.04) 0%, rgba(30,41,59,0) 60%);
           z-index: 0;
         }
 
         /* Steps */
         .tp-steps-grid {
-          display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
-          margin-top: 64px;
+          display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
+          margin-top: 44px;
         }
         .tp-step-card {
           background: var(--tp-card-bg);
           border: 1px solid var(--tp-border);
-          border-radius: 20px;
-          padding: 32px 28px;
+          border-radius: 14px;
+          padding: 26px 24px;
           position: relative;
-          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-          overflow: hidden;
-          z-index: 1;
-        }
-        .tp-step-card::before {
-          content: ""; position: absolute; inset: 0;
-          background: linear-gradient(135deg, rgba(194,168,120,0.05) 0%, transparent 100%);
-          opacity: 0; transition: opacity 0.4s ease; z-index: -1;
+          transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.02);
         }
         .tp-step-card:hover {
-          transform: translateY(-6px);
-          border-color: rgba(194,168,120,0.4);
-          box-shadow: 0 20px 40px rgba(139,111,61,0.08);
+          transform: translateY(-4px);
+          border-color: #C8C8C0;
+          box-shadow: 0 12px 28px rgba(0,0,0,0.06);
         }
-        .tp-step-card:hover::before { opacity: 1; }
         .tp-step-num {
           font-family: 'Menlo', 'Space Mono', monospace;
-          font-size: 13px; font-weight: 700; color: var(--tp-gold-dark);
+          font-size: 12px; font-weight: 700; color: var(--gb-authority);
           letter-spacing: 0.1em;
           display: flex; align-items: center; gap: 12px;
-          margin-bottom: 24px;
+          margin-bottom: 20px;
         }
         .tp-step-num::after {
-          content: ""; flex: 1; height: 1px; background: rgba(194,168,120,0.3);
+          content: ""; flex: 1; height: 1px; background: var(--tp-border);
         }
 
         /* Resources */
         .tp-res-grid {
-          display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;
-          margin-top: 48px;
+          display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+          margin-top: 40px;
         }
         .tp-res-card {
           background: var(--tp-card-bg);
           border: 1px solid var(--tp-border);
-          border-radius: 20px;
-          padding: 28px;
-          display: flex; align-items: flex-start; justify-content: space-between; gap: 24px;
-          transition: all 0.3s ease;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+          border-radius: 14px;
+          padding: 24px;
+          display: flex; align-items: flex-start; justify-content: space-between; gap: 20px;
+          transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.02);
         }
         .tp-res-card:hover {
-          transform: translateY(-4px);
-          border-color: var(--tp-gold);
-          box-shadow: 0 16px 32px rgba(139,111,61,0.08);
+          transform: translateY(-3px);
+          border-color: #C8C8C0;
+          box-shadow: 0 12px 28px rgba(0,0,0,0.06);
         }
         .tp-res-btn {
           display: inline-flex; align-items: center; gap: 8px;
-          padding: 10px 18px; border-radius: 100px;
+          padding: 9px 16px; border-radius: 8px;
           font-size: 13px; font-weight: 600;
-          background: #F8F8F6; color: var(--tp-text);
+          background: var(--tp-bg); color: var(--tp-text);
           border: 1px solid var(--tp-border);
           text-decoration: none; transition: all 0.2s ease;
           white-space: nowrap; flex-shrink: 0;
@@ -470,20 +455,20 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
         .tp-form-wrapper {
           background: var(--tp-card-bg);
           border: 1px solid var(--tp-border);
-          border-radius: 24px;
-          padding: clamp(32px, 6vw, 64px);
-          box-shadow: 0 8px 30px rgba(0,0,0,0.04), 0 40px 80px rgba(139,111,61,0.06);
+          border-radius: 16px;
+          padding: clamp(28px, 5vw, 48px);
+          box-shadow: 0 8px 30px rgba(0,0,0,0.04);
           position: relative;
         }
         .tp-form-grid {
-          display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+          display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
         }
         .tp-input-wrap {
-          display: flex; flexDirection: column; gap: 8px;
+          display: flex; flex-direction: column; gap: 8px;
         }
         .tp-label {
           font-size: 12px; font-weight: 700; color: #4A4A4A;
-          letter-spacing: 0.08em; text-transform: uppercase;
+          letter-spacing: 0.06em; text-transform: uppercase;
         }
         .tp-label-opt {
           font-weight: 400; color: #8A8A8A; text-transform: none; letter-spacing: 0;
@@ -491,19 +476,18 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
         .tp-input {
           background: #FDFDFB !important;
           border: 1.5px solid #E5E5E0 !important;
-          padding: 14px 18px !important;
+          padding: 13px 16px !important;
           font-size: 15px !important;
-          border-radius: 12px !important;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.02) !important;
+          border-radius: 8px !important;
           transition: all 0.2s ease !important;
         }
         .tp-input:focus {
           background: #FFFFFF !important;
           border-color: var(--gb-accent) !important;
-          box-shadow: 0 0 0 4px rgba(30,41,59,0.08) !important;
+          box-shadow: 0 0 0 3px rgba(30,41,59,0.08) !important;
         }
         .tp-submit-btn {
-          font-size: 16px !important; padding: 16px 36px !important; border-radius: 100px !important;
+          font-size: 15px !important; padding: 14px 30px !important; border-radius: 100px !important;
         }
 
         @media (max-width: 960px) {
@@ -511,8 +495,7 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
           .tp-res-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 768px) {
-          .tp-container, .tp-container-sm, .tp-container-xs { padding: 0 24px; }
-          .tp-hero-section { padding: 100px 0 60px; }
+          .tp-hero-section { padding: 96px 0 56px; }
         }
         @media (max-width: 600px) {
           .tp-steps-grid { grid-template-columns: 1fr; }
@@ -528,27 +511,27 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
         <section className="tp-hero-section">
           <div className="tp-hero-glow" />
           <div className="tp-container" style={{ position: "relative", zIndex: 10 }}>
-            <div style={{ textAlign: "center", maxWidth: 880, margin: "0 auto" }}>
+            <div style={{ textAlign: "center", maxWidth: 820, margin: "0 auto" }}>
               <motion.div {...FI(0.1)}>
                 <span className="tp-eyebrow">{d.eyebrow}</span>
               </motion.div>
               <motion.h1 {...FI(0.2)} className="tp-hero-h1">{d.headline}</motion.h1>
               <motion.p {...FI(0.3)} className="tp-hero-lead">{d.description}</motion.p>
-              
-              <motion.div {...FI(0.4)} style={{ display: "flex", gap: 16, flexWrap: "wrap", justifyContent: "center", marginBottom: 64 }}>
-                <a href="#submit" className="gb-btn" style={{ fontSize: 16, padding: "16px 36px" }}>
-                  {d.ctaPrimary} <ArrowRight size={18} />
+
+              <motion.div {...FI(0.4)} style={{ display: "flex", gap: 14, flexWrap: "wrap", justifyContent: "center", marginBottom: 48 }}>
+                <a href="#submit" className="gb-btn">
+                  {d.ctaPrimary} <ArrowRight size={16} />
                 </a>
-                <a href="#resources" className="gb-btn-outline" style={{ fontSize: 16, padding: "16px 36px", background: "#FFFFFF" }}>
+                <a href="#resources" className="gb-btn-outline" style={{ background: "#FFFFFF" }}>
                   {d.ctaSecondary}
                 </a>
               </motion.div>
             </div>
 
-            <motion.div {...FI(0.5)} style={{ maxWidth: 960, margin: "0 auto" }}>
+            <motion.div {...FI(0.5)} style={{ maxWidth: 900, margin: "0 auto" }}>
               <VideoPlayer url={d.videoUrl} />
               {d.heroTrustText && (
-                <div style={{ textAlign: "center", marginTop: 32 }}>
+                <div style={{ textAlign: "center", marginTop: 24 }}>
                   <p style={{ fontSize: 14, color: "#8A8A8A", fontWeight: 500, letterSpacing: "0.02em" }}>
                     {d.heroTrustText}
                   </p>
@@ -559,15 +542,13 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
         </section>
 
         {/* ─── 02 HOW IT WORKS ─────────────────────────────── */}
-        <section style={{ padding: "120px 0", background: "#FFFFFF", position: "relative" }}>
+        <section style={{ padding: "80px 0", background: "#FFFFFF", position: "relative" }}>
           <div className="tp-container">
             <motion.div {...FI()} style={{ maxWidth: 600 }}>
-              <span style={{ color: "var(--tp-gold-dark)", fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", display: "block", marginBottom: 12 }}>
-                The Process
-              </span>
+              <span className="tp-section-label">The Process</span>
               <h2 className="tp-section-h2">{d.stepsTitle}</h2>
               {d.opportunityText && (
-                <p style={{ fontSize: 18, color: "var(--tp-text-muted)", lineHeight: 1.6, marginTop: 16 }}>
+                <p style={{ fontSize: 17, color: "var(--tp-text-muted)", lineHeight: 1.6, marginTop: 14 }}>
                   {d.opportunityText}
                 </p>
               )}
@@ -575,12 +556,12 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
 
             <div className="tp-steps-grid">
               {(d.steps || []).map((step, i) => (
-                <motion.div key={i} {...FI(0.1 + i * 0.1)} className="tp-step-card">
+                <motion.div key={i} {...FI(0.1 + i * 0.08)} className="tp-step-card">
                   <div className="tp-step-num">{step.number}</div>
-                  <h3 style={{ fontSize: 18, fontWeight: 800, color: "var(--tp-text)", marginBottom: 12, letterSpacing: "-0.01em" }}>
+                  <h3 style={{ fontSize: 17, fontWeight: 800, color: "var(--tp-text)", marginBottom: 10, letterSpacing: "-0.01em" }}>
                     {step.title}
                   </h3>
-                  <p style={{ fontSize: 15, color: "var(--tp-text-muted)", lineHeight: 1.6 }}>
+                  <p style={{ fontSize: 14, color: "var(--tp-text-muted)", lineHeight: 1.6 }}>
                     {step.desc}
                   </p>
                 </motion.div>
@@ -590,14 +571,12 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
         </section>
 
         {/* ─── 03 RESOURCES ────────────────────────────────── */}
-        <section id="resources" style={{ padding: "120px 0", background: "linear-gradient(180deg, var(--tp-bg) 0%, #FFFFFF 100%)", borderTop: "1px solid var(--tp-border)" }}>
+        <section id="resources" style={{ padding: "80px 0", background: "var(--tp-bg)", borderTop: "1px solid var(--tp-border)" }}>
           <div className="tp-container-sm">
-            <motion.div {...FI()} style={{ textAlign: "center", marginBottom: 64 }}>
-              <span style={{ color: "var(--tp-gold-dark)", fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", display: "block", marginBottom: 12 }}>
-                Toolkit
-              </span>
+            <motion.div {...FI()} style={{ textAlign: "center", marginBottom: 12 }}>
+              <span className="tp-section-label">Toolkit</span>
               <h2 className="tp-section-h2">{d.resourcesTitle}</h2>
-              <p style={{ fontSize: 18, color: "var(--tp-text-muted)", lineHeight: 1.6, maxWidth: 600, margin: "16px auto 0" }}>
+              <p style={{ fontSize: 17, color: "var(--tp-text-muted)", lineHeight: 1.6, maxWidth: 560, margin: "14px auto 0" }}>
                 {d.resourcesSubtext}
               </p>
             </motion.div>
@@ -608,9 +587,9 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
                 const link = r.link || fallback?.link || "";
                 const btnLabel = r.btnLabel || fallback?.btnLabel || "Open";
                 return (
-                  <motion.div key={r.id} {...FI(0.1 + i * 0.1)} className="tp-res-card">
-                    <div style={{ flex: 1 }}>
-                      <h3 style={{ fontSize: 17, fontWeight: 800, color: "var(--tp-text)", marginBottom: 8, letterSpacing: "-0.01em" }}>
+                  <motion.div key={r.id} {...FI(0.08 + i * 0.08)} className="tp-res-card">
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <h3 style={{ fontSize: 16, fontWeight: 800, color: "var(--tp-text)", marginBottom: 6, letterSpacing: "-0.01em" }}>
                         {r.title}
                       </h3>
                       <p style={{ fontSize: 14, color: "var(--tp-text-muted)", lineHeight: 1.6 }}>
@@ -619,10 +598,10 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
                     </div>
                     {link ? (
                       <a href={link} target="_blank" rel="noopener noreferrer" className="tp-res-btn">
-                        {btnLabel} <ArrowUpRight size={16} style={{ opacity: 0.6 }} />
+                        {btnLabel} <ArrowUpRight size={15} style={{ opacity: 0.6 }} />
                       </a>
                     ) : (
-                      <span style={{ padding: "8px 16px", background: "rgba(194,168,120,0.1)", color: "var(--tp-gold-dark)", borderRadius: 100, fontSize: 12, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                      <span style={{ padding: "7px 14px", background: "rgba(30,41,59,0.06)", color: "var(--gb-authority)", borderRadius: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}>
                         Soon
                       </span>
                     )}
@@ -634,24 +613,21 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
         </section>
 
         {/* ─── 04 SUBMISSION FORM ──────────────────────────── */}
-        <section id="submit" style={{ padding: "120px 0", background: "linear-gradient(180deg, #FFFFFF 0%, #FAF9F6 100%)", position: "relative" }}>
-          {/* Decorative background element */}
-          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "50%", background: "linear-gradient(180deg, rgba(194,168,120,0.03) 0%, transparent 100%)", pointerEvents: "none" }} />
-          
-          <div className="tp-container-xs" style={{ position: "relative" }}>
-            <motion.div {...FI()} style={{ textAlign: "center", marginBottom: 48 }}>
-              <h2 className="tp-section-h2" style={{ fontSize: "clamp(32px, 5vw, 56px)" }}>{d.formTitle}</h2>
-              <p style={{ fontSize: 18, color: "var(--tp-text-muted)", lineHeight: 1.6 }}>
+        <section id="submit" style={{ padding: "80px 0", background: "#FFFFFF", borderTop: "1px solid var(--tp-border)" }}>
+          <div className="tp-container-xs">
+            <motion.div {...FI()} style={{ textAlign: "center", marginBottom: 36 }}>
+              <h2 className="tp-section-h2">{d.formTitle}</h2>
+              <p style={{ fontSize: 17, color: "var(--tp-text-muted)", lineHeight: 1.6 }}>
                 {d.formSubtext}
               </p>
             </motion.div>
 
-            <motion.div {...FI(0.2)} className="tp-form-wrapper">
+            <motion.div {...FI(0.15)} className="tp-form-wrapper">
               <PoolForm d={d} formVariant={config.formVariant} poolType={config.poolType} submitLabel={d.ctaPrimary} />
             </motion.div>
 
             {d.formDisclaimer && (
-              <motion.p {...FI(0.3)} style={{ fontSize: 14, color: "#8A8A8A", textAlign: "center", marginTop: 32, lineHeight: 1.6, maxWidth: 500, margin: "32px auto 0" }}>
+              <motion.p {...FI(0.2)} style={{ fontSize: 13, color: "#8A8A8A", textAlign: "center", lineHeight: 1.6, maxWidth: 500, margin: "24px auto 0" }}>
                 {d.formDisclaimer}
               </motion.p>
             )}
@@ -659,24 +635,22 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
         </section>
 
         {/* ─── 05 FINAL CTA ────────────────────────────────── */}
-        <section style={{ padding: "140px 0", background: "var(--gb-accent)", position: "relative", overflow: "hidden" }}>
-          {/* Deep elegant background with gold hints */}
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at top right, rgba(194,168,120,0.15) 0%, transparent 60%)" }} />
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at bottom left, rgba(194,168,120,0.08) 0%, transparent 50%)" }} />
-          
+        <section style={{ padding: "96px 0", background: "var(--gb-accent)", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at top right, rgba(255,255,255,0.06) 0%, transparent 60%)" }} />
+
           <div className="tp-container-sm" style={{ position: "relative", textAlign: "center" }}>
             <motion.div {...FI()}>
-              <span style={{ display: "inline-block", color: "var(--tp-gold)", fontSize: 13, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 24 }}>
+              <span style={{ display: "inline-block", color: "var(--gb-gold)", fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 18 }}>
                 Join the Network
               </span>
-              <h2 style={{ fontSize: "clamp(36px, 5vw, 64px)", fontWeight: 800, color: "#FFFFFF", letterSpacing: "-0.02em", marginBottom: 24, lineHeight: 1.1 }}>
+              <h2 style={{ fontSize: "clamp(28px, 4vw, 48px)", fontWeight: 800, color: "#FFFFFF", letterSpacing: "-0.03em", marginBottom: 18, lineHeight: 1.12 }}>
                 {d.finalHeadline}
               </h2>
-              <p style={{ fontSize: 20, color: "rgba(255,255,255,0.7)", lineHeight: 1.6, maxWidth: 540, margin: "0 auto 48px" }}>
+              <p style={{ fontSize: 18, color: "rgba(255,255,255,0.7)", lineHeight: 1.6, maxWidth: 520, margin: "0 auto 36px" }}>
                 {d.finalSubtext}
               </p>
-              <a href="#submit" className="gb-btn" style={{ background: "#FFFFFF", color: "var(--gb-accent)", fontSize: 16, padding: "18px 40px" }}>
-                {d.finalCtaPrimary} <ArrowRight size={18} />
+              <a href="#submit" className="gb-btn" style={{ background: "#FFFFFF", color: "var(--gb-accent)" }}>
+                {d.finalCtaPrimary} <ArrowRight size={16} />
               </a>
             </motion.div>
           </div>
