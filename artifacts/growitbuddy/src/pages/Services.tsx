@@ -105,8 +105,8 @@ export default function Services() {
         }
         .svc-card.dark {
           background-image: var(--gb-grain), linear-gradient(165deg, #243246 0%, #1B2636 100%);
-          background-size: 150px 150px, cover;
-          background-repeat: repeat, no-repeat;
+          background-size: 150px 150px, 150px 150px, cover;
+          background-repeat: repeat, repeat, no-repeat;
           border-color: rgba(255,255,255,0.08);
           box-shadow: 0 8px 30px -12px rgba(10,15,25,0.5);
         }
