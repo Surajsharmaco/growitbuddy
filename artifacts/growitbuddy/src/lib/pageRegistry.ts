@@ -23,7 +23,7 @@ export interface PageRegistryEntry {
 
 export const PAGE_REGISTRY: PageRegistryEntry[] = [
   // Core
-  { slug: "home",             path: "/",                 label: "Home",                group: "Core",     defaults: { title: "GrowitBuddy — Premium Creator Agency",                              description: "We help creators and brands grow with content, distribution, and authority systems." } },
+  { slug: "home",             path: "/",                 label: "Home",                group: "Core",     defaults: { title: "GrowitBuddy - Personal Branding, Content & Distribution Studio",     description: "Personal branding, content creation, and video editing for founders, creators, and building their online distribution, Authority & Inbound Leads" } },
   { slug: "about",            path: "/about",            label: "About",               group: "Core",     defaults: { title: "About GrowitBuddy",                                                 description: "Learn about the GrowitBuddy team, mission, and how we help creators scale." } },
   { slug: "contact",          path: "/contact",          label: "Contact",             group: "Core",     defaults: { title: "Contact GrowitBuddy",                                               description: "Get in touch with the GrowitBuddy team." } },
   { slug: "insights",         path: "/blog",         label: "Insights / Blog",     group: "Core",     defaults: { title: "GrowitBuddy Insights",                                              description: "Strategies, frameworks, and lessons from running a modern creator agency." } },

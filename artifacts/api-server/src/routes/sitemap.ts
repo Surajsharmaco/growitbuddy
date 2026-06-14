@@ -20,7 +20,7 @@ const REGISTERED_PAGES: RegisteredPage[] = [
   { slug: "home",                  path: "/",                       priority: 1.0, changefreq: "weekly"  },
   { slug: "about",                 path: "/about",                  priority: 0.7, changefreq: "monthly" },
   { slug: "contact",               path: "/contact",                priority: 0.7, changefreq: "monthly" },
-  { slug: "insights",              path: "/insights",               priority: 0.8, changefreq: "weekly"  },
+  { slug: "insights",              path: "/blog",                   priority: 0.8, changefreq: "weekly"  },
   { slug: "services",              path: "/services",               priority: 0.9, changefreq: "monthly" },
   { slug: "work",                  path: "/work",                   priority: 0.8, changefreq: "monthly" },
   { slug: "framework",             path: "/framework",              priority: 0.7, changefreq: "monthly" },

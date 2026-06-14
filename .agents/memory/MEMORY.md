@@ -1,0 +1,1 @@
+- [GrowitBuddy SEO architecture](growitbuddy-seo.md) — SPA injects per-page SEO client-side from DB with pageRegistry fallback; index.html alone is not enough.
