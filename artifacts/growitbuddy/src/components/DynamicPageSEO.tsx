@@ -152,6 +152,21 @@ export default function DynamicPageSEO() {
     if (!entry) return;
     let cancelled = false;
 
+    // Server-injected bootstrap for THIS page (written into the HTML by the
+    // Vercel SSR renderer in api/render.ts). Used as the fallback base so a
+    // failed client fetch can never downgrade correct server-rendered meta
+    // back to bare registry defaults.
+    const w = window as unknown as {
+      __GB_SEO__?: { slug?: string; data?: PageSEOData; globalIndexable?: boolean };
+    };
+    const bootSeo =
+      typeof window !== "undefined" && w.__GB_SEO__ && w.__GB_SEO__.slug === entry.slug
+        ? w.__GB_SEO__
+        : null;
+    const boot: PageSEOData = bootSeo?.data ?? {};
+    const bootGlobal: boolean =
+      bootSeo && typeof bootSeo.globalIndexable === "boolean" ? bootSeo.globalIndexable : true;
+
     async function loadGlobalIndexable(): Promise<boolean> {
       try {
         const ctrl = new AbortController();
@@ -160,10 +175,10 @@ export default function DynamicPageSEO() {
           `${API_BASE}/admin/public/content/seo-global?t=${Date.now()}`,
           { cache: "no-store", signal: ctrl.signal },
         );
-        if (!r.ok) return true;
+        if (!r.ok) return bootGlobal;
         const body = (await r.json()) as { data: { siteIndexable?: boolean } | null };
         return body?.data?.siteIndexable !== false;
-      } catch { return true; }
+      } catch { return bootGlobal; }
     }
 
     async function load() {
@@ -177,12 +192,12 @@ export default function DynamicPageSEO() {
         ]);
         clearTimeout(timer);
         if (cancelled || myId !== loadId) return;
-        if (!r.ok) { applySEO(entry!, {}, location, globalIndexable); return; }
+        if (!r.ok) { applySEO(entry!, boot, location, globalIndexable); return; }
         const body = (await r.json()) as { data: PageSEOData | null };
         if (cancelled || myId !== loadId) return;
-        applySEO(entry!, body.data ?? {}, location, globalIndexable);
+        applySEO(entry!, body.data ?? boot, location, globalIndexable);
       } catch {
-        if (!cancelled && myId === loadId) applySEO(entry!, {}, location, true);
+        if (!cancelled && myId === loadId) applySEO(entry!, boot, location, bootGlobal);
       }
     }
 

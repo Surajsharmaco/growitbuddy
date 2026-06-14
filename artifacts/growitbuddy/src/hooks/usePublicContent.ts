@@ -8,6 +8,22 @@ const cache = new Map<string, object>();
 // Dedup: if a fetch for a section is already in-flight, reuse the same promise
 const inFlight = new Map<string, Promise<object | null>>();
 
+// Seed the cache from the server-injected bootstrap (window.__GB_PUBLIC_CONTENT__,
+// written by the Vercel SSR renderer in api/render.ts). This makes the very
+// first render use CURRENT content with no network wait — eliminating the
+// content flash and letting crawlers' JS render see real data immediately.
+try {
+  const boot = (globalThis as { __GB_PUBLIC_CONTENT__?: Record<string, unknown> })
+    .__GB_PUBLIC_CONTENT__;
+  if (boot && typeof boot === "object") {
+    for (const [section, value] of Object.entries(boot)) {
+      if (value && typeof value === "object") cache.set(section, value as object);
+    }
+  }
+} catch {
+  /* no bootstrap (local dev or fallback shell) — non-fatal */
+}
+
 // localStorage key used by the admin to signal "I just saved this section,
 // public tabs should refetch". The value is `${section}|${timestamp}` —
 // section may itself contain ":" (e.g. "seo:home"), so we use "|" as the
