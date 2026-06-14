@@ -616,16 +616,19 @@ export default function Home() {
                 title: "Founders",
                 problem: "Expertise that stays invisible",
                 outcome: "A personal brand that generates inbound leads, speaking invites, and partnerships without cold outreach.",
+                grad: "radial-gradient(130% 120% at 18% 8%, #F8F0E1 0%, rgba(248,240,225,0) 55%), radial-gradient(130% 130% at 92% 95%, #EAD3A9 0%, rgba(234,211,169,0) 62%), linear-gradient(140deg, #FBF6EC 0%, #F0E1C6 100%)",
               },
               {
                 title: "Creators",
                 problem: "Content without a distribution system",
                 outcome: "A monetizable audience built on a content system designed for compounding long-term growth.",
+                grad: "radial-gradient(130% 120% at 15% 12%, #ECEFF5 0%, rgba(236,239,245,0) 55%), radial-gradient(130% 130% at 88% 92%, #C8D4E6 0%, rgba(200,212,230,0) 62%), linear-gradient(140deg, #F3F6FA 0%, #DAE2EF 100%)",
               },
               {
                 title: "Agencies",
                 problem: "Content output that doesn't scale",
                 outcome: "A white-label or collaborative content and distribution engine - without building an in-house team.",
+                grad: "radial-gradient(130% 120% at 20% 10%, #F0F2E6 0%, rgba(240,242,230,0) 55%), radial-gradient(130% 130% at 90% 90%, #D4DCBC 0%, rgba(212,220,188,0) 62%), linear-gradient(140deg, #F5F6ED 0%, #E0E6CC 100%)",
               },
               {
                 title: "Ecommerce Brands",
