@@ -50,3 +50,24 @@ Only two ways to get the redesign onto GitHub:
 
 **Why:** force-pushing without preserving the 3 fixes would regress the live SEO/cursor
 fixes. The user must choose preserve-and-merge vs overwrite.
+
+## UPDATE (2026-06-14): local already supersedes the 3 commits — overwrite is safe
+Verified local main ALREADY contains every functional change from the 3 GitHub commits:
+custom cursor removed (App.tsx/index.css), new SEO title "GrowitBuddy - Personal Branding,
+Content & Distribution Studio" in index.html, "250+" in servicesDefaults.ts,
+`growitbuddy-api.onrender.com` in api.ts comment + AdminSEO.tsx, and the 8s AbortController
+fetch timeouts in DynamicPageSEO.tsx. The ONLY GitHub-unique file is `MIGRATION_NOTES.md`
+(throwaway). So a plain force-overwrite of GitHub main with local loses no functional work.
+User (site owner) explicitly approved the overwrite.
+
+## Force-push is blocked in the main agent env — must use a Project Task executor
+- `git push --force-with-lease` (bare): rejected "stale info" because the local tracking ref
+  `origin/main` is stale and can't be refreshed (fetch is blocked).
+- `git push --force-with-lease=main:<remoteSHA>` (pinned, the safe variant): BLOCKED by the
+  Replit guard because it writes `.git/refs/remotes/origin/main.lock` ("Destructive git
+  operations are not allowed in the main agent").
+- Plain non-ff `git push` reaches GitHub but is rejected by GitHub before any local ref write.
+- Conclusion: the main-agent guard blocks any push that mutates local objects/refs. The
+  force-push must be performed by the isolated Project Task executor (which has the relaxed
+  protections), pinning the expected remote SHA `4887562...`. Do NOT circumvent the guard
+  with an ad-hoc URL push.
