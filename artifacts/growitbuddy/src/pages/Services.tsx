@@ -103,24 +103,33 @@ export default function Services() {
           background: #1E293B;
           border-color: transparent;
         }
-        .svc-service-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 6px 12px;
-          border-radius: 100px;
-          font-size: 12px;
-          font-weight: 500;
-          color: #3A3A3A;
-          background: #F4F4F1;
-          border: 1px solid #EAEAE5;
-          line-height: 1;
-          white-space: nowrap;
+        .svc-feature-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          column-gap: 18px;
+          row-gap: 12px;
+          margin-bottom: 30px;
+          flex: 1;
+          align-content: start;
         }
-        .svc-service-pill.dark-pill {
-          background: rgba(255,255,255,0.07);
-          border-color: rgba(255,255,255,0.1);
-          color: rgba(255,255,255,0.65);
+        .svc-feature-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 9px;
+          font-size: 13px;
+          font-weight: 500;
+          line-height: 1.35;
+          letter-spacing: -0.005em;
+          color: #2C2C2C;
+        }
+        .svc-feature-item.dark { color: rgba(255,255,255,0.85); }
+        .svc-feature-item .svc-dot {
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          background: #C2A878;
+          flex-shrink: 0;
+          margin-top: 6px;
         }
         @media (max-width: 900px) {
           .svc-hero-grid { grid-template-columns: 1fr; gap: 36px; }
@@ -144,9 +153,8 @@ export default function Services() {
           .svc-what-section { padding-top: 60px !important; padding-bottom: 64px !important; }
           .svc-what-header { margin-bottom: 32px !important; }
           .svc-card { padding: 22px 18px 20px !important; }
-          .svc-card-pills { margin-bottom: 18px !important; }
-          .svc-service-pill { font-size: 11px !important; padding: 5px 10px !important; }
-          .svc-service-pill.dark-pill { font-size: 11px !important; padding: 5px 10px !important; }
+          .svc-feature-grid { margin-bottom: 22px !important; column-gap: 14px !important; row-gap: 11px !important; }
+          .svc-feature-item { font-size: 12.5px !important; }
           .svc-flow-section { padding-top: 64px !important; padding-bottom: 72px !important; }
           .svc-flow-header { margin-bottom: 44px !important; }
           .svc-cta-section { padding-top: 64px !important; padding-bottom: 64px !important; }
@@ -424,10 +432,11 @@ export default function Services() {
                     {s.description}
                   </p>
 
-                  {/* Service pills */}
-                  <div className="svc-card-pills" style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 32, flex: 1 }}>
+                  {/* Service points */}
+                  <div className="svc-feature-grid">
                     {(s.features || []).map((f, fi) => (
-                      <span key={fi} className={`svc-service-pill${isDark ? " dark-pill" : ""}`}>
+                      <span key={fi} className={`svc-feature-item${isDark ? " dark" : ""}`}>
+                        <span className="svc-dot" />
                         {f}
                       </span>
                     ))}
