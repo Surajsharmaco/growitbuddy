@@ -43,6 +43,7 @@ const navGroups: NavGroup[] = [
     label: "Network & Hiring",
     items: [
       { label: "Influencers", path: "/admin/influencers", icon: <Users size={15} />, permission: "influencers" },
+      { label: "Influencer Explore", path: "/admin/influencer-explore", icon: <UserPlus size={15} />, permission: "influencer-explore" },
       { label: "Distribution Network", path: "/admin/distribution-network", icon: <Share2 size={15} />, permission: "distribution-network" },
       { label: "Distribution Pages", path: "/admin/distribution-pages", icon: <Network size={15} />, permission: "distribution-pages" },
       { label: "Authority Audit", path: "/admin/authority-audit", icon: <Scan size={15} />, permission: "authority-audit" },
