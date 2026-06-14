@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
-import { ImagePickerField } from "@/components/admin/ImagePickerField";
 import { Plus, Trash2, Lock } from "lucide-react";
 
 import { HOME_DEFAULTS as DEFAULTS, type HomeData } from "@/lib/homeDefaults";
@@ -113,37 +112,6 @@ export default function AdminHome() {
           </div>
         </Card>
 
-        {/* ── Solution ── */}
-        <Card>
-          <SectionTitle>Solution / Comparison</SectionTitle>
-          <div className="space-y-3">
-            <Input label="Section label" value={data.solutionLabel} onChange={(e) => set("solutionLabel", e.target.value)} />
-            <Input label="Headline" value={data.solutionHeadline} onChange={(e) => set("solutionHeadline", e.target.value)} />
-            <div className="grid grid-cols-2 gap-3 mt-2">
-              <div className="space-y-2">
-                <Input label="Before column label" value={data.solutionBeforeLabel} onChange={(e) => set("solutionBeforeLabel", e.target.value)} />
-                {data.solutionBefore.map((item, i) => (
-                  <div key={i} className="flex gap-1 items-center">
-                    <Input value={item} onChange={(e) => { const s = [...data.solutionBefore]; s[i] = e.target.value; set("solutionBefore", s); }} placeholder="Before item" />
-                    <button onClick={() => set("solutionBefore", data.solutionBefore.filter((_, si) => si !== i))} className="p-1.5 text-[#0B0B0B]/25 hover:text-red-500 shrink-0"><Trash2 size={13} /></button>
-                  </div>
-                ))}
-                <button onClick={() => set("solutionBefore", [...data.solutionBefore, ""])} className="text-[12px] text-[#0B0B0B]/40 hover:text-[#0B0B0B] flex items-center gap-1"><Plus size={12} /> Add item</button>
-              </div>
-              <div className="space-y-2">
-                <Input label="After column label" value={data.solutionAfterLabel} onChange={(e) => set("solutionAfterLabel", e.target.value)} />
-                {data.solutionAfter.map((item, i) => (
-                  <div key={i} className="flex gap-1 items-center">
-                    <Input value={item} onChange={(e) => { const s = [...data.solutionAfter]; s[i] = e.target.value; set("solutionAfter", s); }} placeholder="After item" />
-                    <button onClick={() => set("solutionAfter", data.solutionAfter.filter((_, si) => si !== i))} className="p-1.5 text-[#0B0B0B]/25 hover:text-red-500 shrink-0"><Trash2 size={13} /></button>
-                  </div>
-                ))}
-                <button onClick={() => set("solutionAfter", [...data.solutionAfter, ""])} className="text-[12px] text-[#0B0B0B]/40 hover:text-[#0B0B0B] flex items-center gap-1"><Plus size={12} /> Add item</button>
-              </div>
-            </div>
-          </div>
-        </Card>
-
         {/* ── Services ── */}
         <Card>
           <SectionTitle>Services</SectionTitle>
@@ -229,33 +197,6 @@ export default function AdminHome() {
           </div>
         </Card>
 
-        {/* ── Process ── */}
-        <Card>
-          <SectionTitle>Process Section</SectionTitle>
-          <div className="space-y-3">
-            <div className="flex gap-2">
-              <Input label="Section label" value={data.processLabel} onChange={(e) => set("processLabel", e.target.value)} />
-            </div>
-            <Input label="Headline" value={data.processHeadline} onChange={(e) => set("processHeadline", e.target.value)} />
-            <div className="space-y-3 mt-2">
-              {data.processSteps.map((step, i) => (
-                <div key={i} className="border border-[#0B0B0B]/8 rounded-xl p-4 space-y-2">
-                  <div className="flex justify-between items-start">
-                    <span className="text-[11px] font-semibold text-[#0B0B0B]/40 uppercase tracking-wider">Step {i + 1}</span>
-                    <button onClick={() => set("processSteps", data.processSteps.filter((_, si) => si !== i))} className="text-[#0B0B0B]/25 hover:text-red-500"><Trash2 size={13} /></button>
-                  </div>
-                  <div className="flex gap-2">
-                    <Input value={step.num} onChange={(e) => { const ps = [...data.processSteps]; ps[i] = { ...step, num: e.target.value }; set("processSteps", ps); }} placeholder="01" />
-                    <Input value={step.title} onChange={(e) => { const ps = [...data.processSteps]; ps[i] = { ...step, title: e.target.value }; set("processSteps", ps); }} placeholder="Title" />
-                  </div>
-                  <Textarea value={step.desc} onChange={(e) => { const ps = [...data.processSteps]; ps[i] = { ...step, desc: e.target.value }; set("processSteps", ps); }} rows={2} placeholder="Description" />
-                </div>
-              ))}
-              <button onClick={() => set("processSteps", [...data.processSteps, { num: String(data.processSteps.length + 1).padStart(2, "0"), title: "", desc: "" }])} className="text-[12px] text-[#0B0B0B]/40 hover:text-[#0B0B0B] flex items-center gap-1"><Plus size={12} /> Add step</button>
-            </div>
-          </div>
-        </Card>
-
         {/* ── Ecosystem ── */}
         <Card>
           <SectionTitle>Ecosystem Section</SectionTitle>
@@ -279,44 +220,6 @@ export default function AdminHome() {
                 <Textarea label="Description" value={data.ecosystemFreelancerDesc} onChange={(e) => set("ecosystemFreelancerDesc", e.target.value)} rows={2} />
                 <Input label="CTA" value={data.ecosystemFreelancerCTA} onChange={(e) => set("ecosystemFreelancerCTA", e.target.value)} />
               </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* ── Authority Audit ── */}
-        <Card>
-          <SectionTitle>Authority Audit Promo</SectionTitle>
-          <div className="space-y-3">
-            <Input label="Section label" value={data.auditLabel} onChange={(e) => set("auditLabel", e.target.value)} />
-            <Input label="Headline" value={data.auditHeadline} onChange={(e) => set("auditHeadline", e.target.value)} />
-            <Textarea label="Subtext" value={data.auditSubtext} onChange={(e) => set("auditSubtext", e.target.value)} rows={2} />
-            <Input label="CTA button" value={data.auditCTA} onChange={(e) => set("auditCTA", e.target.value)} />
-          </div>
-        </Card>
-
-        {/* ── Founder ── */}
-        <Card>
-          <SectionTitle>Founder Section</SectionTitle>
-          <div className="space-y-3">
-            <div className="flex gap-2">
-              <Input label="Section label" value={data.founderLabel} onChange={(e) => set("founderLabel", e.target.value)} />
-              <Input label="Initials (fallback)" value={data.founderInitials} onChange={(e) => set("founderInitials", e.target.value)} hint="Shown when no photo is set" />
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-[#0B0B0B]/45 mb-2 uppercase tracking-widest">Founder Photo</label>
-              <ImagePickerField label="" value={data.founderPhoto} onChange={(url) => set("founderPhoto", url)} shape="square" size={72} hint="Recommended: 400 × 400 px (square) • JPG or PNG • Face centered" />
-            </div>
-            <Input label="Name" value={data.founderName} onChange={(e) => set("founderName", e.target.value)} />
-            <Textarea label="Quote" value={data.founderQuote} onChange={(e) => set("founderQuote", e.target.value)} rows={3} />
-            <div className="space-y-2">
-              <p className="text-[11px] font-semibold text-[#0B0B0B]/50 uppercase tracking-wider">Tags</p>
-              {data.founderTags.map((tag, i) => (
-                <div key={i} className="flex gap-1 items-center">
-                  <Input value={tag} onChange={(e) => { const t = [...data.founderTags]; t[i] = e.target.value; set("founderTags", t); }} placeholder="Tag" />
-                  <button onClick={() => set("founderTags", data.founderTags.filter((_, ti) => ti !== i))} className="p-1.5 text-[#0B0B0B]/25 hover:text-red-500 shrink-0"><Trash2 size={13} /></button>
-                </div>
-              ))}
-              <button onClick={() => set("founderTags", [...data.founderTags, ""])} className="text-[12px] text-[#0B0B0B]/40 hover:text-[#0B0B0B] flex items-center gap-1"><Plus size={12} /> Add tag</button>
             </div>
           </div>
         </Card>

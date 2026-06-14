@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight, Download, ExternalLink, FileText, FileType, BookOpen, Video, Database,
@@ -6,7 +6,10 @@ import {
 } from "lucide-react";
 import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
+import { API_BASE } from "@/lib/api";
 import { RESOURCES_DEFAULTS as DEFAULTS, type ResourcesData, type ResourceItem, type ResourceType } from "@/lib/resourcesDefaults";
+
+const UNLOCK_KEY = "gb_resources_unlocked";
 
 const SITE = "https://growitbuddy.com";
 
@@ -62,6 +65,29 @@ export default function Resources() {
   const [activeTag, setActiveTag] = useState<string>("All");
   const filtered = activeTag === "All" ? items : items.filter((it) => it.tag === activeTag);
   const featured = items.filter((it) => it.isFeatured);
+
+  // ── Email gate: gated resources require an email before access is granted.
+  // Once a visitor submits their email, all gated resources unlock (persisted).
+  const [unlocked, setUnlocked] = useState<boolean>(() => {
+    try { return localStorage.getItem(UNLOCK_KEY) === "1"; } catch { return false; }
+  });
+  const [gateItem, setGateItem] = useState<ResourceItem | null>(null);
+  const [gateUrl, setGateUrl] = useState<string | null>(null);
+  const openGate = (item: ResourceItem, targetUrl?: string) => {
+    setGateItem(item);
+    setGateUrl(targetUrl ?? null);
+  };
+  const closeGate = () => { setGateItem(null); setGateUrl(null); };
+  const handleUnlocked = (email: string) => {
+    try {
+      localStorage.setItem(UNLOCK_KEY, "1");
+      localStorage.setItem("gb_resources_email", email);
+    } catch { /* storage may be unavailable */ }
+    const target = gateUrl ?? gateItem?.link ?? null;
+    setUnlocked(true);
+    closeGate();
+    if (target) window.open(target, "_blank", "noopener,noreferrer");
+  };
 
   // ── JSON-LD graph: CollectionPage + ItemList + FAQPage + BreadcrumbList ────
   // Each resource emits a DigitalDocument node so AI/answer engines have rich,
@@ -233,7 +259,7 @@ export default function Resources() {
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
               {featured.map((item, i) => (
-                <FeaturedCard key={i} item={item} index={i} />
+                <FeaturedCard key={i} item={item} index={i} unlocked={unlocked} onLockedClick={openGate} />
               ))}
             </div>
           </div>
@@ -298,7 +324,7 @@ export default function Resources() {
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.04, duration: 0.45 }}
                   >
-                    <ResourceCard item={item} />
+                    <ResourceCard item={item} unlocked={unlocked} onLockedClick={openGate} />
                   </motion.div>
                 );
               })}
@@ -345,6 +371,105 @@ export default function Resources() {
           </div>
         </section>
       )}
+
+      {gateItem && (
+        <EmailGateModal item={gateItem} onClose={closeGate} onSuccess={handleUnlocked} />
+      )}
+    </div>
+  );
+}
+
+// ── Email gate modal — captures an email before a gated resource is revealed ──
+function EmailGateModal({ item, onClose, onSuccess }: { item: ResourceItem; onClose: () => void; onSuccess: (email: string) => void }) {
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    const trimmed = email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`${API_BASE}/forms/resource-unlock`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmed, resourceTitle: item.title, resourceType: item.type }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error || "Something went wrong. Please try again.");
+      }
+      onSuccess(trimmed);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 1000,
+        background: "rgba(10,10,10,0.55)", backdropFilter: "blur(3px)",
+        display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#FFFFFF", borderRadius: 18, padding: "30px 28px",
+          width: "100%", maxWidth: 420, border: "1.5px solid #E5E5E0",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+        }}
+      >
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#8A6A2E", background: "#FFF7E0", padding: "5px 12px", borderRadius: 100, marginBottom: 14 }}>
+          <Lock size={12} /> Email required
+        </div>
+        <h3 style={{ fontWeight: 800, fontSize: 20, letterSpacing: "-0.02em", color: "#0A0A0A", marginBottom: 8, lineHeight: 1.3 }}>
+          Get instant access
+        </h3>
+        <p style={{ fontSize: 14, color: "#5F5F5F", lineHeight: 1.6, marginBottom: 18 }}>
+          Enter your email to unlock <strong style={{ color: "#0A0A0A" }}>{item.title}</strong>. You will get instant access to this and all other gated resources.
+        </p>
+        <form onSubmit={submit}>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => { setEmail(e.target.value); if (error) setError(""); }}
+            placeholder="you@email.com"
+            autoFocus
+            style={{
+              width: "100%", boxSizing: "border-box", padding: "12px 14px", borderRadius: 10,
+              border: `1.5px solid ${error ? "#D9534F" : "#E5E5E0"}`, fontSize: 14, outline: "none", marginBottom: error ? 8 : 14,
+            }}
+          />
+          {error && (
+            <p style={{ fontSize: 12.5, color: "#D9534F", marginBottom: 14 }}>{error}</p>
+          )}
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: "100%", padding: "12px 16px", borderRadius: 100, border: "none",
+              background: "#0A0A0A", color: "#F8F8F6", fontSize: 13, fontWeight: 700,
+              cursor: loading ? "default" : "pointer", opacity: loading ? 0.7 : 1,
+              display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
+            }}
+          >
+            {loading ? "Unlocking..." : "Unlock resource"} {!loading && <ArrowRight size={14} />}
+          </button>
+        </form>
+        <p style={{ fontSize: 11, color: "#9A9AA5", textAlign: "center", marginTop: 12, lineHeight: 1.5 }}>
+          We will email you occasional resources. Unsubscribe anytime.
+        </p>
+      </div>
     </div>
   );
 }
@@ -352,45 +477,50 @@ export default function Resources() {
 // ── CTA buttons row — used by both featured & standard cards. Buttons are
 // real <a> elements (not nested inside a card-wrapping anchor) so secondary
 // CTAs actually receive clicks. ─────────────────────────────────────────────
-function CtaRow({ item, dark = false }: { item: ResourceItem; dark?: boolean }) {
+function CtaRow({ item, dark = false, unlocked, onLockedClick }: { item: ResourceItem; dark?: boolean; unlocked: boolean; onLockedClick: (item: ResourceItem, targetUrl?: string) => void }) {
   const primaryLabel = item.ctaLabel || (item.type === "drive" || item.type === "notion" || item.type === "link" ? "Open" : "Download");
   const PrimaryIcon = item.type === "drive" || item.type === "notion" || item.type === "link" ? ExternalLink : Download;
+  const locked = !!item.isGated && !unlocked;
+  const primaryStyle = {
+    display: "inline-flex", alignItems: "center", gap: 6,
+    padding: "10px 16px", borderRadius: 100,
+    background: dark ? "#F8F8F6" : "#0A0A0A",
+    color: dark ? "#0A0A0A" : "#F8F8F6",
+    fontSize: 12, fontWeight: 700, letterSpacing: "0.01em",
+    textDecoration: "none", whiteSpace: "nowrap", border: "none", cursor: "pointer",
+  } as const;
+  const secondaryStyle = {
+    display: "inline-flex", alignItems: "center", gap: 6,
+    padding: "10px 16px", borderRadius: 100,
+    background: "transparent",
+    color: dark ? "#F8F8F6" : "#0A0A0A",
+    border: `1px solid ${dark ? "rgba(248,248,246,0.25)" : "#E5E5E0"}`,
+    fontSize: 12, fontWeight: 700,
+    textDecoration: "none", whiteSpace: "nowrap", cursor: "pointer",
+  } as const;
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 14 }}>
       {item.link && (
-        <a
-          href={item.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            display: "inline-flex", alignItems: "center", gap: 6,
-            padding: "10px 16px", borderRadius: 100,
-            background: dark ? "#F8F8F6" : "#0A0A0A",
-            color: dark ? "#0A0A0A" : "#F8F8F6",
-            fontSize: 12, fontWeight: 700, letterSpacing: "0.01em",
-            textDecoration: "none", whiteSpace: "nowrap",
-          }}
-        >
-          <PrimaryIcon size={13} /> {primaryLabel}
-        </a>
+        locked ? (
+          <button type="button" onClick={() => onLockedClick(item, item.link)} style={primaryStyle}>
+            <Lock size={13} /> {primaryLabel}
+          </button>
+        ) : (
+          <a href={item.link} target="_blank" rel="noopener noreferrer" style={primaryStyle}>
+            <PrimaryIcon size={13} /> {primaryLabel}
+          </a>
+        )
       )}
       {item.secondaryCtaUrl && (
-        <a
-          href={item.secondaryCtaUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            display: "inline-flex", alignItems: "center", gap: 6,
-            padding: "10px 16px", borderRadius: 100,
-            background: "transparent",
-            color: dark ? "#F8F8F6" : "#0A0A0A",
-            border: `1px solid ${dark ? "rgba(248,248,246,0.25)" : "#E5E5E0"}`,
-            fontSize: 12, fontWeight: 700,
-            textDecoration: "none", whiteSpace: "nowrap",
-          }}
-        >
-          {item.secondaryCtaLabel || "Preview"} <ArrowRight size={13} />
-        </a>
+        locked ? (
+          <button type="button" onClick={() => onLockedClick(item, item.secondaryCtaUrl)} style={secondaryStyle}>
+            <Lock size={13} /> {item.secondaryCtaLabel || "Preview"}
+          </button>
+        ) : (
+          <a href={item.secondaryCtaUrl} target="_blank" rel="noopener noreferrer" style={secondaryStyle}>
+            {item.secondaryCtaLabel || "Preview"} <ArrowRight size={13} />
+          </a>
+        )
       )}
     </div>
   );
@@ -412,7 +542,7 @@ function BadgePill({ text, accent }: { text: string; accent?: boolean }) {
 }
 
 // ── Featured card ──────────────────────────────────────────────────────────
-function FeaturedCard({ item, index }: { item: ResourceItem; index: number }) {
+function FeaturedCard({ item, index, unlocked, onLockedClick }: { item: ResourceItem; index: number; unlocked: boolean; onLockedClick: (item: ResourceItem, targetUrl?: string) => void }) {
   const dark = index === 0;
   return (
     <div
@@ -459,13 +589,13 @@ function FeaturedCard({ item, index }: { item: ResourceItem; index: number }) {
       <div style={{ marginTop: 18, fontSize: 12, color: dark ? "rgba(248,248,246,0.55)" : "#7A7A85" }}>
         {typeLabel(item)}{item.fileSize ? ` · ${item.fileSize}` : ""}
       </div>
-      <CtaRow item={item} dark={dark} />
+      <CtaRow item={item} dark={dark} unlocked={unlocked} onLockedClick={onLockedClick} />
     </div>
   );
 }
 
 // ── Standard resource card ──────────────────────────────────────────────────
-function ResourceCard({ item }: { item: ResourceItem }) {
+function ResourceCard({ item, unlocked, onLockedClick }: { item: ResourceItem; unlocked: boolean; onLockedClick: (item: ResourceItem, targetUrl?: string) => void }) {
   return (
     <div
       style={{
@@ -524,7 +654,7 @@ function ResourceCard({ item }: { item: ResourceItem }) {
         <div style={{ paddingTop: 14, marginTop: 8, borderTop: "1px solid #E5E5E0", fontSize: 12, color: "#7A7A85" }}>
           {typeLabel(item)}{item.fileSize ? ` · ${item.fileSize}` : ""}
         </div>
-        <CtaRow item={item} />
+        <CtaRow item={item} unlocked={unlocked} onLockedClick={onLockedClick} />
       </div>
     </div>
   );

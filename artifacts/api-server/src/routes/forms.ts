@@ -245,6 +245,41 @@ router.post("/contact", formLimit, async (req, res) => {
   res.json({ success: true, message: "Thank you! We will be in touch within 24 hours." });
 });
 
+// ── RESOURCE UNLOCK (email gate)  →  growitbuddy@gmail.com ──────────────────
+// Gated resources require an email before the download/link is revealed.
+// We capture the email as a lead and notify, then the frontend unlocks access.
+router.post("/resource-unlock", newsletterLimit, async (req, res) => {
+  const { email, resourceTitle, resourceType } = req.body;
+  if (!email) {
+    res.status(400).json({ error: "email is required" });
+    return;
+  }
+  if (!isValidEmail(email)) {
+    res.status(400).json({ error: "Invalid email address" });
+    return;
+  }
+  const ts = nowIST();
+  const title = typeof resourceTitle === "string" && resourceTitle.trim()
+    ? resourceTitle.trim()
+    : "(unspecified resource)";
+  logger.info({ email, resourceTitle: title }, "Resource unlock (email gate) submission");
+  await saveLead("resource", null, email, { email, resourceTitle: title, resourceType: resourceType || null });
+  await sendEmail(
+    GENERAL_EMAIL,
+    `[RESOURCE] ${email} unlocked "${title}"`,
+    emailTemplate(
+      "RESOURCE", "Resource Unlocked (Email Gate)",
+      highlightRow("Resource", title) +
+      row("Email", email) +
+      (resourceType ? row("Type", String(resourceType)) : ""),
+      "Resources page  →  growitbuddy.com/resources",
+      ts,
+    ),
+    email,
+  );
+  res.json({ success: true, message: "Thanks! Your resource is unlocked." });
+});
+
 // ── CREATOR / INFLUENCER NETWORK  →  careers.growitbuddy@gmail.com ─────────
 router.post("/creators", formLimit, async (req, res) => {
   const { name, email, phone, niche, handle, monthlyViews, goals } = req.body;
