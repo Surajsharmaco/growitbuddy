@@ -87,6 +87,11 @@ const AdminTalentPool         = lazy(() => import("@/pages/admin/AdminTalentPool
 const AdminPageVisibility     = lazy(() => import("@/pages/admin/AdminPageVisibility"));
 const AdminSEO                = lazy(() => import("@/pages/admin/AdminSEO"));
 const AdminPageVariants       = lazy(() => import("@/pages/admin/AdminPageVariants"));
+const AdminPrivacy            = lazy(() => import("@/pages/admin/AdminPrivacy"));
+const AdminTerms              = lazy(() => import("@/pages/admin/AdminTerms"));
+const AdminNetworkForm        = lazy(() => import("@/pages/admin/AdminNetworkForm"));
+const AdminSeoGuide           = lazy(() => import("@/pages/admin/AdminSeoGuide"));
+const AdminSiteGuide          = lazy(() => import("@/pages/admin/AdminSiteGuide"));
 
 // ── Minimal spinner (no layout shift, no external deps) ──────────────────────
 function PageSpinner() {
@@ -167,6 +172,12 @@ function AdminRoutes() {
       <Route path="/admin/page-visibility">{() => <AdminGuard><AdminPageVisibility /></AdminGuard>}</Route>
       <Route path="/admin/seo">{() => <AdminGuard><AdminSEO /></AdminGuard>}</Route>
       <Route path="/admin/page-variants">{() => <AdminGuard><AdminPageVariants /></AdminGuard>}</Route>
+      <Route path="/admin/privacy">{() => <AdminGuard><AdminPrivacy /></AdminGuard>}</Route>
+      <Route path="/admin/terms">{() => <AdminGuard><AdminTerms /></AdminGuard>}</Route>
+      <Route path="/admin/seo-guide">{() => <AdminGuard><AdminSeoGuide /></AdminGuard>}</Route>
+      <Route path="/admin/site-guide">{() => <AdminGuard><AdminSiteGuide /></AdminGuard>}</Route>
+      <Route path="/admin/creators-form">{() => <AdminGuard><AdminNetworkForm contentKey="creators-form" slug="creators" title="Creators Page Form" description="Edit the headings, benefits, callout, form copy, and SEO of the public /creators page." /></AdminGuard>}</Route>
+      <Route path="/admin/page-owner-form">{() => <AdminGuard><AdminNetworkForm contentKey="page-owner-form" slug="join-page-owner" title="Page Owner Form" description="Edit the headings, benefits, callout, form copy, and SEO of the public /join/page-owner page." /></AdminGuard>}</Route>
       <Route path="/admin">{() => <AdminGuard><AdminDashboard /></AdminGuard>}</Route>
     </Switch>
   );
@@ -180,6 +191,7 @@ const ALL_SECTIONS = [
   "pool-designers", "pool-thumbnail-designers", "pool-writers",
   "pool-social-managers", "pool-motion-designers", "pool-ai-creators",
   "pool-ugc-creators", "pool-meme-designers", "pool-editors", "page_visibility",
+  "privacy", "terms", "seo-guide", "site-guide", "creators-form", "page-owner-form",
 ];
 
 function FaviconInjector() {
@@ -230,7 +242,7 @@ function App() {
           <Route path="/admin" component={AdminRoutes} />
 
           {/* Internal SEO guide — standalone (no layout chrome), permanently noindex via the page itself */}
-          <Route path="/seo-guide">{() => <Suspense fallback={<PageSpinner />}><SEOGuide /></Suspense>}</Route>
+          <Route path="/seo-guide">{() => <Suspense fallback={<PageSpinner />}><PageGate slug="seo-guide"><SEOGuide /></PageGate></Suspense>}</Route>
 
           {/* Bio link page — standalone (no site navbar/footer chrome) */}
           <Route path="/links">{() => <Suspense fallback={<PageSpinner />}><PageGate slug="links"><Links /></PageGate></Suspense>}</Route>
@@ -272,13 +284,13 @@ function App() {
                       <Route path="/portfolio-private">{() => <Redirect to="/portfolio" />}</Route>
                       <Route path="/portfolio-private/:category">{(p) => <Redirect to={`/portfolio/${p.category}`} />}</Route>
                       <Route path="/resources">{() => <PageGate slug="resources"><Resources /></PageGate>}</Route>
-                      <Route path="/guide">{() => <SiteGuide />}</Route>
+                      <Route path="/guide">{() => <PageGate slug="site-guide"><SiteGuide /></PageGate>}</Route>
                       <Route path="/about">{() => <PageGate slug="about"><About /></PageGate>}</Route>
                       <Route path="/contact">{() => <PageGate slug="contact"><Contact /></PageGate>}</Route>
                       <Route path="/verify/:id">{() => <PageGate slug="verify"><VerifyCertificate /></PageGate>}</Route>
                       <Route path="/verify">{() => <PageGate slug="verify"><Verify /></PageGate>}</Route>
-                      <Route path="/privacy" component={Privacy} />
-                      <Route path="/terms" component={Terms} />
+                      <Route path="/privacy">{() => <PageGate slug="privacy"><Privacy /></PageGate>}</Route>
+                      <Route path="/terms">{() => <PageGate slug="terms"><Terms /></PageGate>}</Route>
                       <Route path="/editors-pool">{() => <PageGate slug="creator-school"><CreatorSchool /></PageGate>}</Route>
                       <Route path="/designers-pool">{() => <PageGate slug="designers-pool"><DesignersPool /></PageGate>}</Route>
                       <Route path="/thumbnail-designers">{() => <PageGate slug="thumbnail-designers"><ThumbnailDesignersPool /></PageGate>}</Route>

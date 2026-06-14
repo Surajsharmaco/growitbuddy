@@ -24,6 +24,12 @@ export const ALL_PERMISSIONS = [
   { key: "media", label: "Media Library" },
   { key: "navbar", label: "Navbar" },
   { key: "footer", label: "Footer" },
+  { key: "privacy", label: "Privacy Policy" },
+  { key: "terms", label: "Terms & Conditions" },
+  { key: "seo-guide", label: "SEO Guide" },
+  { key: "site-guide", label: "Site Guide" },
+  { key: "creators-form", label: "Creators Page Form" },
+  { key: "page-owner-form", label: "Page Owner Form" },
   { key: "settings", label: "Settings" },
 ] as const;
 

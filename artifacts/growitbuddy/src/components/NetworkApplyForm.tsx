@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import SEOMeta from "@/components/SEOMeta";
 import EcosystemOptIn from "@/components/EcosystemOptIn";
+import { usePublicContent } from "@/hooks/usePublicContent";
+import { CREATORS_FORM_DEFAULTS, PAGE_OWNER_FORM_DEFAULTS, type NetworkFormContent } from "@/lib/networkFormDefaults";
 
 /* ── Schemas ─────────────────────────────────────────────── */
 const baseFields = {
@@ -38,69 +40,23 @@ const VIEWS_RANGES = [
 const PAGE_COUNT_OPTIONS = ["1", "2", "3", "4", "5", "More than 5"];
 
 /* ── Config ──────────────────────────────────────────────── */
-const CONFIG = {
-  influencer: {
-    seoTitle: "Influencer Network - GrowitBuddy",
-    seoDesc: "Join the GrowitBuddy Influencer Network. Built for serious creators who want real authority, meaningful opportunities, and long-term growth.",
-    eyebrow: "Influencer Network",
-    hero: "Join the Influencer Network.",
-    heroSubtext: "Connect, grow, and unlock opportunities. We work with creators who want to build real authority and long-term growth, not just chase views.",
-    sectionTitle: "What You Get.",
-    benefits: [
-      "Growth-focused guidance built around your platform",
-      "Collaboration opportunities with serious creators",
-      "Access to brand and content opportunities",
-      "Strategic support to build lasting authority",
-      "A network of creators focused on long-term growth",
-    ],
-    calloutLabel: "Built for serious creators",
-    calloutItems: [
-      "Influencers focused on growth and long-term opportunities",
-      "Personal brands building real authority in their space",
-      "Content creators who want more than just views",
-    ],
-    formTitle: "Join the Network",
-    formSubtitle: "Takes less than 2 minutes. Every application is reviewed personally.",
-    submitLabel: "Join the Influencer Network",
-    apiEndpoint: "creators",
-    successMsg: "We review every application personally. If you're a fit for the Influencer Network, we'll be in touch within 48 hours.",
-  },
-  page: {
-    seoTitle: "Join Distribution Network - GrowitBuddy",
-    seoDesc: "Apply to join the GrowitBuddy Distribution Network as a meme or theme page owner and distribute premium content at scale.",
-    eyebrow: "Distribution Network",
-    hero: "Join the Distribution Network.",
-    heroSubtext: "Partner with us to distribute premium content through your page. We work with serious meme and theme page owners who have real, engaged audiences.",
-    sectionTitle: "What You Get.",
-    benefits: [
-      "Consistent high-quality content for your page",
-      "Monetise your audience with premium campaigns",
-      "Access to brand and content partnerships",
-      "Support from a dedicated distribution team",
-      "Part of a growing network of high-reach pages",
-    ],
-    calloutLabel: "Built for page owners",
-    calloutItems: [
-      "Meme and theme pages with real engagement",
-      "Pages focused on consistent content and growth",
-      "Page owners who want long-term partnerships",
-    ],
-    formTitle: "Apply as Page Owner",
-    formSubtitle: "Takes less than 2 minutes. Every application is reviewed personally.",
-    submitLabel: "Apply as Page Owner",
-    apiEndpoint: "page-owner",
-    successMsg: "Your application has been received. Our team will review and get back to you.",
-  },
-};
+// Text content is admin-editable via the content keys below (merged at render
+// time from usePublicContent). The non-editable apiEndpoint stays in code.
+export type NetworkApplyType = "influencer" | "page";
 
-export type NetworkApplyType = keyof typeof CONFIG;
+const FORM_META: Record<NetworkApplyType, { contentKey: string; defaults: NetworkFormContent; apiEndpoint: string }> = {
+  influencer: { contentKey: "creators-form", defaults: CREATORS_FORM_DEFAULTS, apiEndpoint: "creators" },
+  page:       { contentKey: "page-owner-form", defaults: PAGE_OWNER_FORM_DEFAULTS, apiEndpoint: "page-owner" },
+};
 
 /* ── Label style helper ──────────────────────────────────── */
 const labelStyle: React.CSSProperties = { fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600, color: "#0A0A0A" };
 
 /* ── Component ───────────────────────────────────────────── */
 export default function NetworkApplyForm({ type }: { type: NetworkApplyType }) {
-  const cfg = CONFIG[type];
+  const meta = FORM_META[type];
+  const content = usePublicContent<NetworkFormContent>(meta.contentKey, meta.defaults);
+  const cfg = { ...content, apiEndpoint: meta.apiEndpoint };
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
