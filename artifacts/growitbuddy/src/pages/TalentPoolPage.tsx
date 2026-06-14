@@ -298,7 +298,7 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
   const d = usePublicContent<PoolPageData>(config.sectionKey, config.defaults);
 
   return (
-    <div style={{ background: "var(--gb-bg)", minHeight: "100vh" }}>
+    <div style={{ background: "linear-gradient(180deg, #FBFAF6 0%, #F4F1EA 100%)", minHeight: "100vh" }}>
       <SEOMeta title={d.seoTitle} description={d.seoDesc} robots="noindex,follow" />
 
       <style>{`
@@ -344,16 +344,17 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
         /* Step cards */
         .tp-step {
           position: relative;
-          background: #FFFFFF;
+          background: linear-gradient(165deg, #FFFFFF 0%, #FAF6EE 100%);
           border: 1px solid #EAEAE4;
           border-radius: 14px;
           padding: 24px 22px 22px;
+          box-shadow: 0 1px 2px rgba(10,10,10,0.03), 0 8px 24px rgba(10,10,10,0.03);
           transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
         }
         .tp-step:hover {
           transform: translateY(-3px);
-          box-shadow: 0 14px 36px rgba(10,10,10,0.06);
-          border-color: rgba(194,168,120,0.45);
+          box-shadow: 0 18px 40px rgba(139,111,61,0.12);
+          border-color: rgba(194,168,120,0.55);
         }
         .tp-step-num {
           display: inline-flex; align-items: center; justify-content: center;
@@ -368,17 +369,18 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
 
         /* Resource cards */
         .tp-res {
-          background: #FFFFFF;
+          background: linear-gradient(165deg, #FFFFFF 0%, #FBF8F1 100%);
           border: 1px solid #EAEAE4;
           border-radius: 14px;
           padding: 20px 22px;
           display: flex; align-items: center; justify-content: space-between; gap: 16px;
+          box-shadow: 0 1px 2px rgba(10,10,10,0.03);
           transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
         }
         .tp-res:hover {
           transform: translateY(-2px);
-          box-shadow: 0 12px 28px rgba(10,10,10,0.05);
-          border-color: rgba(194,168,120,0.4);
+          box-shadow: 0 14px 30px rgba(139,111,61,0.1);
+          border-color: rgba(194,168,120,0.5);
         }
 
         /* Section heading */
@@ -410,12 +412,18 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
       `}</style>
 
       {/* ─── 01 HERO ─────────────────────────────────────── */}
-      <section style={{ paddingTop: 96, paddingBottom: 0, background: "#FFFFFF", borderBottom: "1px solid #E5E5E0", position: "relative", overflow: "hidden" }}>
+      <section style={{ paddingTop: 96, paddingBottom: 0, background: "linear-gradient(180deg, #FFFDF9 0%, #FFFFFF 52%, #FBF8F2 100%)", borderBottom: "1px solid #EFEAE0", position: "relative", overflow: "hidden" }}>
         {/* Soft gold radial glow */}
         <span aria-hidden style={{
           position: "absolute", top: -160, left: "50%", transform: "translateX(-50%)",
-          width: 720, height: 320, pointerEvents: "none",
-          background: "radial-gradient(ellipse at center, rgba(194,168,120,0.14) 0%, rgba(194,168,120,0) 65%)",
+          width: 760, height: 340, pointerEvents: "none",
+          background: "radial-gradient(ellipse at center, rgba(194,168,120,0.20) 0%, rgba(194,168,120,0) 66%)",
+        }} />
+        {/* Secondary warm glow lower-left for depth */}
+        <span aria-hidden style={{
+          position: "absolute", top: 160, left: "8%",
+          width: 420, height: 420, pointerEvents: "none",
+          background: "radial-gradient(circle at center, rgba(139,111,61,0.07) 0%, rgba(139,111,61,0) 60%)",
         }} />
         <div className="tp-wrap-md" style={{ position: "relative" }}>
           <motion.div {...FI()} style={{ textAlign: "center", paddingBottom: 56 }}>
@@ -453,7 +461,7 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
       </section>
 
       {/* ─── 02 HOW IT WORKS ─────────────────────────────── */}
-      <section style={{ borderTop: "1px solid #E5E5E0" }} className="tp-pad">
+      <section style={{ borderTop: "1px solid #EFEAE0", background: "linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(250,246,238,0.55) 100%)" }} className="tp-pad">
         <div className="tp-wrap">
           <motion.div {...FI()} style={{ marginBottom: 56, textAlign: "center" }}>
             <span className="tp-section-eyebrow">Process</span>
@@ -472,7 +480,7 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
       </section>
 
       {/* ─── 03 RESOURCES ────────────────────────────────── */}
-      <section id="resources" className="tp-pad" style={{ background: "#FFFFFF", borderTop: "1px solid #E5E5E0" }}>
+      <section id="resources" className="tp-pad" style={{ background: "linear-gradient(180deg, #FFFFFF 0%, #FCFAF5 100%)", borderTop: "1px solid #EFEAE0" }}>
         <div className="tp-wrap-md">
           <motion.div {...FI()} style={{ marginBottom: 40 }}>
             <span className="tp-section-eyebrow">Resources</span>
@@ -509,14 +517,14 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
       </section>
 
       {/* ─── 04 SUBMISSION FORM ──────────────────────────── */}
-      <section id="submit" className="tp-pad" style={{ borderTop: "1px solid #E5E5E0" }}>
+      <section id="submit" className="tp-pad" style={{ borderTop: "1px solid #EFEAE0", background: "linear-gradient(180deg, #FBF8F2 0%, #F6F2EA 100%)" }}>
         <div className="tp-wrap-sm">
           <motion.div {...FI()} style={{ marginBottom: 36, textAlign: "center" }}>
             <span className="tp-section-eyebrow">Apply Now</span>
             <h2 className="tp-h2" style={{ marginBottom: 12 }}>{d.formTitle}</h2>
             <p style={{ fontSize: 16, color: "#5F5F5F", lineHeight: 1.65, maxWidth: 520, margin: "0 auto" }}>{d.formSubtext}</p>
           </motion.div>
-          <motion.div {...FI(0.08)} style={{ background: "#FFFFFF", border: "1px solid #EAEAE4", borderRadius: 18, padding: "clamp(28px,5vw,44px)", boxShadow: "0 14px 40px rgba(10,10,10,0.04)" }}>
+          <motion.div {...FI(0.08)} style={{ background: "linear-gradient(165deg, #FFFFFF 0%, #FDFBF6 100%)", border: "1px solid #EAEAE4", borderRadius: 18, padding: "clamp(28px,5vw,44px)", boxShadow: "0 1px 3px rgba(10,10,10,0.04), 0 24px 60px rgba(139,111,61,0.08)" }}>
             <PoolForm d={d} formVariant={config.formVariant} poolType={config.poolType} submitLabel={d.ctaPrimary} />
           </motion.div>
           {d.formDisclaimer && (
@@ -534,7 +542,13 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
       </section>
 
       {/* ─── 05 FINAL CTA ────────────────────────────────── */}
-      <section className="tp-pad" style={{ background: "#1E293B", borderTop: "1px solid #1E293B", position: "relative", overflow: "hidden" }}>
+      <section className="tp-pad" style={{ background: "linear-gradient(160deg, #243140 0%, #1E293B 50%, #161F2B 100%)", borderTop: "1px solid #1E293B", position: "relative", overflow: "hidden" }}>
+        {/* Soft gold glow behind heading */}
+        <span aria-hidden style={{
+          position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)",
+          width: 560, height: 280, pointerEvents: "none",
+          background: "radial-gradient(ellipse at center, rgba(194,168,120,0.12) 0%, rgba(194,168,120,0) 68%)",
+        }} />
         {/* decorative dotted grid (palette-safe) */}
         <span aria-hidden style={{
           position: "absolute", top: 24, left: 24, width: 120, height: 120, opacity: 0.18,
