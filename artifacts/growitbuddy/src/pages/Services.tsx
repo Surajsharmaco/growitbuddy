@@ -104,7 +104,7 @@ export default function Services() {
           transform: translateY(-4px);
         }
         .svc-card.dark {
-          background-image: var(--gb-grain), linear-gradient(165deg, #243246 0%, #1B2636 100%);
+          background-image: var(--gb-grain), linear-gradient(165deg, #1B2635 0%, #151D29 100%);
           background-size: 150px 150px, 150px 150px, cover;
           background-repeat: repeat, repeat, no-repeat;
           border-color: rgba(255,255,255,0.08);
@@ -405,7 +405,7 @@ export default function Services() {
           .svc-bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; max-width: 1200px; margin: 0 auto; }
           .svc-bento-card { position: relative; background: #FFFFFF; border-radius: 24px; padding: 38px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(10,10,10,0.05); box-shadow: 0 4px 20px -12px rgba(10,10,10,0.08); transition: transform 0.3s ease, box-shadow 0.3s ease; }
           .svc-bento-card:hover { transform: translateY(-4px); box-shadow: 0 16px 36px -14px rgba(10,10,10,0.14); }
-          .svc-bento-card.dark { background-color: #1B2636; background-image: var(--gb-grain); background-size: 150px 150px; background-repeat: repeat; border-color: rgba(255,255,255,0.10); box-shadow: 0 16px 44px -16px rgba(20,30,46,0.5); }
+          .svc-bento-card.dark { background-color: #151D29; background-image: var(--gb-grain); background-size: 150px 150px; background-repeat: repeat; border-color: rgba(255,255,255,0.10); box-shadow: 0 16px 44px -16px rgba(20,30,46,0.5); }
           .svc-bento-card:nth-child(1) { grid-column: span 2; }
           .svc-bento-card:nth-child(4) { grid-column: span 2; }
           .svc-bento-card:nth-child(5) { grid-column: span 2; }
@@ -578,7 +578,7 @@ export default function Services() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="svc-cta-section" style={{ padding: "96px 24px", backgroundColor: "#1E293B", backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat" }}>
+      <section className="svc-cta-section" style={{ padding: "96px 24px", backgroundColor: "#171F2D", backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat" }}>
         <div className="max-w-[700px] mx-auto" style={{ textAlign: "center" }}>
           <motion.div
             initial={{ opacity: 0, y: 14 }}

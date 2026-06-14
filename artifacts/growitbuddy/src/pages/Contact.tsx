@@ -252,7 +252,7 @@ export default function Contact() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.08 }}
-              style={{ background: "#1E293B", backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat", borderRadius: 16, padding: "36px 32px" }}
+              style={{ background: "#171F2D", backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat", borderRadius: 16, padding: "36px 32px" }}
             >
               <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(194,168,120,0.7)", marginBottom: 20 }}>Who this is NOT for</p>
               {[

@@ -1057,7 +1057,7 @@ export default function Portfolio() {
   return (
     <div style={{ minHeight: "100vh", background: "#F8F8F6" }}>
       {/* Hero */}
-      <div style={{ background: "#1E293B", backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat", padding: "128px 24px 88px", position: "relative", overflow: "hidden" }}>
+      <div style={{ background: "#171F2D", backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat", padding: "128px 24px 88px", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #C2A878, #D4BB90)" }} />
         <div style={{ maxWidth: 1180, margin: "0 auto", position: "relative" }}>
           <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(194,168,120,0.9)", marginBottom: 22 }}>
