@@ -85,51 +85,84 @@ export default function Services() {
           gap: 16px;
         }
         .svc-card {
+          position: relative;
           background: #FFFFFF;
-          border: 1.5px solid #E5E5E0;
-          border-radius: 16px;
-          padding: 36px 30px 30px;
+          border: 1px solid #EBEBE4;
+          border-radius: 18px;
+          padding: 30px 28px 28px;
           display: flex;
           flex-direction: column;
-          transition: box-shadow 0.22s, border-color 0.22s, transform 0.22s;
+          box-shadow: 0 1px 2px rgba(10,10,10,0.04);
+          transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
           cursor: default;
         }
         .svc-card:hover {
-          box-shadow: 0 10px 40px rgba(10,10,10,0.09);
-          border-color: rgba(30,41,59,0.22);
-          transform: translateY(-3px);
+          box-shadow: 0 18px 48px -16px rgba(10,10,10,0.18);
+          border-color: rgba(194,168,120,0.45);
+          transform: translateY(-4px);
         }
         .svc-card.dark {
-          background: #1E293B;
-          border-color: transparent;
+          background: linear-gradient(165deg, #243246 0%, #1B2636 100%);
+          border-color: rgba(255,255,255,0.08);
+          box-shadow: 0 8px 30px -12px rgba(10,15,25,0.5);
         }
+        .svc-card.dark:hover {
+          border-color: rgba(194,168,120,0.5);
+          box-shadow: 0 22px 54px -16px rgba(10,15,25,0.65);
+        }
+        .svc-num-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 42px;
+          height: 42px;
+          border-radius: 12px;
+          font-size: 16px;
+          font-weight: 800;
+          letter-spacing: -0.01em;
+          font-variant-numeric: tabular-nums;
+          background: rgba(194,168,120,0.14);
+          color: #9A7B43;
+          flex-shrink: 0;
+        }
+        .svc-num-badge.dark {
+          background: rgba(194,168,120,0.16);
+          color: #D8BE8E;
+        }
+        .svc-card-divider {
+          height: 1px;
+          background: rgba(10,10,10,0.07);
+          margin: 0 0 20px;
+        }
+        .svc-card-divider.dark { background: rgba(255,255,255,0.1); }
         .svc-feature-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          column-gap: 18px;
-          row-gap: 12px;
-          margin-bottom: 30px;
+          column-gap: 20px;
+          row-gap: 13px;
+          margin-bottom: 28px;
           flex: 1;
           align-content: start;
         }
         .svc-feature-item {
           display: flex;
           align-items: flex-start;
-          gap: 9px;
-          font-size: 13px;
+          gap: 10px;
+          font-size: 13.5px;
           font-weight: 500;
-          line-height: 1.35;
+          line-height: 1.4;
           letter-spacing: -0.005em;
-          color: #2C2C2C;
+          color: #33373E;
         }
-        .svc-feature-item.dark { color: rgba(255,255,255,0.85); }
+        .svc-feature-item.dark { color: rgba(255,255,255,0.82); }
         .svc-feature-item .svc-dot {
-          width: 5px;
-          height: 5px;
+          width: 6px;
+          height: 6px;
           border-radius: 50%;
           background: #C2A878;
+          box-shadow: 0 0 0 3px rgba(194,168,120,0.14);
           flex-shrink: 0;
-          margin-top: 6px;
+          margin-top: 5px;
         }
         @media (max-width: 900px) {
           .svc-hero-grid { grid-template-columns: 1fr; gap: 36px; }
@@ -399,17 +432,10 @@ export default function Services() {
                   id={`service-${s.id}`}
                   style={{ scrollMarginTop: 80 }}
                 >
-                  {/* Number + subtitle row */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
-                    <span style={{
-                      fontSize: 11, fontWeight: 800, letterSpacing: "0.08em",
-                      color: isDark ? "#C2A878" : "#C2A878",
-                      fontVariantNumeric: "tabular-nums",
-                    }}>
-                      {num}
-                    </span>
-                    <span style={{ width: 1, height: 10, background: isDark ? "rgba(255,255,255,0.15)" : "rgba(10,10,10,0.12)", flexShrink: 0 }} />
-                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: isDark ? "rgba(255,255,255,0.35)" : "#8A8A8A" }}>
+                  {/* Number badge + category */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 22 }}>
+                    <span className={`svc-num-badge${isDark ? " dark" : ""}`}>{num}</span>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: isDark ? "rgba(255,255,255,0.4)" : "#9A9A92", lineHeight: 1.4 }}>
                       {(s.subtitle ?? "").replace(/^\d+\s*\|\s*/, "")}
                     </span>
                   </div>
@@ -432,6 +458,8 @@ export default function Services() {
                   }}>
                     {s.description}
                   </p>
+
+                  <div className={`svc-card-divider${isDark ? " dark" : ""}`} />
 
                   {/* Service points */}
                   <div className="svc-feature-grid">
