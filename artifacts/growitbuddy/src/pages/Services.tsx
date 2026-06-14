@@ -1,10 +1,12 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check, BadgeCheck, Video, Rocket, LayoutTemplate, Cpu, ShoppingBag } from "lucide-react";
 import { Link } from "wouter";
 import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
 
 import { SERVICES_DEFAULTS as PAGE_DEFAULTS, type ServicesData as ServicesPageData, type ServiceItem } from "@/lib/servicesDefaults";
+
+const SVC_ICONS = [BadgeCheck, Video, Rocket, LayoutTemplate, Cpu, ShoppingBag];
 
 
 export default function Services() {
@@ -395,9 +397,41 @@ export default function Services() {
         </div>
       </section>
 
-      {/* ── What We Do - 6 service cards ── */}
+      {/* ── What We Do - bento service grid ── */}
       <section className="svc-what-section" style={{ padding: "96px 24px 100px", background: "#F8F8F6", borderTop: "1px solid #E5E5E0" }}>
-        <div className="max-w-[1100px] mx-auto">
+        <style>{`
+          .svc-bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; max-width: 1200px; margin: 0 auto; }
+          .svc-bento-card { position: relative; background: #FFFFFF; border-radius: 24px; padding: 38px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(10,10,10,0.05); box-shadow: 0 4px 20px -12px rgba(10,10,10,0.08); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+          .svc-bento-card:hover { transform: translateY(-4px); box-shadow: 0 16px 36px -14px rgba(10,10,10,0.14); }
+          .svc-bento-card.dark { background: linear-gradient(165deg, #243246 0%, #1B2636 100%); border-color: rgba(255,255,255,0.08); box-shadow: 0 16px 44px -16px rgba(20,30,46,0.5); }
+          .svc-bento-card:nth-child(1) { grid-column: span 2; }
+          .svc-bento-card:nth-child(4) { grid-column: span 2; }
+          .svc-bento-card:nth-child(5) { grid-column: span 2; }
+          .svc-bento-ico { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; background: rgba(194,168,120,0.13); color: #9A7B43; }
+          .svc-bento-card.dark .svc-bento-ico { background: rgba(194,168,120,0.2); color: #D8BE8E; }
+          .svc-bento-sub { font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #9A9A92; margin-bottom: 12px; }
+          .svc-bento-card.dark .svc-bento-sub { color: rgba(255,255,255,0.45); }
+          .svc-bento-title { font-weight: 800; font-size: 23px; letter-spacing: -0.03em; line-height: 1.2; color: #0A0A0A; margin-bottom: 14px; }
+          .svc-bento-card.dark .svc-bento-title { color: #FFFFFF; }
+          .svc-bento-desc { font-size: 14.5px; line-height: 1.7; color: #5F5F5F; margin-bottom: 26px; max-width: 62ch; }
+          .svc-bento-card.dark .svc-bento-desc { color: rgba(255,255,255,0.6); }
+          .svc-bento-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 30px; flex: 1; align-content: flex-start; }
+          .svc-bento-pill { padding: 7px 14px; border-radius: 100px; font-size: 12.5px; font-weight: 500; background: #F5F5F2; color: #44474D; border: 1px solid rgba(10,10,10,0.05); }
+          .svc-bento-card.dark .svc-bento-pill { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.88); border-color: rgba(255,255,255,0.1); }
+          .svc-bento-cta { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; margin-top: auto; font-size: 13.5px; font-weight: 700; color: #1E293B; cursor: pointer; transition: gap 0.2s ease, opacity 0.2s ease; }
+          .svc-bento-cta:hover { gap: 12px; opacity: 0.85; }
+          .svc-bento-card.dark .svc-bento-cta { color: #C2A878; }
+          @media (max-width: 980px) {
+            .svc-bento-grid { grid-template-columns: repeat(2, 1fr); }
+            .svc-bento-card { grid-column: span 2; }
+            .svc-bento-card:nth-child(2), .svc-bento-card:nth-child(3), .svc-bento-card:nth-child(6) { grid-column: span 1; }
+          }
+          @media (max-width: 680px) {
+            .svc-bento-grid { grid-template-columns: 1fr; }
+            .svc-bento-card { grid-column: span 1 !important; padding: 30px 24px; }
+          }
+        `}</style>
+        <div className="max-w-[1200px] mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -406,7 +440,7 @@ export default function Services() {
             className="svc-what-header"
             style={{ marginBottom: 56 }}
           >
-            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#8A8A8A", marginBottom: 16 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#9A7B43", marginBottom: 16 }}>
               Services
             </p>
             <h2 style={{ fontWeight: 800, fontSize: "clamp(22px, 4.5vw, 52px)", letterSpacing: "-0.04em", lineHeight: "1.08", color: "#0A0A0A", marginBottom: 16, maxWidth: "18ch" }}>
@@ -417,14 +451,14 @@ export default function Services() {
             </p>
           </motion.div>
 
-          <div className="svc-card-grid">
+          <div className="svc-bento-grid">
             {services.map((s, i) => {
-              const num = String(i + 1).padStart(2, "0");
               const isDark = i === 4;
+              const Icon = SVC_ICONS[i % SVC_ICONS.length];
               return (
                 <motion.div
                   key={s.id}
-                  className={`svc-card${isDark ? " dark" : ""}`}
+                  className={`svc-bento-card${isDark ? " dark" : ""}`}
                   initial={{ opacity: 0, y: 24 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
@@ -432,60 +466,17 @@ export default function Services() {
                   id={`service-${s.id}`}
                   style={{ scrollMarginTop: 80 }}
                 >
-                  {/* Number badge + category */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 22 }}>
-                    <span className={`svc-num-badge${isDark ? " dark" : ""}`}>{num}</span>
-                    <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: isDark ? "rgba(255,255,255,0.4)" : "#9A9A92", lineHeight: 1.4 }}>
-                      {(s.subtitle ?? "").replace(/^\d+\s*\|\s*/, "")}
-                    </span>
-                  </div>
-
-                  {/* Title */}
-                  <h3 style={{
-                    fontWeight: 800, fontSize: "clamp(18px, 1.8vw, 22px)",
-                    letterSpacing: "-0.03em", lineHeight: "1.2",
-                    color: isDark ? "#FFFFFF" : "#0A0A0A",
-                    marginBottom: 12,
-                  }}>
-                    {s.title}
-                  </h3>
-
-                  {/* Description */}
-                  <p style={{
-                    fontSize: 14, lineHeight: "1.75",
-                    color: isDark ? "rgba(255,255,255,0.5)" : "#5F5F5F",
-                    marginBottom: 24,
-                  }}>
-                    {s.description}
-                  </p>
-
-                  <div className={`svc-card-divider${isDark ? " dark" : ""}`} />
-
-                  {/* Service points */}
-                  <div className="svc-feature-grid">
+                  <div className="svc-bento-ico"><Icon strokeWidth={2} size={26} /></div>
+                  <div className="svc-bento-sub">{s.subtitle}</div>
+                  <h3 className="svc-bento-title">{s.title}</h3>
+                  <p className="svc-bento-desc">{s.description}</p>
+                  <div className="svc-bento-pills">
                     {(s.features || []).map((f, fi) => (
-                      <span key={fi} className={`svc-feature-item${isDark ? " dark" : ""}`}>
-                        <span className="svc-dot" />
-                        {f}
-                      </span>
+                      <span key={fi} className="svc-bento-pill">{f}</span>
                     ))}
                   </div>
-
-                  {/* CTA */}
                   <Link href="/contact">
-                    <span
-                      className="gb-btn"
-                      style={{
-                        padding: "10px 20px",
-                        fontSize: 13,
-                        background: isDark ? "rgba(255,255,255,0.1)" : "var(--gb-authority)",
-                        border: isDark ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(255,255,255,0.10)",
-                        transition: "opacity 0.18s, background 0.18s",
-                        alignSelf: "flex-start",
-                      }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = "0.78"; }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = "1"; }}
-                    >
+                    <span className="svc-bento-cta">
                       {s.cta || "Learn More"}
                       <ArrowRight className="w-3.5 h-3.5" />
                     </span>
