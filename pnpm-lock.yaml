@@ -172,6 +172,9 @@ importers:
       '@workspace/db':
         specifier: workspace:*
         version: link:../../lib/db
+      '@workspace/seo':
+        specifier: workspace:*
+        version: link:../../lib/seo
       cookie-parser:
         specifier: ^1.4.7
         version: 1.4.7
@@ -354,6 +357,9 @@ importers:
       '@workspace/api-client-react':
         specifier: workspace:*
         version: link:../../lib/api-client-react
+      '@workspace/seo':
+        specifier: workspace:*
+        version: link:../../lib/seo
       class-variance-authority:
         specifier: 'catalog:'
         version: 0.7.1
@@ -411,6 +417,9 @@ importers:
       tailwindcss:
         specifier: 'catalog:'
         version: 4.3.0
+      tsx:
+        specifier: 'catalog:'
+        version: 4.21.0
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
@@ -652,6 +661,12 @@ importers:
       drizzle-kit:
         specifier: ^0.31.10
         version: 0.31.10
+
+  lib/seo:
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 25.6.2
 
   scripts:
     devDependencies:

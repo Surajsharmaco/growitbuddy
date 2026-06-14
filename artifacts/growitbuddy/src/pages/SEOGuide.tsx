@@ -117,7 +117,7 @@ export default function SEOGuide() {
           and how Google sees your changes. Read once, refer forever.
         </p>
         <p className="lede" style={{ fontSize: 13 }}>
-          Last updated: May 2026 · Audience: GrowitBuddy team, super-admins, content editors
+          Last updated: June 2026 · Audience: GrowitBuddy team, super-admins, content editors
         </p>
       </div>
 
@@ -172,7 +172,7 @@ export default function SEOGuide() {
         <ol>
           <li>Log in at <code>/admin/login</code> with a super-admin account.</li>
           <li>Click <strong>SEO Control</strong> in the left sidebar.</li>
-          <li>Pick a page from the list on the left (24 pages are managed — Home, About, Services, Pools, etc.).</li>
+          <li>Pick a page from the list on the left (~30 pages are managed — Home, About, Services, Pools, etc.).</li>
           <li>Edit any field. Empty fields fall back to the developer default — they don't break anything.</li>
           <li>Watch the live <strong>SERP preview</strong> and <strong>social previews</strong> at the bottom of the page.</li>
           <li>Hit <strong>Save</strong>. Live within seconds.</li>
@@ -297,7 +297,7 @@ export default function SEOGuide() {
   "@type": "Organization",
   "name": "GrowitBuddy",
   "url": "https://growitbuddy.com",
-  "logo": "https://growitbuddy.com/logo.png",
+  "logo": "https://growitbuddy.com/logo-dark.png",
   "sameAs": [
     "https://www.linkedin.com/company/growitbuddy",
     "https://www.instagram.com/growitbuddy"
@@ -345,15 +345,39 @@ export default function SEOGuide() {
 
       <section id="sitemap">
         <h2>11. Sitemap behaviour</h2>
-        <p>The dynamic sitemap lives at:</p>
-        <pre>{`https://growitbuddy-api.onrender.com/api/sitemap.xml`}</pre>
-        <p>It's referenced from <code>robots.txt</code> and submitted to Google Search Console. It auto-updates from the admin panel:</p>
+        <p>There are three sitemaps, all derived from one source so they can never drift apart:</p>
+        <table>
+          <thead><tr><th>Sitemap</th><th>URL</th><th>What it lists</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Main (dynamic)</strong></td>
+              <td><code>growitbuddy-api.onrender.com/api/sitemap.xml</code></td>
+              <td>All sitemap-eligible marketing pages (~27), live from the admin panel — respects every Index / Sitemap toggle.</td>
+            </tr>
+            <tr>
+              <td><strong>Blog (dynamic)</strong></td>
+              <td><code>growitbuddy-api.onrender.com/api/sitemap-blog.xml</code></td>
+              <td>Every published blog post, under canonical <code>/blog/...</code> URLs. Updated hourly.</td>
+            </tr>
+            <tr>
+              <td><strong>Same-domain fallback</strong></td>
+              <td><code>growitbuddy.com/sitemap.xml</code></td>
+              <td>A static backup listing the same eligible pages. Regenerated via the <code>gen:sitemap</code> script.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>All three are referenced from <code>robots.txt</code> and can be submitted to Google Search Console. The main sitemap auto-updates from the admin panel:</p>
         <ul>
-          <li>Includes all 24 managed pages by default.</li>
+          <li>Includes all sitemap-eligible pages by default (~27).</li>
           <li><strong>Excludes</strong> any page where the <em>Index</em> toggle is OFF.</li>
           <li><strong>Excludes</strong> any page where the <em>Sitemap</em> toggle is OFF.</li>
           <li>Updates the moment you save — no rebuild needed.</li>
         </ul>
+        <div className="note">
+          <strong>One source of truth:</strong> the page list, paths, and priorities live in a single shared
+          registry (<code>@workspace/seo</code>) used by the website, the API sitemap, and the static fallback.
+          A page added there shows up everywhere — no more hand-syncing three lists.
+        </div>
       </section>
 
       <section id="dos">
@@ -391,7 +415,7 @@ export default function SEOGuide() {
         <p>Every field is reversible. Clear it to fall back to the developer default. Worst case, an empty editor = the same SEO the page had before this system existed.</p>
 
         <h3>Does this work for the blog?</h3>
-        <p>No — blog posts have their own SEO managed inside the WordPress / blog editor. This panel covers the 24 core marketing pages only.</p>
+        <p>No — blog posts have their own SEO managed inside the blog editor and their own sitemap (<code>/api/sitemap-blog.xml</code>). Blog posts live under canonical <code>/blog/...</code> URLs (old <code>/insights/...</code> links permanently redirect). This panel covers the ~30 core marketing pages only.</p>
 
         <h3>Can I share this guide?</h3>
         <p>Yes. Hit <strong>Download as PDF</strong> at the top, or share this URL directly — it's intentionally <code>noindex</code> so it won't show up in public search but anyone with the link can read it.</p>

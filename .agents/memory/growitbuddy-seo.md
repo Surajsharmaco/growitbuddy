@@ -1,20 +1,34 @@
 ---
-name: GrowitBuddy SEO architecture
-description: How SEO meta is served on the GrowitBuddy SPA and the sync constraints that cause stale-index bugs
+name: GrowitBuddy SEO single source of truth
+description: Why the page list / sitemaps / JSON-LD share one registry, and the build gotchas around it.
 ---
 
-GrowitBuddy is a React+Vite SPA (Vercel) + Express API (Render) + Neon DB. SEO meta is NOT only from index.html.
+# Single source of truth for SEO
 
-- `DynamicPageSEO.tsx` runs client-side on every route, fetches admin SEO from the API (`siteContent` section `seo:<slug>`), and OVERWRITES every meta/canonical/robots/JSON-LD tag. When there is no DB override OR the fetch fails/times out, it falls back to `pageRegistry.ts` `defaults`.
-- **Consequence:** a correct `index.html` title can still be overridden by a STALE `pageRegistry.ts` default. If the DB has no `seo:<slug>` row, the registry default is what Google sees after JS render. So registry defaults must always reflect current branding.
+The canonical page list, sitemap builders, brand constants, and JSON-LD builders live in the
+shared package `@workspace/seo`. The website page registry, the API `/api/sitemap.xml` route,
+and the static `public/sitemap.xml` generator all derive from it.
 
-**Sync rule:** three places must agree on each public page's path:
-1. `artifacts/growitbuddy/src/lib/pageRegistry.ts` (PAGE_REGISTRY)
-2. `artifacts/api-server/src/routes/sitemap.ts` (REGISTERED_PAGES)
-3. `artifacts/growitbuddy/public/sitemap.xml` (static fallback)
-**Why:** drift makes sitemaps list redirecting/wrong URLs, diluting crawl signals.
+**Why:** the page list used to be duplicated in three places and silently drifted; never
+reintroduce a second hand-maintained list.
 
-- Canonical insights/blog path is `/blog`; `/insights` permanently redirects to `/blog` (App.tsx). Sitemaps must list `/blog`.
-- Dynamic sitemaps live on the API host `growitbuddy-api.onrender.com` (`/api/sitemap.xml`, `/api/sitemap-blog.xml`) and respect per-page index/sitemap toggles + global `seo-global.siteIndexable`. robots.txt must point there (a wrong leftover host `garden-planner-newzip.onrender.com` was once hardcoded).
-- Vercel does NOT proxy `/api` to Render; frontend calls the API cross-domain via `VITE_API_URL`. So `growitbuddy.com/api/...` does not exist in prod.
-- Production DB is Neon (NEON_DATABASE_URL), NOT Replit-managed, so `executeSql(environment:"production")` cannot reach it.
+**Invariants to preserve:**
+- Blog canonical path is `/blog` (old `/insights/*` 301-redirects), so the blog sitemap must
+  emit `/blog/...` locs.
+- Site-level Organization + WebSite JSON-LD is rendered statically in `index.html` for
+  crawlers; the `@workspace/seo` schema builders must mirror it (brand logo is `logo-dark.png`).
+  Keep both in sync if brand data changes.
+- The API sitemap respects live admin index/sitemap DB toggles, so it can legitimately list
+  fewer urls than the static fallback. That divergence is expected, not a bug.
+
+# Build gotchas for shared composite `lib/*` packages (this repo)
+
+- `dist/` is gitignored repo-wide. Declarations are built fresh by the root
+  `tsc --build` (`pnpm run typecheck:libs`), driven by **root `tsconfig.json` `references`**.
+  A new `lib/*` package MUST be added to those references or consumers' `tsc -p --noEmit`
+  fail with **TS6305** and the imported types collapse to `any`.
+- Match the existing libs: `exports: { ".": "./src/index.ts" }`, `composite` tsconfig, and
+  NO package scripts (the root build orchestrates everything).
+- Both prod deploys bundle (Vite on Vercel, esbuild on Render) so they don't need `dist`;
+  adding another shared workspace package is proven-safe for both. `vite build` requires a
+  `PORT` env var just to load its config.

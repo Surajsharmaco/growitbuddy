@@ -64,7 +64,7 @@ const PUBLIC_PAGES: Page[] = [
   { path: "/authority-audit", name: "Authority Audit",     what: "Free audit lead-magnet tool." },
   { path: "/resources",     name: "Resources",             what: "Free resource library — unlimited eBooks, PDFs, Drive links, Notion templates, videos, toolkits and more. Featured strip, category filter, FAQ section, AI Quick-Answer block, rich JSON-LD." },
   { path: "/:slug",         name: "Page Variants (catch-all)", what: "Any published page variant lives at its own URL slug (e.g. /home-v2, /services-bold). Created from Admin → Page Variants. Used for A/B tests or campaign-specific landing pages." },
-  { path: "/creator-school",  name: "Creator School",      what: "Onboarding hub with VSL, guidelines, FAQ." },
+  { path: "/editors-pool",    name: "Editors Pool (Creator School)", what: "Onboarding hub with VSL, guidelines, FAQ." },
   { path: "/designers-pool", name: "Talent Pools (9 pages)", what: "Each pool has its own URL: /designers-pool · /thumbnail-designers · /writers-pool · /social-media-managers · /motion-designers · /ai-creators · /ugc-creators · /meme-designers · /video-editors. Each has landing page + dedicated form." },
   { path: "/verify",        name: "Certificate Verify",    what: "Public certificate verification page." },
   { path: "/guide",         name: "Site Guide (this page)", what: "The team onboarding guide you're reading right now. Bookmark and share with every new member." },
@@ -214,7 +214,7 @@ export default function SiteGuide() {
           <p style={{
             fontSize: 11, fontWeight: 700, letterSpacing: "0.2em",
             textTransform: "uppercase", color: C.accent, marginBottom: 16,
-          }}>Complete Site Guide · v1.4</p>
+          }}>Complete Site Guide · v1.5</p>
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}

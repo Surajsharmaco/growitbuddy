@@ -1,1 +1,1 @@
-- [GrowitBuddy SEO architecture](growitbuddy-seo.md) — SPA injects per-page SEO client-side from DB with pageRegistry fallback; index.html alone is not enough.
+- [GrowitBuddy SEO single source](growitbuddy-seo.md) — page list, sitemaps & JSON-LD all derive from `@workspace/seo`; blog canonical `/blog`; composite lib needs built `dist/` (TS6305 gotcha).
