@@ -119,6 +119,12 @@ export default function Home() {
   const BG = "#F8F8F6";
   const TEXT = "#0A0A0A";
 
+  const softTex = {
+    backgroundImage:
+      "radial-gradient(rgba(30,41,59,0.05) 1px, transparent 1px), radial-gradient(120% 75% at 50% -8%, rgba(194,168,120,0.07) 0%, rgba(194,168,120,0) 58%)",
+    backgroundSize: "24px 24px, 100% 100%",
+  } as React.CSSProperties;
+
   const hm = usePublicContent<HomeData>("home", DEFAULTS);
 
   const [mouse, setMouse] = useState({ x: 50, y: 50 });
@@ -205,6 +211,13 @@ export default function Home() {
         .home-proof-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
         .home-system-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 
+        .gb-hero-aurora { position: absolute; inset: 0; z-index: 0; pointer-events: none;
+          background:
+            radial-gradient(48% 44% at 18% 14%, rgba(194,168,120,0.24) 0%, rgba(194,168,120,0) 62%),
+            radial-gradient(54% 50% at 86% 8%, rgba(96,120,168,0.17) 0%, rgba(96,120,168,0) 64%),
+            radial-gradient(64% 52% at 50% 112%, rgba(30,41,59,0.11) 0%, rgba(30,41,59,0) 60%),
+            radial-gradient(40% 40% at 74% 74%, rgba(194,168,120,0.14) 0%, rgba(194,168,120,0) 60%); }
+
         .home-problem-section { padding: 100px 24px; }
         .home-problem-headline { margin-bottom: 64px; }
         .home-problem-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
@@ -244,15 +257,16 @@ export default function Home() {
           paddingBottom: 60,
         }}
       >
+        <div className="gb-hero-aurora" aria-hidden="true" />
         <GrainOverlay />
         <PremiumBackground />
         <HalftoneDots
-          style={{ position: "absolute", bottom: 0, left: 0, zIndex: 0, opacity: 0.14, pointerEvents: "none" }}
-          origin="bottom-left" width={320} height={270}
+          style={{ position: "absolute", bottom: 0, left: 0, zIndex: 0, opacity: 0.2, pointerEvents: "none" }}
+          origin="bottom-left" width={380} height={320}
         />
         <HalftoneDots
-          style={{ position: "absolute", top: 80, right: 0, zIndex: 0, opacity: 0.10, pointerEvents: "none" }}
-          origin="top-right" width={240} height={210}
+          style={{ position: "absolute", top: 80, right: 0, zIndex: 0, opacity: 0.16, pointerEvents: "none" }}
+          origin="top-right" width={300} height={260} color="#C2A878"
         />
 
         <div
@@ -345,7 +359,7 @@ export default function Home() {
       </section>
 
       {/* ══ 2. STATS ══ */}
-      <section style={{ borderTop: "1px solid #E5E5E0", borderBottom: "1px solid #E5E5E0", background: "#FFFFFF", padding: "0 24px" }}>
+      <section style={{ borderTop: "1px solid #E5E5E0", borderBottom: "1px solid #E5E5E0", backgroundColor: "#FFFFFF", padding: "0 24px", ...softTex }}>
         <div className="max-w-[1100px] mx-auto home-stats-grid">
           {(hm.stats || []).map((stat, i) => (
             <m.div
@@ -599,7 +613,7 @@ export default function Home() {
       </section>
 
       {/* ══ 7. BUILT FOR ══ */}
-      <section style={{ padding: "100px 24px", background: "#FFFFFF", borderTop: "1px solid #E5E5E0" }}>
+      <section style={{ padding: "100px 24px", backgroundColor: "#FFFFFF", borderTop: "1px solid #E5E5E0", ...softTex }}>
         <div className="max-w-[1100px] mx-auto">
           <FadeUp>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#7A7A85", marginBottom: 16 }}>
@@ -682,7 +696,7 @@ export default function Home() {
       </section>
 
       {/* ══ 8. TESTIMONIALS ══ */}
-      <section style={{ padding: "80px 24px 100px", background: "#FFFFFF" }}>
+      <section style={{ padding: "80px 24px 100px", backgroundColor: "#FFFFFF", ...softTex }}>
         <div className="max-w-[1100px] mx-auto">
           <FadeUp>
             <h2 style={{ fontWeight: 800, fontSize: "clamp(26px, 4vw, 48px)", letterSpacing: "-0.035em", textAlign: "center", color: TEXT, marginBottom: 48 }}>
