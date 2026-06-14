@@ -130,6 +130,9 @@ export default function Work() {
                   style={{
                     borderRadius: 18,
                     background: dark ? "#1E293B" : "#FFFFFF",
+                    backgroundImage: dark ? "var(--gb-grain)" : undefined,
+                    backgroundSize: dark ? "150px 150px" : undefined,
+                    backgroundRepeat: dark ? "repeat" : undefined,
                     border: dark ? "none" : "1.5px solid #E5E5E0",
                     display: "flex",
                     flexDirection: "column",

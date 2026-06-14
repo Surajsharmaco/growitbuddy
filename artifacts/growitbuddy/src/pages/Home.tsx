@@ -651,6 +651,9 @@ export default function Home() {
                 transition={{ delay: i * 0.07, duration: 0.5 }}
                 style={{
                   background: i === 1 ? "#1E293B" : "#F8F8F6",
+                  backgroundImage: i === 1 ? "var(--gb-grain)" : undefined,
+                  backgroundSize: i === 1 ? "150px 150px" : undefined,
+                  backgroundRepeat: i === 1 ? "repeat" : undefined,
                   border: i === 1 ? "none" : "1.5px solid #E5E5E0",
                   borderRadius: 16,
                   padding: "32px 28px",
