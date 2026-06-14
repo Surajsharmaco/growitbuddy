@@ -11,6 +11,7 @@ export interface DistributionPage {
   initials: string;
   highEngagement?: boolean;
   profileEnabled?: boolean;
+  instagramUrl?: string;
 }
 
 export const DISTRIBUTION_NICHES = [

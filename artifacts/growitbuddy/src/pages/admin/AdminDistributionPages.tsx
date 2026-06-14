@@ -35,6 +35,7 @@ const BLANK: DistPage = {
   initials: "",
   highEngagement: false,
   profileEnabled: true,
+  instagramUrl: "",
 };
 
 function isComplete(p: DistPage) {
@@ -228,6 +229,7 @@ function PageRow({
               </div>
               <Input label="Page Name" value={page.name} onChange={(e) => set({ name: e.target.value })} placeholder="Hustle Empire" />
               <Input label="Handle" value={page.handle} onChange={(e) => set({ handle: e.target.value })} placeholder="@hustleempire" />
+              <Input label="Instagram Page Link (opens on View Page)" value={page.instagramUrl || ""} onChange={(e) => set({ instagramUrl: e.target.value })} placeholder="https://instagram.com/hustleempire" />
               <Input label="Followers (display)" value={page.followers} onChange={(e) => set({ followers: e.target.value })} placeholder="3.4M" />
               <Input
                 label="Followers (raw number)"

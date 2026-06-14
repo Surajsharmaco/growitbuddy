@@ -30,6 +30,13 @@ function PageCard({ page, i }: { page: DistributionPage; i: number }) {
           display: "flex",
           flexDirection: "column",
           height: "100%",
+          cursor: page.instagramUrl ? "pointer" : "default",
+        }}
+        onClick={() => {
+          const raw = page.instagramUrl?.trim();
+          if (!raw) return;
+          const href = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+          window.open(href, "_blank", "noopener,noreferrer");
         }}
         onMouseEnter={(e) => {
           (e.currentTarget as HTMLDivElement).style.transform = "scale(1.018)";
