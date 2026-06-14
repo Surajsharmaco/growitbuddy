@@ -59,12 +59,7 @@ function InfluencerCard({ inf, i }: { inf: Influencer; i: number }) {
               <span style={{ fontSize: 13, fontWeight: 600, color: "#7A7A85", whiteSpace: "nowrap", flexShrink: 0 }}>{inf.followers}</span>
             </div>
             <p style={{ fontSize: 13, fontWeight: 500, color: "#7A7A85", marginBottom: 12 }}>{inf.username}</p>
-            <p className="card-description" style={{ fontSize: 13, color: "#5F5F5F", lineHeight: 1.6, marginBottom: 16 }}>{inf.description}</p>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#7A7A85", background: "rgba(10,10,10,0.03)", borderRadius: 100, padding: "3px 10px", whiteSpace: "nowrap" }}>
-                {inf.engagementRate} eng.
-              </span>
-            </div>
+            <p className="card-description" style={{ fontSize: 13, color: "#5F5F5F", lineHeight: 1.6 }}>{inf.description}</p>
           </div>
         </div>
     </motion.div>

@@ -95,12 +95,7 @@ export default function InfluencerProfile() {
                 <span style={{ fontSize: 15, fontWeight: 700, color: "#0A0A0A", whiteSpace: "nowrap", flexShrink: 0 }}>{inf.followers}</span>
               </div>
               <p style={{ fontSize: 14, fontWeight: 500, color: "#7A7A85", marginBottom: 14 }}>{inf.username}</p>
-              <p style={{ fontSize: 15, color: "#5F5F5F", lineHeight: 1.7, marginBottom: 20 }}>{inf.description}</p>
-
-              {/* Engagement pill */}
-              <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#7A7A85", background: "rgba(10,10,10,0.04)", borderRadius: 100, padding: "5px 14px" }}>
-                {inf.engagementRate} engagement
-              </span>
+              <p style={{ fontSize: 15, color: "#5F5F5F", lineHeight: 1.7 }}>{inf.description}</p>
             </div>
           </motion.div>
 
