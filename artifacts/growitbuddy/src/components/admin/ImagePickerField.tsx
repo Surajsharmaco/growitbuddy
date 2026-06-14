@@ -1,5 +1,5 @@
 import { useRef, useState, useId } from "react";
-import { Upload, Images, X, UserCircle2 } from "lucide-react";
+import { Upload, Images, X, UserCircle2, Circle, Square } from "lucide-react";
 import { MediaLibrary } from "./MediaLibrary";
 import { CropModal } from "./CropModal";
 import { useAdmin } from "@/context/AdminContext";
@@ -12,9 +12,11 @@ interface Props {
   shape?: "square" | "circle";
   size?: number;
   hint?: string;
+  shapeValue?: "square" | "circle";
+  onShapeChange?: (shape: "square" | "circle") => void;
 }
 
-export function ImagePickerField({ value, onChange, label, shape = "circle", size = 56, hint }: Props) {
+export function ImagePickerField({ value, onChange, label, shape = "circle", size = 56, hint, shapeValue, onShapeChange }: Props) {
   const { authFetch } = useAdmin();
   const uid = useId();
   const inputId = `imgpick_${uid.replace(/:/g, "")}`;
@@ -57,7 +59,8 @@ export function ImagePickerField({ value, onChange, label, shape = "circle", siz
     }
   }
 
-  const radius = shape === "circle" ? "50%" : "10px";
+  const effectiveShape = shapeValue ?? shape;
+  const radius = effectiveShape === "circle" ? "50%" : "10px";
 
   return (
     <div className="flex items-center gap-3">
@@ -81,7 +84,8 @@ export function ImagePickerField({ value, onChange, label, shape = "circle", siz
         <CropModal
           file={pendingFile}
           defaultAspect="1:1"
-          defaultRoundness={shape === "circle" ? 50 : 0}
+          defaultRoundness={onShapeChange ? 0 : (effectiveShape === "circle" ? 50 : 0)}
+          disableRoundness={!!onShapeChange}
           title={label ? `Crop ${label.toLowerCase()}` : "Crop image"}
           hint={hint}
           onComplete={async (blob) => {
@@ -136,6 +140,22 @@ export function ImagePickerField({ value, onChange, label, shape = "circle", siz
           <p className="text-[10px] text-red-600 mt-1">{uploadError}</p>
         )}
         </div>
+        {onShapeChange && (
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-bold text-[#0B0B0B]/40 uppercase tracking-widest">Shape</span>
+            {(["circle", "square"] as const).map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => onShapeChange(s)}
+                className={`flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-colors ${effectiveShape === s ? "bg-[#0B0B0B] text-white border-[#0B0B0B]" : "text-[#0B0B0B]/55 border-[#0B0B0B]/12 hover:border-[#0B0B0B]/30 bg-white"}`}
+              >
+                {s === "circle" ? <Circle size={11} /> : <Square size={11} />}
+                {s === "circle" ? "Circle" : "Square"}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

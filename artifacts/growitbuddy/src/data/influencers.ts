@@ -7,6 +7,7 @@ export interface Influencer {
   engagementRate: string;
   description: string;
   photo: string;
+  photoShape?: "circle" | "square";
   profileEnabled?: boolean;
   updatedAt?: string;
   audienceCountries: string[];

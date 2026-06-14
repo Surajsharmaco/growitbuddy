@@ -36,6 +36,7 @@ const BLANK: Influencer = {
   engagementRate: "",
   description: "",
   photo: "",
+  photoShape: "square",
   profileEnabled: true,
   audienceCountries: [],
   initials: "",
@@ -180,7 +181,8 @@ function InfluencerRow({
                   label="Photo"
                   value={inf.photo}
                   onChange={(url) => set({ photo: url })}
-                  shape="circle"
+                  shapeValue={inf.photoShape ?? "square"}
+                  onShapeChange={(s) => set({ photoShape: s })}
                   size={80}
                   hint="Recommended: 400 × 400 px (square) • Face centered"
                 />
@@ -358,7 +360,8 @@ function NewInfluencerForm({
                 label="Photo"
                 value={draft.photo}
                 onChange={(url) => set({ photo: url })}
-                shape="circle"
+                shapeValue={draft.photoShape ?? "square"}
+                onShapeChange={(s) => set({ photoShape: s })}
                 size={80}
                 hint="Recommended: 400 × 400 px (square) • Face centered"
               />

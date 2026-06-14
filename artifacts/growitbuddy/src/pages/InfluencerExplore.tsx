@@ -38,7 +38,9 @@ function InfluencerCard({ inf, i }: { inf: Influencer; i: number }) {
                 src={inf.photo}
                 alt={inf.name}
                 onError={() => setImgError(true)}
-                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }}
+                style={inf.photoShape === "circle"
+                  ? { position: "absolute", inset: 0, margin: "auto", width: "76%", height: "76%", borderRadius: "50%", objectFit: "cover", objectPosition: "center", display: "block", boxShadow: "0 6px 20px rgba(11,11,11,0.18)" }
+                  : { width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }}
               />
             ) : (
               <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#0A0A0A", fontWeight: 800, fontSize: 48, letterSpacing: "-0.02em" }}>

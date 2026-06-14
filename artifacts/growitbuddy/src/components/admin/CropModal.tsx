@@ -37,6 +37,7 @@ interface Props {
   onCancel: () => void;
   defaultAspect?: AspectKey;
   defaultRoundness?: number;
+  disableRoundness?: boolean;
   title?: string;
   hint?: string;
 }
@@ -47,6 +48,7 @@ export function CropModal({
   onCancel,
   defaultAspect = "free",
   defaultRoundness = 0,
+  disableRoundness = false,
   title = "Crop image",
   hint,
 }: Props) {
@@ -201,7 +203,7 @@ export function CropModal({
       canvas.height = outH;
       const ctx = canvas.getContext("2d")!;
       ctx.clearRect(0, 0, outW, outH);
-      if (roundness > 0) {
+      if (roundness > 0 && !disableRoundness) {
         const r = (Math.min(outW, outH) * roundness) / 100;
         roundedRectPath(ctx, 0, 0, outW, outH, r);
         ctx.clip();
@@ -230,7 +232,7 @@ export function CropModal({
     }
   }
 
-  const svgRx = roundness > 0 ? (Math.min(crop.w, crop.h) * roundness) / 100 : 0;
+  const svgRx = roundness > 0 && !disableRoundness ? (Math.min(crop.w, crop.h) * roundness) / 100 : 0;
 
   return (
     <div
@@ -320,13 +322,15 @@ export function CropModal({
                 ))}
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-[#0B0B0B]/40 uppercase tracking-widest shrink-0">Round</span>
-                <input type="range" min={0} max={50} value={roundness}
-                  onChange={(e) => setRoundness(Number(e.target.value))}
-                  className="flex-1 accent-[#0B0B0B]" style={{ height: 4 }} />
-                <span className="text-[11px] text-[#0B0B0B]/45 font-mono w-8 text-right">{roundness}%</span>
-              </div>
+              {!disableRoundness && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-[#0B0B0B]/40 uppercase tracking-widest shrink-0">Round</span>
+                  <input type="range" min={0} max={50} value={roundness}
+                    onChange={(e) => setRoundness(Number(e.target.value))}
+                    className="flex-1 accent-[#0B0B0B]" style={{ height: 4 }} />
+                  <span className="text-[11px] text-[#0B0B0B]/45 font-mono w-8 text-right">{roundness}%</span>
+                </div>
+              )}
             </>
           )}
         </div>
