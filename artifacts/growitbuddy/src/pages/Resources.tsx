@@ -7,7 +7,7 @@ import {
 import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import { API_BASE } from "@/lib/api";
-import { getWash, getWashBorder, CardGrain } from "@/components/WashCard";
+import { getWash, getWashBorder, NEUTRAL_CARD_BG, NEUTRAL_CARD_BORDER, CardGrain } from "@/components/WashCard";
 import { RESOURCES_DEFAULTS as DEFAULTS, type ResourcesData, type ResourceItem, type ResourceType } from "@/lib/resourcesDefaults";
 
 const UNLOCK_KEY = "gb_resources_unlocked";
@@ -260,7 +260,7 @@ export default function Resources() {
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
               {featured.map((item, i) => (
-                <FeaturedCard key={i} item={item} index={i} unlocked={unlocked} onLockedClick={openGate} />
+                <FeaturedCard key={i} item={item} index={i} unlocked={unlocked} onLockedClick={openGate} neutral={i !== 0} />
               ))}
             </div>
           </div>
@@ -325,7 +325,7 @@ export default function Resources() {
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.04, duration: 0.45 }}
                   >
-                    <ResourceCard item={item} index={i} unlocked={unlocked} onLockedClick={openGate} />
+                    <ResourceCard item={item} index={i} unlocked={unlocked} onLockedClick={openGate} neutral />
                   </motion.div>
                 );
               })}
@@ -543,16 +543,16 @@ function BadgePill({ text, accent }: { text: string; accent?: boolean }) {
 }
 
 // ── Featured card ──────────────────────────────────────────────────────────
-function FeaturedCard({ item, index, unlocked, onLockedClick }: { item: ResourceItem; index: number; unlocked: boolean; onLockedClick: (item: ResourceItem, targetUrl?: string) => void }) {
+function FeaturedCard({ item, index, unlocked, onLockedClick, neutral = false }: { item: ResourceItem; index: number; unlocked: boolean; onLockedClick: (item: ResourceItem, targetUrl?: string) => void; neutral?: boolean }) {
   return (
     <div
       style={{
         position: "relative",
-        background: getWash(index),
+        background: neutral ? NEUTRAL_CARD_BG : getWash(index),
         color: "#0F1822",
         borderRadius: 18,
         padding: "26px 26px 22px",
-        border: `1px solid ${getWashBorder(index)}`,
+        border: `1px solid ${neutral ? NEUTRAL_CARD_BORDER : getWashBorder(index)}`,
         height: "100%",
         display: "flex",
         flexDirection: "column",
@@ -569,7 +569,7 @@ function FeaturedCard({ item, index, unlocked, onLockedClick }: { item: Resource
           fontSize: 10, fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase",
           padding: "5px 12px", borderRadius: 100,
           background: "rgba(255,255,255,0.7)",
-          border: `1px solid ${getWashBorder(index)}`,
+          border: `1px solid ${neutral ? NEUTRAL_CARD_BORDER : getWashBorder(index)}`,
           color: "#0F1822",
         }}>
           {typeIcon(item.type)} {item.tag}
@@ -598,13 +598,13 @@ function FeaturedCard({ item, index, unlocked, onLockedClick }: { item: Resource
 }
 
 // ── Standard resource card ──────────────────────────────────────────────────
-function ResourceCard({ item, index, unlocked, onLockedClick }: { item: ResourceItem; index: number; unlocked: boolean; onLockedClick: (item: ResourceItem, targetUrl?: string) => void }) {
+function ResourceCard({ item, index, unlocked, onLockedClick, neutral = false }: { item: ResourceItem; index: number; unlocked: boolean; onLockedClick: (item: ResourceItem, targetUrl?: string) => void; neutral?: boolean }) {
   return (
     <div
       style={{
         position: "relative",
-        background: getWash(index),
-        border: `1px solid ${getWashBorder(index)}`,
+        background: neutral ? NEUTRAL_CARD_BG : getWash(index),
+        border: `1px solid ${neutral ? NEUTRAL_CARD_BORDER : getWashBorder(index)}`,
         borderRadius: 18,
         padding: 0,
         height: "100%",

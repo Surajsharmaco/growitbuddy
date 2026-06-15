@@ -10,7 +10,7 @@ import { usePublicContent } from "@/hooks/usePublicContent";
 import BlueprintLines from "@/components/effects/BlueprintLines";
 import DotGrid from "@/components/effects/DotGrid";
 import { HOME_DEFAULTS as DEFAULTS, type HomeData } from "@/lib/homeDefaults";
-import { getWashCardStyle, getWashBorder, CardGrain, WashIconChip } from "@/components/WashCard";
+import { getWashCardStyle, getNeutralCardStyle, NEUTRAL_CARD_BORDER, CardGrain, WashIconChip } from "@/components/WashCard";
 
 function GrainOverlay() {
   return (
@@ -378,7 +378,7 @@ export default function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: (i % 3) * 0.09, duration: 0.5 }}
-                  style={getWashCardStyle(i, {
+                  style={getNeutralCardStyle({
                     padding: "32px 28px",
                     display: "flex",
                     flexDirection: "column",
@@ -389,7 +389,7 @@ export default function Home() {
                     <div style={{
                       width: 34, height: 34, borderRadius: 10,
                       background: "rgba(255,255,255,0.62)",
-                      border: `1px solid ${getWashBorder(i)}`,
+                      border: `1px solid ${NEUTRAL_CARD_BORDER}`,
                       display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: 12, fontWeight: 800, letterSpacing: "0.03em",
                       color: "#0F1822",
@@ -415,7 +415,7 @@ export default function Home() {
                         transition: "opacity 0.15s",
                         background: "rgba(255,255,255,0.6)",
                         color: "#1E293B",
-                        border: `1px solid ${getWashBorder(i)}`,
+                        border: `1px solid ${NEUTRAL_CARD_BORDER}`,
                       }}
                     >
                       Explore Service <span style={{ fontSize: 14 }}>→</span>
@@ -454,7 +454,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08, duration: 0.5 }}
-                style={getWashCardStyle(i, { padding: "32px 28px" })}
+                style={getNeutralCardStyle({ padding: "32px 28px" })}
               >
                 <CardGrain />
                 <p style={{ position: "relative", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#5A6675", marginBottom: 20 }}>{p.category}</p>
@@ -494,7 +494,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1, duration: 0.5 }}
-                style={getWashCardStyle(i, { padding: "40px 36px" })}
+                style={getNeutralCardStyle({ padding: "40px 36px" })}
               >
                 <CardGrain />
                 <p style={{ position: "relative", fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--gb-accent)", marginBottom: 20 }}>{card.tag}</p>
@@ -571,7 +571,13 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.07, duration: 0.5 }}
-                style={getWashCardStyle(i, {
+                style={i === 0 ? getWashCardStyle(i, {
+                  padding: "26px 26px 28px",
+                  minHeight: 320,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 0,
+                }) : getNeutralCardStyle({
                   padding: "26px 26px 28px",
                   minHeight: 320,
                   display: "flex",
@@ -580,7 +586,7 @@ export default function Home() {
                 })}
               >
                 <CardGrain />
-                <WashIconChip index={i} icon={Icon} />
+                <WashIconChip index={i} icon={Icon} neutral={i !== 0} />
                 <h3 style={{ position: "relative", fontWeight: 800, fontSize: 23, letterSpacing: "-0.02em", color: "#0F1822", marginTop: "auto", marginBottom: 10 }}>
                   {card.title}
                 </h3>
@@ -613,7 +619,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08, duration: 0.5 }}
-                style={getWashCardStyle(i, { padding: "28px" })}
+                style={getNeutralCardStyle({ padding: "28px" })}
               >
                 <CardGrain />
                 <div style={{ position: "relative", display: "flex", gap: 2, marginBottom: 16 }}>
@@ -621,7 +627,7 @@ export default function Home() {
                 </div>
                 <p style={{ position: "relative", fontSize: 15, color: "#374151", lineHeight: "1.75", marginBottom: 24 }}>"{t.quote}"</p>
                 <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.62)", border: `1px solid ${getWashBorder(i)}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#1E293B", flexShrink: 0 }}>{t.initials}</div>
+                  <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.62)", border: `1px solid ${NEUTRAL_CARD_BORDER}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#1E293B", flexShrink: 0 }}>{t.initials}</div>
                   <div>
                     <p style={{ position: "relative", fontSize: 14, fontWeight: 700, color: "#0F1822" }}>{t.name}</p>
                     <p style={{ position: "relative", fontSize: 12, color: "#5A6675" }}>{t.role}</p>

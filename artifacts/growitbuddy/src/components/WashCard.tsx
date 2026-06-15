@@ -33,6 +33,12 @@ export const WASH_CARD_BORDERS: string[] = [
   "rgba(196,170,128,0.30)",
 ];
 
+// Plain "old" neutral card surface (cream/white, no hue). Matches the Framework
+// step cards. Used for EVERY card except the single featured card per page, so
+// each page reads calm with just one tinted accent.
+export const NEUTRAL_CARD_BG = "linear-gradient(180deg, #FFFFFF 0%, #F6F6F3 100%)";
+export const NEUTRAL_CARD_BORDER = "rgba(15,24,34,0.08)";
+
 export function getWash(i: number): string {
   return WASH_CARD_BACKGROUNDS[((i % WASH_CARD_BACKGROUNDS.length) + WASH_CARD_BACKGROUNDS.length) % WASH_CARD_BACKGROUNDS.length];
 }
@@ -53,6 +59,21 @@ export function getWashCardStyle(i: number, overrides: CSSProperties = {}): CSSP
     // Establish a stacking context so <CardGrain/> (zIndex:-1) paints above the
     // wash background but below ALL card content — callers don't need to mark
     // children position:relative for them to stay legible.
+    isolation: "isolate",
+    ...overrides,
+  };
+}
+
+// Plain neutral card container (no wash). Mirrors getWashCardStyle's geometry so
+// neutral and featured cards share elevation/radius — only the color differs.
+export function getNeutralCardStyle(overrides: CSSProperties = {}): CSSProperties {
+  return {
+    background: NEUTRAL_CARD_BG,
+    border: `1px solid ${NEUTRAL_CARD_BORDER}`,
+    borderRadius: 20,
+    boxShadow: "0 14px 40px -30px rgba(30,41,59,0.20)",
+    position: "relative",
+    overflow: "hidden",
     isolation: "isolate",
     ...overrides,
   };
@@ -89,6 +110,7 @@ export function WashIconChip({
   size = 48,
   iconSize = 23,
   style,
+  neutral = false,
 }: {
   index: number;
   icon?: LucideIcon;
@@ -96,6 +118,7 @@ export function WashIconChip({
   size?: number;
   iconSize?: number;
   style?: CSSProperties;
+  neutral?: boolean;
 }) {
   return (
     <div
@@ -109,7 +132,7 @@ export function WashIconChip({
         justifyContent: "center",
         flexShrink: 0,
         background: "rgba(255,255,255,0.62)",
-        border: `1px solid ${getWashBorder(index)}`,
+        border: `1px solid ${neutral ? NEUTRAL_CARD_BORDER : getWashBorder(index)}`,
         boxShadow: "0 6px 16px -8px rgba(30,41,59,0.28)",
         backdropFilter: "blur(2px)",
         ...style,

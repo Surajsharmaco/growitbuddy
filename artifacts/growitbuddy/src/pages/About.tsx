@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Link } from "wouter";
 import SEOMeta from "@/components/SEOMeta";
-import { getWashCardStyle, CardGrain, WashIconChip } from "@/components/WashCard";
+import { getWashCardStyle, getNeutralCardStyle, CardGrain, WashIconChip } from "@/components/WashCard";
 import { usePublicContent } from "@/hooks/usePublicContent";
 
 import { ABOUT_DEFAULTS as DEFAULTS, type AboutData } from "@/lib/aboutDefaults";
@@ -336,10 +336,10 @@ export default function About() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.08 }}
-                  style={getWashCardStyle(i, { padding: "32px 30px" })}
+                  style={i === 0 ? getWashCardStyle(i, { padding: "32px 30px" }) : getNeutralCardStyle({ padding: "32px 30px" })}
                 >
                   <CardGrain />
-                  <WashIconChip index={i} label={String(i + 1).padStart(2, "0")} style={{ marginBottom: 22 }} />
+                  <WashIconChip index={i} label={String(i + 1).padStart(2, "0")} style={{ marginBottom: 22 }} neutral={i !== 0} />
                   <h3 style={{ position: "relative", fontSize: 21, fontWeight: 800, letterSpacing: "-0.03em", color: "#0F1822", marginBottom: 10 }}>{v.title}</h3>
                   <p style={{ position: "relative", fontSize: 14.5, color: "#374151", lineHeight: "1.7", fontWeight: 500 }}>{v.description}</p>
                 </motion.div>
