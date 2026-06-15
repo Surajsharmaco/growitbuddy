@@ -6167,25 +6167,40 @@ Company: GrowitBuddy`
 
 // src/lib/linksDefaults.ts
 var LINKS_DEFAULTS = {
+  schemaVersion: 2,
   profileName: "GrowitBuddy",
   username: "@growitbuddy",
   bio: "We help creators and brands grow with content, distribution, and a network that delivers real results.",
   avatarUrl: "",
   verified: true,
-  theme: "dark",
-  accentColor: "#C9A227",
-  socials: [
-    { id: "s1", platform: "instagram", url: "https://instagram.com/growitbuddy" },
-    { id: "s2", platform: "youtube", url: "https://youtube.com/@growitbuddy" },
-    { id: "s3", platform: "x", url: "https://x.com/growitbuddy" },
-    { id: "s4", platform: "email", url: "hello@growitbuddy.com" }
-  ],
-  links: [
-    { id: "l1", label: "Book a Free Strategy Call", sublabel: "30 min, no strings attached", url: "/contact", featured: true, enabled: true },
-    { id: "l2", label: "Work With Our Influencers", sublabel: "Browse our creator network", url: "/influencers", enabled: true },
-    { id: "l3", label: "Distribution Network", sublabel: "Reach millions across our pages", url: "/distribution", enabled: true },
-    { id: "l4", label: "Explore Our Services", sublabel: "See what we can do for you", url: "/services", enabled: true },
-    { id: "l5", label: "Read the Blog", sublabel: "Growth playbooks & insights", url: "/insights", enabled: true }
+  accentColor: "#C2A878",
+  sections: [
+    {
+      id: "sec_socials",
+      type: "socials",
+      enabled: true,
+      title: "",
+      socials: [
+        { id: "s1", platform: "instagram", url: "https://instagram.com/growitbuddy" },
+        { id: "s2", platform: "youtube", url: "https://youtube.com/@growitbuddy" },
+        { id: "s3", platform: "x", url: "https://x.com/growitbuddy" },
+        { id: "s4", platform: "email", url: "hello@growitbuddy.com" }
+      ]
+    },
+    {
+      id: "sec_links",
+      type: "links",
+      enabled: true,
+      title: "",
+      layout: "list",
+      items: [
+        { id: "l1", label: "Book a Free Strategy Call", sublabel: "30 min, no strings attached", url: "/contact", featured: true, enabled: true },
+        { id: "l2", label: "Work With Our Influencers", sublabel: "Browse our creator network", url: "/influencers", enabled: true },
+        { id: "l3", label: "Distribution Network", sublabel: "Reach millions across our pages", url: "/distribution", enabled: true },
+        { id: "l4", label: "Explore Our Services", sublabel: "See what we can do for you", url: "/services", enabled: true },
+        { id: "l5", label: "Read the Blog", sublabel: "Growth playbooks & insights", url: "/blog", enabled: true }
+      ]
+    }
   ],
   footerNote: ""
 };
@@ -6894,8 +6909,8 @@ function buildHtml(template, entry, pathname, b2) {
   const bodyHtml = renderContentBody(mergedContent, bodySections, title);
   return injectBody(html, bodyHtml);
 }
-function sendHtml(res, html, cacheControl) {
-  res.statusCode = 200;
+function sendHtml(res, html, cacheControl, status = 200) {
+  res.statusCode = status;
   res.setHeader("content-type", "text/html; charset=utf-8");
   res.setHeader("cache-control", cacheControl);
   res.end(html);
@@ -7010,6 +7025,22 @@ async function buildBlogSitemap() {
   }
   return wrapUrlset(urls);
 }
+var LEGACY_GONE_PATHS = [
+  /^\/products?(?:\/|$)/i,
+  /^\/collections?(?:\/|$)/i,
+  /^\/cart(?:\/|$)/i,
+  /^\/checkouts?(?:\/|$)/i,
+  /^\/accounts?(?:\/|$)/i,
+  /^\/orders?(?:\/|$)/i,
+  /^\/pages(?:\/|$)/i,
+  /^\/policies(?:\/|$)/i,
+  /^\/apps(?:\/|$)/i,
+  /^\/layouts?(?:\/|$)/i,
+  /^\/blogs(?:\/|$)/i
+];
+function isLegacyGone(pathname) {
+  return LEGACY_GONE_PATHS.some((re) => re.test(pathname));
+}
 async function handler(req, res) {
   const template = TEMPLATE;
   if (!template) {
@@ -7032,6 +7063,11 @@ async function handler(req, res) {
     if (pathname === "/sitemap-blog.xml") {
       const xml = await buildBlogSitemap();
       sendXml(res, xml, "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400");
+      return;
+    }
+    if (isLegacyGone(pathname)) {
+      const goneHtml = setMeta(template, "name", "robots", "noindex,follow");
+      sendHtml(res, goneHtml, "public, max-age=3600, s-maxage=3600", 410);
       return;
     }
     const entry = findEntryByPath(pathname);

@@ -423,8 +423,8 @@ function buildHtml(
   return injectBody(html, bodyHtml);
 }
 
-function sendHtml(res: any, html: string, cacheControl: string): void {
-  res.statusCode = 200;
+function sendHtml(res: any, html: string, cacheControl: string, status = 200): void {
+  res.statusCode = status;
   res.setHeader("content-type", "text/html; charset=utf-8");
   res.setHeader("cache-control", cacheControl);
   res.end(html);
@@ -565,6 +565,36 @@ async function buildBlogSitemap(): Promise<string> {
   return wrapUrlset(urls);
 }
 
+/* ──────────────────────── legacy "gone" URLs ───────────────────────────────
+ * growitbuddy.com previously hosted a Shopify-style store/template, and Google
+ * still has those old e-commerce URLs indexed (e.g. /product/glasses-mockup,
+ * /layouts/header-border-logo-center, /layouts). They never existed in this app
+ * and are gone for good — but because the SPA shell answered HTTP 200 for every
+ * unknown path (a "soft 404"), search engines never dropped them.
+ *
+ * These prefixes can NEVER collide with a real GrowitBuddy route: the blog is
+ * `/blog` (singular), and no page lives under /product, /collections, /cart,
+ * /layouts, /pages, etc. Matching paths get HTTP 410 Gone + a noindex robots
+ * tag, the strongest signal for Google to purge them, while still serving the
+ * styled SPA so a human who clicks an old link sees the normal not-found page. */
+const LEGACY_GONE_PATHS: RegExp[] = [
+  /^\/products?(?:\/|$)/i,
+  /^\/collections?(?:\/|$)/i,
+  /^\/cart(?:\/|$)/i,
+  /^\/checkouts?(?:\/|$)/i,
+  /^\/accounts?(?:\/|$)/i,
+  /^\/orders?(?:\/|$)/i,
+  /^\/pages(?:\/|$)/i,
+  /^\/policies(?:\/|$)/i,
+  /^\/apps(?:\/|$)/i,
+  /^\/layouts?(?:\/|$)/i,
+  /^\/blogs(?:\/|$)/i,
+];
+
+function isLegacyGone(pathname: string): boolean {
+  return LEGACY_GONE_PATHS.some((re) => re.test(pathname));
+}
+
 /* ──────────────────────────── handler ─────────────────────────────── */
 export default async function handler(req: any, res: any): Promise<void> {
   const template = TEMPLATE;
@@ -598,6 +628,16 @@ export default async function handler(req: any, res: any): Promise<void> {
     if (pathname === "/sitemap-blog.xml") {
       const xml = await buildBlogSitemap();
       sendXml(res, xml, "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400");
+      return;
+    }
+
+    // Legacy e-commerce/template URLs left over from a previous site on this
+    // domain: permanently gone. Answer 410 + noindex so Google deindexes them
+    // (a 200 shell kept them indexed as soft 404s). Still serve the SPA shell so
+    // a human who follows an old link sees the styled not-found page.
+    if (isLegacyGone(pathname)) {
+      const goneHtml = setMeta(template, "name", "robots", "noindex,follow");
+      sendHtml(res, goneHtml, "public, max-age=3600, s-maxage=3600", 410);
       return;
     }
 
