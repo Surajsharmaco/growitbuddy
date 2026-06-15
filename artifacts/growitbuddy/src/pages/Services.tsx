@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import BlueprintLines from "@/components/effects/BlueprintLines";
 import { ArrowRight, Check, BadgeCheck, Video, Rocket, LayoutTemplate, Cpu, ShoppingBag } from "lucide-react";
-import { getWashCardStyle, getNeutralCardStyle, CardGrain, WashIconChip } from "@/components/WashCard";
+import { getWashCardStyle, CardGrain, WashIconChip } from "@/components/WashCard";
 import { Link } from "wouter";
 import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
@@ -457,10 +457,10 @@ export default function Services() {
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.07, duration: 0.5 }}
                   id={`service-${s.id}`}
-                  style={{ scrollMarginTop: 80, ...(i === 0 ? getWashCardStyle(i, { borderRadius: 22 }) : getNeutralCardStyle({ borderRadius: 22 })) }}
+                  style={{ scrollMarginTop: 80, ...getWashCardStyle(i, { borderRadius: 22 }) }}
                 >
                   <CardGrain />
-                  <WashIconChip index={i} icon={Icon} iconSize={26} size={50} style={{ marginBottom: 22 }} neutral={i !== 0} />
+                  <WashIconChip index={i} icon={Icon} iconSize={26} size={50} style={{ marginBottom: 22 }} />
                   <div className="svc-bento-sub">{s.subtitle}</div>
                   <h3 className="svc-bento-title">{s.title}</h3>
                   <p className="svc-bento-desc">{s.description}</p>

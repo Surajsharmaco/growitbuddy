@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Play, CheckCircle, ArrowUpRight } from "lucide-react";
-import { getWashCardStyle, getNeutralCardStyle, CardGrain } from "@/components/WashCard";
+import { getWashCardStyle, CardGrain } from "@/components/WashCard";
 import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import EcosystemOptIn from "@/components/EcosystemOptIn";
@@ -557,7 +557,7 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
 
             <div className="tp-steps-grid">
               {(d.steps || []).map((step, i) => (
-                <motion.div key={i} {...FI(0.1 + i * 0.08)} className="tp-step-card" style={i === 0 ? getWashCardStyle(i, { borderRadius: 14 }) : getNeutralCardStyle({ borderRadius: 14 })}>
+                <motion.div key={i} {...FI(0.1 + i * 0.08)} className="tp-step-card" style={getWashCardStyle(i, { borderRadius: 14 })}>
                   <CardGrain />
                   <div className="tp-step-num" style={{ position: "relative" }}>{step.number}</div>
                   <h3 style={{ position: "relative", fontSize: 17, fontWeight: 800, color: "#0F1822", marginBottom: 10, letterSpacing: "-0.01em" }}>
@@ -589,7 +589,7 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
                 const link = r.link || fallback?.link || "";
                 const btnLabel = r.btnLabel || fallback?.btnLabel || "Open";
                 return (
-                  <motion.div key={r.id} {...FI(0.08 + i * 0.08)} className="tp-res-card" style={getNeutralCardStyle({ borderRadius: 14 })}>
+                  <motion.div key={r.id} {...FI(0.08 + i * 0.08)} className="tp-res-card" style={getWashCardStyle(i, { borderRadius: 14 })}>
                     <CardGrain />
                     <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
                       <h3 style={{ fontSize: 16, fontWeight: 800, color: "#0F1822", marginBottom: 6, letterSpacing: "-0.01em" }}>
