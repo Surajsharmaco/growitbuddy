@@ -552,7 +552,7 @@ function FeaturedCard({ item, index, unlocked, onLockedClick }: { item: Resource
         color: "#0F1822",
         borderRadius: 18,
         padding: "26px 26px 22px",
-        border: `1.5px solid ${getWashBorder(index)}`,
+        border: `1px solid ${getWashBorder(index)}`,
         height: "100%",
         display: "flex",
         flexDirection: "column",
@@ -604,7 +604,7 @@ function ResourceCard({ item, index, unlocked, onLockedClick }: { item: Resource
       style={{
         position: "relative",
         background: getWash(index),
-        border: `1.5px solid ${getWashBorder(index)}`,
+        border: `1px solid ${getWashBorder(index)}`,
         borderRadius: 18,
         padding: 0,
         height: "100%",
