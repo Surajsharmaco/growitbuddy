@@ -45,17 +45,26 @@ export default function Home() {
   const TEXT = "#0A0A0A";
   const CARD_SURFACE = "radial-gradient(135% 120% at 100% 0%, rgba(194,168,120,0.12) 0%, rgba(194,168,120,0) 48%), linear-gradient(168deg, #FFFFFF 0%, #FAF6EE 100%)";
 
-  // Premium tonal ramp derived ONLY from the brand palette (cream -> gold -> navy),
-  // mirroring how the reference graduates shades of its own theme color across a card
-  // row. Light cards keep dark text; the deep navy anchor flips to light text + gold.
-  const AUDIENCE_SHADES: { surface: string; deep: boolean }[] = [
-    { surface: "radial-gradient(135% 120% at 100% 0%, rgba(194,168,120,0.10) 0%, rgba(194,168,120,0) 48%), #FFFFFF", deep: false },
-    { surface: "radial-gradient(135% 120% at 100% 0%, rgba(194,168,120,0.14) 0%, rgba(194,168,120,0) 48%), #FBF4E8", deep: false },
-    { surface: "radial-gradient(135% 120% at 100% 0%, rgba(194,168,120,0.16) 0%, rgba(194,168,120,0) 48%), #F3E7CF", deep: false },
-    { surface: "radial-gradient(135% 120% at 100% 0%, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0) 48%), #E9D7B2", deep: false },
-    { surface: "radial-gradient(135% 120% at 100% 0%, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0) 48%), #D9C091", deep: false },
-    { surface: "radial-gradient(135% 120% at 100% 0%, rgba(194,168,120,0.24) 0%, rgba(194,168,120,0) 52%), #1E293B", deep: true },
+  // Soft watercolor washes (per user reference) — each card is a distinct multi-hue
+  // cloud (sky / coral / teal / lime / violet / amber) over a very light base, with a
+  // fine paper-grain overlay for a painted texture. Dark text reads on all of them.
+  const AUDIENCE_WASHES: string[] = [
+    // Founders — sky blue
+    "radial-gradient(60% 55% at 18% 22%, rgba(150,200,250,0.55) 0%, rgba(150,200,250,0) 60%), radial-gradient(55% 50% at 80% 30%, rgba(190,225,255,0.50) 0%, rgba(190,225,255,0) 62%), radial-gradient(50% 45% at 30% 80%, rgba(255,243,200,0.35) 0%, rgba(255,243,200,0) 60%), radial-gradient(60% 60% at 75% 85%, rgba(170,210,250,0.40) 0%, rgba(170,210,250,0) 65%), linear-gradient(160deg, #F2F8FF 0%, #EAF3FE 100%)",
+    // Creators — coral / peach
+    "radial-gradient(65% 60% at 20% 20%, rgba(255,180,140,0.70) 0%, rgba(255,180,140,0) 60%), radial-gradient(60% 55% at 85% 25%, rgba(255,150,120,0.65) 0%, rgba(255,150,120,0) 60%), radial-gradient(60% 60% at 75% 85%, rgba(255,190,170,0.60) 0%, rgba(255,190,170,0) 62%), radial-gradient(55% 50% at 25% 80%, rgba(255,210,160,0.55) 0%, rgba(255,210,160,0) 60%), linear-gradient(160deg, #FFE9DC 0%, #FFD9C7 100%)",
+    // Agencies — teal / lavender
+    "radial-gradient(60% 55% at 22% 25%, rgba(150,225,220,0.50) 0%, rgba(150,225,220,0) 60%), radial-gradient(55% 50% at 82% 28%, rgba(190,200,250,0.50) 0%, rgba(190,200,250,0) 62%), radial-gradient(60% 60% at 78% 82%, rgba(200,225,255,0.50) 0%, rgba(200,225,255,0) 64%), radial-gradient(50% 50% at 28% 82%, rgba(210,235,210,0.40) 0%, rgba(210,235,210,0) 60%), linear-gradient(160deg, #EEFAF7 0%, #EAF1FB 100%)",
+    // Ecommerce — lime / yellow
+    "radial-gradient(60% 55% at 20% 24%, rgba(180,225,150,0.60) 0%, rgba(180,225,150,0) 60%), radial-gradient(60% 55% at 85% 30%, rgba(245,230,130,0.60) 0%, rgba(245,230,130,0) 62%), radial-gradient(60% 60% at 78% 85%, rgba(150,215,170,0.55) 0%, rgba(150,215,170,0) 64%), radial-gradient(50% 50% at 25% 82%, rgba(225,235,150,0.50) 0%, rgba(225,235,150,0) 60%), linear-gradient(160deg, #F1FBE6 0%, #E9F6D8 100%)",
+    // SaaS — violet / periwinkle
+    "radial-gradient(60% 55% at 20% 22%, rgba(200,180,250,0.55) 0%, rgba(200,180,250,0) 60%), radial-gradient(55% 50% at 84% 26%, rgba(225,190,250,0.50) 0%, rgba(225,190,250,0) 62%), radial-gradient(60% 60% at 76% 84%, rgba(190,200,255,0.50) 0%, rgba(190,200,255,0) 64%), radial-gradient(50% 50% at 26% 82%, rgba(250,205,235,0.45) 0%, rgba(250,205,235,0) 60%), linear-gradient(160deg, #F6F0FE 0%, #EFEAFC 100%)",
+    // Coaches — amber / peach
+    "radial-gradient(60% 55% at 20% 24%, rgba(255,215,150,0.60) 0%, rgba(255,215,150,0) 60%), radial-gradient(58% 52% at 84% 28%, rgba(255,190,180,0.55) 0%, rgba(255,190,180,0) 62%), radial-gradient(60% 60% at 78% 84%, rgba(255,205,165,0.55) 0%, rgba(255,205,165,0) 64%), radial-gradient(50% 50% at 26% 80%, rgba(255,225,190,0.50) 0%, rgba(255,225,190,0) 60%), linear-gradient(160deg, #FFF3E6 0%, #FFEAD7 100%)",
   ];
+
+  const WATERCOLOR_NOISE =
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='wc'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23wc)'/%3E%3C/svg%3E\")";
 
   const softTex = {
     backgroundImage:
@@ -577,7 +586,7 @@ export default function Home() {
                 outcome: "A distribution-first brand that attracts premium clients and positions you as the obvious authority.",
               },
             ].map((card, i) => {
-              const s = AUDIENCE_SHADES[i % AUDIENCE_SHADES.length];
+              const wash = AUDIENCE_WASHES[i % AUDIENCE_WASHES.length];
               return (
               <m.div
                 key={i}
@@ -586,27 +595,27 @@ export default function Home() {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.07, duration: 0.5 }}
                 style={{
-                  background: s.surface,
-                  border: s.deep ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(10,10,10,0.06)",
-                  borderRadius: 16,
-                  padding: "32px 28px",
+                  background: wash,
+                  border: "1px solid rgba(30,41,59,0.06)",
+                  borderRadius: 18,
+                  padding: "30px 28px",
+                  minHeight: 240,
                   display: "flex",
                   flexDirection: "column",
                   gap: 0,
-                  boxShadow: s.deep ? "0 16px 40px -18px rgba(30,41,59,0.45)" : "0 12px 34px -18px rgba(30,41,59,0.22)",
+                  boxShadow: "0 16px 44px -24px rgba(30,41,59,0.28)",
                   position: "relative",
                   overflow: "hidden",
                 }}
               >
-                <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat", opacity: s.deep ? 0.5 : 0.6, pointerEvents: "none" }} />
-                <div aria-hidden="true" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, #C2A878 0%, rgba(194,168,120,0.15) 55%, rgba(194,168,120,0) 100%)", pointerEvents: "none", zIndex: 2 }} />
-                <h3 style={{ position: "relative", fontWeight: 800, fontSize: 20, letterSpacing: "-0.025em", color: s.deep ? "#FFFFFF" : "#0A0A0A", marginBottom: 12 }}>
+                <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: WATERCOLOR_NOISE, backgroundSize: "220px 220px", backgroundRepeat: "repeat", opacity: 0.16, mixBlendMode: "soft-light", pointerEvents: "none" }} />
+                <h3 style={{ position: "relative", fontWeight: 800, fontSize: 21, letterSpacing: "-0.025em", color: "#1A2230", marginBottom: 12 }}>
                   {card.title}
                 </h3>
-                <p style={{ position: "relative", fontSize: 13, fontWeight: 600, color: s.deep ? "#C2A878" : "var(--gb-accent)", marginBottom: 16, letterSpacing: "0.01em" }}>
+                <p style={{ position: "relative", fontSize: 13, fontWeight: 600, color: "#3A4453", marginBottom: 14, letterSpacing: "0.01em" }}>
                   ↳ {card.problem}
                 </p>
-                <p style={{ position: "relative", fontSize: 14, color: s.deep ? "rgba(255,255,255,0.75)" : "#4A4A45", lineHeight: "1.75", marginTop: "auto" }}>
+                <p style={{ position: "relative", fontSize: 14, color: "#4B5563", lineHeight: "1.75", marginTop: "auto" }}>
                   {card.outcome}
                 </p>
               </m.div>
