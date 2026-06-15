@@ -637,6 +637,9 @@ export default async function handler(req: any, res: any): Promise<void> {
     // a human who follows an old link sees the styled not-found page.
     if (isLegacyGone(pathname)) {
       const goneHtml = setMeta(template, "name", "robots", "noindex,follow");
+      // X-Robots-Tag is read straight from the HTTP response (no JS render
+      // needed), the most reliable deindex directive alongside the 410 status.
+      res.setHeader("x-robots-tag", "noindex, follow");
       sendHtml(res, goneHtml, "public, max-age=3600, s-maxage=3600", 410);
       return;
     }

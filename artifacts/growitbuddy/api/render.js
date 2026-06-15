@@ -7067,6 +7067,7 @@ async function handler(req, res) {
     }
     if (isLegacyGone(pathname)) {
       const goneHtml = setMeta(template, "name", "robots", "noindex,follow");
+      res.setHeader("x-robots-tag", "noindex, follow");
       sendHtml(res, goneHtml, "public, max-age=3600, s-maxage=3600", 410);
       return;
     }
