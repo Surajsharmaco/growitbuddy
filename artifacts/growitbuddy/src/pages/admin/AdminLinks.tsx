@@ -82,7 +82,24 @@ function LinksSectionEditor({ section, onChange }: { section: LinksSection; onCh
                 <Input value={l.label} onChange={(e) => setItems(items.map((x) => x.id === l.id ? { ...x, label: e.target.value } : x))} placeholder="Link title (e.g. Book a Call)" />
                 <Input value={l.sublabel || ""} onChange={(e) => setItems(items.map((x) => x.id === l.id ? { ...x, sublabel: e.target.value } : x))} placeholder="Optional subtitle" />
                 <Input value={l.url} onChange={(e) => setItems(items.map((x) => x.id === l.id ? { ...x, url: e.target.value } : x))} placeholder="https://… or /contact for an internal page" />
-                <ImagePickerField label="Thumbnail (optional)" value={l.thumbnailUrl || ""} onChange={(url) => setItems(items.map((x) => x.id === l.id ? { ...x, thumbnailUrl: url } : x))} shape="square" size={48} />
+                <Field label="Style">
+                  <select
+                    value={l.display || "normal"}
+                    onChange={(e) => setItems(items.map((x) => x.id === l.id ? { ...x, display: e.target.value as "normal" | "large" | "image" } : x))}
+                    className={selectCls}
+                  >
+                    <option value="normal">Normal row (small icon + text)</option>
+                    <option value="large">Large card (big thumbnail + text)</option>
+                    <option value="image">Thumbnail only (big image, no text)</option>
+                  </select>
+                </Field>
+                <ImagePickerField
+                  label={l.display === "large" || l.display === "image" ? "Thumbnail (shown big — recommended)" : "Thumbnail (optional)"}
+                  value={l.thumbnailUrl || ""}
+                  onChange={(url) => setItems(items.map((x) => x.id === l.id ? { ...x, thumbnailUrl: url } : x))}
+                  shape="square"
+                  size={l.display === "large" || l.display === "image" ? 96 : 48}
+                />
                 <div className="flex items-center gap-5 pt-1">
                   <label className="flex items-center gap-2 cursor-pointer select-none">
                     <input type="checkbox" checked={l.featured || false} onChange={(e) => setItems(items.map((x) => x.id === l.id ? { ...x, featured: e.target.checked } : x))} className="w-4 h-4 accent-[#0B0B0B]" />

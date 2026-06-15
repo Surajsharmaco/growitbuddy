@@ -219,6 +219,105 @@ function LinkCard({ link, accent }: { link: LinkItem; accent: string }) {
   );
 }
 
+// ── Large link card (big thumbnail on top, text below) ────────────────
+function LinkLarge({ link, accent }: { link: LinkItem; accent: string }) {
+  const href = normalizeLinkUrl(link.url);
+  const isExternal = /^https?:\/\//i.test(href);
+  return (
+    <motion.a
+      href={href || undefined}
+      target={isExternal ? "_blank" : undefined}
+      rel={isExternal ? "noopener noreferrer" : undefined}
+      whileHover={{ y: -3 }}
+      whileTap={{ scale: 0.99 }}
+      style={{
+        display: "block", width: "100%", textDecoration: "none", borderRadius: 18,
+        overflow: "hidden", cursor: "pointer",
+        background: link.featured
+          ? `linear-gradient(135deg, ${hexToRgba(accent, 0.18)}, ${hexToRgba(accent, 0.06)})`
+          : CARD,
+        border: `1px solid ${link.featured ? hexToRgba(accent, 0.55) : BORDER}`,
+        boxShadow: link.featured
+          ? `0 12px 34px ${hexToRgba(accent, 0.22)}`
+          : "0 1px 2px rgba(16,24,40,0.04), 0 8px 22px rgba(16,24,40,0.06)",
+        transition: "box-shadow 0.2s ease, border-color 0.2s ease",
+      }}
+    >
+      {link.thumbnailUrl ? (
+        <img
+          src={link.thumbnailUrl}
+          alt={link.label || ""}
+          style={{ width: "100%", aspectRatio: "16 / 9", objectFit: "cover", display: "block", borderBottom: `1px solid ${BORDER}` }}
+        />
+      ) : (
+        <div
+          style={{
+            width: "100%", aspectRatio: "16 / 9", display: "flex", alignItems: "center", justifyContent: "center",
+            background: NAVY, color: "#F5EFE2", fontWeight: 800, fontSize: 30, letterSpacing: "-0.02em",
+          }}
+        >
+          {initialsOf(link.label)}
+        </div>
+      )}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px" }}>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ display: "block", fontSize: 15.5, fontWeight: 700, color: NAVY, letterSpacing: "-0.01em", lineHeight: 1.3 }}>
+            {link.label || "Untitled link"}
+          </span>
+          {link.sublabel && (
+            <span style={{ display: "block", fontSize: 12.5, fontWeight: 500, color: MUTED, marginTop: 3, lineHeight: 1.4 }}>
+              {link.sublabel}
+            </span>
+          )}
+        </span>
+        <ArrowUpRight size={19} style={{ color: link.featured ? accent : FAINT, flexShrink: 0 }} />
+      </div>
+    </motion.a>
+  );
+}
+
+// ── Image-only link (big thumbnail, no text) ──────────────────────────
+function LinkImageOnly({ link, accent }: { link: LinkItem; accent: string }) {
+  const href = normalizeLinkUrl(link.url);
+  const isExternal = /^https?:\/\//i.test(href);
+  return (
+    <motion.a
+      href={href || undefined}
+      target={isExternal ? "_blank" : undefined}
+      rel={isExternal ? "noopener noreferrer" : undefined}
+      whileHover={{ y: -3 }}
+      whileTap={{ scale: 0.99 }}
+      aria-label={link.label || link.url || "Untitled link"}
+      style={{
+        display: "block", width: "100%", textDecoration: "none", borderRadius: 18, overflow: "hidden",
+        cursor: "pointer",
+        border: `1px solid ${link.featured ? hexToRgba(accent, 0.55) : BORDER}`,
+        boxShadow: link.featured
+          ? `0 12px 34px ${hexToRgba(accent, 0.22)}`
+          : "0 1px 2px rgba(16,24,40,0.04), 0 8px 22px rgba(16,24,40,0.06)",
+        transition: "box-shadow 0.2s ease, border-color 0.2s ease",
+      }}
+    >
+      {link.thumbnailUrl ? (
+        <img
+          src={link.thumbnailUrl}
+          alt=""
+          style={{ width: "100%", aspectRatio: "16 / 9", objectFit: "cover", display: "block" }}
+        />
+      ) : (
+        <div
+          style={{
+            width: "100%", aspectRatio: "16 / 9", display: "flex", alignItems: "center", justifyContent: "center",
+            background: NAVY, color: "#F5EFE2", fontWeight: 800, fontSize: 22, padding: 16, textAlign: "center",
+          }}
+        >
+          {link.label || "Untitled link"}
+        </div>
+      )}
+    </motion.a>
+  );
+}
+
 // ── Social icon row ───────────────────────────────────────────────────
 function SocialRow({ section, accent }: { section: SocialsSection; accent: string }) {
   const socials = (section.socials || []).filter((s) => s.url);
@@ -408,18 +507,43 @@ function SectionRenderer({ section, accent }: { section: LinkSection; accent: st
       const s = section as LinksSection;
       const items = (s.items || []).filter((l) => l.enabled !== false && (l.label || l.url));
       if (items.length === 0) return null;
+      const isGrid = s.layout === "grid";
       return (
         <div>
           <SectionHeading title={s.title} accent={accent} />
-          {s.layout === "grid" ? (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              {items.map((link) => <LinkCard key={link.id} link={link} accent={accent} />)}
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {items.map((link) => <LinkButton key={link.id} link={link} accent={accent} />)}
-            </div>
-          )}
+          <div
+            style={
+              isGrid
+                ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }
+                : { display: "flex", flexDirection: "column", gap: 12 }
+            }
+          >
+            {items.map((link) => {
+              // "large" and "image" always render as a full-width block — in a
+              // grid they span both columns so they never get squeezed.
+              if (link.display === "large") {
+                return (
+                  <div key={link.id} style={isGrid ? { gridColumn: "1 / -1" } : undefined}>
+                    <LinkLarge link={link} accent={accent} />
+                  </div>
+                );
+              }
+              if (link.display === "image") {
+                return (
+                  <div key={link.id} style={isGrid ? { gridColumn: "1 / -1" } : undefined}>
+                    <LinkImageOnly link={link} accent={accent} />
+                  </div>
+                );
+              }
+              // "normal" follows the section layout: compact card in a grid,
+              // full-width row in a list.
+              return isGrid ? (
+                <LinkCard key={link.id} link={link} accent={accent} />
+              ) : (
+                <LinkButton key={link.id} link={link} accent={accent} />
+              );
+            })}
+          </div>
         </div>
       );
     }

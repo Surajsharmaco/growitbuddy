@@ -6,6 +6,13 @@ export interface LinkItem {
   thumbnailUrl?: string;
   featured?: boolean;
   enabled?: boolean;
+  /**
+   * How this single link renders inside a "list" layout section:
+   * - "normal": compact row (icon/thumbnail left, text right) — the default.
+   * - "large":  big thumbnail on top with the title + subtitle below it.
+   * - "image":  just the big thumbnail, no text.
+   */
+  display?: "normal" | "large" | "image";
 }
 
 export interface SocialItem {
@@ -145,7 +152,7 @@ export function uid(prefix = "id"): string {
 }
 
 export function createLinkItem(): LinkItem {
-  return { id: uid("lnk"), label: "", sublabel: "", url: "", thumbnailUrl: "", featured: false, enabled: true };
+  return { id: uid("lnk"), label: "", sublabel: "", url: "", thumbnailUrl: "", featured: false, enabled: true, display: "normal" };
 }
 
 export function createSocialItem(): SocialItem {
@@ -186,6 +193,7 @@ function normalizeLink(l: unknown): LinkItem {
     thumbnailUrl: str(r.thumbnailUrl),
     featured: r.featured === true,
     enabled: r.enabled !== false,
+    display: r.display === "large" ? "large" : r.display === "image" ? "image" : "normal",
   };
 }
 
