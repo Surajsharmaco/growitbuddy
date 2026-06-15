@@ -403,7 +403,7 @@ export default function Services() {
       </section>
 
       {/* ── What We Do - bento service grid ── */}
-      <section className="svc-what-section" style={{ padding: "96px 24px 100px", backgroundColor: "#F1EEE6", borderTop: "1px solid #E5E5E0", backgroundImage: "radial-gradient(120% 75% at 50% -8%, rgba(194,168,120,0.08) 0%, rgba(194,168,120,0) 58%)", backgroundSize: "100% 100%" }}>
+      <section className="svc-what-section" style={{ padding: "96px 24px 100px", backgroundColor: "#F8F8F6", borderTop: "1px solid #E5E5E0" }}>
         <style>{`
           .svc-bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; max-width: 1200px; margin: 0 auto; }
           .svc-bento-card { position: relative; border-radius: 22px; padding: 32px 30px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(10,10,10,0.06); box-shadow: 0 12px 34px -18px rgba(30,41,59,0.22); transition: transform 0.3s ease, box-shadow 0.3s ease; }
