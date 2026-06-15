@@ -260,11 +260,19 @@ function mergeForBody(def: unknown, db: unknown): unknown {
   return db;
 }
 
+// The prerendered SEO body is for crawlers only — it is plain semantic markup
+// (no app styles), and the client mounts with createRoot(), which CLEARS #root
+// and re-renders from scratch. If this block were visible, the browser would
+// paint the unstyled text for a beat before the styled app mounts (a FOUC). So
+// wrap it in a visually-hidden (sr-only) container: still in the DOM for crawlers,
+// invisible to users, and discarded by createRoot on mount. No flash, SEO intact.
+const SEO_HIDE =
+  "position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0";
 function injectBody(html: string, bodyHtml: string): string {
   if (!bodyHtml) return html;
   const re = /<div id="root"[^>]*>\s*<\/div>/i;
   return re.test(html)
-    ? html.replace(re, `<div id="root">${bodyHtml}</div>`)
+    ? html.replace(re, `<div id="root"><div data-ssr-seo style="${SEO_HIDE}">${bodyHtml}</div></div>`)
     : html;
 }
 

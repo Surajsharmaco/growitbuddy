@@ -6831,7 +6831,7 @@ function mergeForBody(def, db) {
 function injectBody(html, bodyHtml) {
   if (!bodyHtml) return html;
   const re = /<div id="root"[^>]*>\s*<\/div>/i;
-  return re.test(html) ? html.replace(re, `<div id="root">${bodyHtml}</div>`) : html;
+  return re.test(html) ? html.replace(re, `<div id="root"><div data-ssr-seo style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0">${bodyHtml}</div></div>`) : html;
 }
 var EMPTY_BUNDLE = { seo: {}, globalIndexable: true, content: {}, live: false };
 async function loadData(slug, sections) {
