@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useAdmin } from "@/context/AdminContext";
-import { API_BASE } from "@/lib/api";
+import { API_BASE, resolveMediaUrl } from "@/lib/api";
 import { blogPosts as DEFAULT_POSTS, defaultSeo, type BlogPost, type PostSeo } from "@/data/blogPosts";
 import { ImageCropUploader } from "@/components/admin/ImageCropUploader";
 import { ImagePickerField } from "@/components/admin/ImagePickerField";
@@ -973,11 +973,6 @@ function PostEditor({
     if (url) exec("createLink", url);
   }
 
-  function insertImagePrompt() {
-    const url = prompt("Enter image URL:");
-    if (url) exec("insertHTML", `<img src="${url}" alt="" style="max-width:100%;border-radius:12px;margin:16px 0;" />`);
-  }
-
   function insertTable() {
     exec("insertHTML", `<table style="width:100%;border-collapse:collapse;margin:20px 0"><thead><tr><th style="border:1px solid rgba(11,11,11,0.15);padding:8px 12px;background:rgba(11,11,11,0.04);font-size:13px;text-align:left">Header 1</th><th style="border:1px solid rgba(11,11,11,0.15);padding:8px 12px;background:rgba(11,11,11,0.04);font-size:13px;text-align:left">Header 2</th><th style="border:1px solid rgba(11,11,11,0.15);padding:8px 12px;background:rgba(11,11,11,0.04);font-size:13px;text-align:left">Header 3</th></tr></thead><tbody><tr><td style="border:1px solid rgba(11,11,11,0.15);padding:8px 12px;font-size:13px">Cell</td><td style="border:1px solid rgba(11,11,11,0.15);padding:8px 12px;font-size:13px">Cell</td><td style="border:1px solid rgba(11,11,11,0.15);padding:8px 12px;font-size:13px">Cell</td></tr></tbody></table>`);
   }
@@ -1056,8 +1051,9 @@ function PostEditor({
       setImgUploading(false);
     }
     if (!url) { showToast("Please select or upload an image.", "error"); return; }
+    const absUrl = resolveMediaUrl(url);
     setShowImgModal(false);
-    const html = `<img src="${url}" alt="${imgAlt.replace(/"/g, "&quot;")}" style="max-width:100%;border-radius:12px;margin:24px 0;display:block;" />`;
+    const html = `<img src="${absUrl}" alt="${imgAlt.replace(/"/g, "&quot;")}" style="max-width:100%;border-radius:12px;margin:24px 0;display:block;" />`;
     editorRef.current?.focus();
     if (savedRangeRef.current) {
       const sel = window.getSelection();
@@ -1268,7 +1264,7 @@ function PostEditor({
                           onClick={() => setSelectedMedia(selectedMedia === m.url ? null : m.url)}
                           className={`relative rounded-xl overflow-hidden aspect-square border-2 transition-all ${selectedMedia === m.url ? "border-[#0B0B0B] shadow-md" : "border-transparent hover:border-[#0B0B0B]/20"}`}
                         >
-                          <img src={m.url} alt={m.filename} className="w-full h-full object-cover" />
+                          <img src={resolveMediaUrl(m.url)} alt={m.filename} className="w-full h-full object-cover" />
                           {selectedMedia === m.url && (
                             <div className="absolute inset-0 bg-[#0B0B0B]/20 flex items-center justify-center">
                               <CheckCircle size={18} className="text-white drop-shadow" />

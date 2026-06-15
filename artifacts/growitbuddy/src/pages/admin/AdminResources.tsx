@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar, Field } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
+import { ImageUrlField } from "@/components/admin/ImageUrlField";
 import {
   Plus, Trash2, ChevronUp, ChevronDown, Copy as CopyIcon, ChevronRight,
   Star, Eye, EyeOff, Sparkles, FileText, FileType, BookOpen, Video, Database,
@@ -295,7 +296,7 @@ export default function AdminResources() {
                       <Input label="Author" value={item.author ?? ""} onChange={(e) => setItem(i, { author: e.target.value })} placeholder="GrowitBuddy" />
                     </div>
 
-                    <Input label="Cover Image URL (optional)" value={item.coverImage ?? ""} onChange={(e) => setItem(i, { coverImage: e.target.value })} placeholder="https://..." />
+                    <ImageUrlField label="Cover Image (optional)" value={item.coverImage ?? ""} onChange={(url) => setItem(i, { coverImage: url })} hint="Upload, pick from library, or paste a URL • Recommended 1200 × 675 px" />
 
                     <div className="grid grid-cols-2 gap-3">
                       <Input label="Published Date (YYYY-MM-DD)" type="date" value={item.publishedDate ?? ""} onChange={(e) => setItem(i, { publishedDate: e.target.value })} />
@@ -364,7 +365,7 @@ export default function AdminResources() {
         <Textarea label="Meta Description (155 chars ideal)" value={data.seoDesc} onChange={(e) => set("seoDesc", e.target.value)} hint={`${(data.seoDesc || "").length} chars`} />
         <div className="grid grid-cols-2 gap-3">
           <Input label="Canonical URL" value={data.canonicalUrl ?? ""} onChange={(e) => set("canonicalUrl", e.target.value)} placeholder="https://growitbuddy.com/resources" />
-          <Input label="OG / Social Image URL" value={data.ogImage ?? ""} onChange={(e) => set("ogImage", e.target.value)} placeholder="https://..." />
+          <ImageUrlField label="OG / Social Image" value={data.ogImage ?? ""} onChange={(url) => set("ogImage", url)} hint="Shown when shared on social • Recommended 1200 × 630 px" />
         </div>
       </Card>
 
