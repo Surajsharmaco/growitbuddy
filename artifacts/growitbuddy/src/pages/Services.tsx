@@ -445,11 +445,7 @@ export default function Services() {
           <div className="svc-bento-grid">
             {services.map((s, i) => {
               const Icon = SVC_ICONS[i % SVC_ICONS.length];
-              const bentoGrads = [
-                "radial-gradient(130% 120% at 18% 8%, #FAF6EF 0%, rgba(250,246,239,0) 58%), radial-gradient(130% 130% at 92% 95%, #EFE3CB 0%, rgba(239,227,203,0) 64%), linear-gradient(140deg, #FBF8F2 0%, #F1E8D7 100%)",
-                "radial-gradient(130% 120% at 15% 12%, #F3F5F9 0%, rgba(243,245,249,0) 58%), radial-gradient(130% 130% at 88% 92%, #DEE5F0 0%, rgba(222,229,240,0) 64%), linear-gradient(140deg, #F6F8FB 0%, #E8EDF5 100%)",
-                "radial-gradient(130% 120% at 20% 10%, #F4F5EE 0%, rgba(244,245,238,0) 58%), radial-gradient(130% 130% at 90% 90%, #E1E7D2 0%, rgba(225,231,210,0) 64%), linear-gradient(140deg, #F6F7F0 0%, #E9EDDC 100%)",
-              ];
+              const bentoSurface = "radial-gradient(120% 110% at 100% 0%, rgba(194,168,120,0.12) 0%, rgba(194,168,120,0) 52%), linear-gradient(165deg, #FCFBF8 0%, #F3ECE0 100%)";
               return (
                 <motion.div
                   key={s.id}
@@ -459,7 +455,7 @@ export default function Services() {
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.07, duration: 0.5 }}
                   id={`service-${s.id}`}
-                  style={{ scrollMarginTop: 80, background: bentoGrads[i % 3] }}
+                  style={{ scrollMarginTop: 80, background: bentoSurface }}
                 >
                   <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat", opacity: 0.55, pointerEvents: "none", zIndex: 0 }} />
                   <div className="svc-bento-ico" style={{ position: "relative", zIndex: 1 }}><Icon strokeWidth={2} size={26} /></div>

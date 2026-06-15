@@ -118,6 +118,7 @@ function GrainOverlay() {
 export default function Home() {
   const BG = "#F8F8F6";
   const TEXT = "#0A0A0A";
+  const CARD_SURFACE = "radial-gradient(120% 110% at 100% 0%, rgba(194,168,120,0.12) 0%, rgba(194,168,120,0) 52%), linear-gradient(165deg, #FCFBF8 0%, #F3ECE0 100%)";
 
   const softTex = {
     backgroundImage:
@@ -630,37 +631,31 @@ export default function Home() {
                 title: "Founders",
                 problem: "Expertise that stays invisible",
                 outcome: "A personal brand that generates inbound leads, speaking invites, and partnerships without cold outreach.",
-                grad: "radial-gradient(130% 120% at 18% 8%, #FAF6EF 0%, rgba(250,246,239,0) 58%), radial-gradient(130% 130% at 92% 95%, #EFE3CB 0%, rgba(239,227,203,0) 64%), linear-gradient(140deg, #FBF8F2 0%, #F1E8D7 100%)",
               },
               {
                 title: "Creators",
                 problem: "Content without a distribution system",
                 outcome: "A monetizable audience built on a content system designed for compounding long-term growth.",
-                grad: "radial-gradient(130% 120% at 15% 12%, #F3F5F9 0%, rgba(243,245,249,0) 58%), radial-gradient(130% 130% at 88% 92%, #DEE5F0 0%, rgba(222,229,240,0) 64%), linear-gradient(140deg, #F6F8FB 0%, #E8EDF5 100%)",
               },
               {
                 title: "Agencies",
                 problem: "Content output that doesn't scale",
                 outcome: "A white-label or collaborative content and distribution engine - without building an in-house team.",
-                grad: "radial-gradient(130% 120% at 20% 10%, #F4F5EE 0%, rgba(244,245,238,0) 58%), radial-gradient(130% 130% at 90% 90%, #E1E7D2 0%, rgba(225,231,210,0) 64%), linear-gradient(140deg, #F6F7F0 0%, #E9EDDC 100%)",
               },
               {
                 title: "Ecommerce Brands",
                 problem: "Ad spend with no organic flywheel",
                 outcome: "Brand equity and organic reach through content that converts browsers into buyers.",
-                grad: "radial-gradient(130% 120% at 18% 8%, #FAF6EF 0%, rgba(250,246,239,0) 58%), radial-gradient(130% 130% at 92% 95%, #EFE3CB 0%, rgba(239,227,203,0) 64%), linear-gradient(140deg, #FBF8F2 0%, #F1E8D7 100%)",
               },
               {
                 title: "SaaS Companies",
                 problem: "Long sales cycles and low organic visibility",
                 outcome: "Thought leadership content that shortens deal cycles and brings qualified inbound consistently.",
-                grad: "radial-gradient(130% 120% at 15% 12%, #F3F5F9 0%, rgba(243,245,249,0) 58%), radial-gradient(130% 130% at 88% 92%, #DEE5F0 0%, rgba(222,229,240,0) 64%), linear-gradient(140deg, #F6F8FB 0%, #E8EDF5 100%)",
               },
               {
                 title: "Coaches & Experts",
                 problem: "Premium knowledge packaged poorly",
                 outcome: "A distribution-first brand that attracts premium clients and positions you as the obvious authority.",
-                grad: "radial-gradient(130% 120% at 20% 10%, #F4F5EE 0%, rgba(244,245,238,0) 58%), radial-gradient(130% 130% at 90% 90%, #E1E7D2 0%, rgba(225,231,210,0) 64%), linear-gradient(140deg, #F6F7F0 0%, #E9EDDC 100%)",
               },
             ].map((card, i) => (
               <m.div
@@ -670,7 +665,7 @@ export default function Home() {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.07, duration: 0.5 }}
                 style={{
-                  background: card.grad,
+                  background: CARD_SURFACE,
                   border: "1px solid rgba(10,10,10,0.06)",
                   borderRadius: 16,
                   padding: "32px 28px",
