@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import BlueprintLines from "@/components/effects/BlueprintLines";
 import { ArrowRight, Check } from "lucide-react";
-import { getWashCardStyle, CardGrain } from "@/components/WashCard";
+import { CardGrain } from "@/components/WashCard";
 import { Link } from "wouter";
 import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
@@ -116,7 +116,13 @@ export default function Framework() {
                     alignItems: "center",
                     justifyContent: "space-between",
                     gap: 12,
-                    ...getWashCardStyle(i, { borderRadius: 14 }),
+                    background: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F2 100%)",
+                    border: "1px solid rgba(15,24,34,0.08)",
+                    borderRadius: 14,
+                    position: "relative",
+                    overflow: "hidden",
+                    isolation: "isolate",
+                    boxShadow: "0 10px 28px -20px rgba(30,41,59,0.22)",
                   }}
                 >
                   <CardGrain />
