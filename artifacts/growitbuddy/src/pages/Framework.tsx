@@ -77,6 +77,14 @@ export default function Framework() {
             <span aria-hidden style={{ display: "block", width: 48, height: 2, background: "rgba(194,168,120,0.4)", borderRadius: 2, margin: "14px auto 0" }} />
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 0, position: "relative" }}>
+            <style>{`
+              .fw-step-row { transition: transform .28s ease, box-shadow .28s ease, border-color .28s ease; }
+              .fw-step-row:hover { transform: translateX(5px); border-color: rgba(15,24,34,0.18) !important; box-shadow: 0 18px 40px -22px rgba(30,41,59,0.34) !important; }
+              .fw-step-title { transition: color .28s ease; }
+              .fw-step-row:hover .fw-step-title { color: var(--gb-accent); }
+              .fw-step-arrow { transition: transform .28s ease, background .28s ease, border-color .28s ease, color .28s ease; }
+              .fw-step-row:hover .fw-step-arrow { background: var(--gb-accent); border-color: var(--gb-accent); color: #FFFFFF; transform: translateX(2px); }
+            `}</style>
             {/* Vertical connecting line — slate tinted, full opacity for visibility */}
             <div style={{ position: "absolute", left: 23, top: 22, bottom: 22, width: 2, background: "linear-gradient(to bottom, rgba(30,41,59,0.18), rgba(30,41,59,0.08))", zIndex: 0 }} />
 
@@ -107,33 +115,53 @@ export default function Framework() {
                   <span style={{ fontSize: 13, fontWeight: 800, color: "#FFFFFF", letterSpacing: "-0.02em" }}>{step.num}</span>
                 </div>
 
-                {/* Label card */}
-                <div
+                {/* Label card → jumps to the step's detail section below */}
+                <a
+                  href={`#fw-step-${step.num}`}
+                  className="fw-step-row"
                   style={{
                     flex: 1,
-                    padding: "18px 26px",
+                    padding: "18px 24px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    gap: 12,
-                    background: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F2 100%)",
+                    gap: 16,
+                    background: "linear-gradient(180deg, #FFFFFF 0%, #F6F6F3 100%)",
                     border: "1px solid rgba(15,24,34,0.08)",
-                    borderRadius: 14,
+                    borderRadius: 16,
                     position: "relative",
                     overflow: "hidden",
                     isolation: "isolate",
                     boxShadow: "0 10px 28px -20px rgba(30,41,59,0.22)",
+                    textDecoration: "none",
                   }}
                 >
                   <CardGrain />
-                  <div style={{ position: "relative" }}>
-                    <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "#5A6472", marginBottom: 4 }}>Step {step.num}</p>
-                    <p style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-0.03em", color: "#0F1822" }}>{step.title}</p>
+                  <div style={{ position: "relative", minWidth: 0 }}>
+                    <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#8A93A0", marginBottom: 6 }}>Step {step.num}</p>
+                    <p className="fw-step-title" style={{ fontSize: 18, fontWeight: 800, letterSpacing: "-0.03em", color: "#0F1822", marginBottom: 5 }}>{step.title}</p>
+                    <p style={{ fontSize: 13.5, color: "#5A6675", lineHeight: 1.5 }}>{step.headline}</p>
                   </div>
-                  <p style={{ position: "relative", fontSize: 13, color: "#374151", maxWidth: "38ch", lineHeight: 1.5, display: "none" }} className="step-tagline">
-                    {step.headline}
-                  </p>
-                </div>
+                  <span
+                    className="fw-step-arrow"
+                    aria-hidden
+                    style={{
+                      position: "relative",
+                      flexShrink: 0,
+                      width: 38,
+                      height: 38,
+                      borderRadius: "50%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "rgba(15,24,34,0.04)",
+                      border: "1px solid rgba(15,24,34,0.10)",
+                      color: "#0F1822",
+                    }}
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                  </span>
+                </a>
               </motion.div>
             ))}
           </div>
@@ -144,10 +172,12 @@ export default function Framework() {
       {STEPS.map((step, i) => (
         <section
           key={i}
+          id={`fw-step-${step.num}`}
           style={{
             padding: "96px 24px",
             background: i % 2 === 0 ? "#FFFFFF" : "#EFEFEA",
             borderTop: "1px solid #E5E5E0",
+            scrollMarginTop: 84,
           }}
         >
           <div className="max-w-[1100px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-14 items-start">
