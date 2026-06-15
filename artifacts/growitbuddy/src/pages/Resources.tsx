@@ -7,7 +7,7 @@ import {
 import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import { API_BASE } from "@/lib/api";
-import { getWash, getWashBorder } from "@/components/WashCard";
+import { getWash, getWashBorder, CardGrain } from "@/components/WashCard";
 import { RESOURCES_DEFAULTS as DEFAULTS, type ResourcesData, type ResourceItem, type ResourceType } from "@/lib/resourcesDefaults";
 
 const UNLOCK_KEY = "gb_resources_unlocked";
@@ -557,10 +557,12 @@ function FeaturedCard({ item, index, unlocked, onLockedClick }: { item: Resource
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
+        isolation: "isolate",
         transition: "transform 0.22s, box-shadow 0.22s",
       }}
       className="hover:-translate-y-1 hover:shadow-lg"
     >
+      <CardGrain />
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18, gap: 8 }}>
         <span style={{
           display: "inline-flex", alignItems: "center", gap: 6,
@@ -609,10 +611,12 @@ function ResourceCard({ item, index, unlocked, onLockedClick }: { item: Resource
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
+        isolation: "isolate",
         transition: "transform 0.2s, box-shadow 0.2s, border-color 0.2s",
       }}
       className="hover:-translate-y-1 hover:shadow-md"
     >
+      <CardGrain />
       {item.badgeText && (
         <div style={{ position: "absolute", top: 14, right: 14, zIndex: 2 }}>
           <BadgePill text={item.badgeText} />

@@ -10,7 +10,7 @@ import { usePublicContent } from "@/hooks/usePublicContent";
 import BlueprintLines from "@/components/effects/BlueprintLines";
 import DotGrid from "@/components/effects/DotGrid";
 import { HOME_DEFAULTS as DEFAULTS, type HomeData } from "@/lib/homeDefaults";
-import { getWashCardStyle, CardGrain, WashIconChip } from "@/components/WashCard";
+import { getWashCardStyle, getWashBorder, CardGrain, WashIconChip } from "@/components/WashCard";
 
 function GrainOverlay() {
   return (
@@ -44,7 +44,6 @@ function GrainOverlay() {
 export default function Home() {
   const BG = "#F8F8F6";
   const TEXT = "#0A0A0A";
-  const CARD_SURFACE = "radial-gradient(135% 120% at 100% 0%, rgba(194,168,120,0.12) 0%, rgba(194,168,120,0) 48%), linear-gradient(168deg, #FFFFFF 0%, #FAF6EE 100%)";
 
   // Wash-card palette + helpers now live in @/components/WashCard (shared site-wide).
 
@@ -372,7 +371,6 @@ export default function Home() {
 
           <div className="home-system-grid">
             {(hm.services || []).map((s, i) => {
-              const isAccent = i === 5;
               return (
                 <m.div
                   key={i}
@@ -380,35 +378,29 @@ export default function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: (i % 3) * 0.09, duration: 0.5 }}
-                  style={{
-                    background: isAccent ? "var(--gb-accent)" : CARD_SURFACE,
-                    border: isAccent ? "none" : "1px solid rgba(10,10,10,0.06)",
-                    borderRadius: 16,
+                  style={getWashCardStyle(i, {
                     padding: "32px 28px",
                     display: "flex",
                     flexDirection: "column",
-                    position: "relative",
-                    overflow: "hidden",
-                    boxShadow: isAccent ? "0 16px 40px -20px rgba(30,41,59,0.45)" : "0 12px 34px -18px rgba(30,41,59,0.22)",
-                  }}
+                  })}
                 >
-                  <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat", opacity: isAccent ? 0.5 : 0.6, pointerEvents: "none" }} />
-                  <div aria-hidden="true" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, #C2A878 0%, rgba(194,168,120,0.15) 55%, rgba(194,168,120,0) 100%)", pointerEvents: "none", zIndex: 2 }} />
-                  <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                  <CardGrain />
+                  <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
                     <div style={{
-                      width: 32, height: 32, borderRadius: "50%",
-                      background: isAccent ? "rgba(255,255,255,0.15)" : "rgba(10,10,10,0.05)",
+                      width: 34, height: 34, borderRadius: 10,
+                      background: "rgba(255,255,255,0.62)",
+                      border: `1px solid ${getWashBorder(i)}`,
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 11, fontWeight: 800, letterSpacing: "0.05em",
-                      color: isAccent ? "#FFFFFF" : "#8A8A8A",
+                      fontSize: 12, fontWeight: 800, letterSpacing: "0.03em",
+                      color: "#0F1822",
                       flexShrink: 0,
                     }}>
                       {s.num}
                     </div>
-                    <h3 style={{ fontWeight: 700, fontSize: 18, letterSpacing: "-0.02em", color: isAccent ? "#FFFFFF" : TEXT, margin: 0 }}>{s.title}</h3>
+                    <h3 style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.02em", color: "#0F1822", margin: 0 }}>{s.title}</h3>
                   </div>
-                  <p style={{ position: "relative", zIndex: 1, fontSize: 14, color: isAccent ? "rgba(255,255,255,0.7)" : "#5F5F5F", lineHeight: "1.7", flex: 1 }}>{s.desc}</p>
-                  <div style={{ position: "relative", zIndex: 1, marginTop: 24 }}>
+                  <p style={{ position: "relative", fontSize: 14, color: "#374151", lineHeight: "1.7", flex: 1 }}>{s.desc}</p>
+                  <div style={{ position: "relative", marginTop: 24 }}>
                     <a
                       href={s.href}
                       style={{
@@ -421,9 +413,9 @@ export default function Home() {
                         borderRadius: 6,
                         textDecoration: "none",
                         transition: "opacity 0.15s",
-                        background: isAccent ? "rgba(255,255,255,0.15)" : "rgba(30,41,59,0.06)",
-                        color: isAccent ? "#FFFFFF" : "var(--gb-authority)",
-                        border: isAccent ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(30,41,59,0.12)",
+                        background: "rgba(255,255,255,0.6)",
+                        color: "#1E293B",
+                        border: `1px solid ${getWashBorder(i)}`,
                       }}
                     >
                       Explore Service <span style={{ fontSize: 14 }}>→</span>
@@ -462,19 +454,15 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08, duration: 0.5 }}
-                style={{
-                  background: i % 2 === 0 ? "#F5F5F2" : "#FFFFFF",
-                  border: i % 2 === 0 ? "none" : "1.5px solid #E5E5E0",
-                  borderRadius: 16,
-                  padding: "32px 28px",
-                }}
+                style={getWashCardStyle(i, { padding: "32px 28px" })}
               >
-                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: i % 2 === 0 ? "#8A8A8A" : "rgba(11,11,11,0.3)", marginBottom: 20 }}>{p.category}</p>
-                <div style={{ fontSize: "clamp(36px, 4vw, 52px)", fontWeight: 800, letterSpacing: "-0.04em", color: "#0A0A0A", lineHeight: 1, marginBottom: 4 }}>
+                <CardGrain />
+                <p style={{ position: "relative", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#5A6675", marginBottom: 20 }}>{p.category}</p>
+                <div style={{ position: "relative", fontSize: "clamp(36px, 4vw, 52px)", fontWeight: 800, letterSpacing: "-0.04em", color: "#0F1822", lineHeight: 1, marginBottom: 4 }}>
                   <CountUp value={p.metric} />
                 </div>
-                <p style={{ fontSize: 13, color: i % 2 === 0 ? "#8A8A8A" : "rgba(11,11,11,0.4)", marginBottom: 16 }}>{p.unit}</p>
-                <h3 style={{ fontSize: 16, fontWeight: 600, color: "#0A0A0A", lineHeight: 1.4 }}>{p.name}</h3>
+                <p style={{ position: "relative", fontSize: 13, color: "#5A6675", marginBottom: 16 }}>{p.unit}</p>
+                <h3 style={{ position: "relative", fontSize: 16, fontWeight: 700, color: "#0F1822", lineHeight: 1.4 }}>{p.name}</h3>
               </m.div>
             ))}
           </div>
@@ -506,11 +494,12 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1, duration: 0.5 }}
-                style={{ background: card.dark ? "#EFEFEA" : "#FFFFFF", border: card.dark ? "1px solid #E5E5E0" : "1px solid rgba(30,41,59,0.18)", borderRadius: 20, padding: "40px 36px" }}
+                style={getWashCardStyle(i, { padding: "40px 36px" })}
               >
-                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--gb-accent)", marginBottom: 20 }}>{card.tag}</p>
-                <h3 style={{ fontWeight: 800, fontSize: "clamp(22px, 3vw, 30px)", letterSpacing: "-0.03em", lineHeight: "1.15", color: "#0A0A0A", marginBottom: 16 }}>{card.title}</h3>
-                <p style={{ fontSize: 15, color: "#5F5F5F", lineHeight: "1.75", marginBottom: 32 }}>{card.desc}</p>
+                <CardGrain />
+                <p style={{ position: "relative", fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--gb-accent)", marginBottom: 20 }}>{card.tag}</p>
+                <h3 style={{ position: "relative", fontWeight: 800, fontSize: "clamp(22px, 3vw, 30px)", letterSpacing: "-0.03em", lineHeight: "1.15", color: "#0F1822", marginBottom: 16 }}>{card.title}</h3>
+                <p style={{ position: "relative", fontSize: 15, color: "#374151", lineHeight: "1.75", marginBottom: 32 }}>{card.desc}</p>
                 <Link href={card.href}>
                   <span className="gb-btn">
                     {card.cta}
@@ -624,17 +613,18 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08, duration: 0.5 }}
-                style={{ background: BG, border: "1.5px solid #E5E5E0", borderRadius: 16, padding: "28px" }}
+                style={getWashCardStyle(i, { padding: "28px" })}
               >
-                <div style={{ display: "flex", gap: 2, marginBottom: 16 }}>
+                <CardGrain />
+                <div style={{ position: "relative", display: "flex", gap: 2, marginBottom: 16 }}>
                   {[...Array(5)].map((_, j) => <Star key={j} className="w-4 h-4" style={{ color: "#C2A878", fill: "#C2A878" }} />)}
                 </div>
-                <p style={{ fontSize: 15, color: "#5F5F5F", lineHeight: "1.75", marginBottom: 24 }}>"{t.quote}"</p>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(30,41,59,0.18)", border: "1px solid rgba(30,41,59,0.35)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "var(--gb-accent-hover)", flexShrink: 0 }}>{t.initials}</div>
+                <p style={{ position: "relative", fontSize: 15, color: "#374151", lineHeight: "1.75", marginBottom: 24 }}>"{t.quote}"</p>
+                <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.62)", border: `1px solid ${getWashBorder(i)}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#1E293B", flexShrink: 0 }}>{t.initials}</div>
                   <div>
-                    <p style={{ fontSize: 14, fontWeight: 700, color: TEXT }}>{t.name}</p>
-                    <p style={{ fontSize: 12, color: "#7A7A85" }}>{t.role}</p>
+                    <p style={{ position: "relative", fontSize: 14, fontWeight: 700, color: "#0F1822" }}>{t.name}</p>
+                    <p style={{ position: "relative", fontSize: 12, color: "#5A6675" }}>{t.role}</p>
                   </div>
                 </div>
               </m.div>
