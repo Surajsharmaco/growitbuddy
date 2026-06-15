@@ -45,6 +45,18 @@ export default function Home() {
   const TEXT = "#0A0A0A";
   const CARD_SURFACE = "radial-gradient(135% 120% at 100% 0%, rgba(194,168,120,0.12) 0%, rgba(194,168,120,0) 48%), linear-gradient(168deg, #FFFFFF 0%, #FAF6EE 100%)";
 
+  // Premium tonal ramp derived ONLY from the brand palette (cream -> gold -> navy),
+  // mirroring how the reference graduates shades of its own theme color across a card
+  // row. Light cards keep dark text; the deep navy anchor flips to light text + gold.
+  const AUDIENCE_SHADES: { surface: string; deep: boolean }[] = [
+    { surface: "radial-gradient(135% 120% at 100% 0%, rgba(194,168,120,0.10) 0%, rgba(194,168,120,0) 48%), #FFFFFF", deep: false },
+    { surface: "radial-gradient(135% 120% at 100% 0%, rgba(194,168,120,0.14) 0%, rgba(194,168,120,0) 48%), #FBF4E8", deep: false },
+    { surface: "radial-gradient(135% 120% at 100% 0%, rgba(194,168,120,0.16) 0%, rgba(194,168,120,0) 48%), #F3E7CF", deep: false },
+    { surface: "radial-gradient(135% 120% at 100% 0%, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0) 48%), #E9D7B2", deep: false },
+    { surface: "radial-gradient(135% 120% at 100% 0%, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0) 48%), #D9C091", deep: false },
+    { surface: "radial-gradient(135% 120% at 100% 0%, rgba(194,168,120,0.24) 0%, rgba(194,168,120,0) 52%), #1E293B", deep: true },
+  ];
+
   const softTex = {
     backgroundImage:
       "radial-gradient(120% 75% at 50% -8%, rgba(194,168,120,0.07) 0%, rgba(194,168,120,0) 58%)",
@@ -564,7 +576,9 @@ export default function Home() {
                 problem: "Premium knowledge packaged poorly",
                 outcome: "A distribution-first brand that attracts premium clients and positions you as the obvious authority.",
               },
-            ].map((card, i) => (
+            ].map((card, i) => {
+              const s = AUDIENCE_SHADES[i % AUDIENCE_SHADES.length];
+              return (
               <m.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
@@ -572,31 +586,32 @@ export default function Home() {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.07, duration: 0.5 }}
                 style={{
-                  background: CARD_SURFACE,
-                  border: "1px solid rgba(10,10,10,0.06)",
+                  background: s.surface,
+                  border: s.deep ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(10,10,10,0.06)",
                   borderRadius: 16,
                   padding: "32px 28px",
                   display: "flex",
                   flexDirection: "column",
                   gap: 0,
-                  boxShadow: "0 12px 34px -18px rgba(30,41,59,0.22)",
+                  boxShadow: s.deep ? "0 16px 40px -18px rgba(30,41,59,0.45)" : "0 12px 34px -18px rgba(30,41,59,0.22)",
                   position: "relative",
                   overflow: "hidden",
                 }}
               >
-                <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat", opacity: 0.6, pointerEvents: "none" }} />
+                <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat", opacity: s.deep ? 0.5 : 0.6, pointerEvents: "none" }} />
                 <div aria-hidden="true" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, #C2A878 0%, rgba(194,168,120,0.15) 55%, rgba(194,168,120,0) 100%)", pointerEvents: "none", zIndex: 2 }} />
-                <h3 style={{ position: "relative", fontWeight: 800, fontSize: 20, letterSpacing: "-0.025em", color: "#0A0A0A", marginBottom: 12 }}>
+                <h3 style={{ position: "relative", fontWeight: 800, fontSize: 20, letterSpacing: "-0.025em", color: s.deep ? "#FFFFFF" : "#0A0A0A", marginBottom: 12 }}>
                   {card.title}
                 </h3>
-                <p style={{ position: "relative", fontSize: 13, fontWeight: 600, color: "var(--gb-accent)", marginBottom: 16, letterSpacing: "0.01em" }}>
+                <p style={{ position: "relative", fontSize: 13, fontWeight: 600, color: s.deep ? "#C2A878" : "var(--gb-accent)", marginBottom: 16, letterSpacing: "0.01em" }}>
                   ↳ {card.problem}
                 </p>
-                <p style={{ position: "relative", fontSize: 14, color: "#4A4A45", lineHeight: "1.75", marginTop: "auto" }}>
+                <p style={{ position: "relative", fontSize: 14, color: s.deep ? "rgba(255,255,255,0.75)" : "#4A4A45", lineHeight: "1.75", marginTop: "auto" }}>
                   {card.outcome}
                 </p>
               </m.div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
