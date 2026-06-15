@@ -7,84 +7,10 @@ import { FadeUp } from "@/components/effects/TextReveal";
 import CountUp from "@/components/effects/CountUp";
 import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
-import HalftoneDots from "@/components/effects/HalftoneDots";
+import BlueprintLines from "@/components/effects/BlueprintLines";
+import DotGrid from "@/components/effects/DotGrid";
+import HeroDashboard from "@/components/effects/HeroDashboard";
 import { HOME_DEFAULTS as DEFAULTS, type HomeData } from "@/lib/homeDefaults";
-
-function PremiumBackground() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let animId: number;
-    let t = 0;
-    const GAP = 24;
-    const MAX_R = 5.5;
-
-    const resize = () => {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    };
-    resize();
-    window.addEventListener("resize", resize);
-
-    const draw = () => {
-      const { width, height } = canvas;
-      ctx.clearRect(0, 0, width, height);
-
-      const cols = Math.ceil(width / GAP) + 2;
-      const rows = Math.ceil(height / GAP) + 2;
-
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          const x = c * GAP + (r % 2 === 0 ? 0 : GAP / 2);
-          const y = r * GAP * 0.866;
-
-          const w1 = Math.sin(c * 0.22 + r * 0.14 - t * 1.8) * 0.5 + 0.5;
-          const w2 = Math.sin(c * 0.11 - r * 0.19 + t * 1.3 + 2.4) * 0.5 + 0.5;
-          const w3 = Math.cos(c * 0.08 + r * 0.28 - t * 0.9 + 1.1) * 0.5 + 0.5;
-
-          const val = w1 * 0.5 + w2 * 0.3 + w3 * 0.2;
-          const radius = Math.pow(val, 1.6) * MAX_R;
-
-          if (radius < 0.25) continue;
-
-          ctx.beginPath();
-          ctx.arc(x, y, radius, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(30,41,59,${(val * 0.04).toFixed(3)})`;
-          ctx.fill();
-        }
-      }
-
-      t += 0.018;
-      animId = requestAnimationFrame(draw);
-    };
-
-    draw();
-    return () => {
-      cancelAnimationFrame(animId);
-      window.removeEventListener("resize", resize);
-    };
-  }, []);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{
-        position: "absolute",
-        inset: 0,
-        width: "100%",
-        height: "100%",
-        pointerEvents: "none",
-        zIndex: 0,
-        filter: "blur(8px)",
-      }}
-    />
-  );
-}
 
 function GrainOverlay() {
   return (
@@ -118,12 +44,12 @@ function GrainOverlay() {
 export default function Home() {
   const BG = "#F8F8F6";
   const TEXT = "#0A0A0A";
-  const CARD_SURFACE = "radial-gradient(120% 110% at 100% 0%, rgba(194,168,120,0.12) 0%, rgba(194,168,120,0) 52%), linear-gradient(165deg, #FCFBF8 0%, #F3ECE0 100%)";
+  const CARD_SURFACE = "radial-gradient(135% 120% at 100% 0%, rgba(194,168,120,0.12) 0%, rgba(194,168,120,0) 48%), linear-gradient(168deg, #FFFFFF 0%, #FAF6EE 100%)";
 
   const softTex = {
     backgroundImage:
-      "radial-gradient(rgba(30,41,59,0.05) 1px, transparent 1px), radial-gradient(120% 75% at 50% -8%, rgba(194,168,120,0.07) 0%, rgba(194,168,120,0) 58%)",
-    backgroundSize: "24px 24px, 100% 100%",
+      "radial-gradient(120% 75% at 50% -8%, rgba(194,168,120,0.07) 0%, rgba(194,168,120,0) 58%)",
+    backgroundSize: "100% 100%",
   } as React.CSSProperties;
 
   const hm = usePublicContent<HomeData>("home", DEFAULTS);
@@ -212,13 +138,6 @@ export default function Home() {
         .home-proof-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
         .home-system-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 
-        .gb-hero-aurora { position: absolute; inset: 0; z-index: 0; pointer-events: none;
-          background:
-            radial-gradient(48% 44% at 18% 14%, rgba(194,168,120,0.24) 0%, rgba(194,168,120,0) 62%),
-            radial-gradient(54% 50% at 86% 8%, rgba(96,120,168,0.17) 0%, rgba(96,120,168,0) 64%),
-            radial-gradient(64% 52% at 50% 112%, rgba(30,41,59,0.11) 0%, rgba(30,41,59,0) 60%),
-            radial-gradient(40% 40% at 74% 74%, rgba(194,168,120,0.14) 0%, rgba(194,168,120,0) 60%); }
-
         .home-problem-section { padding: 100px 24px; }
         .home-problem-headline { margin-bottom: 64px; }
         .home-problem-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
@@ -250,25 +169,17 @@ export default function Home() {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center",
+          justifyContent: "flex-start",
           textAlign: "center",
           position: "relative",
           overflow: "hidden",
-          paddingTop: 120,
-          paddingBottom: 60,
+          paddingTop: 128,
+          paddingBottom: 0,
         }}
       >
-        <div className="gb-hero-aurora" aria-hidden="true" />
         <GrainOverlay />
-        <PremiumBackground />
-        <HalftoneDots
-          style={{ position: "absolute", bottom: 0, left: 0, zIndex: 0, opacity: 0.2, pointerEvents: "none" }}
-          origin="bottom-left" width={380} height={320}
-        />
-        <HalftoneDots
-          style={{ position: "absolute", top: 80, right: 0, zIndex: 0, opacity: 0.16, pointerEvents: "none" }}
-          origin="top-right" width={300} height={260} color="#C2A878"
-        />
+        <BlueprintLines hatch midCrosses hatchFrom={56} />
+        <DotGrid />
 
         <div
           style={{
@@ -357,6 +268,15 @@ export default function Home() {
             </Link>
           </m.div>
         </div>
+
+        <m.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          style={{ position: "relative", zIndex: 1, width: "100%" }}
+        >
+          <HeroDashboard />
+        </m.div>
       </section>
 
       {/* ══ 2. STATS ══ */}
@@ -390,14 +310,6 @@ export default function Home() {
 
       {/* ══ 3. PROBLEM ══ */}
       <section className="home-problem-section" style={{ background: "#171F2D", backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat", position: "relative", overflow: "hidden" }}>
-        <HalftoneDots
-          style={{ position: "absolute", bottom: 0, right: 0, opacity: 0.07, pointerEvents: "none" }}
-          origin="bottom-right" width={400} height={300} maxRadius={2.8} spacing={18}
-        />
-        <HalftoneDots
-          style={{ position: "absolute", top: 0, left: 0, opacity: 0.05, pointerEvents: "none" }}
-          origin="top-left" width={300} height={220} maxRadius={2.4} spacing={16}
-        />
         <div className="max-w-[1100px] mx-auto" style={{ position: "relative", zIndex: 1 }}>
           <FadeUp>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
@@ -451,7 +363,7 @@ export default function Home() {
       </section>
 
       {/* ══ 4. YOUR CONTENT GROWTH SYSTEM ══ */}
-      <section style={{ padding: "100px 24px", background: "#EFEFEA", borderTop: "1px solid #E5E5E0" }}>
+      <section style={{ padding: "100px 24px", backgroundColor: "#EFEFEA", borderTop: "1px solid #E5E5E0", ...softTex }}>
         <div className="max-w-[1100px] mx-auto">
           <FadeUp>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#8A8A8A", marginBottom: 16 }}>
@@ -476,15 +388,20 @@ export default function Home() {
                   viewport={{ once: true }}
                   transition={{ delay: (i % 3) * 0.09, duration: 0.5 }}
                   style={{
-                    background: isAccent ? "var(--gb-accent)" : "#FFFFFF",
-                    border: isAccent ? "none" : "1.5px solid #E5E5E0",
+                    background: isAccent ? "var(--gb-accent)" : CARD_SURFACE,
+                    border: isAccent ? "none" : "1px solid rgba(10,10,10,0.06)",
                     borderRadius: 16,
                     padding: "32px 28px",
                     display: "flex",
                     flexDirection: "column",
+                    position: "relative",
+                    overflow: "hidden",
+                    boxShadow: isAccent ? "0 16px 40px -20px rgba(30,41,59,0.45)" : "0 12px 34px -18px rgba(30,41,59,0.22)",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                  <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat", opacity: isAccent ? 0.5 : 0.6, pointerEvents: "none" }} />
+                  <div aria-hidden="true" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, #C2A878 0%, rgba(194,168,120,0.15) 55%, rgba(194,168,120,0) 100%)", pointerEvents: "none", zIndex: 2 }} />
+                  <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
                     <div style={{
                       width: 32, height: 32, borderRadius: "50%",
                       background: isAccent ? "rgba(255,255,255,0.15)" : "rgba(10,10,10,0.05)",
@@ -497,8 +414,8 @@ export default function Home() {
                     </div>
                     <h3 style={{ fontWeight: 700, fontSize: 18, letterSpacing: "-0.02em", color: isAccent ? "#FFFFFF" : TEXT, margin: 0 }}>{s.title}</h3>
                   </div>
-                  <p style={{ fontSize: 14, color: isAccent ? "rgba(255,255,255,0.7)" : "#5F5F5F", lineHeight: "1.7", flex: 1 }}>{s.desc}</p>
-                  <div style={{ marginTop: 24 }}>
+                  <p style={{ position: "relative", zIndex: 1, fontSize: 14, color: isAccent ? "rgba(255,255,255,0.7)" : "#5F5F5F", lineHeight: "1.7", flex: 1 }}>{s.desc}</p>
+                  <div style={{ position: "relative", zIndex: 1, marginTop: 24 }}>
                     <a
                       href={s.href}
                       style={{
@@ -536,7 +453,7 @@ export default function Home() {
       </section>
 
       {/* ══ 5. PROOF OF WORK ══ */}
-      <section style={{ padding: "100px 24px", background: BG }}>
+      <section className="gb-dots" style={{ padding: "100px 24px", backgroundColor: BG }}>
         <div className="max-w-[1100px] mx-auto">
           <FadeUp>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#7A7A85", marginBottom: 16 }}>{hm.proofLabel}</p>
@@ -677,7 +594,8 @@ export default function Home() {
                   overflow: "hidden",
                 }}
               >
-                <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat", opacity: 0.55, pointerEvents: "none" }} />
+                <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat", opacity: 0.6, pointerEvents: "none" }} />
+                <div aria-hidden="true" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, #C2A878 0%, rgba(194,168,120,0.15) 55%, rgba(194,168,120,0) 100%)", pointerEvents: "none", zIndex: 2 }} />
                 <h3 style={{ position: "relative", fontWeight: 800, fontSize: 20, letterSpacing: "-0.025em", color: "#0A0A0A", marginBottom: 12 }}>
                   {card.title}
                 </h3>
@@ -730,14 +648,6 @@ export default function Home() {
 
       {/* ══ 8. FINAL CTA ══ */}
       <section style={{ padding: "100px 24px", background: "#EFEFEA", textAlign: "center", position: "relative", overflow: "hidden" }}>
-        <HalftoneDots
-          style={{ position: "absolute", top: 0, left: 0, opacity: 0.15, pointerEvents: "none" }}
-          origin="top-left" width={280} height={220}
-        />
-        <HalftoneDots
-          style={{ position: "absolute", bottom: 0, right: 0, opacity: 0.15, pointerEvents: "none" }}
-          origin="bottom-right" width={280} height={220}
-        />
         <div className="max-w-[700px] mx-auto">
           <m.div
             initial={{ opacity: 0, y: 20 }}
