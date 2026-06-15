@@ -182,7 +182,9 @@ export const mediaFiles = pgTable("media_files", {
   filename: text("filename").notNull(),
   mimetype: text("mimetype").notNull(),
   size: integer("size").notNull(),
-  data: text("data").notNull(),
+  data: text("data"),
+  url: text("url"),
+  cloudinaryPublicId: text("cloudinary_public_id"),
   uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
 });
 

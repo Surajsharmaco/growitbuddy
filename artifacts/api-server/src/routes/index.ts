@@ -19,12 +19,14 @@ router.get("/media/file/:id", async (req: Request, res: Response) => {
   if (isNaN(id)) { res.status(400).end(); return; }
   try {
     const rows = await db
-      .select({ mimetype: mediaFiles.mimetype, data: mediaFiles.data })
+      .select({ mimetype: mediaFiles.mimetype, data: mediaFiles.data, url: mediaFiles.url })
       .from(mediaFiles)
       .where(eq(mediaFiles.id, id))
       .limit(1);
     if (!rows.length) { res.status(404).end(); return; }
-    const { mimetype, data } = rows[0];
+    const { mimetype, data, url } = rows[0];
+    if (url) { res.redirect(302, url); return; }
+    if (!data) { res.status(404).end(); return; }
     const buf = Buffer.from(data, "base64");
     res.setHeader("Content-Type", mimetype);
     res.setHeader("Cache-Control", "public, max-age=31536000, immutable");

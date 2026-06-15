@@ -3,6 +3,7 @@ import { randomBytes, createHmac, timingSafeEqual, scrypt, randomUUID } from "cr
 import { db, pool, siteContent, leads, certificates, teamMembers, portfolioItems, portfolioShares, clientLogos, revokedTokens as revokedTokensTable, adminActionLogs, mediaFiles, pageVariants } from "@workspace/db";
 import { eq, desc, count, asc, lt } from "drizzle-orm";
 import { logger } from "../lib/logger";
+import { cloudinaryConfigured, uploadToCloudinary } from "../lib/cloudinary";
 import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -20,6 +21,22 @@ const upload = multer({
 });
 
 async function saveFileToDb(file: Express.Multer.File): Promise<{ id: number; url: string }> {
+  if (cloudinaryConfigured()) {
+    try {
+      const { url, publicId } = await uploadToCloudinary(file.buffer, file.mimetype);
+      const rows = await db.insert(mediaFiles).values({
+        filename: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size,
+        data: null,
+        url,
+        cloudinaryPublicId: publicId,
+      }).returning({ id: mediaFiles.id });
+      return { id: rows[0].id, url };
+    } catch (err) {
+      logger.error({ err }, "Cloudinary upload failed; falling back to DB storage");
+    }
+  }
   const b64 = file.buffer.toString("base64");
   const rows = await db.insert(mediaFiles).values({
     filename: file.originalname,
@@ -574,13 +591,13 @@ router.post("/upload", authMiddleware, upload.single("file"), async (req, res) =
 router.get("/media", authMiddleware, async (_req, res) => {
   try {
     const rows = await db
-      .select({ id: mediaFiles.id, filename: mediaFiles.filename, size: mediaFiles.size, uploadedAt: mediaFiles.uploadedAt })
+      .select({ id: mediaFiles.id, filename: mediaFiles.filename, size: mediaFiles.size, uploadedAt: mediaFiles.uploadedAt, url: mediaFiles.url })
       .from(mediaFiles)
       .orderBy(desc(mediaFiles.uploadedAt))
       .limit(200);
     res.json(rows.map((r) => ({
       filename: String(r.id),
-      url: `/api/media/file/${r.id}`,
+      url: r.url ?? `/api/media/file/${r.id}`,
       uploadedAt: r.uploadedAt.getTime(),
       size: r.size,
       originalName: r.filename,
