@@ -9,7 +9,6 @@ import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import BlueprintLines from "@/components/effects/BlueprintLines";
 import DotGrid from "@/components/effects/DotGrid";
-import HeroDashboard from "@/components/effects/HeroDashboard";
 import { HOME_DEFAULTS as DEFAULTS, type HomeData } from "@/lib/homeDefaults";
 
 function GrainOverlay() {
@@ -169,16 +168,16 @@ export default function Home() {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          justifyContent: "flex-start",
+          justifyContent: "center",
           textAlign: "center",
           position: "relative",
           overflow: "hidden",
-          paddingTop: 128,
-          paddingBottom: 0,
+          paddingTop: 120,
+          paddingBottom: 60,
         }}
       >
         <GrainOverlay />
-        <BlueprintLines hatch midCrosses hatchFrom={56} />
+        <BlueprintLines hatch midCrosses topCrosses={false} bottomCrosses={false} hatchFrom={52} />
         <DotGrid />
 
         <div
@@ -268,15 +267,6 @@ export default function Home() {
             </Link>
           </m.div>
         </div>
-
-        <m.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.45, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-          style={{ position: "relative", zIndex: 1, width: "100%" }}
-        >
-          <HeroDashboard />
-        </m.div>
       </section>
 
       {/* ══ 2. STATS ══ */}

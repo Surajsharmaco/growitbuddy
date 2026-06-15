@@ -6,6 +6,8 @@ interface BlueprintLinesProps {
   lineColor?: string;
   crossColor?: string;
   hatchColor?: string;
+  /** Render crosshair marks at the top corners (default true). */
+  topCrosses?: boolean;
   /** Render crosshair marks at the bottom corners too. */
   bottomCrosses?: boolean;
   /** Add crosshair marks at the vertical mid-point of each guide-line. */
@@ -59,6 +61,7 @@ export default function BlueprintLines({
   lineColor = "rgba(30,41,59,0.12)",
   crossColor = "rgba(30,41,59,0.36)",
   hatchColor = "rgba(30,41,59,0.055)",
+  topCrosses = true,
   bottomCrosses = true,
   midCrosses = false,
   hatch = false,
@@ -120,8 +123,12 @@ export default function BlueprintLines({
       <span style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: 1, background: lineColor }} />
 
       {/* corner + (optional) mid crosshair marks */}
-      <Cross color={crossColor} style={{ left: 0, top: 0, transform: "translateX(-50%)" }} />
-      <Cross color={crossColor} style={{ right: 0, top: 0, transform: "translateX(50%)" }} />
+      {topCrosses && (
+        <>
+          <Cross color={crossColor} style={{ left: 0, top: 0, transform: "translateX(-50%)" }} />
+          <Cross color={crossColor} style={{ right: 0, top: 0, transform: "translateX(50%)" }} />
+        </>
+      )}
       {midCrosses && (
         <>
           <Cross color={crossColor} style={{ left: 0, top: "50%", transform: "translate(-50%, -50%)" }} />
