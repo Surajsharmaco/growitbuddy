@@ -43,6 +43,7 @@ import { neon } from "@neondatabase/serverless";
 // scripts/postbuild-ssr.mjs as a generated, import-only module. esbuild bundles
 // the string straight into this function — no runtime fs reads, no includeFiles.
 import { TEMPLATE } from "./_template.js";
+import { CONTENT_DEFAULTS } from "./contentDefaults";
 
 // Server-side only. Same precedence as the API (lib/db): prefer the dedicated
 // Neon URL, fall back to a generic DATABASE_URL if that is what Vercel holds.
@@ -65,6 +66,8 @@ const EXTRA_CONTENT_SECTIONS: Record<string, string[]> = {
   distribution: ["distribution-network", "distribution-pages"], // /distribution
   influencers: ["influencer-explore"], // /influencers (InfluencerExplore.tsx)
   join: ["joinnetwork"], // /join (JoinNetwork.tsx)
+  creators: ["creators-form"], // /creators (NetworkApplyForm type="influencer")
+  "join-page-owner": ["page-owner-form"], // /join/page-owner (NetworkApplyForm type="page")
 };
 
 // Hard cap on how long we wait for the DB before falling back to defaults.
@@ -116,6 +119,149 @@ function setCanonical(html: string, href: string): string {
   const tag = `<link rel="canonical" href="${escAttr(href)}" />`;
   if (re.test(html)) return html.replace(re, tag);
   return html.replace(/<\/head>/i, `    ${tag}\n  </head>`);
+}
+
+/* ─────────────── server-rendered content body (for SEO) ───────────────
+ * The SPA mounts with createRoot().render() (NOT hydrateRoot), so React
+ * CLEARS #root and renders fresh on the client. That lets us safely place the
+ * page's CURRENT text INSIDE #root: crawlers and no-JS requests see real,
+ * route-specific content in the raw HTML source, and the client instantly
+ * replaces it with the live React app (which itself first-paints from the
+ * window.__GB_PUBLIC_CONTENT__ bootstrap, so users see no visible swap).
+ *
+ * Admin content is free-form JSONB that differs per page, so we render it
+ * generically: walk the page's OWN section(s), keep human-readable strings
+ * (dropping ids/urls/colours/sizes/tokens), and emit them as <h1>/<h2>/<p>. */
+
+// String VALUES that are structural/asset data, never human-readable copy.
+function isNoiseValue(s: string): boolean {
+  const t = s.trim();
+  if (t.length < 2) return true;
+  if (/^https?:\/\//i.test(t)) return true; // absolute URL
+  if (/^data:/i.test(t)) return true; // data URI
+  if (/^#[0-9a-fA-F]{3,8}$/.test(t)) return true; // hex colour
+  if (/^(rgb|rgba|hsl|hsla)\(/i.test(t)) return true; // css colour fn
+  if (/^-?\d+(\.\d+)?(px|rem|em|vh|vw|%|s|ms)?$/i.test(t)) return true; // number/unit
+  if (/^(true|false|null|undefined)$/i.test(t)) return true;
+  // asset path / filename with a media extension and no spaces
+  if (/\.(png|jpe?g|svg|webp|gif|avif|ico|mp4|webm|pdf)(\?|#|$)/i.test(t) && !/\s/.test(t))
+    return true;
+  // a single slug/token with no spaces, e.g. "hero-1", "primary_cta"
+  if (/^[a-z0-9]+(?:[-_][a-z0-9]+)+$/i.test(t)) return true;
+  return false;
+}
+
+// KEYS whose values are structural/asset data (skipped regardless of value).
+const NONCONTENT_KEY =
+  /^(_?id|key|slug|type|kind|variant|order|index|sort|position|icon|iconname|color|colour|bg|background|gradient|fill|stroke|classname|class|style|theme|href|link|to|url|src|image|img|imageurl|imagesrc|photo|avatar|logo|cover|banner|thumbnail|video|media|poster|file|filename|alt|width|height|size|align|valign|duration|delay|speed|ratio|aspect|tabid|anchor|hash|target|rel|format|mime|ext|hex|rgb|rgba|hsl)$/i;
+
+// KEYS that mark a value as a heading rather than body copy.
+const HEADING_KEY = /(title|heading|headline|header|question)/i;
+
+interface ContentBlock {
+  tag: "h2" | "p";
+  text: string;
+}
+
+function collectBlocks(
+  value: unknown,
+  keyHint: string,
+  out: ContentBlock[],
+  depth: number,
+): void {
+  if (depth > 8 || out.length >= 400) return;
+  if (typeof value === "string") {
+    if (isNoiseValue(value)) return;
+    out.push({ tag: HEADING_KEY.test(keyHint) ? "h2" : "p", text: value.trim() });
+    return;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) collectBlocks(item, keyHint, out, depth + 1);
+    return;
+  }
+  if (value && typeof value === "object") {
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      if (NONCONTENT_KEY.test(k)) continue;
+      collectBlocks(v, k, out, depth + 1);
+    }
+  }
+}
+
+// Build the visible content markup placed inside #root for crawlers/no-JS.
+function renderContentBody(
+  content: Record<string, unknown>,
+  sections: string[],
+  h1: string,
+): string {
+  const blocks: ContentBlock[] = [];
+  for (const sec of sections) {
+    const data = content[sec];
+    if (data && typeof data === "object") collectBlocks(data, sec, blocks, 0);
+  }
+
+  const seen = new Set<string>();
+  const parts: string[] = [];
+  const h1Text = (h1 || "").trim();
+  if (h1Text) {
+    parts.push(`<h1>${escAttr(h1Text)}</h1>`);
+    seen.add(h1Text.toLowerCase());
+  }
+  for (const b of blocks) {
+    const dedupe = b.text.toLowerCase();
+    if (seen.has(dedupe)) continue;
+    seen.add(dedupe);
+    parts.push(`<${b.tag}>${escAttr(b.text)}</${b.tag}>`);
+    if (parts.length >= 300) break;
+  }
+
+  // Just the <h1> (no real body copy found) is not worth emitting.
+  if (parts.length <= 1) return "";
+  return parts.join("");
+}
+
+// True when a value carries no human-readable copy at all: null/empty string,
+// empty array, or an object whose every value is itself empty (e.g. the blog
+// section's admin override is `{"posts":[]}` — present but with no real content).
+function isEmptyContent(v: unknown, depth = 0): boolean {
+  // Past the cap, assume "not empty" so we keep the DB value rather than blank a
+  // page; collectBlocks applies the same depth bound when it later walks it.
+  if (depth > 8) return false;
+  if (v === null || v === undefined) return true;
+  if (typeof v === "string") return v.trim().length === 0;
+  if (Array.isArray(v)) return v.every((x) => isEmptyContent(x, depth + 1));
+  if (typeof v === "object") {
+    const vals = Object.values(v as Record<string, unknown>);
+    return vals.length === 0 || vals.every((x) => isEmptyContent(x, depth + 1));
+  }
+  return false; // numbers/booleans are "content" enough to keep the DB value
+}
+
+// Merge a page's CODE defaults with its DB content the same way the client does
+// (shallow {...defaults, ...db}) so default-only pages still render real copy and
+// admin-edited pages render the CURRENT content. When the DB value is empty (no
+// row, or a content-free override like `{posts:[]}`) we fall back to the defaults;
+// arrays/type mismatches otherwise prefer the live DB value.
+function mergeForBody(def: unknown, db: unknown): unknown {
+  if (isEmptyContent(db)) return def;
+  if (
+    def &&
+    db &&
+    typeof def === "object" &&
+    typeof db === "object" &&
+    !Array.isArray(def) &&
+    !Array.isArray(db)
+  ) {
+    return { ...(def as object), ...(db as object) };
+  }
+  return db;
+}
+
+function injectBody(html: string, bodyHtml: string): string {
+  if (!bodyHtml) return html;
+  const re = /<div id="root"[^>]*>\s*<\/div>/i;
+  return re.test(html)
+    ? html.replace(re, `<div id="root">${bodyHtml}</div>`)
+    : html;
 }
 
 /* ───────────────────────────── data ───────────────────────────────── */
@@ -253,10 +399,24 @@ function buildHtml(
     })};` +
     `</script>`;
 
-  return html.replace(
+  html = html.replace(
     /<\/head>/i,
     `    ${bootstrap}\n    ${schemaScript}\n  </head>`,
   );
+
+  // Render the page's CURRENT content into #root so the raw HTML SOURCE (no JS)
+  // shows real, route-specific text for crawlers. createRoot() replaces it on
+  // the client. Only the page's OWN section(s) — not the shared navbar/footer —
+  // so each route's body is genuinely distinct.
+  const bodySections = Array.from(
+    new Set([entry.slug, ...(EXTRA_CONTENT_SECTIONS[entry.slug] || [])]),
+  );
+  const mergedContent: Record<string, unknown> = {};
+  for (const sec of bodySections) {
+    mergedContent[sec] = mergeForBody(CONTENT_DEFAULTS[sec], b.content[sec]);
+  }
+  const bodyHtml = renderContentBody(mergedContent, bodySections, title);
+  return injectBody(html, bodyHtml);
 }
 
 function sendHtml(res: any, html: string, cacheControl: string): void {
