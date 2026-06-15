@@ -38,6 +38,7 @@ interface Props {
   defaultAspect?: AspectKey;
   defaultRoundness?: number;
   disableRoundness?: boolean;
+  requireCrop?: boolean;
   title?: string;
   hint?: string;
 }
@@ -49,12 +50,14 @@ export function CropModal({
   defaultAspect = "free",
   defaultRoundness = 0,
   disableRoundness = false,
+  requireCrop = false,
   title = "Crop image",
   hint,
 }: Props) {
   const uid = useId();
   const containerRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
+  const imgDisplayRef = useRef({ w: 0, h: 0 });
 
   const [rawSrc, setRawSrc] = useState<string>("");
   const [aspectKey, setAspectKey] = useState<AspectKey>(defaultAspect);
@@ -62,6 +65,7 @@ export function CropModal({
   const [crop, setCrop] = useState<Box>({ x: 0, y: 0, w: 100, h: 100 });
   const [imgDisplay, setImgDisplay] = useState({ w: 0, h: 0 });
   const [working, setWorking] = useState(false);
+  const [applyError, setApplyError] = useState<string | null>(null);
 
   const dragState = useRef<{
     handle: Handle;
@@ -82,6 +86,8 @@ export function CropModal({
     if (!imgRef.current) return;
     const w = imgRef.current.clientWidth;
     const h = imgRef.current.clientHeight;
+    if (!w || !h) return;
+    imgDisplayRef.current = { w, h };
     setImgDisplay({ w, h });
     const ratio = ASPECTS.find((a) => a.key === aspectKey)?.ratio ?? null;
     if (ratio) {
@@ -110,6 +116,33 @@ export function CropModal({
       return { x: nx, y: ny, w: nw, h: nh };
     });
   }, [aspectKey, imgDisplay.w, imgDisplay.h]);
+
+  // Keep imgDisplay in sync with the live rendered image size (scrollbars,
+  // viewport/orientation changes, late layout) and rescale the crop so the
+  // selection, overlay and final output always share one coordinate space.
+  useEffect(() => {
+    const img = imgRef.current;
+    if (!img || !rawSrc) return;
+    const ro = new ResizeObserver(() => {
+      const w = img.clientWidth;
+      const h = img.clientHeight;
+      if (!w || !h) return;
+      const prev = imgDisplayRef.current;
+      if (prev.w === 0 || prev.h === 0) {
+        imgDisplayRef.current = { w, h };
+        setImgDisplay({ w, h });
+        return;
+      }
+      if (Math.abs(prev.w - w) < 0.5 && Math.abs(prev.h - h) < 0.5) return;
+      const sx = w / prev.w;
+      const sy = h / prev.h;
+      imgDisplayRef.current = { w, h };
+      setImgDisplay({ w, h });
+      setCrop((c) => ({ x: c.x * sx, y: c.y * sy, w: c.w * sx, h: c.h * sy }));
+    });
+    ro.observe(img);
+    return () => ro.disconnect();
+  }, [rawSrc]);
 
   function relPos(e: React.PointerEvent) {
     const rect = containerRef.current?.getBoundingClientRect();
@@ -193,15 +226,32 @@ export function CropModal({
     const img = imgRef.current;
     if (!img) return;
     setWorking(true);
+    setApplyError(null);
     try {
-      const scaleX = img.naturalWidth / imgDisplay.w;
-      const scaleY = img.naturalHeight / imgDisplay.h;
-      const outW = Math.max(1, Math.round(crop.w * scaleX));
-      const outH = Math.max(1, Math.round(crop.h * scaleY));
+      // Measure the live rendered size at apply-time so the scale always
+      // matches the crop coordinates, even if the layout shifted after load.
+      const dispW = img.clientWidth || imgDisplay.w;
+      const dispH = img.clientHeight || imgDisplay.h;
+      if (!dispW || !dispH || !img.naturalWidth || !img.naturalHeight) {
+        throw new Error("Image not ready — please try again.");
+      }
+      const scaleX = img.naturalWidth / dispW;
+      const scaleY = img.naturalHeight / dispH;
+      let outW = Math.max(1, Math.round(crop.w * scaleX));
+      let outH = Math.max(1, Math.round(crop.h * scaleY));
+      // Cap output dimensions to stay within mobile canvas limits, which
+      // otherwise make toBlob() silently fail on large phone photos.
+      const MAX_DIM = 1600;
+      if (outW > MAX_DIM || outH > MAX_DIM) {
+        const k = MAX_DIM / Math.max(outW, outH);
+        outW = Math.max(1, Math.round(outW * k));
+        outH = Math.max(1, Math.round(outH * k));
+      }
       const canvas = document.createElement("canvas");
       canvas.width = outW;
       canvas.height = outH;
-      const ctx = canvas.getContext("2d")!;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Canvas not supported on this device.");
       ctx.clearRect(0, 0, outW, outH);
       if (roundness > 0 && !disableRoundness) {
         const r = (Math.min(outW, outH) * roundness) / 100;
@@ -215,10 +265,11 @@ export function CropModal({
         0, 0, outW, outH
       );
       const blob = await new Promise<Blob>((resolve, reject) =>
-        canvas.toBlob((b) => b ? resolve(b) : reject(new Error("canvas empty")), "image/png", 0.92)
+        canvas.toBlob((b) => b ? resolve(b) : reject(new Error("Could not render crop — please try again.")), "image/png", 0.92)
       );
       onComplete(blob);
-    } finally {
+    } catch (err) {
+      setApplyError(err instanceof Error ? err.message : "Crop failed — please try again.");
       setWorking(false);
     }
   }
@@ -260,20 +311,22 @@ export function CropModal({
             <div className="flex items-center justify-center py-16 text-[12px] text-[#0B0B0B]/40">Loading image…</div>
           ) : (
             <>
-              <div
-                ref={containerRef}
-                className="relative rounded-xl overflow-hidden bg-black select-none"
-                style={{ cursor: "crosshair", maxHeight: "55vh" }}
-                onPointerDown={onPointerDown}
-                onPointerMove={onPointerMove}
-                onPointerUp={onPointerUp}
-              >
+              <div className="flex items-center justify-center rounded-xl overflow-hidden bg-black select-none" style={{ maxHeight: "55vh" }}>
+                <div
+                  ref={containerRef}
+                  className="relative select-none"
+                  style={{ cursor: "crosshair", lineHeight: 0, minWidth: 0, maxWidth: "100%", touchAction: "none" }}
+                  onPointerDown={onPointerDown}
+                  onPointerMove={onPointerMove}
+                  onPointerUp={onPointerUp}
+                  onPointerCancel={onPointerUp}
+                  onLostPointerCapture={onPointerUp}
+                >
                 <img
                   ref={imgRef}
                   src={rawSrc}
                   alt="crop source"
-                  className="w-full block"
-                  style={{ maxHeight: "55vh", objectFit: "contain", pointerEvents: "none", userSelect: "none" }}
+                  style={{ display: "block", maxWidth: "100%", maxHeight: "55vh", width: "auto", height: "auto", pointerEvents: "none", userSelect: "none" }}
                   onLoad={initCrop}
                   draggable={false}
                 />
@@ -306,11 +359,15 @@ export function CropModal({
                     ))}
                   </svg>
                 )}
+                </div>
               </div>
 
               <p className="text-[10px] text-[#0B0B0B]/35 text-center">
                 {Math.round(crop.w)} × {Math.round(crop.h)} px (preview) • Drag to move • Drag corners to resize
               </p>
+              {applyError && (
+                <p className="text-[11px] text-red-600 text-center font-medium">{applyError}</p>
+              )}
 
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-[10px] font-bold text-[#0B0B0B]/40 uppercase tracking-widest mr-0.5">Ratio</span>
@@ -343,14 +400,16 @@ export function CropModal({
           >
             <RotateCcw size={12} /> Cancel
           </button>
-          <button
-            onClick={useOriginal}
-            disabled={working || !rawSrc}
-            className="text-[12px] font-semibold text-[#0B0B0B]/65 hover:text-[#0B0B0B] px-3 py-2 rounded-xl border border-[#0B0B0B]/12 hover:border-[#0B0B0B]/25 transition-colors disabled:opacity-40"
-            title="Upload without cropping"
-          >
-            Skip crop
-          </button>
+          {!requireCrop && (
+            <button
+              onClick={useOriginal}
+              disabled={working || !rawSrc}
+              className="text-[12px] font-semibold text-[#0B0B0B]/65 hover:text-[#0B0B0B] px-3 py-2 rounded-xl border border-[#0B0B0B]/12 hover:border-[#0B0B0B]/25 transition-colors disabled:opacity-40"
+              title="Upload without cropping"
+            >
+              Skip crop
+            </button>
+          )}
           <button
             onClick={apply}
             disabled={working || !rawSrc}

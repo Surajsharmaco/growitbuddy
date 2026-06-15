@@ -14,9 +14,10 @@ interface Props {
   hint?: string;
   shapeValue?: "square" | "circle";
   onShapeChange?: (shape: "square" | "circle") => void;
+  requireCrop?: boolean;
 }
 
-export function ImagePickerField({ value, onChange, label, shape = "circle", size = 56, hint, shapeValue, onShapeChange }: Props) {
+export function ImagePickerField({ value, onChange, label, shape = "circle", size = 56, hint, shapeValue, onShapeChange, requireCrop = false }: Props) {
   const { authFetch } = useAdmin();
   const uid = useId();
   const inputId = `imgpick_${uid.replace(/:/g, "")}`;
@@ -86,6 +87,7 @@ export function ImagePickerField({ value, onChange, label, shape = "circle", siz
           defaultAspect="1:1"
           defaultRoundness={onShapeChange ? 0 : (effectiveShape === "circle" ? 50 : 0)}
           disableRoundness={!!onShapeChange}
+          requireCrop={requireCrop}
           title={label ? `Crop ${label.toLowerCase()}` : "Crop image"}
           hint={hint}
           onComplete={async (blob) => {

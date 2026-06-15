@@ -184,6 +184,7 @@ function InfluencerRow({
                   shapeValue={inf.photoShape ?? "square"}
                   onShapeChange={(s) => set({ photoShape: s })}
                   size={80}
+                  requireCrop
                   hint="Recommended: 400 × 400 px (square) • Face centered"
                 />
               </div>
@@ -363,6 +364,7 @@ function NewInfluencerForm({
                 shapeValue={draft.photoShape ?? "square"}
                 onShapeChange={(s) => set({ photoShape: s })}
                 size={80}
+                requireCrop
                 hint="Recommended: 400 × 400 px (square) • Face centered"
               />
             </div>
