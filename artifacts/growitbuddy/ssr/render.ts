@@ -35,6 +35,9 @@
 import {
   findEntryByPath,
   SITE_URL,
+  BLOG_PATH,
+  buildSitemapXml,
+  wrapUrlset,
   type PageRegistryEntry,
   type PageSEOData,
 } from "@workspace/seo";
@@ -53,6 +56,7 @@ const SITE = SITE_URL; // https://growitbuddy.com
 const SITE_NAME = "GrowitBuddy";
 const DEFAULT_IMAGE = `${SITE}/opengraph.jpg`;
 const TWITTER_HANDLE = "@growitbuddy";
+const WP_API = "https://blog.growitbuddy.com/wp-json/wp/v2";
 
 // Most pages read their admin content from a section whose key === the registry
 // slug, so loadData(entry.slug) already bootstraps them. These pages, however,
@@ -426,6 +430,141 @@ function sendHtml(res: any, html: string, cacheControl: string): void {
   res.end(html);
 }
 
+function sendXml(res: any, xml: string, cacheControl: string): void {
+  res.statusCode = 200;
+  res.setHeader("content-type", "application/xml; charset=utf-8");
+  res.setHeader("cache-control", cacheControl);
+  res.end(xml);
+}
+
+/* ─────────────────────────────── sitemaps ──────────────────────────────────
+ * Served directly from THIS function (Neon-direct, no Render cold start) so the
+ * sitemaps live on the primary domain and crawlers never wait on a sleeping API.
+ * Logic mirrors artifacts/api-server/src/routes/sitemap.ts. Each builder catches
+ * its own failures and always returns a valid <urlset> — it never throws. */
+interface SEOFlags {
+  index?: boolean;
+  sitemap?: boolean;
+}
+interface WPPost {
+  slug: string;
+  date: string;
+  modified: string;
+}
+
+// Main sitemap from the shared @workspace/seo registry, excluding pages the admin
+// flagged noindex/no-sitemap (seo:<slug>) and honoring the seo-global kill switch.
+async function buildMainSitemap(): Promise<string> {
+  const today = new Date().toISOString().split("T")[0];
+  if (!DB_URL) return buildSitemapXml({ lastmod: today, siteUrl: SITE });
+
+  let globalIndexable = true;
+  const seoMap = new Map<string, SEOFlags>();
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
+  try {
+    const sql = neon(DB_URL, { fetchOptions: { signal: ctrl.signal } });
+    const rows = (await sql`
+      SELECT section, data FROM site_content
+      WHERE section = 'seo-global' OR section LIKE 'seo:%'
+    `) as Array<{ section: string; data: unknown }>;
+    for (const r of rows) {
+      if (r.section === "seo-global") {
+        const gd = r.data as { siteIndexable?: boolean } | undefined;
+        if (gd && gd.siteIndexable === false) globalIndexable = false;
+      } else {
+        seoMap.set(r.section.replace(/^seo:/, ""), (r.data as SEOFlags) ?? {});
+      }
+    }
+  } catch {
+    /* DB down — include every eligible page by default */
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (!globalIndexable) return wrapUrlset([]);
+  return buildSitemapXml({
+    lastmod: today,
+    siteUrl: SITE,
+    include: (page) => {
+      const seo = seoMap.get(page.slug);
+      return !(seo && (seo.index === false || seo.sitemap === false));
+    },
+  });
+}
+
+// Blog sitemap: WordPress posts (blog.growitbuddy.com) + CMS posts in the
+// site_content "blog" section. Each source is best-effort.
+async function buildBlogSitemap(): Promise<string> {
+  let globalIndexable = true;
+  if (DB_URL) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
+    try {
+      const sql = neon(DB_URL, { fetchOptions: { signal: ctrl.signal } });
+      const rows = (await sql`
+        SELECT data FROM site_content WHERE section = 'seo-global' LIMIT 1
+      `) as Array<{ data: unknown }>;
+      const gd = rows[0]?.data as { siteIndexable?: boolean } | undefined;
+      if (gd && gd.siteIndexable === false) globalIndexable = false;
+    } catch {
+      /* ignore — default to allowed */
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  if (!globalIndexable) return wrapUrlset([]);
+
+  const urls: string[] = [];
+
+  try {
+    const wpRes = await fetch(
+      `${WP_API}/posts?per_page=100&status=publish&_fields=slug,date,modified`,
+      { signal: AbortSignal.timeout(8000) },
+    );
+    if (wpRes.ok) {
+      const wpPosts = (await wpRes.json()) as WPPost[];
+      for (const post of wpPosts) {
+        const lastmod =
+          post.modified?.split("T")[0] ?? post.date?.split("T")[0] ?? "";
+        urls.push(
+          `  <url>\n    <loc>${SITE}${BLOG_PATH}/wp-${post.slug}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`,
+        );
+      }
+    }
+  } catch {
+    /* WP unreachable — skip gracefully */
+  }
+
+  if (DB_URL) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
+    try {
+      const sql = neon(DB_URL, { fetchOptions: { signal: ctrl.signal } });
+      const rows = (await sql`
+        SELECT data FROM site_content WHERE section = 'blog' LIMIT 1
+      `) as Array<{ data: { posts?: Array<{ slug?: string; date?: string }> } }>;
+      const posts = rows[0]?.data?.posts ?? [];
+      const fallbackDate = new Date().toISOString().split("T")[0];
+      for (const post of posts) {
+        if (!post.slug) continue;
+        const lastmod = post.date
+          ? new Date(post.date).toISOString().split("T")[0]
+          : fallbackDate;
+        urls.push(
+          `  <url>\n    <loc>${SITE}${BLOG_PATH}/${post.slug}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`,
+        );
+      }
+    } catch {
+      /* DB error — skip gracefully */
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  return wrapUrlset(urls);
+}
+
 /* ──────────────────────────── handler ─────────────────────────────── */
 export default async function handler(req: any, res: any): Promise<void> {
   const template = TEMPLATE;
@@ -446,6 +585,21 @@ export default async function handler(req: any, res: any): Promise<void> {
     const reqUrl = new URL(req.url || "/", `https://${host}`);
     // ?path= lets us test SSR before flipping routing (Phase 1 validation).
     const pathname = reqUrl.searchParams.get("path") || reqUrl.pathname || "/";
+
+    // Same-domain sitemaps served straight from this function (Neon-direct), so
+    // crawlers never depend on the cold-starting Render API. The static
+    // public/sitemap.xml was removed so this route reaches the function (Vercel
+    // serves filesystem assets before applying the catch-all rewrite).
+    if (pathname === "/sitemap.xml") {
+      const xml = await buildMainSitemap();
+      sendXml(res, xml, "public, max-age=600, s-maxage=600, stale-while-revalidate=3600");
+      return;
+    }
+    if (pathname === "/sitemap-blog.xml") {
+      const xml = await buildBlogSitemap();
+      sendXml(res, xml, "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400");
+      return;
+    }
 
     const entry = findEntryByPath(pathname);
     if (!entry) {

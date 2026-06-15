@@ -2,6 +2,7 @@
 
 // ../../lib/seo/src/index.ts
 var SITE_URL = "https://growitbuddy.com";
+var BLOG_PATH = "/blog";
 var BRAND = {
   name: "GrowitBuddy",
   url: SITE_URL,
@@ -69,6 +70,40 @@ function findEntryByPath(pathname) {
     return PAGE_REGISTRY.find((p2) => p2.slug === "insights") ?? null;
   if (/^\/verify\/[^/]+$/.test(pathname)) return PAGE_REGISTRY.find((p2) => p2.slug === "verify-id") ?? null;
   return null;
+}
+var DEFAULT_SITEMAP_PRIORITY = 0.7;
+var DEFAULT_SITEMAP_CHANGEFREQ = "monthly";
+function getSitemapPages() {
+  return PAGE_REGISTRY.filter(
+    (p2) => p2.defaults.index !== false && p2.defaults.sitemap !== false && !p2.path.includes(":")
+  );
+}
+function sitemapUrl(loc, lastmod, changefreq, priority) {
+  return `  <url>
+    <loc>${loc}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority.toFixed(1)}</priority>
+  </url>`;
+}
+function wrapUrlset(urls) {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.join("\n")}
+</urlset>
+`;
+}
+function buildSitemapXml(params) {
+  const site = params.siteUrl ?? SITE_URL;
+  const urls = getSitemapPages().filter((p2) => params.include ? params.include(p2) : true).map(
+    (p2) => sitemapUrl(
+      `${site}${p2.path}`,
+      params.lastmod,
+      p2.changefreq ?? DEFAULT_SITEMAP_CHANGEFREQ,
+      p2.priority ?? DEFAULT_SITEMAP_PRIORITY
+    )
+  );
+  return wrapUrlset(urls);
 }
 
 // ../../node_modules/.pnpm/@neondatabase+serverless@1.1.0/node_modules/@neondatabase/serverless/index.mjs
@@ -6646,6 +6681,7 @@ var SITE = SITE_URL;
 var SITE_NAME = "GrowitBuddy";
 var DEFAULT_IMAGE = `${SITE}/opengraph.jpg`;
 var TWITTER_HANDLE = "@growitbuddy";
+var WP_API = "https://blog.growitbuddy.com/wp-json/wp/v2";
 var EXTRA_CONTENT_SECTIONS = {
   insights: ["blog"],
   // /blog (Insights.tsx)
@@ -6864,6 +6900,116 @@ function sendHtml(res, html, cacheControl) {
   res.setHeader("cache-control", cacheControl);
   res.end(html);
 }
+function sendXml(res, xml, cacheControl) {
+  res.statusCode = 200;
+  res.setHeader("content-type", "application/xml; charset=utf-8");
+  res.setHeader("cache-control", cacheControl);
+  res.end(xml);
+}
+async function buildMainSitemap() {
+  const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+  if (!DB_URL) return buildSitemapXml({ lastmod: today, siteUrl: SITE });
+  let globalIndexable = true;
+  const seoMap = /* @__PURE__ */ new Map();
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
+  try {
+    const sql = cs(DB_URL, { fetchOptions: { signal: ctrl.signal } });
+    const rows = await sql`
+      SELECT section, data FROM site_content
+      WHERE section = 'seo-global' OR section LIKE 'seo:%'
+    `;
+    for (const r of rows) {
+      if (r.section === "seo-global") {
+        const gd = r.data;
+        if (gd && gd.siteIndexable === false) globalIndexable = false;
+      } else {
+        seoMap.set(r.section.replace(/^seo:/, ""), r.data ?? {});
+      }
+    }
+  } catch {
+  } finally {
+    clearTimeout(timer);
+  }
+  if (!globalIndexable) return wrapUrlset([]);
+  return buildSitemapXml({
+    lastmod: today,
+    siteUrl: SITE,
+    include: (page) => {
+      const seo = seoMap.get(page.slug);
+      return !(seo && (seo.index === false || seo.sitemap === false));
+    }
+  });
+}
+async function buildBlogSitemap() {
+  let globalIndexable = true;
+  if (DB_URL) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
+    try {
+      const sql = cs(DB_URL, { fetchOptions: { signal: ctrl.signal } });
+      const rows = await sql`
+        SELECT data FROM site_content WHERE section = 'seo-global' LIMIT 1
+      `;
+      const gd = rows[0]?.data;
+      if (gd && gd.siteIndexable === false) globalIndexable = false;
+    } catch {
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  if (!globalIndexable) return wrapUrlset([]);
+  const urls = [];
+  try {
+    const wpRes = await fetch(
+      `${WP_API}/posts?per_page=100&status=publish&_fields=slug,date,modified`,
+      { signal: AbortSignal.timeout(8e3) }
+    );
+    if (wpRes.ok) {
+      const wpPosts = await wpRes.json();
+      for (const post of wpPosts) {
+        const lastmod = post.modified?.split("T")[0] ?? post.date?.split("T")[0] ?? "";
+        urls.push(
+          `  <url>
+    <loc>${SITE}${BLOG_PATH}/wp-${post.slug}</loc>${lastmod ? `
+    <lastmod>${lastmod}</lastmod>` : ""}
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>`
+        );
+      }
+    }
+  } catch {
+  }
+  if (DB_URL) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
+    try {
+      const sql = cs(DB_URL, { fetchOptions: { signal: ctrl.signal } });
+      const rows = await sql`
+        SELECT data FROM site_content WHERE section = 'blog' LIMIT 1
+      `;
+      const posts = rows[0]?.data?.posts ?? [];
+      const fallbackDate = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+      for (const post of posts) {
+        if (!post.slug) continue;
+        const lastmod = post.date ? new Date(post.date).toISOString().split("T")[0] : fallbackDate;
+        urls.push(
+          `  <url>
+    <loc>${SITE}${BLOG_PATH}/${post.slug}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>`
+        );
+      }
+    } catch {
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  return wrapUrlset(urls);
+}
 async function handler(req, res) {
   const template = TEMPLATE;
   if (!template) {
@@ -6878,6 +7024,16 @@ async function handler(req, res) {
     const host = req.headers && req.headers.host || "growitbuddy.com";
     const reqUrl = new URL(req.url || "/", `https://${host}`);
     const pathname = reqUrl.searchParams.get("path") || reqUrl.pathname || "/";
+    if (pathname === "/sitemap.xml") {
+      const xml = await buildMainSitemap();
+      sendXml(res, xml, "public, max-age=600, s-maxage=600, stale-while-revalidate=3600");
+      return;
+    }
+    if (pathname === "/sitemap-blog.xml") {
+      const xml = await buildBlogSitemap();
+      sendXml(res, xml, "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400");
+      return;
+    }
     const entry = findEntryByPath(pathname);
     if (!entry) {
       sendHtml(res, template, "public, s-maxage=30, stale-while-revalidate=300");
