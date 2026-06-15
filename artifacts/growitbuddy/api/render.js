@@ -42,7 +42,12 @@ var PAGE_REGISTRY = [
   { slug: "creators", path: "/creators", label: "Creators", group: "Network", priority: 0.7, changefreq: "monthly", defaults: { title: "Creators \u2014 GrowitBuddy", description: "Resources and opportunities for creators with GrowitBuddy." } },
   { slug: "career", path: "/career", label: "Careers (Unified)", group: "Network", priority: 0.7, changefreq: "monthly", defaults: { title: "Careers \u2014 GrowitBuddy", description: "Join GrowitBuddy as a full-time team member, intern, or talent network member." } },
   // Talent Pools
-  { slug: "creator-school", path: "/editors-pool", label: "Editors Pool", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "Video Editors Pool \u2014 GrowitBuddy", description: "Join the GrowitBuddy editors pool. Watch the demo, access resources, and submit your work." } },
+  // NOTE: /editors-pool (slug "creator-school") and /video-editors are DISTINCT
+  // pages, not duplicates: /editors-pool is the Creator School onboarding hub
+  // (VSL, guidelines, FAQ, submissions); /video-editors is the public talent-pool
+  // landing page. They formerly shared the same <title>, so each carries a
+  // distinct title/description here to avoid duplicate-title cannibalization.
+  { slug: "creator-school", path: "/editors-pool", label: "Creator School", group: "Pools", priority: 0.6, changefreq: "monthly", defaults: { title: "Creator School \u2014 Editor Onboarding | GrowitBuddy", description: "GrowitBuddy Creator School: onboarding, guidelines, FAQ, and submission resources for video editors." } },
   { slug: "video-editors", path: "/video-editors", label: "Video Editors", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "Video Editors Pool \u2014 GrowitBuddy", description: "Join the GrowitBuddy video editors talent pool." } },
   { slug: "designers-pool", path: "/designers-pool", label: "Designers Pool", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "Designers Pool \u2014 GrowitBuddy", description: "Join the GrowitBuddy designers talent pool." } },
   { slug: "thumbnail-designers", path: "/thumbnail-designers", label: "Thumbnail Designers", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "Thumbnail Designers Pool \u2014 GrowitBuddy", description: "Join the GrowitBuddy thumbnail designers talent pool." } },
@@ -61,7 +66,13 @@ var PAGE_REGISTRY = [
   // Utility — default noindex (not meant for search, excluded from sitemap)
   { slug: "portfolio", path: "/portfolio", label: "Portfolio", group: "Utility", defaults: { title: "Portfolio \u2014 GrowitBuddy", description: "Client portfolio.", index: false, sitemap: false } },
   { slug: "verify", path: "/verify", label: "Verify Certificate", group: "Utility", defaults: { title: "Verify Certificate \u2014 GrowitBuddy", description: "Verify a GrowitBuddy certificate.", index: false, sitemap: false } },
-  { slug: "verify-id", path: "/verify/:id", label: "Verify Detail", group: "Utility", defaults: { title: "Certificate Verification \u2014 GrowitBuddy", description: "Verify a specific certificate.", index: false, sitemap: false } }
+  { slug: "verify-id", path: "/verify/:id", label: "Verify Detail", group: "Utility", defaults: { title: "Certificate Verification \u2014 GrowitBuddy", description: "Verify a specific certificate.", index: false, sitemap: false } },
+  // Internal guides — standalone routes (rendered outside the registry-driven
+  // Switch). Not meant for search: noindex + excluded from the sitemap so the
+  // SSR head, the admin SEO panel, and the sitemap all agree. Without registry
+  // entries these served the default index meta and were crawlable.
+  { slug: "site-guide", path: "/guide", label: "Site Guide", group: "Utility", defaults: { title: "Site Guide \u2014 GrowitBuddy", description: "Internal GrowitBuddy site guide.", index: false, sitemap: false } },
+  { slug: "seo-guide", path: "/seo-guide", label: "SEO Guide", group: "Utility", defaults: { title: "SEO Guide \u2014 GrowitBuddy", description: "Internal GrowitBuddy SEO guide.", index: false, sitemap: false } }
 ];
 function findEntryByPath(pathname) {
   const exact = PAGE_REGISTRY.find((p2) => p2.path === pathname);
@@ -7041,6 +7052,50 @@ var LEGACY_GONE_PATHS = [
 function isLegacyGone(pathname) {
   return LEGACY_GONE_PATHS.some((re) => re.test(pathname));
 }
+function legacyRedirect(pathname) {
+  if (pathname === "/insights") return BLOG_PATH;
+  const ins = pathname.match(/^\/insights\/(.+)$/);
+  if (ins) return `${BLOG_PATH}/${ins[1]}`;
+  if (pathname === "/freelancers") return "/career?type=freelancer";
+  if (pathname === "/full-time") return "/career?type=full-time";
+  if (pathname === "/internship") return "/career?type=internship";
+  if (pathname === "/portfolio-private") return "/portfolio";
+  const pp = pathname.match(/^\/portfolio-private\/(.+)$/);
+  if (pp) return `/portfolio/${pp[1]}`;
+  return null;
+}
+function isSafeSlug(s) {
+  return /^[a-z0-9][a-z0-9-]{0,79}$/.test(s);
+}
+function isKnownNonRegistryRoute(pathname) {
+  return pathname === "/portfolio" || pathname.startsWith("/portfolio/") || pathname === "/admin" || pathname.startsWith("/admin/");
+}
+var variantCache = null;
+var VARIANT_TTL_MS = 3e4;
+async function getLiveVariantSlugs() {
+  if (variantCache && Date.now() - variantCache.at < VARIANT_TTL_MS) return variantCache.slugs;
+  if (!DB_URL) return variantCache?.slugs ?? null;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
+  try {
+    const sql = cs(DB_URL, { fetchOptions: { signal: ctrl.signal } });
+    const rows = await sql`
+      SELECT slug FROM page_variants WHERE is_live = true
+    `;
+    const slugs = new Set(rows.map((r) => r.slug));
+    variantCache = { slugs, at: Date.now() };
+    return slugs;
+  } catch {
+    return variantCache?.slugs ?? null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+function send404(res, template) {
+  const html = setMeta(template, "name", "robots", "noindex,follow");
+  res.setHeader("x-robots-tag", "noindex, follow");
+  sendHtml(res, html, "public, max-age=30, s-maxage=30, stale-while-revalidate=120", 404);
+}
 async function handler(req, res) {
   const template = TEMPLATE;
   if (!template) {
@@ -7071,9 +7126,33 @@ async function handler(req, res) {
       sendHtml(res, goneHtml, "public, max-age=3600, s-maxage=3600", 410);
       return;
     }
+    const redirectTo = legacyRedirect(pathname);
+    if (redirectTo) {
+      res.statusCode = 301;
+      res.setHeader("location", redirectTo.startsWith("http") ? redirectTo : `${SITE}${redirectTo}`);
+      res.setHeader("cache-control", "public, max-age=3600, s-maxage=3600");
+      res.end();
+      return;
+    }
     const entry = findEntryByPath(pathname);
     if (!entry) {
-      sendHtml(res, template, "public, s-maxage=30, stale-while-revalidate=300");
+      if (isKnownNonRegistryRoute(pathname)) {
+        const shell = setMeta(template, "name", "robots", "noindex,follow");
+        res.setHeader("x-robots-tag", "noindex, follow");
+        sendHtml(res, shell, "public, s-maxage=30, stale-while-revalidate=300");
+        return;
+      }
+      const segments = pathname.split("/").filter(Boolean);
+      if (segments.length === 1 && isSafeSlug(segments[0])) {
+        const live = await getLiveVariantSlugs();
+        if (live && !live.has(segments[0])) {
+          send404(res, template);
+          return;
+        }
+        sendHtml(res, template, "public, s-maxage=30, stale-while-revalidate=300");
+        return;
+      }
+      send404(res, template);
       return;
     }
     const sections = Array.from(

@@ -92,7 +92,12 @@ export const PAGE_REGISTRY: PageRegistryEntry[] = [
   { slug: "career",           path: "/career",           label: "Careers (Unified)",   group: "Network",  priority: 0.7, changefreq: "monthly", defaults: { title: "Careers — GrowitBuddy",                                             description: "Join GrowitBuddy as a full-time team member, intern, or talent network member." } },
 
   // Talent Pools
-  { slug: "creator-school",       path: "/editors-pool",          label: "Editors Pool",        group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "Video Editors Pool — GrowitBuddy",                              description: "Join the GrowitBuddy editors pool. Watch the demo, access resources, and submit your work." } },
+  // NOTE: /editors-pool (slug "creator-school") and /video-editors are DISTINCT
+  // pages, not duplicates: /editors-pool is the Creator School onboarding hub
+  // (VSL, guidelines, FAQ, submissions); /video-editors is the public talent-pool
+  // landing page. They formerly shared the same <title>, so each carries a
+  // distinct title/description here to avoid duplicate-title cannibalization.
+  { slug: "creator-school",       path: "/editors-pool",          label: "Creator School",      group: "Pools", priority: 0.6, changefreq: "monthly", defaults: { title: "Creator School — Editor Onboarding | GrowitBuddy",               description: "GrowitBuddy Creator School: onboarding, guidelines, FAQ, and submission resources for video editors." } },
   { slug: "video-editors",        path: "/video-editors",         label: "Video Editors",       group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "Video Editors Pool — GrowitBuddy",                              description: "Join the GrowitBuddy video editors talent pool." } },
   { slug: "designers-pool",       path: "/designers-pool",        label: "Designers Pool",      group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "Designers Pool — GrowitBuddy",                                  description: "Join the GrowitBuddy designers talent pool." } },
   { slug: "thumbnail-designers",  path: "/thumbnail-designers",   label: "Thumbnail Designers", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "Thumbnail Designers Pool — GrowitBuddy",                        description: "Join the GrowitBuddy thumbnail designers talent pool." } },
@@ -115,6 +120,13 @@ export const PAGE_REGISTRY: PageRegistryEntry[] = [
   { slug: "portfolio",            path: "/portfolio",             label: "Portfolio",           group: "Utility",  defaults: { title: "Portfolio — GrowitBuddy",                                       description: "Client portfolio.", index: false, sitemap: false } },
   { slug: "verify",               path: "/verify",                label: "Verify Certificate",  group: "Utility",  defaults: { title: "Verify Certificate — GrowitBuddy",                              description: "Verify a GrowitBuddy certificate.", index: false, sitemap: false } },
   { slug: "verify-id",            path: "/verify/:id",            label: "Verify Detail",       group: "Utility",  defaults: { title: "Certificate Verification — GrowitBuddy",                        description: "Verify a specific certificate.", index: false, sitemap: false } },
+
+  // Internal guides — standalone routes (rendered outside the registry-driven
+  // Switch). Not meant for search: noindex + excluded from the sitemap so the
+  // SSR head, the admin SEO panel, and the sitemap all agree. Without registry
+  // entries these served the default index meta and were crawlable.
+  { slug: "site-guide",           path: "/guide",                 label: "Site Guide",          group: "Utility",  defaults: { title: "Site Guide — GrowitBuddy",                                      description: "Internal GrowitBuddy site guide.", index: false, sitemap: false } },
+  { slug: "seo-guide",            path: "/seo-guide",             label: "SEO Guide",           group: "Utility",  defaults: { title: "SEO Guide — GrowitBuddy",                                       description: "Internal GrowitBuddy SEO guide.", index: false, sitemap: false } },
 ];
 
 /* ────────────────────────────────────────────────────────────────────────────

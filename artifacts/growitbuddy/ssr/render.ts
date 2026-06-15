@@ -595,6 +595,78 @@ function isLegacyGone(pathname: string): boolean {
   return LEGACY_GONE_PATHS.some((re) => re.test(pathname));
 }
 
+/* ──────────────────── legacy client-redirect paths ─────────────────────────
+ * The SPA redirects these old URLs to their canonical home client-side. Doing
+ * the redirect server-side as a 301 is strictly better for SEO: a crawler gets
+ * the canonical target immediately instead of a 200 "soft duplicate" that only
+ * redirects after JavaScript runs. Returns the destination PATH (or null). */
+function legacyRedirect(pathname: string): string | null {
+  if (pathname === "/insights") return BLOG_PATH;
+  const ins = pathname.match(/^\/insights\/(.+)$/);
+  if (ins) return `${BLOG_PATH}/${ins[1]}`;
+  if (pathname === "/freelancers") return "/career?type=freelancer";
+  if (pathname === "/full-time") return "/career?type=full-time";
+  if (pathname === "/internship") return "/career?type=internship";
+  if (pathname === "/portfolio-private") return "/portfolio";
+  const pp = pathname.match(/^\/portfolio-private\/(.+)$/);
+  if (pp) return `/portfolio/${pp[1]}`;
+  return null;
+}
+
+// Valid single-segment slug shape (mirrors the admin isSafeSlug guard). Anything
+// that isn't this shape cannot be a registry page or a live page variant.
+function isSafeSlug(s: string): boolean {
+  return /^[a-z0-9][a-z0-9-]{0,79}$/.test(s);
+}
+
+// App routes that legitimately have NO registry entry and must never 404: the
+// password-gated portfolio sub-tree and the admin SPA (both already noindex).
+function isKnownNonRegistryRoute(pathname: string): boolean {
+  return (
+    pathname === "/portfolio" || pathname.startsWith("/portfolio/") ||
+    pathname === "/admin" || pathname.startsWith("/admin/")
+  );
+}
+
+/* ───────────────────── live page-variant slug cache ────────────────────────
+ * /:slug is a catch-all the SPA resolves to a live Page Variant (DB) or a
+ * NotFound. To tell a real variant from a typo at the HTTP layer, read the live
+ * variant slugs from Neon. Cache them per warm instance (short TTL) so a burst
+ * of bogus URLs can't hammer the DB. FAILS OPEN: on any error return the
+ * last-known set, or null when nothing is known — callers must NOT 404 on null. */
+let variantCache: { slugs: Set<string>; at: number } | null = null;
+const VARIANT_TTL_MS = 30_000;
+
+async function getLiveVariantSlugs(): Promise<Set<string> | null> {
+  if (variantCache && Date.now() - variantCache.at < VARIANT_TTL_MS) return variantCache.slugs;
+  if (!DB_URL) return variantCache?.slugs ?? null;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
+  try {
+    const sql = neon(DB_URL, { fetchOptions: { signal: ctrl.signal } });
+    const rows = (await sql`
+      SELECT slug FROM page_variants WHERE is_live = true
+    `) as Array<{ slug: string }>;
+    const slugs = new Set(rows.map((r) => r.slug));
+    variantCache = { slugs, at: Date.now() };
+    return slugs;
+  } catch {
+    return variantCache?.slugs ?? null; // fail open — never 404 on a DB hiccup
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Genuine not-found: HTTP 404 + noindex (header + meta) so Google drops the URL
+// rather than logging a soft 404, while still serving the styled SPA shell so a
+// human sees the branded not-found page. Short cache so a later-created page
+// (e.g. a new variant) recovers quickly.
+function send404(res: any, template: string): void {
+  const html = setMeta(template, "name", "robots", "noindex,follow");
+  res.setHeader("x-robots-tag", "noindex, follow");
+  sendHtml(res, html, "public, max-age=30, s-maxage=30, stale-while-revalidate=120", 404);
+}
+
 /* ──────────────────────────── handler ─────────────────────────────── */
 export default async function handler(req: any, res: any): Promise<void> {
   const template = TEMPLATE;
@@ -644,11 +716,46 @@ export default async function handler(req: any, res: any): Promise<void> {
       return;
     }
 
+    // Legacy URLs the SPA only redirects client-side: answer with a real 301 to
+    // the canonical target so crawlers never index the 200 soft-duplicate.
+    const redirectTo = legacyRedirect(pathname);
+    if (redirectTo) {
+      res.statusCode = 301;
+      res.setHeader("location", redirectTo.startsWith("http") ? redirectTo : `${SITE}${redirectTo}`);
+      res.setHeader("cache-control", "public, max-age=3600, s-maxage=3600");
+      res.end();
+      return;
+    }
+
     const entry = findEntryByPath(pathname);
     if (!entry) {
-      // Unknown route: hand the plain shell to the SPA router. Short cache so a
-      // mistaken miss isn't held long.
-      sendHtml(res, template, "public, s-maxage=30, stale-while-revalidate=300");
+      // Valid app routes with no registry entry (portfolio sub-tree, admin SPA):
+      // serve the shell at 200 so the SPA renders them, but NEVER index them —
+      // these are private/share URLs and admin screens. /portfolio/* is not even
+      // covered by robots.txt, so emit an explicit noindex (meta + header).
+      if (isKnownNonRegistryRoute(pathname)) {
+        const shell = setMeta(template, "name", "robots", "noindex,follow");
+        res.setHeader("x-robots-tag", "noindex, follow");
+        sendHtml(res, shell, "public, s-maxage=30, stale-while-revalidate=300");
+        return;
+      }
+      // A single-segment /:slug may be a live Page Variant. Only 404 when we can
+      // PROVE it isn't one (DB reachable AND slug absent). Any uncertainty
+      // (no DB / query error → null) falls through to a 200 shell (fail open),
+      // so a transient DB issue can never 404 a real page.
+      const segments = pathname.split("/").filter(Boolean);
+      if (segments.length === 1 && isSafeSlug(segments[0])) {
+        const live = await getLiveVariantSlugs();
+        if (live && !live.has(segments[0])) {
+          send404(res, template);
+          return;
+        }
+        sendHtml(res, template, "public, s-maxage=30, stale-while-revalidate=300");
+        return;
+      }
+      // Anything else (unknown multi-segment path, malformed slug) matches no SPA
+      // route → genuine 404 + noindex so it never becomes a soft 404.
+      send404(res, template);
       return;
     }
 
