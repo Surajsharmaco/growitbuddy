@@ -128,10 +128,12 @@ async function verifyPassword(password: string, stored: string): Promise<boolean
   return timingSafeEqual(derivedKey, hashBuffer);
 }
 
-declare module "express" {
-  interface Request {
-    adminRole?: AdminRole;
-    adminPermissions?: string[];
+declare global {
+  namespace Express {
+    interface Request {
+      adminRole?: AdminRole;
+      adminPermissions?: string[];
+    }
   }
 }
 

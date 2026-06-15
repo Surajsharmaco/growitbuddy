@@ -263,7 +263,7 @@ router.post("/resource-unlock", newsletterLimit, async (req, res) => {
     ? resourceTitle.trim()
     : "(unspecified resource)";
   logger.info({ email, resourceTitle: title }, "Resource unlock (email gate) submission");
-  await saveLead("resource", null, email, { email, resourceTitle: title, resourceType: resourceType || null });
+  await saveLead("resource", undefined, email, { email, resourceTitle: title, resourceType: resourceType || null });
   await sendEmail(
     GENERAL_EMAIL,
     `[RESOURCE] ${email} unlocked "${title}"`,
