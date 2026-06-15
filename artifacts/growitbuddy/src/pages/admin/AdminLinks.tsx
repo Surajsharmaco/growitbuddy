@@ -81,7 +81,13 @@ function LinksSectionEditor({ section, onChange }: { section: LinksSection; onCh
               <div className="flex-1 min-w-0 flex flex-col gap-3">
                 <Input value={l.label} onChange={(e) => setItems(items.map((x) => x.id === l.id ? { ...x, label: e.target.value } : x))} placeholder="Link title (e.g. Book a Call)" />
                 <Input value={l.sublabel || ""} onChange={(e) => setItems(items.map((x) => x.id === l.id ? { ...x, sublabel: e.target.value } : x))} placeholder="Optional subtitle" />
-                <Input value={l.url} onChange={(e) => setItems(items.map((x) => x.id === l.id ? { ...x, url: e.target.value } : x))} placeholder="https://… or /contact for an internal page" />
+                <Input
+                  label="Link"
+                  hint="Paste any link here — a website (https://example.com), an email, a phone number, or an internal page like /contact. External links open in a new tab."
+                  value={l.url}
+                  onChange={(e) => setItems(items.map((x) => x.id === l.id ? { ...x, url: e.target.value } : x))}
+                  placeholder="https://example.com"
+                />
                 <Field label="Style">
                   <select
                     value={l.display || "normal"}
