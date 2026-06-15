@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { m } from "framer-motion";
 import { API_BASE } from "@/lib/api";
-import { ArrowRight, Check, ChevronRight, Star, X } from "lucide-react";
+import { ArrowRight, Building2, Check, ChevronRight, Cloud, GraduationCap, Rocket, ShoppingBag, Sparkles, Star, X } from "lucide-react";
 import { Link } from "wouter";
 import { FadeUp } from "@/components/effects/TextReveal";
 import CountUp from "@/components/effects/CountUp";
@@ -564,31 +564,37 @@ export default function Home() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(310px, 1fr))", gap: 14 }}>
             {[
               {
+                icon: Rocket,
                 title: "Founders",
                 problem: "Expertise that stays invisible",
                 outcome: "A personal brand that generates inbound leads, speaking invites, and partnerships without cold outreach.",
               },
               {
+                icon: Sparkles,
                 title: "Creators",
                 problem: "Content without a distribution system",
                 outcome: "A monetizable audience built on a content system designed for compounding long-term growth.",
               },
               {
+                icon: Building2,
                 title: "Agencies",
                 problem: "Content output that doesn't scale",
                 outcome: "A white-label or collaborative content and distribution engine - without building an in-house team.",
               },
               {
+                icon: ShoppingBag,
                 title: "Ecommerce Brands",
                 problem: "Ad spend with no organic flywheel",
                 outcome: "Brand equity and organic reach through content that converts browsers into buyers.",
               },
               {
+                icon: Cloud,
                 title: "SaaS Companies",
                 problem: "Long sales cycles and low organic visibility",
                 outcome: "Thought leadership content that shortens deal cycles and brings qualified inbound consistently.",
               },
               {
+                icon: GraduationCap,
                 title: "Coaches & Experts",
                 problem: "Premium knowledge packaged poorly",
                 outcome: "A distribution-first brand that attracts premium clients and positions you as the obvious authority.",
@@ -596,6 +602,7 @@ export default function Home() {
             ].map((card, i) => {
               const wash = AUDIENCE_WASHES[i % AUDIENCE_WASHES.length];
               const cardBorder = AUDIENCE_BORDERS[i % AUDIENCE_BORDERS.length];
+              const Icon = card.icon;
               return (
               <m.div
                 key={i}
@@ -606,25 +613,28 @@ export default function Home() {
                 style={{
                   background: wash,
                   border: `1.5px solid ${cardBorder}`,
-                  borderRadius: 18,
-                  padding: "30px 28px",
-                  minHeight: 240,
+                  borderRadius: 20,
+                  padding: "26px 26px 28px",
+                  minHeight: 320,
                   display: "flex",
                   flexDirection: "column",
                   gap: 0,
-                  boxShadow: "0 16px 44px -24px rgba(30,41,59,0.28)",
+                  boxShadow: "0 18px 50px -26px rgba(30,41,59,0.30)",
                   position: "relative",
                   overflow: "hidden",
                 }}
               >
                 <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat", opacity: 0.6, mixBlendMode: "multiply", pointerEvents: "none" }} />
-                <h3 style={{ position: "relative", fontWeight: 800, fontSize: 21, letterSpacing: "-0.025em", color: "#1A2230", marginBottom: 12 }}>
+                <div style={{ position: "relative", width: 48, height: 48, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.62)", border: `1px solid ${cardBorder}`, boxShadow: "0 6px 16px -8px rgba(30,41,59,0.28)", backdropFilter: "blur(2px)" }}>
+                  <Icon size={23} strokeWidth={1.75} color="#14202E" />
+                </div>
+                <h3 style={{ position: "relative", fontWeight: 800, fontSize: 23, letterSpacing: "-0.02em", color: "#0F1822", marginTop: "auto", marginBottom: 10 }}>
                   {card.title}
                 </h3>
-                <p style={{ position: "relative", fontSize: 13, fontWeight: 600, color: "#3A4453", marginBottom: 14, letterSpacing: "0.01em" }}>
+                <p style={{ position: "relative", fontSize: 13.5, fontWeight: 700, color: "#283440", marginBottom: 10, letterSpacing: "0.01em" }}>
                   ↳ {card.problem}
                 </p>
-                <p style={{ position: "relative", fontSize: 14, color: "#4B5563", lineHeight: "1.75", marginTop: "auto" }}>
+                <p style={{ position: "relative", fontSize: 14, fontWeight: 500, color: "#374151", lineHeight: "1.7" }}>
                   {card.outcome}
                 </p>
               </m.div>
