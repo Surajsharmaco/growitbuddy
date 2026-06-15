@@ -475,9 +475,7 @@ export default function Links() {
             {data.avatarUrl ? (
               <img src={data.avatarUrl} alt={data.profileName} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", display: "block", border: `3px solid ${BG}` }} />
             ) : (
-              <div style={{ width: "100%", height: "100%", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: NAVY, color: "#F5EFE2", fontWeight: 800, fontSize: 36, letterSpacing: "-0.02em", border: `3px solid ${BG}` }}>
-                {initialsOf(data.profileName)}
-              </div>
+              <img src={`${import.meta.env.BASE_URL}logo-circle.png`} alt={data.profileName} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", display: "block", background: NAVY, border: `3px solid ${BG}` }} />
             )}
           </div>
         </motion.div>
