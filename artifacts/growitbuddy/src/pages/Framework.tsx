@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
+import BlueprintLines from "@/components/effects/BlueprintLines";
 import { ArrowRight, Check } from "lucide-react";
+import { getWashCardStyle, CardGrain } from "@/components/WashCard";
 import { Link } from "wouter";
 import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
@@ -29,16 +31,8 @@ export default function Framework() {
       />
 
       {/* Hero */}
-      <section style={{ position: "relative", paddingTop: 140, paddingBottom: 96, paddingLeft: 24, paddingRight: 24, borderBottom: "1px solid #E5E5E0", overflow: "hidden" }}>
-        {/* decorative dotted grid top-right */}
-        <span aria-hidden style={{
-          position: "absolute", top: 80, right: -20, width: 220, height: 220, opacity: 0.4,
-          backgroundImage: "radial-gradient(circle, rgba(30,41,59,0.22) 1px, transparent 1px)",
-          backgroundSize: "12px 12px",
-          maskImage: "radial-gradient(circle at top right, black, transparent 70%)",
-          WebkitMaskImage: "radial-gradient(circle at top right, black, transparent 70%)",
-          pointerEvents: "none",
-        }} />
+      <section className="gb-hero-grid" style={{ position: "relative", paddingTop: 140, paddingBottom: 96, paddingLeft: 24, paddingRight: 24, borderBottom: "1px solid #E5E5E0", overflow: "hidden" }}>
+        <BlueprintLines />
         <div className="max-w-[1100px] mx-auto" style={{ position: "relative" }}>
           <span style={{
             display: "inline-flex", alignItems: "center", gap: 8,
@@ -70,7 +64,7 @@ export default function Framework() {
       </section>
 
       {/* Visual connector - vertical */}
-      <section style={{ padding: "96px 24px", background: "#F8F8F6" }}>
+      <section className="gb-dots" style={{ padding: "96px 24px", backgroundColor: "#F8F8F6" }}>
         <div className="max-w-[1100px] mx-auto">
           <div style={{ textAlign: "center", marginBottom: 44 }}>
             <span style={{
@@ -118,25 +112,19 @@ export default function Framework() {
                   style={{
                     flex: 1,
                     padding: "18px 26px",
-                    background: "#FFFFFF",
-                    borderRadius: 14,
-                    border: "1px solid #E5E5E0",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
                     gap: 12,
-                    boxShadow: "0 1px 0 rgba(255,255,255,0.8) inset, 0 2px 8px rgba(30,41,59,0.04)",
-                    position: "relative",
-                    overflow: "hidden",
+                    ...getWashCardStyle(i, { borderRadius: 14 }),
                   }}
                 >
-                  {/* gold left accent bar */}
-                  <span aria-hidden style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: "var(--gb-gold)" }} />
-                  <div>
-                    <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--gb-gold)", marginBottom: 4 }}>Step {step.num}</p>
-                    <p style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-0.03em", color: "#0A0A0A" }}>{step.title}</p>
+                  <CardGrain />
+                  <div style={{ position: "relative" }}>
+                    <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "#5A6472", marginBottom: 4 }}>Step {step.num}</p>
+                    <p style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-0.03em", color: "#0F1822" }}>{step.title}</p>
                   </div>
-                  <p style={{ fontSize: 13, color: "#8A8A8A", maxWidth: "38ch", lineHeight: 1.5, display: "none" }} className="step-tagline">
+                  <p style={{ position: "relative", fontSize: 13, color: "#374151", maxWidth: "38ch", lineHeight: 1.5, display: "none" }} className="step-tagline">
                     {step.headline}
                   </p>
                 </div>
@@ -212,7 +200,7 @@ export default function Framework() {
       ))}
 
       {/* CTA */}
-      <section style={{ padding: "96px 24px", background: "#F8F8F6" }}>
+      <section className="gb-dots" style={{ padding: "96px 24px", backgroundColor: "#F8F8F6" }}>
         <div style={{ maxWidth: 880, margin: "0 auto" }}>
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -230,23 +218,6 @@ export default function Framework() {
               boxShadow: "0 1px 0 rgba(255,255,255,0.6) inset, 0 24px 60px -32px rgba(30,41,59,0.25)",
             }}
           >
-            {/* decorative dotted corners */}
-            <span aria-hidden style={{
-              position: "absolute", top: 20, left: 20, width: 72, height: 72, opacity: 0.35,
-              backgroundImage: "radial-gradient(circle, rgba(30,41,59,0.35) 1px, transparent 1px)",
-              backgroundSize: "8px 8px",
-              maskImage: "radial-gradient(circle at top left, black, transparent 70%)",
-              WebkitMaskImage: "radial-gradient(circle at top left, black, transparent 70%)",
-              pointerEvents: "none",
-            }} />
-            <span aria-hidden style={{
-              position: "absolute", bottom: 20, right: 20, width: 72, height: 72, opacity: 0.35,
-              backgroundImage: "radial-gradient(circle, rgba(30,41,59,0.35) 1px, transparent 1px)",
-              backgroundSize: "8px 8px",
-              maskImage: "radial-gradient(circle at bottom right, black, transparent 70%)",
-              WebkitMaskImage: "radial-gradient(circle at bottom right, black, transparent 70%)",
-              pointerEvents: "none",
-            }} />
             {/* gold accent strip */}
             <span aria-hidden style={{
               position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)",

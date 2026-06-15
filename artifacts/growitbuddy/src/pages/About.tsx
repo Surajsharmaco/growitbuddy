@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Link } from "wouter";
 import SEOMeta from "@/components/SEOMeta";
+import { getWashCardStyle, CardGrain, WashIconChip } from "@/components/WashCard";
 import { usePublicContent } from "@/hooks/usePublicContent";
 
 import { ABOUT_DEFAULTS as DEFAULTS, type AboutData } from "@/lib/aboutDefaults";
@@ -14,6 +15,9 @@ export default function About() {
     { label: "Twitter", href: data.founderTwitter },
     { label: "Instagram", href: data.founderInstagram },
   ].filter((s) => s.href);
+
+  const CARD_SURFACE =
+    "radial-gradient(135% 120% at 100% 0%, rgba(194,168,120,0.12) 0%, rgba(194,168,120,0) 48%), linear-gradient(168deg, #FFFFFF 0%, #FAF6EE 100%)";
 
   return (
     <div style={{ background: "#F8F8F6", fontFamily: "'Inter', sans-serif" }}>
@@ -190,109 +194,129 @@ export default function About() {
       </section>
 
       {/* ── Founder / Origin ── */}
-      <section style={{ padding: "100px 24px", background: "#EFEFEA", borderBottom: "1px solid rgba(10,10,10,0.05)" }}>
-        <div className="max-w-[1100px] mx-auto">
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))", gap: 64, alignItems: "start" }}>
+      <section style={{ padding: "100px 24px", backgroundColor: "#EFEFEA", borderBottom: "1px solid rgba(10,10,10,0.05)", backgroundImage: "radial-gradient(120% 75% at 50% -8%, rgba(194,168,120,0.08) 0%, rgba(194,168,120,0) 58%)", backgroundSize: "100% 100%" }}>
+        <style>{`
+          .about-origin-grid { display: grid; grid-template-columns: 300px 1fr; align-items: stretch; }
+          .about-origin-side { padding: 48px 38px; }
+          .about-origin-main { padding: 56px 56px; }
+          @media (max-width: 820px) {
+            .about-origin-grid { grid-template-columns: 1fr; }
+            .about-origin-side { padding: 40px 32px; }
+            .about-origin-main { padding: 40px 32px; }
+          }
+        `}</style>
+        <div className="max-w-[1080px] mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            style={{
+              position: "relative",
+              overflow: "hidden",
+              borderRadius: 24,
+              border: "1px solid rgba(10,10,10,0.06)",
+              background: CARD_SURFACE,
+              boxShadow: "0 26px 64px -30px rgba(30,41,59,0.3)",
+            }}
+          >
+            <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat", opacity: 0.6, pointerEvents: "none", zIndex: 0 }} />
+            <div aria-hidden="true" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, #C2A878 0%, rgba(194,168,120,0.15) 55%, rgba(194,168,120,0) 100%)", pointerEvents: "none", zIndex: 3 }} />
 
-            {/* Left - founder card (sticky) */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              style={{ position: "sticky", top: 120 }}
-            >
-              <div style={{
-                width: "100%", maxWidth: 220, aspectRatio: "1",
-                borderRadius: 20, background: "#0A0A0A",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                marginBottom: 24, position: "relative", overflow: "hidden",
-              }}>
-                {data.founderPhoto ? (
-                  <img
-                    src={data.founderPhoto}
-                    alt={data.founderName}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-                  />
-                ) : (
-                  <>
-                    <span style={{ fontSize: 80, fontWeight: 800, color: "rgba(255,255,255,0.06)", letterSpacing: "-0.05em", lineHeight: 1, position: "absolute", bottom: -8, right: 12, userSelect: "none" }}>
+            <div className="about-origin-grid" style={{ position: "relative", zIndex: 1 }}>
+
+              {/* Left - founder identity (navy panel) */}
+              <div className="about-origin-side" style={{ position: "relative", overflow: "hidden", background: "#171F2D", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat", opacity: 0.5, pointerEvents: "none" }} />
+                <div style={{ position: "relative", zIndex: 1 }}>
+                  <div style={{
+                    width: 92, height: 92, borderRadius: 20, overflow: "hidden",
+                    marginBottom: 26, display: "flex", alignItems: "center", justifyContent: "center",
+                    background: "rgba(194,168,120,0.12)", border: "1px solid rgba(194,168,120,0.32)",
+                    position: "relative",
+                  }}>
+                    <span style={{ fontSize: 40, fontWeight: 800, color: "#C2A878", letterSpacing: "-0.04em", lineHeight: 1, userSelect: "none" }}>
                       {data.founderName.charAt(0)}
                     </span>
-                    <span style={{ fontSize: 52, fontWeight: 800, color: "#FFFFFF", letterSpacing: "-0.04em", lineHeight: 1, position: "relative", zIndex: 1 }}>
-                      {data.founderName.charAt(0)}
-                    </span>
-                    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 4, background: "var(--gb-accent)" }} />
-                  </>
-                )}
-              </div>
+                    {data.founderPhoto && (
+                      <img
+                        src={data.founderPhoto}
+                        alt={data.founderName}
+                        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                      />
+                    )}
+                  </div>
 
-              <h3 style={{ fontWeight: 800, fontSize: 20, letterSpacing: "-0.03em", color: "#0A0A0A", marginBottom: 4 }}>
-                {data.founderName}
-              </h3>
-              <p style={{ fontSize: 13, fontWeight: 500, color: "var(--gb-accent)", marginBottom: 16, letterSpacing: "0.01em" }}>
-                {data.founderRole}
-              </p>
+                  <p style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "#C2A878", marginBottom: 14 }}>
+                    Founder
+                  </p>
+                  <h3 style={{ fontWeight: 800, fontSize: 22, letterSpacing: "-0.03em", color: "#FFFFFF", marginBottom: 6 }}>
+                    {data.founderName}
+                  </h3>
+                  <p style={{ fontSize: 13.5, fontWeight: 500, color: "rgba(255,255,255,0.6)", marginBottom: 24, letterSpacing: "0.01em" }}>
+                    {data.founderRole}
+                  </p>
 
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 20 }}>
-                {["Content Strategy", "Distribution", "Authority Systems"].map((tag) => (
-                  <span key={tag} style={{ fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 100, background: "rgba(10,10,10,0.06)", color: "#5F5F5F", letterSpacing: "0.01em" }}>{tag}</span>
-                ))}
-              </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: founderSocials.length > 0 ? 26 : 0 }}>
+                    {["Content Strategy", "Distribution", "Authority Systems"].map((tag) => (
+                      <span key={tag} style={{ fontSize: 11, fontWeight: 500, padding: "5px 11px", borderRadius: 100, background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.78)", border: "1px solid rgba(255,255,255,0.12)", letterSpacing: "0.01em" }}>{tag}</span>
+                    ))}
+                  </div>
 
-              {founderSocials.length > 0 && (
-                <div style={{ display: "flex", gap: 16 }}>
-                  {founderSocials.map((s) => (
-                    <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer"
-                      style={{ fontSize: 13, fontWeight: 600, color: "#8A8A8A", textDecoration: "none" }}
-                      className="hover:opacity-60 transition-opacity"
-                    >
-                      {s.label} ↗
-                    </a>
-                  ))}
+                  {founderSocials.length > 0 && (
+                    <div style={{ display: "flex", gap: 18, paddingTop: 22, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+                      {founderSocials.map((s) => (
+                        <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer"
+                          style={{ fontSize: 12.5, fontWeight: 600, color: "#C2A878", textDecoration: "none" }}
+                          className="hover:opacity-70 transition-opacity"
+                        >
+                          {s.label} ↗
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </motion.div>
-
-            {/* Right - origin story */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.65, delay: 0.1 }}
-            >
-              <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#8A8A8A", marginBottom: 32 }}>
-                The Origin
-              </p>
-
-              <div style={{ fontSize: 96, lineHeight: 0.8, fontWeight: 800, color: "var(--gb-accent)", opacity: 0.25, marginBottom: 16, fontFamily: "Georgia, serif", userSelect: "none" }}>
-                "
               </div>
 
-              <p style={{ fontWeight: 800, fontSize: "clamp(22px, 3vw, 40px)", letterSpacing: "-0.04em", lineHeight: "1.15", color: "#0A0A0A", marginBottom: 28 }}>
-                I built GrowitBuddy after seeing a pattern - the best people weren't the most visible.
-              </p>
+              {/* Right - origin story */}
+              <div className="about-origin-main">
+                <div style={{ display: "flex", alignItems: "center", gap: 13, marginBottom: 28 }}>
+                  <span aria-hidden="true" style={{ fontFamily: "Georgia, serif", fontSize: 44, fontWeight: 800, lineHeight: 0, color: "#C2A878", transform: "translateY(7px)", userSelect: "none" }}>&ldquo;</span>
+                  <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#9A7B43", margin: 0 }}>
+                    The Origin
+                  </p>
+                </div>
 
-              <p style={{ fontWeight: 500, fontSize: "clamp(16px, 1.8vw, 20px)", letterSpacing: "-0.01em", lineHeight: "1.6", color: "#5F5F5F", marginBottom: 28, fontStyle: "italic" }}>
-                Louder voices were winning.<br />Not better ones.
-              </p>
-
-              <p style={{ fontWeight: 800, fontSize: "clamp(19px, 2.2vw, 30px)", letterSpacing: "-0.035em", lineHeight: "1.25", color: "#0A0A0A", marginBottom: 44 }}>
-                Authority isn't given.<br />
-                It's built - with the right{" "}
-                <span style={{ borderBottom: "3px solid var(--gb-accent)", paddingBottom: 2 }}>system</span>.
-              </p>
-
-              <div style={{ borderTop: "1.5px solid rgba(10,10,10,0.08)", paddingTop: 36, display: "grid", gridTemplateColumns: "auto 1fr", gap: "0 20px", alignItems: "start" }}>
-                <div style={{ width: 3, height: "100%", minHeight: 60, background: "var(--gb-accent)", borderRadius: 100, opacity: 0.5 }} />
-                <p style={{ fontSize: 16, color: "#5F5F5F", lineHeight: "1.85", fontWeight: 400 }}>
-                  {data.founderBio}
+                <p style={{ fontWeight: 800, fontSize: "clamp(22px, 3vw, 38px)", letterSpacing: "-0.04em", lineHeight: "1.18", color: "#0A0A0A", marginBottom: 24 }}>
+                  I built GrowitBuddy after seeing a pattern — the best people weren't the most visible.
                 </p>
-              </div>
-            </motion.div>
 
-          </div>
+                <p style={{ fontWeight: 500, fontSize: "clamp(15px, 1.8vw, 19px)", letterSpacing: "-0.01em", lineHeight: "1.6", color: "#6A6A64", marginBottom: 28, fontStyle: "italic" }}>
+                  Louder voices were winning. Not better ones.
+                </p>
+
+                <p style={{ fontWeight: 800, fontSize: "clamp(18px, 2.2vw, 28px)", letterSpacing: "-0.035em", lineHeight: "1.3", color: "#1E293B", marginBottom: 36 }}>
+                  Authority isn't given. It's built — with the right{" "}
+                  <span style={{ borderBottom: "3px solid #C2A878", paddingBottom: 2 }}>system</span>.
+                </p>
+
+                <div style={{ borderTop: "1px solid rgba(10,10,10,0.08)", paddingTop: 32, display: "grid", gridTemplateColumns: "auto 1fr", gap: "0 20px", alignItems: "start" }}>
+                  <div style={{ width: 3, alignSelf: "stretch", minHeight: 48, background: "linear-gradient(180deg, #C2A878 0%, rgba(194,168,120,0.2) 100%)", borderRadius: 100 }} />
+                  <div>
+                    <p style={{ fontSize: 15.5, color: "#4A4A45", lineHeight: "1.85", fontWeight: 400, marginBottom: 16 }}>
+                      {data.founderBio}
+                    </p>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "#0A0A0A", letterSpacing: "-0.01em", margin: 0 }}>
+                      {data.founderName}
+                      <span style={{ fontWeight: 500, color: "#8A8A8A" }}> · {data.founderRole}</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </motion.div>
         </div>
       </section>
 
@@ -312,20 +336,12 @@ export default function About() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.08 }}
-                  style={{
-                    background: "#F8F8F6",
-                    border: "1.5px solid #E5E5E0",
-                    borderRadius: 16,
-                    padding: "36px 32px",
-                  }}
+                  style={getWashCardStyle(i, { padding: "32px 30px" })}
                 >
-                  {/* Gold rule + number */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-                    <div style={{ width: 28, height: 2, background: "#C2A878", borderRadius: 2 }} />
-                    <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.15em", color: "#C2A878" }}>{String(i + 1).padStart(2, "0")}</span>
-                  </div>
-                  <h3 style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.03em", color: "#0A0A0A", marginBottom: 12 }}>{v.title}</h3>
-                  <p style={{ fontSize: 15, color: "#5F5F5F", lineHeight: "1.75" }}>{v.description}</p>
+                  <CardGrain />
+                  <WashIconChip index={i} label={String(i + 1).padStart(2, "0")} style={{ marginBottom: 22 }} />
+                  <h3 style={{ position: "relative", fontSize: 21, fontWeight: 800, letterSpacing: "-0.03em", color: "#0F1822", marginBottom: 10 }}>{v.title}</h3>
+                  <p style={{ position: "relative", fontSize: 14.5, color: "#374151", lineHeight: "1.7", fontWeight: 500 }}>{v.description}</p>
                 </motion.div>
               ))}
             </div>

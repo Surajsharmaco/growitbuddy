@@ -353,6 +353,40 @@ h1, h2, h3, h4 {
   font-family: 'Inter', sans-serif;
 }
 
+/* ─────────────────────────────────────────────────────────────
+   PREMIUM SECTION TEXTURE — subtle dot-grid + atmospheric wash
+   Reusable backgrounds for otherwise-flat light sections so the
+   site doesn't read as empty/white. Applied via className on top
+   of an inline backgroundColor (keep backgroundColor, NOT the
+   `background` shorthand, or it resets these background-images).
+   Keep it subtle — premium, not busy.
+   ───────────────────────────────────────────────────────────── */
+
+/* Dot-grid removed per request — these sections now render flat on their
+   own inline backgroundColor. Class kept so existing usages stay valid. */
+.gb-dots {
+  background-image: none;
+}
+
+/* ── Hero background (SendRoq-style) ──
+   Dot-grid removed per request — only a faint top "cover" radial remains so
+   the heroes settle onto the page/section background. The vertical guide-lines
+   + "+" crosshairs come from the <BlueprintLines/> overlay (unaffected). */
+.gb-hero-grid {
+  background-image:
+    radial-gradient(130% 96% at 50% -12%, rgba(248,248,246,0) 20%, var(--gb-bg) 66%);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center top;
+}
+.gb-hero-grid-white {
+  background-image:
+    radial-gradient(130% 96% at 50% -12%, rgba(255,255,255,0) 20%, #FFFFFF 66%);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center top;
+}
+
 /* ── Gold underline accent ── */
 .gb-gold-underline {
   display: inline-block;

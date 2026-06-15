@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
+import BlueprintLines from "@/components/effects/BlueprintLines";
 import { ArrowRight, Check, BadgeCheck, Video, Rocket, LayoutTemplate, Cpu, ShoppingBag } from "lucide-react";
+import { getWashCardStyle, CardGrain, WashIconChip } from "@/components/WashCard";
 import { Link } from "wouter";
 import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
@@ -288,7 +290,8 @@ export default function Services() {
       />
 
       {/* ── Hero ── */}
-      <section className="svc-hero-section" style={{ paddingTop: 120, paddingBottom: 96, paddingLeft: 24, paddingRight: 24, background: "#FFFFFF", borderBottom: "1px solid #E5E5E0" }}>
+      <section className="svc-hero-section gb-hero-grid-white" style={{ position: "relative", paddingTop: 120, paddingBottom: 96, paddingLeft: 24, paddingRight: 24, backgroundColor: "#FFFFFF", borderBottom: "1px solid #E5E5E0" }}>
+        <BlueprintLines />
         <div className="max-w-[1100px] mx-auto svc-hero-grid">
           {/* Left */}
           <div>
@@ -400,18 +403,18 @@ export default function Services() {
       </section>
 
       {/* ── What We Do - bento service grid ── */}
-      <section className="svc-what-section" style={{ padding: "96px 24px 100px", background: "#F8F8F6", borderTop: "1px solid #E5E5E0" }}>
+      <section className="svc-what-section" style={{ padding: "96px 24px 100px", backgroundColor: "#F1EEE6", borderTop: "1px solid #E5E5E0", backgroundImage: "radial-gradient(120% 75% at 50% -8%, rgba(194,168,120,0.08) 0%, rgba(194,168,120,0) 58%)", backgroundSize: "100% 100%" }}>
         <style>{`
           .svc-bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; max-width: 1200px; margin: 0 auto; }
           .svc-bento-card { position: relative; border-radius: 22px; padding: 32px 30px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(10,10,10,0.06); box-shadow: 0 12px 34px -18px rgba(30,41,59,0.22); transition: transform 0.3s ease, box-shadow 0.3s ease; }
           .svc-bento-card:hover { transform: translateY(-4px); box-shadow: 0 22px 46px -18px rgba(30,41,59,0.3); }
           .svc-bento-card > *:not([aria-hidden="true"]) { position: relative; z-index: 1; }
-          .svc-bento-ico { width: 50px; height: 50px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 22px; background: rgba(255,255,255,0.55); color: #9A7B43; border: 1px solid rgba(255,255,255,0.7); }
+          .svc-bento-ico { width: 50px; height: 50px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 22px; background: rgba(194,168,120,0.12); color: #9A7B43; border: 1px solid rgba(194,168,120,0.24); }
           .svc-bento-sub { font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #8A7B5E; margin-bottom: 12px; }
           .svc-bento-title { font-weight: 800; font-size: 22px; letter-spacing: -0.03em; line-height: 1.2; color: #0A0A0A; margin-bottom: 12px; }
           .svc-bento-desc { font-size: 14px; line-height: 1.7; color: #4A4A45; margin-bottom: 22px; }
           .svc-bento-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 26px; flex: 1; align-content: flex-start; }
-          .svc-bento-pill { padding: 7px 13px; border-radius: 100px; font-size: 12px; font-weight: 500; background: rgba(255,255,255,0.55); color: #3A3A38; border: 1px solid rgba(255,255,255,0.7); }
+          .svc-bento-pill { padding: 7px 13px; border-radius: 100px; font-size: 12px; font-weight: 500; background: rgba(10,10,10,0.035); color: #3A3A38; border: 1px solid rgba(10,10,10,0.09); }
           .svc-bento-cta { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; margin-top: auto; font-size: 13.5px; font-weight: 700; color: #1E293B; cursor: pointer; transition: gap 0.2s ease, opacity 0.2s ease; }
           .svc-bento-cta:hover { gap: 12px; opacity: 0.85; }
           @media (max-width: 980px) {
@@ -445,7 +448,6 @@ export default function Services() {
           <div className="svc-bento-grid">
             {services.map((s, i) => {
               const Icon = SVC_ICONS[i % SVC_ICONS.length];
-              const bentoSurface = "radial-gradient(120% 110% at 100% 0%, rgba(194,168,120,0.12) 0%, rgba(194,168,120,0) 52%), linear-gradient(165deg, #FCFBF8 0%, #F3ECE0 100%)";
               return (
                 <motion.div
                   key={s.id}
@@ -455,10 +457,10 @@ export default function Services() {
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.07, duration: 0.5 }}
                   id={`service-${s.id}`}
-                  style={{ scrollMarginTop: 80, background: bentoSurface }}
+                  style={{ scrollMarginTop: 80, ...getWashCardStyle(i, { borderRadius: 22 }) }}
                 >
-                  <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat", opacity: 0.55, pointerEvents: "none", zIndex: 0 }} />
-                  <div className="svc-bento-ico" style={{ position: "relative", zIndex: 1 }}><Icon strokeWidth={2} size={26} /></div>
+                  <CardGrain />
+                  <WashIconChip index={i} icon={Icon} iconSize={26} size={50} style={{ marginBottom: 22 }} />
                   <div className="svc-bento-sub">{s.subtitle}</div>
                   <h3 className="svc-bento-title">{s.title}</h3>
                   <p className="svc-bento-desc">{s.description}</p>
@@ -481,7 +483,7 @@ export default function Services() {
       </section>
 
       {/* ── System Flow ── */}
-      <section className="svc-flow-section" style={{ padding: "100px 24px 108px", background: "#FFFFFF", borderTop: "1px solid #E5E5E0" }}>
+      <section className="svc-flow-section gb-dots" style={{ padding: "100px 24px 108px", backgroundColor: "#FFFFFF", borderTop: "1px solid #E5E5E0" }}>
         <div className="max-w-[1100px] mx-auto">
 
           {/* Header */}

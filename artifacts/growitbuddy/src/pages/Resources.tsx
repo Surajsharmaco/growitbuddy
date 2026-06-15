@@ -7,6 +7,7 @@ import {
 import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import { API_BASE } from "@/lib/api";
+import { getWash, getWashBorder } from "@/components/WashCard";
 import { RESOURCES_DEFAULTS as DEFAULTS, type ResourcesData, type ResourceItem, type ResourceType } from "@/lib/resourcesDefaults";
 
 const UNLOCK_KEY = "gb_resources_unlocked";
@@ -324,7 +325,7 @@ export default function Resources() {
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.04, duration: 0.45 }}
                   >
-                    <ResourceCard item={item} unlocked={unlocked} onLockedClick={openGate} />
+                    <ResourceCard item={item} index={i} unlocked={unlocked} onLockedClick={openGate} />
                   </motion.div>
                 );
               })}
@@ -543,16 +544,15 @@ function BadgePill({ text, accent }: { text: string; accent?: boolean }) {
 
 // ── Featured card ──────────────────────────────────────────────────────────
 function FeaturedCard({ item, index, unlocked, onLockedClick }: { item: ResourceItem; index: number; unlocked: boolean; onLockedClick: (item: ResourceItem, targetUrl?: string) => void }) {
-  const dark = index === 0;
   return (
     <div
       style={{
         position: "relative",
-        background: dark ? "#0A0A0A" : "#F8F8F6",
-        color: dark ? "#F8F8F6" : "#0A0A0A",
+        background: getWash(index),
+        color: "#0F1822",
         borderRadius: 18,
         padding: "26px 26px 22px",
-        border: dark ? "1px solid #1F1F1F" : "1.5px solid #E5E5E0",
+        border: `1.5px solid ${getWashBorder(index)}`,
         height: "100%",
         display: "flex",
         flexDirection: "column",
@@ -566,15 +566,16 @@ function FeaturedCard({ item, index, unlocked, onLockedClick }: { item: Resource
           display: "inline-flex", alignItems: "center", gap: 6,
           fontSize: 10, fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase",
           padding: "5px 12px", borderRadius: 100,
-          background: dark ? "rgba(194,168,120,0.18)" : "#EFEFEA",
-          color: dark ? "#C2A878" : "#0A0A0A",
+          background: "rgba(255,255,255,0.7)",
+          border: `1px solid ${getWashBorder(index)}`,
+          color: "#0F1822",
         }}>
           {typeIcon(item.type)} {item.tag}
         </span>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {item.badgeText && <BadgePill text={item.badgeText} accent={dark} />}
+          {item.badgeText && <BadgePill text={item.badgeText} />}
           {item.isGated && (
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 700, color: dark ? "rgba(248,248,246,0.55)" : "#7A7A85" }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 700, color: "#5A6675" }}>
               <Lock size={11} /> Email
             </span>
           )}
@@ -583,25 +584,25 @@ function FeaturedCard({ item, index, unlocked, onLockedClick }: { item: Resource
       <h3 style={{ fontWeight: 800, fontSize: 22, letterSpacing: "-0.03em", lineHeight: 1.18, marginBottom: 10 }}>
         {item.title}
       </h3>
-      <p style={{ fontSize: 14, lineHeight: 1.65, flex: 1, color: dark ? "rgba(248,248,246,0.7)" : "#5F5F5F" }}>
+      <p style={{ fontSize: 14, lineHeight: 1.65, flex: 1, color: "#374151" }}>
         {item.desc}
       </p>
-      <div style={{ marginTop: 18, fontSize: 12, color: dark ? "rgba(248,248,246,0.55)" : "#7A7A85" }}>
+      <div style={{ marginTop: 18, fontSize: 12, color: "#5A6675" }}>
         {typeLabel(item)}{item.fileSize ? ` · ${item.fileSize}` : ""}
       </div>
-      <CtaRow item={item} dark={dark} unlocked={unlocked} onLockedClick={onLockedClick} />
+      <CtaRow item={item} unlocked={unlocked} onLockedClick={onLockedClick} />
     </div>
   );
 }
 
 // ── Standard resource card ──────────────────────────────────────────────────
-function ResourceCard({ item, unlocked, onLockedClick }: { item: ResourceItem; unlocked: boolean; onLockedClick: (item: ResourceItem, targetUrl?: string) => void }) {
+function ResourceCard({ item, index, unlocked, onLockedClick }: { item: ResourceItem; index: number; unlocked: boolean; onLockedClick: (item: ResourceItem, targetUrl?: string) => void }) {
   return (
     <div
       style={{
         position: "relative",
-        background: "#F8F8F6",
-        border: "1.5px solid #E5E5E0",
+        background: getWash(index),
+        border: `1.5px solid ${getWashBorder(index)}`,
         borderRadius: 18,
         padding: 0,
         height: "100%",
@@ -610,7 +611,7 @@ function ResourceCard({ item, unlocked, onLockedClick }: { item: ResourceItem; u
         overflow: "hidden",
         transition: "transform 0.2s, box-shadow 0.2s, border-color 0.2s",
       }}
-      className="hover:-translate-y-1 hover:shadow-md hover:border-[#C2A878]"
+      className="hover:-translate-y-1 hover:shadow-md"
     >
       {item.badgeText && (
         <div style={{ position: "absolute", top: 14, right: 14, zIndex: 2 }}>
@@ -622,7 +623,7 @@ function ResourceCard({ item, unlocked, onLockedClick }: { item: ResourceItem; u
           <img src={item.coverImage} alt={item.title} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
       ) : (
-        <div style={{ width: "100%", aspectRatio: "16/9", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #EFEFEA 0%, #F8F8F6 100%)", color: "#C2A878", borderBottom: "1px solid #E5E5E0" }}>
+        <div style={{ width: "100%", aspectRatio: "16/9", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", color: "rgba(15,24,34,0.5)", borderBottom: "1px solid rgba(15,24,34,0.07)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {typeIcon(item.type)}
             <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase" }}>{typeLabel(item)}</span>
@@ -645,10 +646,10 @@ function ResourceCard({ item, unlocked, onLockedClick }: { item: ResourceItem; u
             </span>
           )}
         </div>
-        <h3 style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.025em", color: "#0A0A0A", marginBottom: 8, lineHeight: 1.3 }}>
+        <h3 style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.025em", color: "#0F1822", marginBottom: 8, lineHeight: 1.3 }}>
           {item.title}
         </h3>
-        <p style={{ fontSize: 14, color: "#5F5F5F", lineHeight: 1.65, flex: 1, marginBottom: 4 }}>
+        <p style={{ fontSize: 14, color: "#374151", lineHeight: 1.65, flex: 1, marginBottom: 4 }}>
           {item.desc}
         </p>
         <div style={{ paddingTop: 14, marginTop: 8, borderTop: "1px solid #E5E5E0", fontSize: 12, color: "#7A7A85" }}>
