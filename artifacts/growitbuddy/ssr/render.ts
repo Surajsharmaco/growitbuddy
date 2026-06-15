@@ -15,12 +15,21 @@
  *      and the resolved SEO into window.__GB_SEO__, so the SPA's first paint
  *      (and Googlebot's JS render) use current data with NO network wait.
  *
- * It reads live data by calling the existing public API server-side, with a
- * hard timeout and a total fallback to @workspace/seo registry defaults +
- * the plain shell. It NEVER throws to the client — every path returns HTTP 200
- * with valid HTML, so a data/API outage can never take the site down.
+ * It reads live data by querying the Neon Postgres database DIRECTLY (the same
+ * `site_content` table the admin API writes to), with a hard timeout and a total
+ * fallback to @workspace/seo registry defaults + the plain shell. Reading the DB
+ * directly is deliberate: the Render API is on a free tier that cold-starts for
+ * 30-60s, so depending on it for first render meant a sleeping API could serve a
+ * crawler the default meta. Neon's serverless HTTP driver has no cold start, so
+ * the SSR head/content always reflect current admin values. It NEVER throws to
+ * the client — every path returns HTTP 200 with valid HTML, so a DB outage can
+ * never take the site down (it just falls back to registry defaults).
  *
  * @workspace/seo is the single source of truth for the page list + defaults.
+ *
+ * REQUIRES the Vercel env var NEON_DATABASE_URL (server-side, NOT VITE_-prefixed)
+ * set to the same Neon connection string the API uses. Without it, loadData
+ * returns registry defaults (no live admin content) but the site still works.
  */
 
 import {
@@ -29,14 +38,15 @@ import {
   type PageRegistryEntry,
   type PageSEOData,
 } from "@workspace/seo";
+import { neon } from "@neondatabase/serverless";
 // The built index.html (with hashed asset tags) is embedded at build time by
 // scripts/postbuild-ssr.mjs as a generated, import-only module. esbuild bundles
 // the string straight into this function — no runtime fs reads, no includeFiles.
 import { TEMPLATE } from "./_template.js";
 
-const API_BASE =
-  process.env.SSR_API_BASE?.replace(/\/$/, "") ||
-  "https://growitbuddy-api.onrender.com/api";
+// Server-side only. Same precedence as the API (lib/db): prefer the dedicated
+// Neon URL, fall back to a generic DATABASE_URL if that is what Vercel holds.
+const DB_URL = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL || "";
 
 const SITE = SITE_URL; // https://growitbuddy.com
 const SITE_NAME = "GrowitBuddy";
@@ -57,9 +67,9 @@ const EXTRA_CONTENT_SECTIONS: Record<string, string[]> = {
   join: ["joinnetwork"], // /join (JoinNetwork.tsx)
 };
 
-// Hard cap on how long we wait for live data before falling back to defaults.
-// Googlebot won't wait long, and a cold Render API can take 30-60s, so we
-// bail fast and let the CDN + post-deploy priming hold good HTML.
+// Hard cap on how long we wait for the DB before falling back to defaults.
+// Neon's HTTP driver is fast (no cold start), but we still bail rather than make
+// a crawler wait if the DB is briefly unreachable; the CDN holds good HTML.
 const DATA_TIMEOUT_MS = 2500;
 
 /* ───────────────────────── escaping helpers ───────────────────────── */
@@ -109,16 +119,6 @@ function setCanonical(html: string, href: string): string {
 }
 
 /* ───────────────────────────── data ───────────────────────────────── */
-async function fetchJson(url: string, signal: AbortSignal): Promise<any | null> {
-  try {
-    const r = await fetch(url, { signal, headers: { accept: "application/json" } });
-    if (!r.ok) return null;
-    return await r.json();
-  } catch {
-    return null;
-  }
-}
-
 interface Bundle {
   seo: PageSEOData;
   globalIndexable: boolean;
@@ -126,34 +126,50 @@ interface Bundle {
   live: boolean;
 }
 
+const EMPTY_BUNDLE: Bundle = { seo: {}, globalIndexable: true, content: {}, live: false };
+
+// Read all needed rows from Neon in ONE round-trip. The admin API writes content
+// to `site_content` (section TEXT primary key, data JSONB): per-page SEO under
+// `seo:<slug>`, the global indexable flag under `seo-global`, and each page's
+// content under its section key. We query the very same table directly, so a
+// sleeping Render API can never make a crawler see stale/default meta.
 async function loadData(slug: string, sections: string[]): Promise<Bundle> {
+  if (!DB_URL) return EMPTY_BUNDLE;
+
+  const seoKey = `seo:${slug}`;
+  const keys = Array.from(new Set([seoKey, "seo-global", ...sections]));
+
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
   try {
-    const [seoRes, globalRes, ...contentRes] = await Promise.all([
-      fetchJson(`${API_BASE}/seo/${encodeURIComponent(slug)}`, ctrl.signal),
-      fetchJson(`${API_BASE}/admin/public/content/seo-global`, ctrl.signal),
-      ...sections.map((s) =>
-        fetchJson(`${API_BASE}/admin/public/content/${encodeURIComponent(s)}`, ctrl.signal),
-      ),
-    ]);
+    const sql = neon(DB_URL, { fetchOptions: { signal: ctrl.signal } });
+    const rows = (await sql`
+      SELECT section, data FROM site_content WHERE section = ANY(${keys})
+    `) as Array<{ section: string; data: unknown }>;
 
-    const seo: PageSEOData = seoRes && seoRes.data ? (seoRes.data as PageSEOData) : {};
-    const globalIndexable = !(
-      globalRes &&
-      globalRes.data &&
-      (globalRes.data as { siteIndexable?: boolean }).siteIndexable === false
-    );
+    const bySection = new Map(rows.map((r) => [r.section, r.data]));
+
+    const seoData = bySection.get(seoKey);
+    const seo: PageSEOData =
+      seoData && typeof seoData === "object" ? (seoData as PageSEOData) : {};
+
+    const globalData = bySection.get("seo-global") as
+      | { siteIndexable?: boolean }
+      | undefined;
+    const globalIndexable = !(globalData && globalData.siteIndexable === false);
+
     const content: Record<string, unknown> = {};
-    sections.forEach((s, i) => {
-      const d = contentRes[i];
-      if (d && d.data && typeof d.data === "object") content[s] = d.data;
-    });
-    const live =
-      seoRes !== null || globalRes !== null || contentRes.some((d) => d !== null);
-    return { seo, globalIndexable, content, live };
+    for (const s of sections) {
+      const d = bySection.get(s);
+      if (d && typeof d === "object") content[s] = d;
+    }
+
+    // A successful query is authoritative current data — even if a given page has
+    // no admin overrides (0 rows), registry defaults ARE the correct answer here,
+    // so cache it hard. Only a DB failure/timeout yields live:false (short cache).
+    return { seo, globalIndexable, content, live: true };
   } catch {
-    return { seo: {}, globalIndexable: true, content: {}, live: false };
+    return EMPTY_BUNDLE;
   } finally {
     clearTimeout(timer);
   }
