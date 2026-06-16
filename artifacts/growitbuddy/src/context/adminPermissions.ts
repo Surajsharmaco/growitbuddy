@@ -1,0 +1,36 @@
+export type AdminRole = "super" | "member";
+
+export const ALL_PERMISSIONS = [
+  { key: "leads", label: "Leads & CRM" },
+  { key: "certificates", label: "Certificates" },
+  { key: "home", label: "Home Page" },
+  { key: "services", label: "Services" },
+  { key: "framework", label: "Framework" },
+  { key: "work", label: "Work" },
+  { key: "blog", label: "Blog / Insights" },
+  { key: "resources", label: "Resources" },
+  { key: "about", label: "About" },
+  { key: "contact", label: "Contact" },
+  { key: "influencers", label: "Influencers" },
+  { key: "influencer-explore", label: "Influencer Explore" },
+  { key: "distribution-network", label: "Distribution Network" },
+  { key: "distribution-pages", label: "Distribution Pages" },
+  { key: "links", label: "Links Page" },
+  { key: "authority-audit", label: "Authority Audit" },
+  { key: "join-network", label: "Join Network" },
+  { key: "freelancers", label: "Careers — Talent Network tab" },
+  { key: "full-time", label: "Careers — Full-Time tab" },
+  { key: "internship", label: "Careers — Internship tab" },
+  { key: "media", label: "Media Library" },
+  { key: "navbar", label: "Navbar" },
+  { key: "footer", label: "Footer" },
+  { key: "privacy", label: "Privacy Policy" },
+  { key: "terms", label: "Terms & Conditions" },
+  { key: "seo-guide", label: "SEO Guide" },
+  { key: "site-guide", label: "Site Guide" },
+  { key: "creators-form", label: "Creators Page Form" },
+  { key: "page-owner-form", label: "Page Owner Form" },
+  { key: "settings", label: "Settings" },
+] as const;
+
+export type PermissionKey = (typeof ALL_PERMISSIONS)[number]["key"];

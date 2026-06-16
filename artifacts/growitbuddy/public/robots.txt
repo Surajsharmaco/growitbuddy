@@ -1,0 +1,101 @@
+User-agent: *
+Allow: /
+
+# Admin panel — never crawl
+Disallow: /admin
+Disallow: /admin/
+
+# Verification routes
+Disallow: /verify/
+
+# ── AI / Answer engines (GEO + AEO) — explicitly welcome ──
+# Allowing these lets ChatGPT, Perplexity, Google AI Overviews, Claude, and
+# others read and cite GrowitBuddy content. See /llms.txt for a curated summary.
+# NOTE: once a bot has its own block it ignores the wildcard above, so the
+# admin/verify disallows are repeated inside every block below.
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /verify/
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /verify/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /verify/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /verify/
+
+User-agent: Perplexity-User
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /verify/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /verify/
+
+User-agent: Claude-User
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /verify/
+
+User-agent: anthropic-ai
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /verify/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /verify/
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /verify/
+
+User-agent: Amazonbot
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /verify/
+
+User-agent: Bytespider
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /verify/
+
+User-agent: CCBot
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /verify/
+
+# AI-readable site summary (GEO)
+# llms.txt: https://growitbuddy.com/llms.txt
+
+# Main pages sitemap (same-domain, dynamic — admin-managed, respects per-page index toggles)
+Sitemap: https://growitbuddy.com/sitemap.xml
+
+# Blog posts sitemap (same-domain, dynamic — WordPress + CMS)
+Sitemap: https://growitbuddy.com/sitemap-blog.xml

@@ -1,0 +1,631 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-card-border: hsl(var(--card-border));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-popover-border: hsl(var(--popover-border));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --font-sans: var(--app-font-sans);
+  --font-serif: var(--app-font-serif);
+  --font-mono: var(--app-font-mono);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ── GrowitBuddy Premium Editorial Design System ── */
+:root {
+  /* Brand backgrounds - warm white editorial feel */
+  --gb-bg:      #F8F8F6;
+  --gb-bg2:     #EFEFEA;
+
+  /* Text hierarchy */
+  --gb-text:    #0A0A0A;
+  --gb-text2:   #5F5F5F;
+  --gb-muted:   #8A8A8A;
+
+  /* UI elements */
+  --gb-card:    #FFFFFF;
+  --gb-card2:   #F5F5F2;
+  --gb-border:  #E5E5E0;
+  --gb-divider: #E5E5E0;
+
+  /* Authority color - ink blue (headings, links, highlights) */
+  --gb-authority:       #1E293B;
+  --gb-authority-hover: #334155;
+
+  /* CTA / Primary action - burnt rust (used selectively) */
+  --gb-accent:       #1E293B;
+  --gb-accent-hover: #334155;
+  --gb-accent-glow:  rgba(30,41,59,0.12);
+
+  /* Micro accent - soft gold (icons, separators, underlines) */
+  --gb-gold:     #C2A878;
+  --gb-gold-dim: rgba(194,168,120,0.2);
+
+  /* Premium grain texture for dark navy surfaces (single source of truth) */
+  --gb-grain: url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%27150%27%20height=%27150%27%3E%3Cfilter%20id=%27gw%27%3E%3CfeTurbulence%20type=%27fractalNoise%27%20baseFrequency=%270.62%27%20numOctaves=%272%27%20seed=%272%27%20stitchTiles=%27stitch%27/%3E%3CfeColorMatrix%20type=%27matrix%27%20values=%270%200%200%200%201%200%200%200%200%201%200%200%200%200%201%200.22%200%200%200%200%27/%3E%3CfeComponentTransfer%3E%3CfeFuncA%20type=%27gamma%27%20amplitude=%271%27%20exponent=%271.45%27%20offset=%270%27/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect%20width=%27150%27%20height=%27150%27%20filter=%27url(%23gw)%27/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%27150%27%20height=%27150%27%3E%3Cfilter%20id=%27gb%27%3E%3CfeTurbulence%20type=%27fractalNoise%27%20baseFrequency=%270.62%27%20numOctaves=%272%27%20seed=%278%27%20stitchTiles=%27stitch%27/%3E%3CfeColorMatrix%20type=%27matrix%27%20values=%270%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200.20%200%200%200%200%27/%3E%3CfeComponentTransfer%3E%3CfeFuncA%20type=%27gamma%27%20amplitude=%271%27%20exponent=%271.45%27%20offset=%270%27/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect%20width=%27150%27%20height=%27150%27%20filter=%27url(%23gb)%27/%3E%3C/svg%3E");
+
+  /* Tailwind theme variables */
+  --background: 60 5% 97%;
+  --foreground: 0 0% 4%;
+
+  --border: 45 10% 89%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 4%;
+  --card-border: 45 10% 89%;
+
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 0 0% 4%;
+  --sidebar-border: 45 10% 89%;
+  --sidebar-primary: 17 70% 32%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 45 10% 94%;
+  --sidebar-accent-foreground: 0 0% 4%;
+  --sidebar-ring: 17 70% 32%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 4%;
+  --popover-border: 45 10% 89%;
+
+  --primary: 17 70% 32%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 45 10% 94%;
+  --secondary-foreground: 0 0% 10%;
+
+  --muted: 45 10% 94%;
+  --muted-foreground: 0 0% 46%;
+
+  --accent: 45 10% 94%;
+  --accent-foreground: 0 0% 10%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --input: 45 10% 89%;
+  --ring: 17 70% 32%;
+
+  --app-font-sans: 'Inter', sans-serif;
+  --app-font-serif: 'Inter', sans-serif;
+  --app-font-mono: Menlo, monospace;
+  --radius: 0.5rem;
+}
+
+/* ── Creator / Distribution accent override ── */
+.accent-creator {
+  --gb-accent:       #1E293B;
+  --gb-accent-hover: #334155;
+  --gb-accent-glow:  rgba(30,41,59,0.12);
+}
+
+*,*::before,*::after { box-sizing: border-box; }
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--gb-bg);
+  color: var(--gb-text);
+}
+
+h1, h2, h3, h4 {
+  text-wrap: balance;
+}
+
+/* ── Marquee ── */
+@keyframes marquee-forward {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@keyframes marquee-reverse {
+  from { transform: translateX(-50%); }
+  to   { transform: translateX(0); }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ── Radial glow animation ── */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.25; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(1.06); }
+}
+
+/* ── Accent glow pulse ── */
+@keyframes accent-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--gb-accent-glow); }
+  50%       { box-shadow: 0 0 20px 4px var(--gb-accent-glow); }
+}
+
+/* ── GB Button: primary CTA — site-wide unified pill ── */
+.gb-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--gb-accent);
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  padding: 14px 28px;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.10);
+  cursor: pointer;
+  overflow: hidden;
+  transition: background 0.25s ease, transform 0.25s cubic-bezier(0.22,1,0.36,1),
+              box-shadow 0.25s ease, border-color 0.25s ease;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(30,41,59,0.10);
+  white-space: nowrap;
+  isolation: isolate;
+}
+/* soft inner sheen sliding across on hover */
+.gb-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.14) 50%, transparent 100%);
+  transform: translateX(-100%);
+  transition: transform 0.6s cubic-bezier(0.22,1,0.36,1);
+  pointer-events: none;
+  z-index: 0;
+}
+.gb-btn > * { position: relative; z-index: 1; }
+.gb-btn:hover {
+  background: var(--gb-accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(30,41,59,0.22);
+  border-color: rgba(255,255,255,0.18);
+}
+.gb-btn:hover::before { transform: translateX(100%); }
+.gb-btn:active { transform: translateY(0); transition-duration: 0.1s; }
+.gb-btn svg {
+  transition: transform 0.3s cubic-bezier(0.22,1,0.36,1);
+  flex-shrink: 0;
+}
+.gb-btn:hover svg { transform: translateX(4px); }
+.gb-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 8px rgba(30,41,59,0.10);
+}
+.gb-btn:disabled::before { display: none; }
+.gb-btn:disabled:hover { transform: none; box-shadow: 0 2px 8px rgba(30,41,59,0.10); }
+
+/* ── GB Button: outline — matching pill ── */
+.gb-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: transparent;
+  color: var(--gb-authority);
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  padding: 13px 27px;
+  border-radius: 100px;
+  border: 1.5px solid rgba(30,41,59,0.18);
+  cursor: pointer;
+  transition: border-color 0.25s ease, background 0.25s ease, color 0.25s ease,
+              transform 0.25s cubic-bezier(0.22,1,0.36,1), box-shadow 0.25s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.gb-btn-outline:hover {
+  border-color: var(--gb-authority);
+  background: rgba(30,41,59,0.05);
+  color: var(--gb-authority);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(30,41,59,0.10);
+}
+.gb-btn-outline:active { transform: translateY(0); transition-duration: 0.1s; }
+.gb-btn-outline svg {
+  transition: transform 0.3s cubic-bezier(0.22,1,0.36,1);
+  flex-shrink: 0;
+}
+.gb-btn-outline:hover svg { transform: translateX(4px); }
+
+/* ── GB Card ── */
+.gb-card {
+  background: var(--gb-card);
+  border: 1px solid var(--gb-border);
+  border-radius: 10px;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.gb-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.07);
+  border-color: #C8C8C0;
+}
+
+/* ── GB Badge ── */
+.gb-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(30,41,59,0.06);
+  color: var(--gb-authority);
+  border: 1px solid rgba(30,41,59,0.12);
+  border-radius: 4px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.accent-creator .gb-badge {
+  background: rgba(30,41,59,0.06);
+  color: #1E293B;
+  border-color: rgba(30,41,59,0.15);
+}
+
+/* ── Form inputs ── */
+.gb-input {
+  background: var(--gb-card);
+  border: 1.5px solid var(--gb-border);
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  color: var(--gb-text);
+  padding: 12px 16px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.gb-input:focus {
+  border-color: var(--gb-authority);
+  box-shadow: 0 0 0 3px rgba(30,41,59,0.08);
+}
+.gb-input[aria-invalid="true"],
+.gb-input.invalid {
+  border-color: #C0392B;
+  background: rgba(192,57,43,0.03);
+}
+.gb-input::placeholder {
+  color: var(--gb-muted);
+}
+
+/* ── Section label / eyebrow ── */
+.gb-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gb-muted);
+  font-family: 'Inter', sans-serif;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   PREMIUM SECTION TEXTURE — subtle dot-grid + atmospheric wash
+   Reusable backgrounds for otherwise-flat light sections so the
+   site doesn't read as empty/white. Applied via className on top
+   of an inline backgroundColor (keep backgroundColor, NOT the
+   `background` shorthand, or it resets these background-images).
+   Keep it subtle — premium, not busy.
+   ───────────────────────────────────────────────────────────── */
+
+/* Dot-grid removed per request — these sections now render flat on their
+   own inline backgroundColor. Class kept so existing usages stay valid. */
+.gb-dots {
+  background-image: none;
+}
+
+/* ── Hero background (SendRoq-style) ──
+   Dot-grid removed per request — only a faint top "cover" radial remains so
+   the heroes settle onto the page/section background. The vertical guide-lines
+   + "+" crosshairs come from the <BlueprintLines/> overlay (unaffected). */
+.gb-hero-grid {
+  background-image:
+    radial-gradient(130% 96% at 50% -12%, rgba(248,248,246,0) 20%, var(--gb-bg) 66%);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center top;
+}
+.gb-hero-grid-white {
+  background-image:
+    radial-gradient(130% 96% at 50% -12%, rgba(255,255,255,0) 20%, #FFFFFF 66%);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center top;
+}
+
+/* ── Gold underline accent ── */
+.gb-gold-underline {
+  display: inline-block;
+  border-bottom: 2px solid var(--gb-gold);
+  padding-bottom: 2px;
+}
+
+/* ── Divider ── */
+.gb-divider {
+  height: 1px;
+  background: var(--gb-divider);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--gb-bg2); }
+::-webkit-scrollbar-thumb { background: #D0CEC8; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gb-authority); }
+
+/* ── Services capability rows (mobile) ── */
+@media (max-width: 640px) {
+  .svc-capability-row {
+    grid-template-columns: 1fr !important;
+    gap: 10px 0 !important;
+  }
+}
+
+/* ── Global mobile responsive overrides ── */
+
+/* Prevent any element from causing horizontal overflow */
+html, body {
+  overflow-x: hidden;
+}
+
+/* Footer: tighten gap and fix brand span on small screens */
+@media (max-width: 540px) {
+  .footer-grid {
+    gap: 32px !important;
+  }
+  .footer-brand {
+    grid-column: span 1 !important;
+  }
+}
+
+/* About page: stats strip collapses to single column on small screens */
+@media (max-width: 480px) {
+  .about-stats-strip {
+    grid-template-columns: 1fr !important;
+    max-width: 100% !important;
+    border-radius: 12px !important;
+  }
+  .about-stats-strip > div {
+    padding: 20px 16px !important;
+  }
+}
+
+/* Navbar: ensure it doesn't overflow on small screens */
+@media (max-width: 480px) {
+  .gb-navbar-inner {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+}
+
+/* Section padding reduction on mobile - applied via utility class gb-section */
+@media (max-width: 640px) {
+  .gb-section-v {
+    padding-top: 64px !important;
+    padding-bottom: 64px !important;
+  }
+  .gb-section-v-lg {
+    padding-top: 80px !important;
+    padding-bottom: 80px !important;
+  }
+}
+
+/* Work page: stats grid already responsive via inline <style>, but ensure logo grid */
+@media (max-width: 400px) {
+  .logo-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Cards / form boxes: reduce padding on very small screens */
+@media (max-width: 480px) {
+  .gb-card-padded {
+    padding: 24px 18px !important;
+  }
+}
+
+/* NetworkApplyForm / generic form sections: hero top padding on mobile */
+@media (max-width: 640px) {
+  .form-hero-section {
+    padding-top: 96px !important;
+    padding-bottom: 48px !important;
+  }
+  .form-body-section {
+    padding-top: 48px !important;
+    padding-bottom: 48px !important;
+  }
+}
+
+/* Influencer profile CTA box: tighten padding on mobile */
+@media (max-width: 480px) {
+  .inf-profile-cta {
+    padding: 28px 20px !important;
+    border-radius: 16px !important;
+  }
+}
+
+/* Text: prevent long words from causing overflow */
+p, h1, h2, h3, h4, li, span {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Horizontal scrolling containers (marquee etc.) should not expand viewport */
+.marquee-track, [data-marquee] {
+  overflow: hidden;
+  max-width: 100%;
+}
+
+/* Hero sections: never overflow viewport width */
+section {
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   MOBILE SPACING OPTIMIZATION
+   Site-wide hero/section padding shrinks on smaller viewports.
+   Targets inline-styled sections via attribute selectors so we
+   don't need to touch each page. Higher specificity + !important
+   needed to beat inline styles.
+   ───────────────────────────────────────────────────────────── */
+
+/* Tablet & below */
+@media (max-width: 900px) {
+  /* Hero paddingTop overrides */
+  section[style*="padding-top: 140px"] { padding-top: 88px !important; }
+  section[style*="padding-top: 128px"] { padding-top: 84px !important; }
+  section[style*="padding-top: 120px"] { padding-top: 80px !important; }
+  section[style*="padding-top: 100px"] { padding-top: 72px !important; }
+  section[style*="padding-top: 88px"]  { padding-top: 68px !important; }
+
+  /* Hero paddingBottom overrides */
+  section[style*="padding-bottom: 96px"] { padding-bottom: 56px !important; }
+  section[style*="padding-bottom: 88px"] { padding-bottom: 52px !important; }
+  section[style*="padding-bottom: 80px"] { padding-bottom: 48px !important; }
+  section[style*="padding-bottom: 72px"] { padding-bottom: 44px !important; }
+  section[style*="padding-bottom: 64px"] { padding-bottom: 40px !important; }
+
+  /* Shorthand "padding: 96px 24px" / "80px 24px" / "64px 24px" */
+  section[style*="padding: 96px"] { padding-top: 56px !important; padding-bottom: 56px !important; }
+  section[style*="padding: 88px"] { padding-top: 52px !important; padding-bottom: 52px !important; }
+  section[style*="padding: 80px"] { padding-top: 48px !important; padding-bottom: 48px !important; }
+  section[style*="padding: 72px"] { padding-top: 44px !important; padding-bottom: 44px !important; }
+  section[style*="padding: 64px"] { padding-top: 40px !important; padding-bottom: 40px !important; }
+
+  /* Class-based pads used in pool/network/school pages */
+  .csp-pad, .tp-pad, .jn-pad { padding-top: 56px !important; padding-bottom: 56px !important; }
+}
+
+/* Phones */
+@media (max-width: 600px) {
+  section[style*="padding-top: 140px"] { padding-top: 72px !important; }
+  section[style*="padding-top: 128px"] { padding-top: 68px !important; }
+  section[style*="padding-top: 120px"] { padding-top: 64px !important; }
+  section[style*="padding-top: 100px"] { padding-top: 56px !important; }
+  section[style*="padding-top: 88px"]  { padding-top: 52px !important; }
+
+  section[style*="padding-bottom: 96px"] { padding-bottom: 44px !important; }
+  section[style*="padding-bottom: 88px"] { padding-bottom: 40px !important; }
+  section[style*="padding-bottom: 80px"] { padding-bottom: 36px !important; }
+  section[style*="padding-bottom: 72px"] { padding-bottom: 32px !important; }
+  section[style*="padding-bottom: 64px"] { padding-bottom: 28px !important; }
+
+  section[style*="padding: 96px"] { padding-top: 44px !important; padding-bottom: 44px !important; }
+  section[style*="padding: 88px"] { padding-top: 40px !important; padding-bottom: 40px !important; }
+  section[style*="padding: 80px"] { padding-top: 36px !important; padding-bottom: 36px !important; }
+  section[style*="padding: 72px"] { padding-top: 32px !important; padding-bottom: 32px !important; }
+  section[style*="padding: 64px"] { padding-top: 28px !important; padding-bottom: 28px !important; }
+
+  .csp-pad, .tp-pad, .jn-pad { padding-top: 44px !important; padding-bottom: 44px !important; }
+
+  /* Tighter horizontal padding on phones — was 24px almost everywhere */
+  section[style*="padding-left: 24px"] { padding-left: 18px !important; }
+  section[style*="padding-right: 24px"] { padding-right: 18px !important; }
+  section[style*="padding: 96px 24px"],
+  section[style*="padding: 88px 24px"],
+  section[style*="padding: 80px 24px"],
+  section[style*="padding: 72px 24px"],
+  section[style*="padding: 64px 24px"] { padding-left: 18px !important; padding-right: 18px !important; }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   GLOBAL SECTION DENSITY — desktop & mobile
+   Round 2: user reported still-too-wide gaps between sections
+   (e.g. between "See All Case Studies" and "ECOSYSTEM" block).
+   Tighten 100px / 108px section paddings site-wide. Also covers
+   the few 120px sections that aren't full heroes.
+   ───────────────────────────────────────────────────────────── */
+
+/* DESKTOP — globally compress oversized section paddings */
+section[style*="padding: 100px"]      { padding-top: 72px !important; padding-bottom: 72px !important; }
+section[style*='padding: "100px 24px 108px'],
+section[style*="padding: 100px 24px 108px"] { padding-top: 72px !important; padding-bottom: 76px !important; }
+
+/* TABLET ≤900px */
+@media (max-width: 900px) {
+  section[style*="padding: 100px"] { padding-top: 52px !important; padding-bottom: 52px !important; }
+}
+
+/* PHONE ≤600px */
+@media (max-width: 600px) {
+  section[style*="padding: 100px"] { padding-top: 40px !important; padding-bottom: 40px !important; }
+  section[style*="padding: 100px"] { padding-left: 18px !important; padding-right: 18px !important; }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   PORTFOLIO TILES — premium play-button hover behaviour.
+   Keep top of thumbnail clear so creator brand logos / faces
+   are unobstructed at rest; intensify on hover.
+   ───────────────────────────────────────────────────────────── */
+.portfolio-play-surface:hover {
+  background: linear-gradient(180deg, rgba(10,10,10,0.25) 0%, rgba(10,10,10,0.55) 100%) !important;
+}
+.portfolio-play-surface:hover .portfolio-play-btn {
+  transform: scale(1.12);
+  background: rgba(194,168,120,0.92) !important;
+  border-color: rgba(255,255,255,0.95) !important;
+  box-shadow: 0 14px 50px rgba(194,168,120,0.45), 0 0 0 6px rgba(194,168,120,0.15) !important;
+}
+
+/* Reel title hover — gold underline grows in from the left when the
+   user hovers anywhere on the tile. Title remains fully readable at
+   rest thanks to its own bottom gradient and z-index above the play
+   surface. */
+.portfolio-play-surface:hover ~ .portfolio-reel-title .portfolio-reel-underline,
+.portfolio-reel-title:hover .portfolio-reel-underline {
+  width: 56px;
+}
