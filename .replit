@@ -24,12 +24,12 @@ args = "Push to GitHub"
 name = "Push to GitHub"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "COMMIT_MSG=\"test(footer): add 'worldwide' to footer tagline (visible deploy-pipeline proof)\" bash gitpush.sh"
-
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "COMMIT_MSG=\"chore: retrigger Vercel deploy (footer 'worldwide' proof)\" bash gitpush.sh"
 
 [agent]
 stack = "PNPM_WORKSPACE"
