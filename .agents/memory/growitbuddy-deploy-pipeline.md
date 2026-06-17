@@ -1,35 +1,47 @@
 ---
 name: GrowitBuddy live-update pipeline (Replit → GitHub → Vercel)
-description: Where the live-site update pipeline actually breaks; what is proven working vs not, and how to diagnose staleness fast.
+description: Real root cause of live-site staleness (failing Vercel build from an outdated pnpm lockfile), the fix, and how to diagnose fast.
 ---
 
 # GrowitBuddy live-update pipeline
 
-Live `growitbuddy.com` is served by **Vercel** (frontend); backend on Render; Neon DB
-shared dev↔live. Replit is dev-only. Repo: github.com/Surajsharmaco/growitbuddy,
-production branch `main`.
+Live `growitbuddy.com` = Vercel (frontend) + Render (backend); Neon DB shared dev↔live.
+Replit is dev-only. Repo github.com/Surajsharmaco/growitbuddy, production branch `main`.
 
-**Proven working — Replit → GitHub:** commits push to GitHub automatically from Replit
-via the `GITHUB_TOKEN` secret + a workflow credential helper (see
-replit-git-blocked-ops-workflow.md "Pushing to GitHub"). Pushes confirmed landing on
-`origin/main` (verified via push refspec output and the GitHub contents API).
+**Replit → GitHub (proven):** commits auto-push from Replit via `GITHUB_TOKEN` + a workflow
+credential helper (see replit-git-blocked-ops-workflow.md). Pushes confirmed on `origin/main`.
 
-**The bottleneck is GitHub → Vercel.** Observed: after the redesign commit deployed,
-multiple confirmed pushes did NOT update the live site for 15+ min — the production JS
-bundle filename (Vite content-hash, `/assets/index-XXXX.js`) stayed frozen and
-`x-vercel-cache: MISS, age:0` (so it's the *origin build* that's stale, not edge cache).
-Vercel is simply not shipping new commits to the production domain.
+**GitHub → Vercel — REAL root cause (confirmed; earlier guesses were WRONG):** Vercel DOES
+auto-build every push. The live site froze because every build **FAILED** at `pnpm install`
+with `ERR_PNPM_OUTDATED_LOCKFILE` — `pnpm-lock.yaml` was stale vs root `package.json`
+(prettier/typescript specifiers bumped in the manifest but not re-locked). Vercel CI uses
+`--frozen-lockfile`, which refuses to reconcile and exits 1. A failing build keeps production
+serving the last good deploy, so the bundle hash stays frozen — this LOOKS identical to
+"Vercel not deploying," but it is not. The discarded theories (auto-deploy paused /
+ignored-build-step / domain pinned to an old deploy) were all wrong.
 
-**Likely Vercel-side causes (can't inspect without a Vercel token):** auto-deploy / Git
-integration paused; builds failing (production keeps serving the last good deploy);
-custom domain pinned to a specific old deployment; or an "Ignored Build Step" skip.
-NOTE: a commit that *did* touch the artifact dir (`artifacts/growitbuddy/...`) also
-failed to deploy, so it is NOT purely Vercel's monorepo ignored-build-step heuristic.
+**Fix:** run `pnpm install` at repo root after ANY dependency version change, commit the updated
+`pnpm-lock.yaml`. Verify locally with `pnpm install --frozen-lockfile` (must exit 0 / "Lockfile is
+up to date") — that reproduces exactly the Vercel step that was failing. After the lockfile-sync
+push, the live `/assets/index-*.js` hash changed = build succeeded = full pipeline proven.
 
-**Fast diagnosis of live staleness:** capture the live `/assets/index-*.js` hash before
-and after a push.
-- Hash changes → Vercel rebuilt; pipeline end-to-end OK.
-- Hash unchanged after several minutes → the push reached GitHub but Vercel did not
-  rebuild. Investigate **Vercel** (deployments list / build logs / Git settings / domain
-  assignment), NOT the Replit→GitHub push — that half is proven. A Vercel access token
-  would let the agent list deployments, read build logs, and trigger redeploys directly.
+**Durable lesson:** keep `pnpm-lock.yaml` in lockstep with `package.json`. A version bump in any
+manifest without re-running `pnpm install` breaks EVERY Vercel build and silently freezes prod on
+the last good deploy.
+
+**Fast diagnosis of live staleness:** capture live `/assets/index-*.js` hash before/after a push.
+- Hash changes → build succeeded, pipeline end-to-end OK.
+- Hash unchanged after a few min → push reached GitHub but the build FAILED. Check the lockfile
+  first (`pnpm install --frozen-lockfile`); if that passes, read the Vercel build log for the next
+  failing step. Do NOT re-investigate the Replit→GitHub push — that half is proven.
+
+**SSR-SEO prerender gotcha:** `artifacts/growitbuddy/api/render.js` is a Vercel serverless fn,
+PREBUILT and committed (esbuild-bundled from `ssr/render.ts` via `scripts/build-fn.mjs`). The
+package `build` script does NOT regenerate it (it only refreshes `api/_template.js` per build).
+So changing a CODE content default (e.g. `src/lib/homeDefaults.ts`, which `ssr/contentDefaults.ts`
+re-imports) updates the CLIENT bundle and the visible UI, but NOT the hidden `<div data-ssr-seo>`
+crawler snapshot — that stays stale until `scripts/build-fn.mjs` is re-run and api/render.js
+re-committed. Narrow impact: only fields with NO admin DB override (the SSR fn reads live Neon for
+overrides; null row → baked CONTENT_DEFAULTS). Regenerating locally in this repl FAILS (esbuild
+can't resolve `@neondatabase/serverless` with the current build-fn config); do NOT force it — a
+broken render.js serves every page, so a bad regen takes the whole site down for one SEO word.

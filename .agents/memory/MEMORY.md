@@ -4,4 +4,4 @@
 - [Admin-editable content pattern](admin-editable-content.md) — generic /content/:section (no whitelist); usePublicContent + AdminField + must PageGate public route for visibility to apply.
 - [GrowitBuddy↔GitHub reconciled](growitbuddy-github-divergence.md) — RESOLVED; local main == origin/main; push now automatable via GITHUB_TOKEN secret + workflow.
 - [Run blocked git ops via workflow](replit-git-blocked-ops-workflow.md) — main-agent bash blocks ALL destructive git incl. `rm .git/index.lock`; run them in a console workflow; commit+push works there, push uses GITHUB_TOKEN inline credential helper.
-- [GrowitBuddy deploy pipeline](growitbuddy-deploy-pipeline.md) — Replit→GitHub push PROVEN; live staleness = GitHub→Vercel deploy not firing (bundle hash frozen); diagnose Vercel, not the push.
+- [GrowitBuddy deploy pipeline](growitbuddy-deploy-pipeline.md) — FULL pipeline PROVEN; live staleness was failing Vercel builds (ERR_PNPM_OUTDATED_LOCKFILE / frozen-lockfile), not a skipped deploy — keep pnpm-lock.yaml synced; SSR-SEO render.js prebuilt & stale-prone.
