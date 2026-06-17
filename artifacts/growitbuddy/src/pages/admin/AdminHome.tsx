@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
-import { Plus, Trash2, Lock } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 
 import { HOME_DEFAULTS as DEFAULTS, type HomeData } from "@/lib/homeDefaults";
 
@@ -48,13 +48,6 @@ export default function AdminHome() {
   return (
     <div>
       <PageHeader title="Home Page" description="Edit every section of the landing page." />
-
-      <div className="mb-4 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-        <Lock className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-        <div>
-          <span className="font-semibold">Homepage is locked.</span> Changes made here will not be saved. The homepage is protected to prevent accidental edits. Contact a developer to modify it.
-        </div>
-      </div>
 
       <div className="space-y-5">
 
