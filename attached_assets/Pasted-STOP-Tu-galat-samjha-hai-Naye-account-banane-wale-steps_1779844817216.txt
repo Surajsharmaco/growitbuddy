@@ -1,0 +1,50 @@
+STOP. Tu galat samjha hai. Naye account banane wale steps SKIP kar.
+
+Ye ek EXISTING live production project hai. Sab kuch pehle se setup hai:
+- GitHub repo: Surajsharmaco/growitbuddy (main branch) - PEHLE SE HAI
+- Vercel: growitbuddy-growitbuddy.vercel.app - PEHLE SE DEPLOYED hai aur live chal raha hai
+- Render: growitbuddy-api.onrender.com - PEHLE SE chal raha hai
+- Database: Postgres pehle se data ke saath populated hai
+- Resend (email), Cloudinary (images) - PEHLE SE configured hai
+
+Mujhe NAYA Vercel project / NAYA Render service / NAYA GitHub repo / 
+NAYA database - kuch bhi NAHI banana. Sab live hai.
+
+Tujhe sirf 4 chhote kaam karne hain:
+
+1. Read /MIGRATION_GUIDE.md - sirf PART C (Technical Handoff) padh. 
+   PART A ke "naya account banao, GitHub connect karo, Vercel signup karo" 
+   wale steps mere liye nahi hain - wo ek scenario ke liye hain jab kuch 
+   bhi setup na ho. Mere paas sab setup hai.
+
+2. Check meri Replit Secrets (Tools -> Secrets):
+   - ADMIN_PASSWORD: set hai? (haan, maine daala hai)
+   - RESEND_API_KEY: set hai? (haan, maine daala hai)
+   - DATABASE_URL: set hai kya? Agar haan, toh sirf HOSTNAME bata 
+     (pura URL nahi). Agar hostname "helium" ya local jaisa hai, toh 
+     mujhe batao - main Render dashboard se production wala laake daal dunga.
+   - GITHUB_TOKEN: optional hai, abhi skip.
+
+3. Terminal mein: pnpm install
+   (agar pehle se nahi hua)
+
+4. Run button daba ke 3 workflows start kar:
+   - artifacts/api-server: API Server
+   - artifacts/growitbuddy: web
+   - artifacts/mockup-sandbox: Component Preview Server
+
+Phir mujhe ye batao:
+   (a) Preview pane mein site khulti hai?
+   (b) Site par content dikh raha hai (blog posts, home content) ya khaali hai?
+   (c) DATABASE_URL ka hostname kya hai?
+   (d) Koi error workflow logs mein hai?
+
+Tu Vercel/Render/GitHub par koi naya account nahi banayega. Tu production 
+mein koi change nahi karega. Tu sirf is Replit workspace ko development 
+ke liye ready karega. Bas.
+
+User preferences:
+- Hindi mein reply kar (Devanagari + Roman mix)
+- NO em-dashes (—) anywhere, NO emojis
+- Push direct to main branch via GitHub REST API (/tmp/push.mjs pattern)
+- Production DB ko kabhi destructive query mat maar (DROP/TRUNCATE/DELETE)

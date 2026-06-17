@@ -1,0 +1,170 @@
+Act as a senior conversion-focused copywriter and frontend developer.
+
+Create a high-converting landing page for a digital agency (GrowitBuddy) focused on getting CLIENTS.
+
+---
+
+# 🎯 OBJECTIVE
+
+* Make clients instantly understand what we do
+* Show clear value
+* Drive them to book a call
+
+---
+
+# 🧠 CORE MESSAGE
+
+We create content AND make sure it reaches the right audience.
+
+---
+
+---
+
+# 🎯 HERO SECTION (MOST IMPORTANT)
+
+## HEADLINE:
+
+“We create and distribute content that builds your authority.”
+
+---
+
+## SUBTEXT:
+
+Most brands are creating content.
+Very few are getting reach, trust, or inbound leads.
+
+We fix that.
+
+---
+
+## CTA BUTTON:
+
+“Get your growth breakdown”
+
+---
+
+---
+
+# 🎯 PROBLEM SECTION
+
+Title:
+“Why your content isn’t working”
+
+---
+
+Points:
+
+* You’re posting, but not reaching the right audience
+* No clear distribution strategy
+* Content exists, but doesn’t convert
+* No authority → no inbound leads
+
+---
+
+---
+
+# 🎯 SOLUTION SECTION
+
+Title:
+“What we do differently”
+
+---
+
+Explain simply:
+
+We don’t just create content.
+
+We build a system:
+
+Content → Distribution → Authority → Inbound
+
+---
+
+---
+
+# 🎯 SERVICES (CLEAR, NOT LONG)
+
+* Content creation (video, graphics, website)
+* Distribution (ads, creators, network)
+* Branding & positioning
+* Growth systems
+
+---
+
+---
+
+# 🎯 PROOF SECTION
+
+Add:
+
+* 700M+ views generated
+* 1M+ organic reach built
+* worked with creators & brands
+
+---
+
+---
+
+# 🎯 HOW IT WORKS
+
+Step 1 → We analyze your brand
+Step 2 → We build your content + distribution system
+Step 3 → You start getting visibility and inbound
+
+---
+
+---
+
+# 🎯 CTA SECTION (FINAL PUSH)
+
+Title:
+“If your content isn’t driving results, it’s not a content problem.”
+
+---
+
+CTA:
+“Get your growth breakdown”
+
+---
+
+---
+
+# 🎨 DESIGN
+
+* Light premium UI
+* Clean layout
+* Strong typography
+* Minimal distractions
+
+---
+
+# 📱 MOBILE FIRST
+
+* Fast load
+* Easy scroll
+* Big CTA buttons
+
+---
+
+---
+
+# ⚡ IMPORTANT RULES
+
+* No fluff
+* No long paragraphs
+* No jargon
+* Every section must be clear
+
+---
+
+---
+
+# 🎯 FINAL RESULT
+
+A landing page where:
+
+* client understands instantly
+* sees problem → solution → proof
+* clicks CTA
+
+---

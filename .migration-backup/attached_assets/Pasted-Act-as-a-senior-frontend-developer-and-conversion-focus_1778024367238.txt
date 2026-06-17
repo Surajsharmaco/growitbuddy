@@ -1,0 +1,212 @@
+Act as a senior frontend developer and conversion-focused copywriter.
+
+Your task is to MODIFY ONLY the sections where services are mentioned on the existing website.
+
+DO NOT redesign the page.
+DO NOT change layout, spacing, or structure.
+ONLY improve clarity and add execution details.
+
+---
+
+# 🎯 OBJECTIVE
+
+* Make services clearly understandable
+* Show what is actually included
+* Maintain premium, system-based positioning
+* Avoid generic service listing
+
+---
+
+# ⚠️ STRICT RULES
+
+* Do NOT change UI structure
+* Do NOT add new sections
+* Do NOT increase page length significantly
+* Only edit text inside existing service blocks
+* Keep headings short and sharp
+
+---
+
+# 📍 GLOBAL CHANGE (APPLY EVERYWHERE)
+
+👉 Replace vague language with execution clarity
+
+---
+
+Example:
+
+❌ “Content strategy”
+✅ “Content strategy + execution (scripts, editing, publishing)”
+
+---
+
+---
+
+# 📍 MODIFY EACH EXISTING SERVICE BLOCK
+
+---
+
+## 🔹 1. POSITIONING SECTION
+
+Keep heading similar.
+
+Update description to:
+
+“We define exactly how you should be positioned so your content stands out and attracts the right audience.”
+
+---
+
+Add / update bullets:
+
+* Brand positioning & narrative
+* Target audience clarity
+* Content themes & pillars
+* Competitive positioning
+* 90-day content roadmap
+
+---
+
+---
+
+## 🔹 2. CONTENT CREATION SECTION
+
+Update description to:
+
+“We don’t just plan content — we create and execute it consistently.”
+
+---
+
+Update bullets:
+
+* Scriptwriting & content ideation
+* Short-form video editing (Reels, Shorts)
+* Long-form video editing (YouTube)
+* Graphic content (posts, carousels)
+* Platform-native formatting
+
+---
+
+---
+
+## 🔹 3. VIDEO MARKETING SECTION
+
+Update description to:
+
+“We optimize content for retention, engagement, and performance.”
+
+---
+
+Update bullets:
+
+* Hook & retention strategy
+* Short-form content systems
+* Long-form content strategy
+* Thumbnails & hooks
+* Caption systems
+
+---
+
+---
+
+## 🔹 4. DISTRIBUTION SECTION (IMPORTANT)
+
+Update description to:
+
+“Most content fails because it’s not distributed properly. We fix that.”
+
+---
+
+Update bullets:
+
+* Multi-platform distribution
+* Creator & network distribution
+
+---
+
+### ADD ADS HERE (DO NOT CREATE NEW SECTION)
+
+Add bullets:
+
+* Meta Ads (Facebook & Instagram campaigns)
+* Google Ads (Search, Display, YouTube)
+* Retargeting systems
+* Funnel-based ad campaigns
+
+---
+
+👉 Important line (add below bullets):
+
+“Ads are used to scale what’s already working — not replace content.”
+
+---
+
+---
+
+## 🔹 5. WEBSITE / CONVERSION SECTION
+
+Update description to:
+
+“We turn attention into leads and inbound opportunities.”
+
+---
+
+Update bullets:
+
+* Website & landing page development
+* Funnel & conversion systems
+* Personal brand websites
+* Lead capture systems
+
+---
+
+---
+
+## 🔹 6. AUTHORITY / GROWTH SECTION
+
+Update description to:
+
+“We help you become the most recognized name in your space.”
+
+---
+
+Update bullets:
+
+* Profile optimization
+* Personal brand growth
+* Network expansion
+* PR & media placements
+
+---
+
+---
+
+# 📍 OPTIONAL (ONLY IF SPACE EXISTS)
+
+Add ONE line at end of services:
+
+“We don’t offer isolated services — everything works as a system.”
+
+---
+
+---
+
+# 📋 OUTPUT REQUIREMENT
+
+Return:
+
+1. Updated text for each service block
+2. Confirm no layout changes
+3. Ensure consistency across sections
+
+---
+
+---
+
+# 🎯 FINAL RESULT
+
+* Same design
+* Better clarity
+* More trust
+* Higher conversion
+
+---

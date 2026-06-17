@@ -1,0 +1,232 @@
+Act as a senior full-stack engineer + QA debugger.
+
+Your task is to IDENTIFY, FIX, and VERIFY all mismatches between the admin panel and the live website.
+
+You must NOT give suggestions only.
+You must TEST → FIND → FIX → RE-TEST.
+
+---
+
+# 🎯 OBJECTIVE
+
+Ensure:
+
+* Every change in admin panel reflects on website
+* Every item visible on website exists in admin
+* No missing, duplicate, or inconsistent data
+
+---
+
+# ⚠️ STRICT RULES
+
+* Do NOT assume anything works
+* Test EVERYTHING manually
+* Fix root cause (not temporary patch)
+* Re-test after every fix
+
+---
+
+# 🔁 WORKFLOW (MANDATORY LOOP)
+
+For each feature:
+
+1. Create data in admin
+2. Save it
+3. Check if it appears on website
+4. Edit it
+5. Check if update reflects
+6. Delete it
+7. Check if removed from website
+
+Repeat until perfect
+
+---
+
+# 📍 STEP 1: IDENTIFY ALL DATA MODULES
+
+List all modules:
+
+* creators
+* videos
+* categories
+* services
+* stats
+* testimonials
+* any dynamic content
+
+Do not proceed until full list is made
+
+---
+
+# 📍 STEP 2: FIELD-BY-FIELD CHECK
+
+For EACH module:
+
+Compare:
+
+ADMIN PANEL fields vs WEBSITE display
+
+Check:
+
+* missing fields
+* extra fields
+* mismatched values
+* incorrect mapping
+
+Fix all inconsistencies
+
+---
+
+# 📍 STEP 3: SAVE / UPDATE BUGS
+
+Test:
+
+* data not saving
+* partial save
+* delayed update
+* UI not refreshing
+
+Fix:
+
+* API issues
+* state update issues
+* caching problems
+
+---
+
+# 📍 STEP 4: DATA FLOW VALIDATION
+
+Check full flow:
+
+Admin → API → Database → API → Website
+
+Verify:
+
+* same data everywhere
+* no stale cache
+* no outdated values
+
+---
+
+# 📍 STEP 5: CACHE & SYNC ISSUES
+
+Check:
+
+* old data showing after update
+* refresh required manually
+* cache blocking updates
+
+Fix:
+
+* re-fetch after update
+* cache invalidation
+* real-time sync if possible
+
+---
+
+# 📍 STEP 6: DUPLICATION BUGS
+
+Check:
+
+* same item appearing multiple times
+* incorrect keys
+* list rendering issues
+
+Fix:
+
+* unique IDs
+* proper keys in frontend
+
+---
+
+# 📍 STEP 7: MISSING DATA
+
+Check:
+
+* item exists in admin but not on website
+
+Fix:
+
+* query issues
+* filter bugs
+* API response mismatch
+
+---
+
+# 📍 STEP 8: FILTER / CATEGORY SYNC
+
+Check:
+
+* category in admin vs frontend
+* filter not showing correct items
+
+Fix:
+
+* mapping logic
+* case sensitivity issues
+
+---
+
+# 📍 STEP 9: ERROR HANDLING
+
+Check:
+
+* failed saves
+* silent errors
+
+Add:
+
+* proper error messages
+* fallback UI
+
+---
+
+# 📍 STEP 10: FINAL SYNC TEST
+
+Do full cycle:
+
+* Add 5 items
+* Edit all
+* Delete some
+* Refresh site
+
+Verify:
+
+* everything consistent
+* no mismatch
+
+---
+
+# 📋 REQUIRED OUTPUT
+
+Return:
+
+## 1. MISMATCHES FOUND
+
+* field mismatch
+* missing data
+* duplication
+
+## 2. ROOT CAUSES
+
+* API issue
+* state issue
+* cache issue
+
+## 3. FIXES APPLIED
+
+* what was changed
+
+## 4. FINAL STATUS
+
+* fully synced / pending issues
+
+---
+
+# 🎯 FINAL GOAL
+
+* Admin = Website (100% sync)
+* No mismatch anywhere
+* Real-time or near real-time updates
+
+---

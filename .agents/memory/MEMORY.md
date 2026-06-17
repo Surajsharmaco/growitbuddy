@@ -1,0 +1,5 @@
+- [GrowitBuddy SEO single source](growitbuddy-seo.md) — page list, sitemaps & JSON-LD all derive from `@workspace/seo`; blog canonical `/blog`; composite lib needs built `dist/` (TS6305 gotcha).
+- [GrowitBuddy admin↔public field audit](growitbuddy-admin-audit.md) — grep each field key in the public page before removing admin sections; automated audits gave false positives.
+- [robots.txt per-agent override](robots-txt-per-agent-override.md) — named bot blocks ignore the wildcard block; repeat global Disallow rules in each.
+- [Admin-editable content pattern](admin-editable-content.md) — generic /content/:section (no whitelist); usePublicContent + AdminField + must PageGate public route for visibility to apply.
+- [GitHub history divergence](growitbuddy-github-divergence.md) — local main & GitHub main diverged at 1af95a4 (40 local vs 3 GitHub commits); plain push rejected non-ff; repl blocks `git fetch`, allows commit/push/ls-remote; reconciliation needs human decision.

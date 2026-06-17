@@ -1,0 +1,199 @@
+Refine the entire Creator School landing page positioning to make it specifically for a curated Video Editors Pool inside the GrowitBuddy ecosystem.
+
+IMPORTANT:
+This is NOT a general creator course.
+This is a premium editor onboarding and talent pipeline system.
+
+The page should clearly communicate:
+
+- We are building a high-quality video editors pool
+- Editors are being evaluated through submissions
+- The best editors can unlock real opportunities
+- Top performers may work with GrowitBuddy clients
+- Editors may join our exclusive creator network
+- Freelance and full-time opportunities may be offered
+
+The tone should feel:
+- premium
+- selective
+- high-performance
+- opportunity-driven
+- modern agency ecosystem
+
+NOT:
+- cheap internship page
+- beginner editing course
+- generic community page
+
+━━━━━━━━━━━━━━━━━━
+UPDATE PAGE POSITIONING
+━━━━━━━━━━━━━━━━━━
+
+Replace all “creator school” style messaging with:
+
+- Video Editors Pool
+- Editor Network
+- GrowitBuddy Editors System
+- Elite Editors Program
+
+Preferred positioning:
+“Video Editors Pool”
+
+━━━━━━━━━━━━━━━━━━
+HERO SECTION
+━━━━━━━━━━━━━━━━━━
+
+Eyebrow:
+VIDEO EDITORS POOL
+
+Headline:
+Join the system behind high-performing content.
+
+Subheadline:
+Watch the training, access resources, submit your edits, and get evaluated for future opportunities inside the GrowitBuddy ecosystem.
+
+Add highlighted opportunity text:
+
+Top-performing editors may get:
+- freelance client work
+- agency projects
+- creator collaborations
+- long-term retainers
+- full-time opportunities
+- access to the GrowitBuddy creator network
+
+Primary CTA:
+Watch Training
+
+Secondary CTA:
+View Guidelines
+
+━━━━━━━━━━━━━━━━━━
+PROCESS SECTION
+━━━━━━━━━━━━━━━━━━
+
+01 — Watch The Training
+Learn our editing standards.
+
+02 — Read Guidelines
+Understand quality expectations.
+
+03 — Download Resources
+Access raw footage and assets.
+
+04 — Submit Your Edit
+Send your final work for review.
+
+━━━━━━━━━━━━━━━━━━
+WHAT YOU’LL LEARN
+━━━━━━━━━━━━━━━━━━
+
+Editing Psychology
+Hooks, pacing, retention.
+
+Modern Editing Systems
+Platform-native editing workflows.
+
+Content Packaging
+Titles, thumbnails, viewer attention.
+
+Professional Workflow
+Communication, revisions, delivery.
+
+Client-Level Standards
+How high-performing content is produced.
+
+Growth Opportunities
+How editors can grow inside the ecosystem.
+
+━━━━━━━━━━━━━━━━━━
+GUIDELINES SECTION
+━━━━━━━━━━━━━━━━━━
+
+Rename to:
+Editor Guidelines & Resources
+
+Subtitle:
+Everything required before submitting your edit.
+
+━━━━━━━━━━━━━━━━━━
+RAW FILES SECTION
+━━━━━━━━━━━━━━━━━━
+
+Title:
+Raw Footage & Assets
+
+Subtitle:
+Download footage, assets, music, and project files.
+
+━━━━━━━━━━━━━━━━━━
+SUBMISSION SECTION
+━━━━━━━━━━━━━━━━━━
+
+Title:
+Submit Your Edit
+
+Subtitle:
+Follow the workflow carefully for faster review.
+
+Below form add:
+
+Exceptional editors may unlock:
+- paid freelance work
+- agency collaborations
+- creator partnerships
+- priority project access
+- long-term opportunities
+
+━━━━━━━━━━━━━━━━━━
+STANDARDS SECTION
+━━━━━━━━━━━━━━━━━━
+
+Headline:
+We are building a serious editors network.
+
+Bullets:
+- Retention-focused editing
+- Fast communication
+- Deadline discipline
+- Platform-native storytelling
+- Clean organization
+- Consistent quality standards
+
+Add below:
+
+The best editors don’t stay freelancers forever.
+They become part of high-performance systems.
+
+━━━━━━━━━━━━━━━━━━
+FINAL CTA SECTION
+━━━━━━━━━━━━━━━━━━
+
+Headline:
+Ready to become a better editor?
+
+Subheadline:
+Learn the systems, submit your work, and unlock real opportunities.
+
+Buttons:
+Join The Editors Pool
+Submit Your Edit
+
+━━━━━━━━━━━━━━━━━━
+DESIGN DIRECTION
+━━━━━━━━━━━━━━━━━━
+
+The page should feel like:
+- a premium editors ecosystem
+- modern creator infrastructure
+- elite talent onboarding
+- high-performance media company
+
+NOT:
+- gaming style
+- overly flashy
+- cheap creator economy aesthetic
+- basic course platform
+
+Keep the GrowitBuddy authority-first visual identity.
+Use strong typography, whitespace, dark navy accents, and premium layout hierarchy.

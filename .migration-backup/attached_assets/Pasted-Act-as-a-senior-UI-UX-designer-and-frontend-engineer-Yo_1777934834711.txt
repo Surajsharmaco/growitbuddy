@@ -1,0 +1,259 @@
+Act as a senior UI/UX designer and frontend engineer.
+
+Your task is to redesign and implement a **premium light-themed agency website** for GrowitBuddy.
+
+---
+
+# 🎯 GOAL
+
+* Create a clean, modern, premium light UI
+* Avoid flat white design
+* Improve clarity, trust, and conversions
+* Maintain strong visual hierarchy
+* Build a scalable design system
+
+---
+
+# 🧠 CORE DESIGN PRINCIPLES
+
+* Light theme (not pure white everywhere)
+* Soft contrast between sections
+* Minimal but not empty
+* Focus on readability and trust
+* Accent colors used intentionally (not everywhere)
+
+---
+
+# 🎨 COLOR SYSTEM
+
+## 🔹 BACKGROUND
+
+* Primary Background: #FAFAFB (soft white)
+* Secondary Section Background: #F1F1F5
+
+👉 Alternate sections between these for depth
+
+---
+
+## 🔹 TEXT
+
+* Primary Text: #0F0F14
+* Secondary Text: #6B6B75
+* Muted Text: #9CA3AF
+
+---
+
+## 🔹 CARDS
+
+* Card Background: #FFFFFF
+* Border: #E5E7EB
+* Shadow: subtle (rgba(0,0,0,0.05))
+
+---
+
+---
+
+# 🔥 ACCENT SYSTEM
+
+## 🟣 PRIMARY (BRAND)
+
+* Color: #7C3AED
+* Hover: #A78BFA
+
+Use for:
+
+* Primary CTA buttons
+* Links
+* Important highlights
+
+---
+
+## 🔴 SECONDARY (ACTION / CREATOR)
+
+* Color: #EF4444
+* Hover: #F87171
+
+Use for:
+
+* High attention CTAs
+* Creator/network sections
+* Important tags
+
+---
+
+⚠️ RULE:
+
+* One section = one accent
+* Do not mix purple and red in same UI block
+
+---
+
+---
+
+# 🎯 TYPOGRAPHY
+
+* Font: Inter or Poppins
+* H1: bold, large, high contrast
+* H2: strong but slightly lighter
+* Body: clean and readable
+
+---
+
+---
+
+# 🎯 LAYOUT SYSTEM
+
+## 🔹 SECTION FLOW
+
+Alternate:
+
+* Section 1 → #FAFAFB
+* Section 2 → #F1F1F5
+* Section 3 → #FAFAFB
+
+---
+
+## 🔹 SPACING
+
+* Large vertical spacing (premium feel)
+* Clean margins
+* Avoid clutter
+
+---
+
+---
+
+# 🎯 COMPONENT SYSTEM
+
+Create reusable components:
+
+## Buttons
+
+* Primary: purple background, white text
+* Secondary: outlined
+* Hover: slight scale + color shift
+
+---
+
+## Cards
+
+* White background
+* Soft shadow
+* Rounded corners (8–12px)
+* Hover:
+
+  * slight lift (translateY -3px)
+  * stronger shadow
+
+---
+
+## Badges / Tags
+
+* Small pill style
+* Use accent color (low opacity background)
+
+---
+
+---
+
+# 🎯 HERO SECTION (VERY IMPORTANT)
+
+Replace generic headline with:
+
+“Content without distribution is invisible.”
+
+Subtext:
+“We build systems that turn content into authority and inbound demand.”
+
+CTA:
+Primary → “Get your growth breakdown”
+Secondary → “See how it works”
+
+---
+
+---
+
+# 🎯 PROOF SECTION (ABOVE THE FOLD)
+
+Immediately after hero, add:
+
+* 700M+ views generated
+* 1M+ organic reach built
+* Worked with creators & brands
+
+Display in large bold numbers
+
+---
+
+---
+
+# 🎯 SYSTEM SECTION
+
+Make this a visual centerpiece:
+
+Content → Distribution → Authority → Inbound
+
+* Use arrows or flow UI
+* Add icons
+* Slight animation or highlight
+
+---
+
+---
+
+# 🎯 INTERACTIONS
+
+* Smooth transitions (0.2–0.3s)
+* Button hover scale (1.02 max)
+* Card hover lift
+* Subtle shadow changes
+
+---
+
+---
+
+# 🎯 ADMIN PANEL (IMPORTANT)
+
+Allow editing:
+
+* Text content
+* Stats (numbers)
+* Client logos
+* Accent usage
+
+---
+
+---
+
+# ⚡ PERFORMANCE
+
+* Use CSS variables for colors
+* Keep layout responsive
+* Optimize images
+* Ensure fast loading
+
+---
+
+---
+
+# ❗ DO NOT
+
+* Use pure white everywhere
+* Overuse accent colors
+* Create flat design
+* Add unnecessary animations
+
+---
+
+---
+
+# 🎯 FINAL RESULT
+
+A premium, clean, high-conversion agency website that:
+
+* Builds trust instantly
+* Feels modern and professional
+* Clearly communicates value
+* Is scalable for future growth
+
+---

@@ -1,0 +1,385 @@
+Create SEPARATE standalone “Talent Pool” landing pages for different freelance skills inside the GrowitBuddy ecosystem.
+
+IMPORTANT:
+Do NOT create one generic reusable page.
+
+I want separate premium landing pages for EACH skill category.
+
+Each page should:
+- have different copywriting
+- different positioning
+- different psychology
+- different submission form
+- different resource section
+- different CTA language
+- different workflow explanation
+
+BUT:
+All pages should visually match the GrowitBuddy design language shown in the current Editors Pool screenshot.
+
+====================================================
+REFERENCE STYLE
+====================================================
+
+Use the existing Editors Pool page as the design reference.
+
+Keep:
+- minimal premium layout
+- centered hero section
+- large embedded VSL/video
+- clean typography
+- whitespace-heavy layout
+- soft cards
+- editorial aesthetic
+- navy + off-white color palette
+- subtle borders
+- modern creator-focused feel
+
+DO NOT:
+- make it corporate
+- make it look like a job portal
+- make it look like a course website
+- make it look like an LMS/dashboard
+- use colorful SaaS gradients
+
+====================================================
+PAGES TO CREATE
+====================================================
+
+1. VIDEO EDITORS POOL
+URL:
+/editors-pool
+
+HEADLINE:
+Join our growing network of editors.
+
+SUBTEXT:
+Watch the workflow, submit your work, and become part of the GrowitBuddy creator ecosystem.
+
+RESOURCES:
+- Raw Footage
+- Editing Guidelines
+- Music Assets
+- Brand Assets
+
+SUBMISSION CTA:
+Submit Your Edit
+
+====================================================
+
+2. GRAPHIC DESIGNERS POOL
+URL:
+/designers-pool
+
+HEADLINE:
+Design visuals that actually build attention.
+
+SUBTEXT:
+Submit your creative work and join our internal design network for future projects and collaborations.
+
+RESOURCES:
+- Design Brief
+- Brand Kit
+- Color Systems
+- UI References
+
+SUBMISSION CTA:
+Submit Your Design
+
+====================================================
+
+3. THUMBNAIL DESIGNERS POOL
+URL:
+/thumbnail-designers
+
+HEADLINE:
+Create thumbnails people can’t ignore.
+
+SUBTEXT:
+We’re building a network of thumbnail designers focused on CTR, attention, and visual psychology.
+
+RESOURCES:
+- Thumbnail References
+- CTR Examples
+- PSD Templates
+- Font Packs
+
+SUBMISSION CTA:
+Submit Your Thumbnail
+
+====================================================
+
+4. SCRIPTWRITERS POOL
+URL:
+/writers-pool
+
+HEADLINE:
+Write content that builds authority.
+
+SUBTEXT:
+Join our writing network and contribute to high-performing creator content systems.
+
+RESOURCES:
+- Script Frameworks
+- Writing Examples
+- Hook Systems
+- Storytelling Structures
+
+SUBMISSION CTA:
+Submit Your Writing
+
+====================================================
+
+5. SOCIAL MEDIA MANAGERS POOL
+URL:
+/social-media-managers
+
+HEADLINE:
+Manage growth systems, not just posting schedules.
+
+SUBTEXT:
+Join our social growth network and help brands scale visibility and consistency.
+
+RESOURCES:
+- Content Calendars
+- Analytics Frameworks
+- Posting SOPs
+- Distribution Workflows
+
+SUBMISSION CTA:
+Submit Your Profile
+
+====================================================
+
+6. MOTION DESIGNERS POOL
+URL:
+/motion-designers
+
+HEADLINE:
+Bring static ideas to life through motion.
+
+SUBTEXT:
+We’re building a motion design network for creator brands, content systems, and digital campaigns.
+
+RESOURCES:
+- Animation References
+- Motion Templates
+- Audio Assets
+- Brand Files
+
+SUBMISSION CTA:
+Submit Your Reel
+
+====================================================
+
+7. AI CREATORS & AUTOMATION POOL
+URL:
+/ai-creators
+
+HEADLINE:
+Build AI systems that solve real business problems.
+
+SUBTEXT:
+Join our AI creator network for future automation and AI implementation projects.
+
+RESOURCES:
+- AI Workflow Examples
+- Prompt Systems
+- Automation Blueprints
+- API References
+
+SUBMISSION CTA:
+Submit Your AI Project
+
+====================================================
+
+8. UGC CREATORS POOL
+URL:
+/ugc-creators
+
+HEADLINE:
+Create authentic content that converts.
+
+SUBTEXT:
+Become part of our UGC creator network for future brand collaborations and campaigns.
+
+RESOURCES:
+- UGC References
+- Brand Guidelines
+- Shot Examples
+- Sample Scripts
+
+SUBMISSION CTA:
+Submit Your Content
+
+====================================================
+PAGE STRUCTURE
+====================================================
+
+Each page should follow this structure:
+
+----------------------------------------------------
+1. HERO SECTION
+----------------------------------------------------
+
+- Small label
+- Large bold headline
+- Supporting text
+- Large centered VSL/video embed
+- CTA buttons underneath
+
+IMPORTANT:
+Desktop AND mobile BOTH should use:
+TEXT → VIDEO → BUTTONS
+
+NOT side-by-side.
+
+====================================================
+
+2. HOW IT WORKS
+====================================================
+
+Simple 4-step process row.
+
+Example:
+01 Watch Demo
+02 Download Resources
+03 Submit Work
+04 Join The Network
+
+Minimal and clean.
+
+====================================================
+
+3. RESOURCES SECTION
+====================================================
+
+Small premium cards with:
+- title
+- short description
+- download/open button
+
+====================================================
+
+4. SUBMISSION SECTION
+====================================================
+
+Different forms for every skill.
+
+EXAMPLES:
+
+VIDEO EDITORS:
+- Editing software
+- Portfolio
+- Submission link
+
+GRAPHIC DESIGNERS:
+- Behance
+- Figma
+- Portfolio link
+
+WRITERS:
+- Google Docs samples
+- Niche
+- LinkedIn
+
+AI CREATORS:
+- Tools used
+- Automation examples
+- Loom walkthrough
+
+====================================================
+
+5. FINAL CTA SECTION
+====================================================
+
+Simple premium section.
+
+Examples:
+- Ready to join the network?
+- Start your first submission.
+- Become part of the ecosystem.
+
+====================================================
+ADMIN PANEL
+====================================================
+
+Create full admin access for all pool pages.
+
+Admin must be able to:
+- edit text
+- edit headlines
+- replace videos
+- replace resources
+- change CTA buttons
+- duplicate pages
+- create new skill pools
+- edit forms
+- edit URLs/slugs
+- export submissions
+- manage applicants
+
+====================================================
+VERY IMPORTANT
+====================================================
+
+Admin should be able to DUPLICATE any pool page.
+
+Example:
+Duplicate “Editors Pool”
+→ Rename to “Podcast Editors Pool”
+→ Edit text/resources/forms
+→ Publish instantly
+
+NO coding required afterward.
+
+====================================================
+DATABASE
+====================================================
+
+Create separate collections/tables:
+
+- editors_pool_submissions
+- designers_pool_submissions
+- writers_pool_submissions
+- ai_creators_pool_submissions
+etc.
+
+====================================================
+PSYCHOLOGY
+====================================================
+
+These pages should feel:
+- welcoming
+- beginner-friendly
+- premium
+- aspirational
+- creator-focused
+- opportunity-driven
+
+DO NOT use:
+- “Only top talent”
+- “Selection round”
+- “Exam”
+- “Must qualify”
+
+Instead use:
+- “Future collaboration opportunities”
+- “Grow with the network”
+- “Creator ecosystem”
+- “Freelance opportunities”
+- “Long-term relationships”
+
+====================================================
+FINAL GOAL
+====================================================
+
+The entire system should feel like:
+“GrowitBuddy Creator Network Infrastructure”
+
+NOT random forms.
+NOT a hiring portal.
+NOT a course platform.
+
+It should feel like:
+A premium creator ecosystem built for future collaborations, freelance work, and creator opportunities.
