@@ -8,3 +8,4 @@
 - [GrowitBuddy content is DB-driven on live](growitbuddy-content-vs-code.md) — usePublicContent fetches prod Render API & merges DB over code defaults; dev DB != prod; live text changes only via admin panel, not code edits.
 - [Dev DB & prod health-check](growitbuddy-dev-db-and-verification.md) — dev DB has NO schema; form 200 ≠ saved (saveLead swallows errors); executeSql hits a different DB; how to verify prod (Render/Neon/Cloudinary) without admin creds.
 - [Resend lead-email enablement](growitbuddy-deploy-and-email.md) — onboarding@resend.dev only mails the Resend account owner; simplest fix: sign up Resend with the destination Gmail + set RESEND_API_KEY in Render (prod env lives in Render, not Replit).
+- [GrowitBuddy ghost data](growitbuddy-ghost-data.md) — empty admin lists must stay empty: test `Array.isArray` (not `.length`); never seed demo defaults into initial render; bootstrap-seed influencers + resolve loading on fetch failure.

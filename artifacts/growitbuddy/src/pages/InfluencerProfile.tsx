@@ -7,11 +7,21 @@ import { useLiveInfluencers } from "@/hooks/useLiveInfluencers";
 
 export default function InfluencerProfile() {
   const { slug } = useParams<{ slug: string }>();
-  const { influencers } = useLiveInfluencers();
+  const { influencers, loading } = useLiveInfluencers();
   const inf = influencers.find((i) => i.slug === slug);
   const [imgError, setImgError] = useState(false);
 
   if (!inf) {
+    // While the directory is still loading (cold cache / direct profile load),
+    // show a neutral loading state instead of flashing "not found" before the
+    // fetch resolves. Only declare "not found" once loading has settled.
+    if (loading) {
+      return (
+        <div style={{ background: "#F8F8F6", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', sans-serif" }}>
+          <p style={{ fontSize: 14, color: "#5F5F5F" }}>Loading…</p>
+        </div>
+      );
+    }
     return (
       <div style={{ background: "#F8F8F6", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 16, fontFamily: "'Inter', sans-serif" }}>
         <p style={{ fontSize: 14, color: "#5F5F5F" }}>Influencer not found.</p>

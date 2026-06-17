@@ -273,7 +273,7 @@ function ActiveTag({ label, onRemove }: { label: string; onRemove: () => void })
 /* ── Page ────────────────────────────────────────────────── */
 export default function InfluencerExplore() {
   const cms = usePublicContent<InfluencerExploreData>("influencer-explore", IE_DEFAULTS);
-  const { influencers, genres: NICHE_CATEGORIES, countries: COUNTRIES } = useLiveInfluencers();
+  const { influencers, genres: NICHE_CATEGORIES, countries: COUNTRIES, loading } = useLiveInfluencers();
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -467,7 +467,13 @@ export default function InfluencerExplore() {
           )}
 
           {/* Grid */}
-          {filtered.length > 0 ? (
+          {loading && influencers.length === 0 ? (
+            <div
+              style={{ textAlign: "center", padding: "80px 24px", color: "#5F5F5F", fontSize: 14, fontFamily: "'Inter', sans-serif" }}
+            >
+              Loading creators…
+            </div>
+          ) : filtered.length > 0 ? (
             <motion.div layout className="influencer-grid">
               <AnimatePresence mode="popLayout">
                 {filtered.map((inf, i) => (

@@ -14,8 +14,31 @@ interface InfluencerCache {
   countries: string[];
 }
 
+// Seed the session cache from the SSR bootstrap (window.__GB_PUBLIC_CONTENT__.
+// influencers), written server-side straight from Neon (no API cold start). This
+// makes the FIRST paint reflect CURRENT admin data and, crucially, respect an
+// intentionally-empty directory. Without it the page first-painted hardcoded demo
+// influencers and — if the free-tier API was asleep when the client refresh fired
+// — stayed stuck on that demo data (the "deleted influencers reappear / alternate
+// every refresh" bug).
+function readBootstrapInfluencers(): InfluencerCache | null {
+  if (typeof window === "undefined") return null;
+  const boot = (
+    window as unknown as { __GB_PUBLIC_CONTENT__?: Record<string, unknown> }
+  ).__GB_PUBLIC_CONTENT__;
+  const d = boot?.influencers as
+    | { items?: Influencer[]; genres?: string[]; countries?: string[] }
+    | undefined;
+  if (!d || typeof d !== "object") return null;
+  return {
+    items: Array.isArray(d.items) ? d.items : DEFAULT_INFLUENCERS,
+    genres: d.genres?.length ? d.genres : [...NICHE_CATEGORIES],
+    countries: d.countries?.length ? d.countries : [...COUNTRIES],
+  };
+}
+
 // Session-level cache - persists for the lifetime of the tab
-let cachedInfluencers: InfluencerCache | null = null;
+let cachedInfluencers: InfluencerCache | null = readBootstrapInfluencers();
 let inFlightInfluencers: Promise<InfluencerCache | null> | null = null;
 
 // Per-fetch version guard so an older in-flight response can't overwrite a
@@ -43,7 +66,10 @@ function fetchInfluencers(): Promise<InfluencerCache | null> {
       if (!json?.data) return null;
       const d = json.data as { items?: Influencer[]; genres?: string[]; countries?: string[] };
       const result: InfluencerCache = {
-        items: d.items?.length ? d.items : DEFAULT_INFLUENCERS,
+        // Respect an explicitly-empty directory: an admin who deleted everyone
+        // must see an empty list, NOT the hardcoded demo data. Fall back to the
+        // demo seed only when the section has never been configured (no array).
+        items: Array.isArray(d.items) ? d.items : DEFAULT_INFLUENCERS,
         genres: d.genres?.length ? d.genres : [...NICHE_CATEGORIES],
         countries: d.countries?.length ? d.countries : [...COUNTRIES],
       };
@@ -72,7 +98,10 @@ interface LiveInfluencersResult {
 
 export function useLiveInfluencers(): LiveInfluencersResult {
   const [influencers, setInfluencers] = useState<Influencer[]>(
-    () => cachedInfluencers?.items ?? DEFAULT_INFLUENCERS,
+    // Never seed hardcoded demo influencers: start from the SSR/bootstrap cache
+    // when present, otherwise empty + loading until the fetch resolves. This is
+    // what stops deleted/demo creators from ghosting in when the cache is cold.
+    () => cachedInfluencers?.items ?? [],
   );
   const [genres, setGenres] = useState<string[]>(
     () => cachedInfluencers?.genres ?? [...NICHE_CATEGORIES],
@@ -86,11 +115,16 @@ export function useLiveInfluencers(): LiveInfluencersResult {
     let cancelled = false;
 
     function apply(data: InfluencerCache | null, myVersion: number) {
-      if (cancelled || !data) return;
+      if (cancelled) return;
       if (myVersion !== influencersVersion) return;
-      setInfluencers(data.items);
-      setGenres(data.genres);
-      setCountries(data.countries);
+      if (data) {
+        setInfluencers(data.items);
+        setGenres(data.genres);
+        setCountries(data.countries);
+      }
+      // Resolve loading on BOTH success and failure: a sleeping API should
+      // surface an honest empty state, never an endless spinner — and never the
+      // hardcoded demo data we deliberately stopped seeding into initial state.
       setLoading(false);
     }
 

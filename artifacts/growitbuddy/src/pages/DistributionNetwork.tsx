@@ -237,7 +237,10 @@ function ActiveTag({ label, onRemove }: { label: string; onRemove: () => void })
 export default function DistributionNetwork() {
   const cms = usePublicContent<DistributionNetworkData>("distribution-network", DN_DEFAULTS);
   const distPagesDb = usePublicContent<{ items?: DistributionPage[] }>("distribution-pages", { items: DEFAULT_DIST_PAGES });
-  const distributionPages = (distPagesDb.items && distPagesDb.items.length > 0) ? distPagesDb.items : DEFAULT_DIST_PAGES;
+  // Respect an explicitly-empty list: once the admin has curated distribution
+  // pages (even down to zero), that is authoritative — never resurrect the
+  // hardcoded demo pages. Defaults apply only when the section was never set.
+  const distributionPages = Array.isArray(distPagesDb.items) ? distPagesDb.items : DEFAULT_DIST_PAGES;
 
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
