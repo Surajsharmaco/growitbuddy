@@ -18,15 +18,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Complete Git Merge"
+args = "Cleanup Migration Backup"
 
 [[workflows.workflow]]
-name = "Complete Git Merge"
+name = "Cleanup Migration Backup"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "bash fixgit.sh"
+args = "bash cleanup.sh"
 
 [workflows.workflow.metadata]
 outputType = "console"
