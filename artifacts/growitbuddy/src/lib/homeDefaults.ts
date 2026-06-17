@@ -170,6 +170,7 @@ export const HOME_DEFAULTS: HomeData = {
     },
   ],
   frameworkCTA: "Explore the Full Framework",
+  // Proof section: concise, result-focused copy
   proofLabel: "Result",
   proofHeadline: "Real result. Real inbound growth.",
   proof: [
