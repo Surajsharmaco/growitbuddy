@@ -22,6 +22,17 @@ serving the last good deploy, so the bundle hash stays frozen — this LOOKS ide
 "Vercel not deploying," but it is not. The discarded theories (auto-deploy paused /
 ignored-build-step / domain pinned to an old deploy) were all wrong.
 
+**BUT auto-deploy is also FLAKY (later finding, nuances the above):** a push can simply NOT be
+picked up — GitHub shows 0 Vercel deployments AND 0 commit statuses for that SHA, no build ever
+starts (distinct from a build that starts and fails). Observed once: a real-change push sat ~20 min
+with no deployment; an **empty "retrigger" commit** (`git commit --allow-empty -m "chore: retrigger
+Vercel"`) pushed right after was built within ~30s and the live bundle hash changed. The repo
+owner's history has prior `"...to retrigger Vercel"` commits for the same reason. So both happen:
+most pushes auto-build, but occasionally the GitHub→Vercel webhook misses one. Confirm a build was
+even triggered before assuming a build *failure*: GitHub API
+`/repos/<owner>/<repo>/commits/<sha>/statuses` (and `/deployments?sha=<sha>`) — empty list = skipped
+trigger (retrigger), non-empty = it ran (then check the build log/lockfile).
+
 **Fix:** run `pnpm install` at repo root after ANY dependency version change, commit the updated
 `pnpm-lock.yaml`. Verify locally with `pnpm install --frozen-lockfile` (must exit 0 / "Lockfile is
 up to date") — that reproduces exactly the Vercel step that was failing. After the lockfile-sync

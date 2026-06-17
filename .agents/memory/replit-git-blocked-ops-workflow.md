@@ -30,6 +30,26 @@ merge/lock/index state in this repo.
   unknown". Set it locally first: `git config user.email ...; git config user.name ...`.
 - Use `GIT_EDITOR=true git commit --no-edit` so no interactive editor stalls the run.
 - Keep the helper script out of the commit: `git add -A` then `git reset -q script.sh`.
+- **Replit auto-checkpoints can git-add your working tree to `main` anyway.** Even an
+  untracked helper script (and a `.replit` edited by `configureWorkflow`) get committed to
+  the local `main` branch by the checkpoint system, so they ride along on the next push and
+  end up on `origin`. Don't assume "untracked = won't be pushed"; clean them up explicitly.
+
+## Self-removing cleanup (remove the temp workflow + script from the repo in one push)
+Because `.replit` is tracked and the temp push-workflow lives in it, you can't push a clean
+`.replit` *and* keep the workflow that does the pushing (chicken-and-egg). Solution: do the
+cleanup from INSIDE the running workflow:
+- `git checkout <baseline>~1 -- .replit` — restore the pristine pre-test `.replit` (drops the
+  temp workflow + any `runButton` override). The real artifact workflows are NOT in root
+  `.replit` (they live in each artifact's `.replit-artifact/artifact.toml`), so this is safe;
+  verify first with `diff <(git show <baseline>~1:.replit) <(git show origin/main:.replit)` —
+  the only delta should be the temp-workflow block.
+- `git rm --cached script.sh` — untrack the helper but KEEP the file on disk so the
+  still-running script can finish (don't `git rm -f` / delete the file you're executing).
+- commit + push. Then delete the now-untracked script from disk via agent bash `rm script.sh`.
+- The current workflow self-destructs when `.replit` is overwritten mid-run, so the
+  `configureWorkflow`/`removeWorkflow` call may return "Workflow not found" AFTER it ran —
+  harmless; the commit+push already succeeded. Verify with read-only `git log`/`git show origin/main:.replit`.
 
 ## Pushing to GitHub
 Two routes:
