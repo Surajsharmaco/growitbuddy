@@ -5,8 +5,10 @@ description: Real root cause of live-site staleness (failing Vercel build from a
 
 # GrowitBuddy live-update pipeline
 
-Live `growitbuddy.com` = Vercel (frontend) + Render (backend); Neon DB shared dev↔live.
+Live `growitbuddy.com` = Vercel (frontend) + Render (backend) on a prod DB.
 Replit is dev-only. Repo github.com/Surajsharmaco/growitbuddy, production branch `main`.
+NOTE: the dev repl DB is SEPARATE from (and empty vs) the prod DB — NOT shared. See
+growitbuddy-content-vs-code.md; live content rows exist only in prod, not in this repl.
 
 **Replit → GitHub (proven):** commits auto-push from Replit via `GITHUB_TOKEN` + a workflow
 credential helper (see replit-git-blocked-ops-workflow.md). Pushes confirmed on `origin/main`.

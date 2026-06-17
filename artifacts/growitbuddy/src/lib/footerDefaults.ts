@@ -12,7 +12,7 @@ export interface FooterData {
 }
 
 export const FOOTER_DEFAULTS: FooterData = {
-  tagline: "Authority, content, and distribution systems for founders, creators, and modern brands.",
+  tagline: "Authority, content, and distribution systems for founders, creators, and modern brands worldwide.",
   email: "cs.growitbuddy@gmail.com",
   linkedin: "",
   twitter: "",
