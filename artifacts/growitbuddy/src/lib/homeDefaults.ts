@@ -171,8 +171,8 @@ export const HOME_DEFAULTS: HomeData = {
   ],
   frameworkCTA: "Explore the Full Framework",
   // Proof section: concise, result-focused copy
-  proofLabel: "Result",
-  proofHeadline: "Real result. Real inbound growth.",
+  proofLabel: "Results",
+  proofHeadline: "Real results. Real inbound growth.",
   proof: [
     { metric: "700M+", unit: "views generated", name: "Across content networks and brand campaigns", category: "Distribution · Multi-channel" },
     { metric: "200+",  unit: "founders & brands served", name: "Across industries and content verticals", category: "Network · Global" },
