@@ -6,6 +6,6 @@ export interface NavbarData {
 
 export const NAVBAR_DEFAULTS: NavbarData = {
   logo: "GrowitBuddy",
-  ctaLabel: "Book a Call",
+  ctaLabel: "Book a Free Call",
   ctaPath: "https://cal.com/growitbuddy.com/growth-strategy-call",
 };
