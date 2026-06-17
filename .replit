@@ -29,7 +29,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "COMMIT_MSG=\"chore: retrigger Vercel deploy (footer 'worldwide' proof)\" bash gitpush.sh"
+args = "COMMIT_MSG=\"feat(navbar): change CTA to 'Book a Free Call' (visible proof); revert footer tagline\" bash gitpush.sh"
 
 [agent]
 stack = "PNPM_WORKSPACE"

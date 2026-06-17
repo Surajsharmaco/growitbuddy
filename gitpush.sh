@@ -6,9 +6,15 @@ git config user.email "agent@replit.local" >/dev/null 2>&1 || true
 git config user.name "Replit Agent" >/dev/null 2>&1 || true
 rm -f .git/index.lock 2>/dev/null || true
 
-# Retrigger-only: do NOT stage working-tree changes (avoid committing build artifacts).
-# HEAD already contains the footer change; an empty commit nudges Vercel to build it.
-GIT_EDITOR=true git commit --allow-empty -m "${COMMIT_MSG:-chore: retrigger Vercel deploy}"
+# Stage ONLY the source files we intend to change (never build artifacts like api/_template.js)
+git add artifacts/growitbuddy/src/lib/footerDefaults.ts artifacts/growitbuddy/src/lib/navbarDefaults.ts artifacts/growitbuddy/src/lib/homeDefaults.ts 2>/dev/null || true
+
+if git diff --cached --quiet; then
+  echo "[gitpush] no staged source changes -> empty retrigger commit"
+  GIT_EDITOR=true git commit --allow-empty -m "${COMMIT_MSG:-chore: retrigger Vercel deploy}"
+else
+  GIT_EDITOR=true git commit -m "${COMMIT_MSG:-chore: update content defaults}"
+fi
 
 echo "[gitpush] pushing to origin main..."
 GIT_TERMINAL_PROMPT=0 git \
@@ -18,5 +24,5 @@ GIT_TERMINAL_PROMPT=0 git \
   push origin main
 
 echo "[gitpush] push exit code: $?"
-git --no-optional-locks log --oneline -4
+git --no-optional-locks log --oneline -3
 echo "[gitpush] DONE"
