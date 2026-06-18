@@ -75,3 +75,20 @@ Old exports `getWash`/`getWashBorder`/`getWashCardStyle`/`WASH_CARD_*` remain in
 WashCard.tsx but are no longer used by pages. `WashIconChip` still calls
 `getWashBorder` internally for the light chip border, so don't delete that one.
 Verify "no wash left" with: `rg "getWash\b|getWashBorder|getWashCardStyle|WASH_CARD" src --glob '!**/WashCard.tsx'`.
+
+## Hero / page decoration: "blueprint" guide-lines REJECTED on Home
+
+`BlueprintLines` (`src/components/effects/BlueprintLines.tsx`) draws two thin
+vertical hairlines framing the content column + "+" crosshairs + optional diagonal
+hatch. The owner saw these in the Home hero and disliked them — said they "look
+like a margin" and asked for something else. Removed `<BlueprintLines/>` from the
+Home hero (kept GrainOverlay + DotGrid + the mouse-follow radial glow — that clean
+look was accepted). 
+
+**Why:** durable taste signal — the owner reads the vertical guide-line/crosshair
+motif as an accidental ugly margin, not a premium detail.
+**How to apply:** BlueprintLines is STILL used on Services / Framework / Links
+(Links uses the same `hatch midCrosses` variant as the removed Home one). If the
+owner complains about "lines/margins" on another page, Links is the likeliest
+culprit — remove it there next. Don't add new decorative hero effects without
+sign-off (8+ prior design rejections).

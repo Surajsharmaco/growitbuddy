@@ -8,7 +8,6 @@ import { FadeUp } from "@/components/effects/TextReveal";
 import CountUp from "@/components/effects/CountUp";
 import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
-import BlueprintLines from "@/components/effects/BlueprintLines";
 import DotGrid from "@/components/effects/DotGrid";
 import { HOME_DEFAULTS as DEFAULTS, type HomeData } from "@/lib/homeDefaults";
 import { getSolidCardStyle, getSolidText, solidIsDark, CardGrain, WashIconChip } from "@/components/WashCard";
@@ -187,7 +186,6 @@ export default function Home() {
         }}
       >
         <GrainOverlay />
-        <BlueprintLines hatch midCrosses topCrosses={false} bottomCrosses={false} hatchFrom={52} />
         <DotGrid />
 
         <div
