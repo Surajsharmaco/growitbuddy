@@ -140,7 +140,7 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
             <>
               <div className="mt-3 flex items-center gap-2 text-[12px] text-emerald-700 font-medium">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
-                {label} video detected — live on page.
+                {label} video detected - live on page.
                 <span className="ml-2 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#0B0B0B]/5 text-[#0B0B0B]/60">{ratio} {isVertical ? "vertical" : "horizontal"}</span>
               </div>
               <div className="mt-4">

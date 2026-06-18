@@ -1,4 +1,4 @@
-// Public-side variant context — set by VariantResolver when rendering a
+// Public-side variant context - set by VariantResolver when rendering a
 // variant URL. Tells usePublicContent() to read from the namespaced
 // `${sourceKey}__v__${slug}` siteContent key instead of the base key.
 import { createContext, useContext, type ReactNode } from "react";

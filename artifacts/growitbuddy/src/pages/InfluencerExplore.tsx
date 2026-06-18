@@ -51,7 +51,7 @@ function InfluencerCard({ inf, i }: { inf: Influencer; i: number }) {
             <div className="inf-badge-niche" style={{ position: "absolute", top: 14, left: 14, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#1E293B", background: "rgba(255,255,255,0.92)", backdropFilter: "blur(8px)", borderRadius: 100, padding: "4px 12px", border: "1px solid rgba(255,255,255,0.6)", maxWidth: "calc(100% - 28px)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {inf.niche}
             </div>
-            {/* Followers — premium highlight backdrop */}
+            {/* Followers - premium highlight backdrop */}
             {inf.followers?.trim() && (
               <div style={{ position: "absolute", bottom: 14, left: 14, display: "inline-flex", flexDirection: "column", alignItems: "flex-start", gap: 1, background: "#FFFFFF", borderRadius: 14, padding: "9px 15px", border: "1px solid rgba(11,11,11,0.08)", boxShadow: "0 14px 32px -10px rgba(11,11,11,0.45), 0 2px 6px rgba(11,11,11,0.10)" }}>
                 <span style={{ fontWeight: 800, fontSize: 20, color: "#0A0A0A", letterSpacing: "-0.04em", lineHeight: 1 }}>{inf.followers}</span>

@@ -72,7 +72,7 @@ export default function AdminSiteGuide() {
           <SectionTitle>Hero</SectionTitle>
           <div className="space-y-3">
             <Input label="Badge / Eyebrow" value={data.hero.badge} onChange={(e) => setHero("badge", e.target.value)} placeholder="Complete Site Guide · v1.5" />
-            <Input label="Title" value={data.hero.title} onChange={(e) => setHero("title", e.target.value)} placeholder="Understand the entire GrowitBuddy website — in 10 minutes." />
+            <Input label="Title" value={data.hero.title} onChange={(e) => setHero("title", e.target.value)} placeholder="Understand the entire GrowitBuddy website - in 10 minutes." />
             <Textarea label="Lede / Intro" value={data.hero.lede} onChange={(e) => setHero("lede", e.target.value)} rows={3} />
           </div>
         </Card>

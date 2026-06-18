@@ -223,7 +223,7 @@ function AddLogoPanel({ onAdd }: { onAdd: (logo: ClientLogo) => void }) {
       <ImageUrlField
         value={form.imageUrl}
         onChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))}
-        placeholder="https://cdn.simpleicons.org/stripe/635BFF — or upload / pick from library"
+        placeholder="https://cdn.simpleicons.org/stripe/635BFF - or upload / pick from library"
         previewHeight={52}
       />
 

@@ -350,10 +350,10 @@ export default function AdminLeads() {
     setSelected(new Set());
   }
 
-  /* Date-filtered base — used for counts so chips reflect active period */
+  /* Date-filtered base - used for counts so chips reflect active period */
   const dateFiltered = applyDateFilter(leads, dateFilter);
 
-  /* Type-filtered base — byStatus counts must match what the list will actually show */
+  /* Type-filtered base - byStatus counts must match what the list will actually show */
   const typeFiltered = typeFilter !== "all"
     ? dateFiltered.filter((l) => l.type === typeFilter)
     : dateFiltered;
@@ -419,7 +419,7 @@ export default function AdminLeads() {
     /* Row 1: Title */
     ws.mergeCells(1, 1, 1, COLS.length);
     const titleCell = ws.getCell("A1");
-    titleCell.value = "GrowitBuddy — Leads & CRM Export";
+    titleCell.value = "GrowitBuddy - Leads & CRM Export";
     titleCell.font  = { bold: true, size: 15, color: { argb: "FF0A0A0A" }, name: "Calibri" };
     titleCell.fill  = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8F8F6" } };
     titleCell.alignment = { vertical: "middle" };
@@ -485,14 +485,14 @@ export default function AdminLeads() {
         cell.alignment = { vertical: "middle", wrapText: colNum >= 7 };
         cell.border = { bottom: { style: "hair", color: { argb: "FFE5E5E0" } } };
         if (colNum === 1) cell.alignment = { horizontal: "center", vertical: "middle" };
-        /* Type cell — colour-coded */
+        /* Type cell - colour-coded */
         if (colNum === 2) {
           const argbBg = typeMeta.bg.replace("#", "FF").padStart(8, "FF");
           const argbFg = typeMeta.color.replace("#", "FF").padStart(8, "FF");
           cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: argbBg } };
           cell.font = { bold: true, size: 10, name: "Calibri", color: { argb: argbFg } };
         }
-        /* Status cell — colour-coded */
+        /* Status cell - colour-coded */
         if (colNum === 3) {
           const argbBg = statusMeta.bg.replace("#", "FF").padStart(8, "FF");
           const argbFg = statusMeta.color.replace("#", "FF").padStart(8, "FF");

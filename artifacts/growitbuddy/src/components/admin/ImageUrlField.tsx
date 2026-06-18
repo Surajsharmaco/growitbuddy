@@ -57,7 +57,7 @@ export function ImageUrlField({
         setUploadError((data as { error?: string }).error ?? `Upload failed (${res.status})`);
       }
     } catch {
-      setUploadError("Network error — please try again.");
+      setUploadError("Network error - please try again.");
     } finally {
       setUploading(false);
     }

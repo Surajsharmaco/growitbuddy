@@ -82,7 +82,7 @@ export default function SEOMeta({
     const schemaId = "gb-jsonld";
     let script = document.getElementById(schemaId) as HTMLScriptElement | null;
     if (script && script.getAttribute("data-gb-admin") === "1") {
-      // admin schema is in control — leave it alone
+      // admin schema is in control - leave it alone
     } else if (schema) {
       if (!script) {
         script = document.createElement("script");

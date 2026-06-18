@@ -55,7 +55,7 @@ export function MediaLibrary({ onSelect, onClose }: Props) {
         setUploadError((data as { error?: string }).error ?? `Upload failed (${res.status})`);
       }
     } catch {
-      setUploadError("Network error — please check your connection and try again.");
+      setUploadError("Network error - please check your connection and try again.");
     } finally {
       setUploading(false);
     }

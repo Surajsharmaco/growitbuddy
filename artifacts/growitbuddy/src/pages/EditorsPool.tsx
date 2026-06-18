@@ -8,7 +8,7 @@ const config: PoolConfig = {
     eyebrow: "VIDEO EDITORS NETWORK",
     headline: "Edit content that builds creator authority.",
     description: "Join our video editor network and help founders and creators turn raw footage into high-retention long-form, shorts, and podcast edits.",
-    opportunityText: "Great editors don't just cut clips — they shape narrative, pacing, and retention. We work with editors who think like storytellers, not button-pushers.",
+    opportunityText: "Great editors don't just cut clips - they shape narrative, pacing, and retention. We work with editors who think like storytellers, not button-pushers.",
     ctaPrimary: "Submit Your Reel",
     ctaSecondary: "View Resources",
     videoUrl: "",

@@ -6,7 +6,7 @@ import BlockRenderer, { type Block, type BlockStyle } from "./BlockRenderer";
 import { makeBlock, ADDABLE_BLOCKS } from "./blockDefaults";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BlockEditor — Wix-style inline editor that renders IDENTICALLY to the public
+// BlockEditor - Wix-style inline editor that renders IDENTICALLY to the public
 // case study page (BlockRenderer). The only differences in edit mode are:
 //
 //   • Hover any block → outline appears + per-block toolbar (drag, move,
@@ -19,11 +19,11 @@ import { makeBlock, ADDABLE_BLOCKS } from "./blockDefaults";
 //
 // Visual fidelity is preserved by mirroring BlockRenderer's exact CSS values
 // (fonts, sizes, colors, padding, Container) inside each Edit* component. No
-// extra padding, controls, or chrome leaks into the layout — controls only
+// extra padding, controls, or chrome leaks into the layout - controls only
 // appear on hover/selection, layered above via absolute positioning.
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Theme constants — must match BlockRenderer.tsx exactly.
+// Theme constants - must match BlockRenderer.tsx exactly.
 const BG    = "#F8F8F6";
 const TEXT  = "#0A0A0A";
 const SLATE = "#1E293B";
@@ -113,7 +113,7 @@ export default function BlockEditor({ portfolioId, initialBlocks, onSaved, onExi
         setTimeout(() => setSaveMsg(null), 2500);
       }
     } catch {
-      setSaveMsg("Network error — try again.");
+      setSaveMsg("Network error - try again.");
     } finally {
       setSaving(false);
     }
@@ -158,7 +158,7 @@ export default function BlockEditor({ portfolioId, initialBlocks, onSaved, onExi
         </div>
       )}
 
-      {/* ── Block list — visual mirror of BlockRenderer ─────────────── */}
+      {/* ── Block list - visual mirror of BlockRenderer ─────────────── */}
       <div style={{ display: "flex", flexDirection: "column" }}>
         {blocks.map((b, i) => (
           <React.Fragment key={b.id}>
@@ -211,7 +211,7 @@ export default function BlockEditor({ portfolioId, initialBlocks, onSaved, onExi
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Container — mirrors BlockRenderer's <Container> exactly so edit-mode layout
+// Container - mirrors BlockRenderer's <Container> exactly so edit-mode layout
 // matches public-mode 1:1.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -235,7 +235,7 @@ function Container({ block, children }: { block: Block; children: React.ReactNod
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BlockShell — wraps one block. Visual matches BlockRenderer's outer wrapper
+// BlockShell - wraps one block. Visual matches BlockRenderer's outer wrapper
 // (padding "20px 0"). All editing chrome is layered absolutely so it never
 // shifts content.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -279,7 +279,7 @@ function BlockShell({
         transition: "outline-color 120ms",
       }}
     >
-      {/* Hover/selected toolbar — absolute, doesn't affect layout */}
+      {/* Hover/selected toolbar - absolute, doesn't affect layout */}
       {outlined && (
         <div
           onClick={(e) => e.stopPropagation()}
@@ -310,7 +310,7 @@ function BlockShell({
   );
 }
 
-// Per-type secondary toolbar (heading level, image width, etc.) — kept INSIDE
+// Per-type secondary toolbar (heading level, image width, etc.) - kept INSIDE
 // the dark toolbar bar so it never leaks into the content area.
 function BlockQuickControls({ block, onUpdateProps }: { block: Block; onUpdateProps: (p: Record<string, unknown>) => void }) {
   switch (block.type) {
@@ -368,7 +368,7 @@ function BlockQuickControls({ block, onUpdateProps }: { block: Block; onUpdatePr
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// EditableBlock — picks the right editor per block type. Each editor mirrors
+// EditableBlock - picks the right editor per block type. Each editor mirrors
 // the public BlockRenderer styling exactly. Blocks with no editable inline
 // surface (divider, spacer, columns) defer to BlockRenderer directly.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -386,13 +386,13 @@ function EditableBlock({ block, onUpdateProps }: { block: Block; onUpdateProps: 
     case "gallery":     return <EditGallery block={block} onUpdateProps={onUpdateProps} />;
     case "button":      return <EditButton block={block} onUpdateProps={onUpdateProps} />;
     default:
-      // divider, spacer, columns — no editable text/image surface, just render.
+      // divider, spacer, columns - no editable text/image surface, just render.
       return <BlockRenderer blocks={[block]} />;
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Inline editable primitives — contentEditable kept in a ref to avoid React
+// Inline editable primitives - contentEditable kept in a ref to avoid React
 // re-mount caret jumps. innerText/innerHTML is synced ONCE on mount; further
 // updates come from blur only.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -441,7 +441,7 @@ function InlineHTML({ html, onChange, style }: { html: string; onChange: (v: str
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Per-type editors — each mirrors BlockRenderer's exact markup + styles.
+// Per-type editors - each mirrors BlockRenderer's exact markup + styles.
 // ─────────────────────────────────────────────────────────────────────────────
 
 function EditHeading({ block, onUpdateProps }: { block: Block; onUpdateProps: (p: Record<string, unknown>) => void }) {

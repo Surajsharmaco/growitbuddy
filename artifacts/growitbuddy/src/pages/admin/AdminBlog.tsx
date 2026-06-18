@@ -839,7 +839,7 @@ function PostEditor({
     setExpandedFix(null);
   }
 
-  // Apply many fixes at once but show a SINGLE summary toast — avoids the
+  // Apply many fixes at once but show a SINGLE summary toast - avoids the
   // "toast storm" where one alert fired per fix when using "Fix All".
   function applyAllFixes(fixes: { field: string; value: string }[]) {
     if (fixes.length === 0) return;
@@ -2658,7 +2658,7 @@ export default function AdminBlog() {
   }
 
   async function handleSave(post: BlogPost) {
-    // Enforce unique slugs so two posts can never collide — a collision makes
+    // Enforce unique slugs so two posts can never collide - a collision makes
     // a post appear to "duplicate" or silently overwrite another on save.
     const norm = (s?: string) => (s ?? "").trim().toLowerCase();
     const slugTaken = posts.some(

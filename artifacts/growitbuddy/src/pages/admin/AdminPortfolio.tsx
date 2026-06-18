@@ -211,7 +211,7 @@ function ItemForm({
         )}
       </div>
 
-      {/* Custom Thumbnail / Cover — overrides the auto-generated poster */}
+      {/* Custom Thumbnail / Cover - overrides the auto-generated poster */}
       <div style={{ border: "1.5px solid #E5E5E0", borderRadius: 10, padding: 14, background: "#FAFAF7" }}>
         <ImagePickerField
           label="Custom Cover / Thumbnail (optional)"
@@ -506,7 +506,7 @@ function ItemForm({
 
             {/* Testimonial */}
             <div>
-              <label style={labelStyle}>Testimonial — Quote</label>
+              <label style={labelStyle}>Testimonial - Quote</label>
               <textarea
                 style={{ ...inputStyle, minHeight: 70, resize: "vertical" }}
                 placeholder="They built a system we now run ourselves…"
@@ -515,7 +515,7 @@ function ItemForm({
               />
             </div>
             <div>
-              <label style={labelStyle}>Testimonial — Author</label>
+              <label style={labelStyle}>Testimonial - Author</label>
               <input
                 style={inputStyle}
                 placeholder="Founder, Series-A SaaS"

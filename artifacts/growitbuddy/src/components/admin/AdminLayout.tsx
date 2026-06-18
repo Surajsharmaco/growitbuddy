@@ -141,7 +141,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
     function onSameTab() { load(); }
     window.addEventListener("storage", onStorage);
     document.addEventListener("visibilitychange", onVisible);
-    // Same-tab event — storage doesn't fire in the originating tab, so the
+    // Same-tab event - storage doesn't fire in the originating tab, so the
     // Page Variants admin form dispatches a CustomEvent after saves.
     window.addEventListener("gb-variants-updated", onSameTab);
     return () => {
@@ -175,7 +175,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
     return items.length > 0 ? { label: "Published Variants", items } : null;
   })();
 
-  // isActive must distinguish variant routes from their base page — e.g.
+  // isActive must distinguish variant routes from their base page - e.g.
   // /admin/home?variant=home-students must NOT highlight the base "Home Page"
   // nav item. We parse the query string for ?variant= and treat any href
   // containing it as a distinct route.
@@ -185,10 +185,10 @@ export function AdminLayout({ children }: { children: ReactNode }) {
     const hrefVariant = new URLSearchParams(hrefQuery).get("variant") ?? "";
     const curVariant = currentVariantSlug() ?? "";
     if (hrefVariant) {
-      // Variant nav item — match only when path AND variant slug match exactly.
+      // Variant nav item - match only when path AND variant slug match exactly.
       return location.startsWith(hrefPath) && curVariant === hrefVariant;
     }
-    // Base nav item — match path but only when NO variant is active, so the
+    // Base nav item - match path but only when NO variant is active, so the
     // base "Home Page" item doesn't light up while editing a variant of it.
     return location.startsWith(hrefPath) && !curVariant;
   }

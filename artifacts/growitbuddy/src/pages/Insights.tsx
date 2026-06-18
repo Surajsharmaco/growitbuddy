@@ -11,7 +11,7 @@ import SEOMeta from "@/components/SEOMeta";
 export default function Insights() {
   const [activeTag, setActiveTag] = useState("All");
   // CMS is the source of truth, merged with any WordPress posts. If both are
-  // empty the page shows an honest empty state — we never fall back to the
+  // empty the page shows an honest empty state - we never fall back to the
   // bundled seed posts, because that resurrected deleted posts on every refresh.
   const { posts: cmsPosts } = usePublicContent<{ posts: BlogPost[] }>("blog", { posts: [] });
   const { posts: wpPosts } = useWordPressPosts();
@@ -47,7 +47,7 @@ export default function Insights() {
         } as Record<string, unknown>}
       />
 
-      {/* Hero — tightened vertical rhythm */}
+      {/* Hero - tightened vertical rhythm */}
       <section style={{ paddingTop: "clamp(56px, 11vw, 88px)", paddingBottom: "clamp(28px, 6vw, 48px)", paddingLeft: 18, paddingRight: 18, borderBottom: "1px solid #E5E5E0" }}>
         <div className="max-w-[1100px] mx-auto">
           <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#7A7A85", marginBottom: 16 }}>The Blog</p>
@@ -74,7 +74,7 @@ export default function Insights() {
       <section style={{ padding: "clamp(20px, 4vw, 36px) 18px clamp(48px, 9vw, 80px)", background: "#FFFFFF" }}>
         <div className="max-w-[1100px] mx-auto">
 
-          {/* Filter bar — horizontally scrollable on mobile */}
+          {/* Filter bar - horizontally scrollable on mobile */}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
             {allTags.map(tag => (
               <button
@@ -99,7 +99,7 @@ export default function Insights() {
             ))}
           </div>
 
-          {/* Grid — single column on mobile, multi-column on tablet/desktop */}
+          {/* Grid - single column on mobile, multi-column on tablet/desktop */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 300px), 1fr))", gap: 14 }}>
             {filtered.map((post, i) => {
               const featured = i === 0 && activeTag === "All";

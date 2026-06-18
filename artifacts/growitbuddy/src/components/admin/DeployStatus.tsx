@@ -220,7 +220,7 @@ export function DeployStatus() {
             To show live Vercel &amp; Render deploy status here, add a{" "}
             <span className="font-mono font-semibold">GITHUB_TOKEN</span> to the API server's
             environment on Render (Dashboard → your API service → Environment). Use a read-only
-            GitHub access token. Your website works perfectly without it — this panel is only for
+            GitHub access token. Your website works perfectly without it - this panel is only for
             tracking deployments.
           </p>
         </div>

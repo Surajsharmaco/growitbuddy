@@ -83,7 +83,7 @@ function LinksSectionEditor({ section, onChange }: { section: LinksSection; onCh
                 <Input value={l.sublabel || ""} onChange={(e) => setItems(items.map((x) => x.id === l.id ? { ...x, sublabel: e.target.value } : x))} placeholder="Optional subtitle" />
                 <Input
                   label="Link"
-                  hint="Paste any link here — a website (https://example.com), an email, a phone number, or an internal page like /contact. External links open in a new tab."
+                  hint="Paste any link here - a website (https://example.com), an email, a phone number, or an internal page like /contact. External links open in a new tab."
                   value={l.url}
                   onChange={(e) => setItems(items.map((x) => x.id === l.id ? { ...x, url: e.target.value } : x))}
                   placeholder="https://example.com"
@@ -100,7 +100,7 @@ function LinksSectionEditor({ section, onChange }: { section: LinksSection; onCh
                   </select>
                 </Field>
                 <ImagePickerField
-                  label={l.display === "large" || l.display === "image" ? "Thumbnail (shown big — recommended)" : "Thumbnail (optional)"}
+                  label={l.display === "large" || l.display === "image" ? "Thumbnail (shown big - recommended)" : "Thumbnail (optional)"}
                   value={l.thumbnailUrl || ""}
                   onChange={(url) => setItems(items.map((x) => x.id === l.id ? { ...x, thumbnailUrl: url } : x))}
                   shape="square"
@@ -308,7 +308,7 @@ export default function AdminLinks() {
             <a href="/links" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#0B0B0B]/70 underline inline-flex items-center gap-1">
               /links <ExternalLink size={12} />
             </a>
-            . Build it from sections — add, hide, reorder or remove anything.
+            . Build it from sections - add, hide, reorder or remove anything.
           </span>
         }
       />
@@ -334,7 +334,7 @@ export default function AdminLinks() {
         {/* Appearance */}
         <Card>
           <SectionTitle>Appearance</SectionTitle>
-          <Field label="Accent color" hint="Soft gold by default — used for highlights, the avatar ring and featured buttons.">
+          <Field label="Accent color" hint="Soft gold by default - used for highlights, the avatar ring and featured buttons.">
             <div className="flex items-center gap-2.5 max-w-xs">
               <input type="color" value={data.accentColor} onChange={(e) => patch({ accentColor: e.target.value })} className="w-11 h-11 rounded-xl border border-[#0B0B0B]/12 bg-white cursor-pointer p-1" />
               <Input value={data.accentColor} onChange={(e) => patch({ accentColor: e.target.value })} placeholder="#C2A878" className="flex-1" />

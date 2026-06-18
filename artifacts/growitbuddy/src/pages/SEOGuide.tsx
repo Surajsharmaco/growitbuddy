@@ -14,7 +14,7 @@ export default function SEOGuide() {
   const data = usePublicContent<SeoGuideData>("seo-guide", SEO_GUIDE_DEFAULTS);
 
   useEffect(() => {
-    document.title = "GrowitBuddy — Internal SEO Guide";
+    document.title = "GrowitBuddy - Internal SEO Guide";
     const setMeta = (name: string, content: string) => {
       let el = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
       if (!el) {

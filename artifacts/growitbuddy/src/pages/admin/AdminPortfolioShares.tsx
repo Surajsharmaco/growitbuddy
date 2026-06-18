@@ -196,12 +196,12 @@ export default function AdminPortfolioShares() {
               </div>
 
               <label className="block text-[11px] font-bold uppercase tracking-[0.14em] text-[#0B0B0B]/55 mb-2">
-                Label (private — only you see this)
+                Label (private - only you see this)
               </label>
               <input
                 value={draft.title}
                 onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
-                placeholder="e.g. Acme Corp pitch — no SMM"
+                placeholder="e.g. Acme Corp pitch - no SMM"
                 className="w-full px-3 py-2 border border-[#E5E5E0] rounded-lg bg-white text-[14px] text-[#0B0B0B] mb-6 focus:outline-none focus:border-[#1E293B]"
               />
 
@@ -334,7 +334,7 @@ export default function AdminPortfolioShares() {
                     )}
                     {(s.staleItemCount ?? 0) > 0 && (
                       <span className="px-2 py-0.5 rounded-full bg-[#FFF7ED] text-[#9A3412] border border-[#FDBA74]">
-                        ⚠ {s.staleItemCount} hidden item{s.staleItemCount === 1 ? "" : "s"} deleted — edit to clean up
+                        ⚠ {s.staleItemCount} hidden item{s.staleItemCount === 1 ? "" : "s"} deleted - edit to clean up
                       </span>
                     )}
                   </div>

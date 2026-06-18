@@ -290,7 +290,7 @@ export default function About() {
                 </div>
 
                 <p style={{ fontWeight: 800, fontSize: "clamp(22px, 3vw, 38px)", letterSpacing: "-0.04em", lineHeight: "1.18", color: "#0A0A0A", marginBottom: 24 }}>
-                  I built GrowitBuddy after seeing a pattern — the best people weren't the most visible.
+                  I built GrowitBuddy after seeing a pattern - the best people weren't the most visible.
                 </p>
 
                 <p style={{ fontWeight: 500, fontSize: "clamp(15px, 1.8vw, 19px)", letterSpacing: "-0.01em", lineHeight: "1.6", color: "#6A6A64", marginBottom: 28, fontStyle: "italic" }}>
@@ -298,7 +298,7 @@ export default function About() {
                 </p>
 
                 <p style={{ fontWeight: 800, fontSize: "clamp(18px, 2.2vw, 28px)", letterSpacing: "-0.035em", lineHeight: "1.3", color: "#1E293B", marginBottom: 36 }}>
-                  Authority isn't given. It's built — with the right{" "}
+                  Authority isn't given. It's built - with the right{" "}
                   <span style={{ borderBottom: "3px solid #C2A878", paddingBottom: 2 }}>system</span>.
                 </p>
 

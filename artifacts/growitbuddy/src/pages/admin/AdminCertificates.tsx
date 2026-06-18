@@ -144,7 +144,7 @@ function CertRow({
               <textarea
                 value={form.remark}
                 onChange={(e) => set({ remark: e.target.value })}
-                placeholder="e.g. Outstanding contribution during the Q1 growth sprint — consistently delivered above expectations."
+                placeholder="e.g. Outstanding contribution during the Q1 growth sprint - consistently delivered above expectations."
                 rows={3}
                 maxLength={400}
                 className="w-full px-3 py-2.5 border border-[#0B0B0B]/12 rounded-xl text-[13px] text-[#0B0B0B] placeholder-[#0B0B0B]/30 outline-none focus:border-[#0B0B0B]/30 bg-white resize-y leading-relaxed"
@@ -386,7 +386,7 @@ export default function AdminCertificates() {
               <textarea
                 value={newForm.remark}
                 onChange={(e) => setNewForm((p) => ({ ...p, remark: e.target.value }))}
-                placeholder="e.g. Outstanding contribution during the Q1 growth sprint — consistently delivered above expectations."
+                placeholder="e.g. Outstanding contribution during the Q1 growth sprint - consistently delivered above expectations."
                 rows={3}
                 maxLength={400}
                 className="w-full px-3 py-2.5 border border-[#0B0B0B]/12 rounded-xl text-[13px] text-[#0B0B0B] placeholder-[#0B0B0B]/30 outline-none focus:border-[#0B0B0B]/30 bg-white resize-y leading-relaxed"

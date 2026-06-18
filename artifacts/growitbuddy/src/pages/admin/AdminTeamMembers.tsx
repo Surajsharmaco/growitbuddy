@@ -254,7 +254,7 @@ export default function AdminTeamMembers() {
       if (!r.ok) {
         const body = await r.json().catch(() => null);
         const msg = (body as { error?: string } | null)?.error;
-        throw new Error(msg ?? (r.status === 401 ? "Session expired — please log in again" : `Request failed (${r.status})`));
+        throw new Error(msg ?? (r.status === 401 ? "Session expired - please log in again" : `Request failed (${r.status})`));
       }
       await load();
       cancelForm();

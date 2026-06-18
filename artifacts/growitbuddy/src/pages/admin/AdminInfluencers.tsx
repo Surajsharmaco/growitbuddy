@@ -128,14 +128,14 @@ function InfluencerRow({
     <Card className="p-0 overflow-hidden">
       {/* Row header */}
       <div className="flex items-center gap-2 pr-3">
-        {/* Reorder handle — sets the order on the public page (no rank shown) */}
+        {/* Reorder handle - sets the order on the public page (no rank shown) */}
         <div className="flex flex-col items-center justify-center shrink-0 pl-3 text-[#0B0B0B]/30">
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
             disabled={!canMoveUp}
             aria-label={`Move ${inf.name || "influencer"} up`}
-            title="Move up — shows higher on the public page"
+            title="Move up - shows higher on the public page"
             className="p-0.5 rounded hover:bg-[#0B0B0B]/8 hover:text-[#0B0B0B] disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-[#0B0B0B]/30 disabled:cursor-not-allowed transition-colors"
           >
             <ChevronUp size={14} />
@@ -145,7 +145,7 @@ function InfluencerRow({
             onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
             disabled={!canMoveDown}
             aria-label={`Move ${inf.name || "influencer"} down`}
-            title="Move down — shows lower on the public page"
+            title="Move down - shows lower on the public page"
             className="p-0.5 rounded hover:bg-[#0B0B0B]/8 hover:text-[#0B0B0B] disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-[#0B0B0B]/30 disabled:cursor-not-allowed transition-colors"
           >
             <ChevronDown size={14} />
@@ -676,7 +676,7 @@ export default function AdminInfluencers() {
     /* ── Row 1: Title ── */
     ws.mergeCells(1, 1, 1, COLS.length);
     const titleCell = ws.getCell("A1");
-    titleCell.value = "GrowitBuddy — Influencer Directory";
+    titleCell.value = "GrowitBuddy - Influencer Directory";
     titleCell.font  = { bold: true, size: 15, color: { argb: "FF0A0A0A" }, name: "Calibri" };
     titleCell.fill  = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8F8F6" } };
     titleCell.alignment = { vertical: "middle" };
@@ -996,7 +996,7 @@ export default function AdminInfluencers() {
             {(search || nicheFilter !== "All" || countryFilter !== "All" || dateFilter !== "all") && (
               <div className="flex items-center gap-2 mt-2">
                 <span className="text-[12px] text-[#0B0B0B]/40">Showing {filtered.length} of {activeItems.length} influencers</span>
-                <span className="text-[11px] text-[#0B0B0B]/35 italic">· Reordering paused — clear filters to change the public order</span>
+                <span className="text-[11px] text-[#0B0B0B]/35 italic">· Reordering paused - clear filters to change the public order</span>
                 <button
                   onClick={() => { setSearch(""); setNicheFilter("All"); setCountryFilter("All"); setDateFilter("all"); }}
                   className="text-[11px] text-[#0B0B0B]/40 hover:text-[#0B0B0B] underline underline-offset-2 transition-colors"

@@ -361,13 +361,13 @@ export function Navbar() {
               fontFamily: "'Inter', sans-serif",
             }}
           >
-            {/* Soft brand-aligned glow — same cream/gold palette as the rest of the site */}
+            {/* Soft brand-aligned glow - same cream/gold palette as the rest of the site */}
             <div aria-hidden style={{
               position: "absolute", inset: 0, pointerEvents: "none",
               background: "radial-gradient(ellipse 70% 50% at 10% 0%, rgba(194,168,120,0.10), transparent 60%), radial-gradient(ellipse 60% 60% at 100% 100%, rgba(30,41,59,0.06), transparent 70%)",
             }} />
 
-            {/* Top bar — logo + close, matches navbar height */}
+            {/* Top bar - logo + close, matches navbar height */}
             <div style={{
               position: "relative",
               height: 72,
@@ -416,7 +416,7 @@ export function Navbar() {
               </button>
             </div>
 
-            {/* Main content — two columns on desktop, stacked on mobile */}
+            {/* Main content - two columns on desktop, stacked on mobile */}
             <div style={{
               position: "relative",
               maxWidth: 1400,
@@ -426,7 +426,7 @@ export function Navbar() {
               gridTemplateColumns: "1fr",
               gap: "clamp(24px, 4vw, 56px)",
             }} className="gb-menu-grid">
-              {/* Left — primary links */}
+              {/* Left - primary links */}
               <nav style={{ display: "flex", flexDirection: "column", gap: "clamp(2px, 0.6vw, 6px)" }}>
                 {(() => {
                   type FlatItem = { href: string; label: string; subItems?: NavDropdownItem[] };
@@ -542,7 +542,7 @@ export function Navbar() {
                 })()}
               </nav>
 
-              {/* Right — meta: CTAs, contact, year */}
+              {/* Right - meta: CTAs, contact, year */}
               <m.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}

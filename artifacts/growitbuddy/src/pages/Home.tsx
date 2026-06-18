@@ -347,7 +347,7 @@ export default function Home() {
                   flexDirection: "column",
                 }}
               >
-                {/* Film-grain texture — matches the solid cards & dark sections */}
+                {/* Film-grain texture - matches the solid cards & dark sections */}
                 <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat", opacity: 0.5, pointerEvents: "none", zIndex: -1 }} />
 
                 {/* Gold top accent bar */}

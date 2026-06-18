@@ -188,7 +188,7 @@ h1, h2, h3, h4 {
   50%       { box-shadow: 0 0 20px 4px var(--gb-accent-glow); }
 }
 
-/* ── GB Button: primary CTA — site-wide unified pill ── */
+/* ── GB Button: primary CTA - site-wide unified pill ── */
 .gb-btn {
   position: relative;
   display: inline-flex;
@@ -247,7 +247,7 @@ h1, h2, h3, h4 {
 .gb-btn:disabled::before { display: none; }
 .gb-btn:disabled:hover { transform: none; box-shadow: 0 2px 8px rgba(30,41,59,0.10); }
 
-/* ── GB Button: light — inverse pill for dark (navy) cards ── */
+/* ── GB Button: light - inverse pill for dark (navy) cards ── */
 .gb-btn-light {
   position: relative;
   display: inline-flex;
@@ -280,7 +280,7 @@ h1, h2, h3, h4 {
 .gb-btn-light svg { transition: transform 0.3s cubic-bezier(0.22,1,0.36,1); flex-shrink: 0; }
 .gb-btn-light:hover svg { transform: translateX(4px); }
 
-/* ── GB Button: outline — matching pill ── */
+/* ── GB Button: outline - matching pill ── */
 .gb-btn-outline {
   display: inline-flex;
   align-items: center;
@@ -387,22 +387,22 @@ h1, h2, h3, h4 {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   PREMIUM SECTION TEXTURE — subtle dot-grid + atmospheric wash
+   PREMIUM SECTION TEXTURE - subtle dot-grid + atmospheric wash
    Reusable backgrounds for otherwise-flat light sections so the
    site doesn't read as empty/white. Applied via className on top
    of an inline backgroundColor (keep backgroundColor, NOT the
    `background` shorthand, or it resets these background-images).
-   Keep it subtle — premium, not busy.
+   Keep it subtle - premium, not busy.
    ───────────────────────────────────────────────────────────── */
 
-/* Dot-grid removed per request — these sections now render flat on their
+/* Dot-grid removed per request - these sections now render flat on their
    own inline backgroundColor. Class kept so existing usages stay valid. */
 .gb-dots {
   background-image: none;
 }
 
 /* ── Hero background (SendRoq-style) ──
-   Dot-grid removed per request — only a faint top "cover" radial remains so
+   Dot-grid removed per request - only a faint top "cover" radial remains so
    the heroes settle onto the page/section background. The vertical guide-lines
    + "+" crosshairs come from the <BlueprintLines/> overlay (unaffected). */
 .gb-hero-grid {
@@ -605,7 +605,7 @@ section {
 
   .csp-pad, .tp-pad, .jn-pad { padding-top: 44px !important; padding-bottom: 44px !important; }
 
-  /* Tighter horizontal padding on phones — was 24px almost everywhere */
+  /* Tighter horizontal padding on phones - was 24px almost everywhere */
   section[style*="padding-left: 24px"] { padding-left: 18px !important; }
   section[style*="padding-right: 24px"] { padding-right: 18px !important; }
   section[style*="padding: 96px 24px"],
@@ -616,14 +616,14 @@ section {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   GLOBAL SECTION DENSITY — desktop & mobile
+   GLOBAL SECTION DENSITY - desktop & mobile
    Round 2: user reported still-too-wide gaps between sections
    (e.g. between "See All Case Studies" and "ECOSYSTEM" block).
    Tighten 100px / 108px section paddings site-wide. Also covers
    the few 120px sections that aren't full heroes.
    ───────────────────────────────────────────────────────────── */
 
-/* DESKTOP — globally compress oversized section paddings */
+/* DESKTOP - globally compress oversized section paddings */
 section[style*="padding: 100px"]      { padding-top: 72px !important; padding-bottom: 72px !important; }
 section[style*='padding: "100px 24px 108px'],
 section[style*="padding: 100px 24px 108px"] { padding-top: 72px !important; padding-bottom: 76px !important; }
@@ -640,7 +640,7 @@ section[style*="padding: 100px 24px 108px"] { padding-top: 72px !important; padd
 }
 
 /* ─────────────────────────────────────────────────────────────
-   PORTFOLIO TILES — premium play-button hover behaviour.
+   PORTFOLIO TILES - premium play-button hover behaviour.
    Keep top of thumbnail clear so creator brand logos / faces
    are unobstructed at rest; intensify on hover.
    ───────────────────────────────────────────────────────────── */
@@ -654,7 +654,7 @@ section[style*="padding: 100px 24px 108px"] { padding-top: 72px !important; padd
   box-shadow: 0 14px 50px rgba(194,168,120,0.45), 0 0 0 6px rgba(194,168,120,0.15) !important;
 }
 
-/* Reel title hover — gold underline grows in from the left when the
+/* Reel title hover - gold underline grows in from the left when the
    user hovers anywhere on the tile. Title remains fully readable at
    rest thanks to its own bottom gradient and z-index above the play
    surface. */

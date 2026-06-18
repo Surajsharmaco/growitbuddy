@@ -56,7 +56,7 @@ export default function Resources() {
   const items = cms.items || [];
   const faqs = cms.faqs || [];
 
-  // Categories — explicit list wins; otherwise derive from item tags.
+  // Categories - explicit list wins; otherwise derive from item tags.
   const derivedTags = useMemo(() => Array.from(new Set(items.map((it) => it.tag).filter(Boolean))), [items]);
   const categories = useMemo(() => {
     const explicit = (cms.categories || []).filter(Boolean);
@@ -92,7 +92,7 @@ export default function Resources() {
 
   // ── JSON-LD graph: CollectionPage + ItemList + FAQPage + BreadcrumbList ────
   // Each resource emits a DigitalDocument node so AI/answer engines have rich,
-  // citable, per-item metadata — not just a flat list. Page-level AI fields
+  // citable, per-item metadata - not just a flat list. Page-level AI fields
   // (aiSummary, primaryEntity, audience, mentions) feed CollectionPage `about`
   // / `mentions` / `audience` for entity-SEO and topical authority.
   const canonical = cms.canonicalUrl || `${SITE}/resources`;
@@ -216,7 +216,7 @@ export default function Resources() {
             </a>
           )}
 
-          {/* ── Quick Answer / AI summary block — VISIBLE for users, also a
+          {/* ── Quick Answer / AI summary block - VISIBLE for users, also a
               canonical answer source for LLMs and AEO (People-Also-Ask). ── */}
           {(cms.aiSummary || factsList.length > 0) && (
             <div
@@ -381,7 +381,7 @@ export default function Resources() {
   );
 }
 
-// ── Email gate modal — captures an email before a gated resource is revealed ──
+// ── Email gate modal - captures an email before a gated resource is revealed ──
 function EmailGateModal({ item, onClose, onSuccess }: { item: ResourceItem; onClose: () => void; onSuccess: (email: string) => void }) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -476,7 +476,7 @@ function EmailGateModal({ item, onClose, onSuccess }: { item: ResourceItem; onCl
   );
 }
 
-// ── CTA buttons row — used by both featured & standard cards. Buttons are
+// ── CTA buttons row - used by both featured & standard cards. Buttons are
 // real <a> elements (not nested inside a card-wrapping anchor) so secondary
 // CTAs actually receive clicks. ─────────────────────────────────────────────
 function CtaRow({ item, dark = false, unlocked, onLockedClick }: { item: ResourceItem; dark?: boolean; unlocked: boolean; onLockedClick: (item: ResourceItem, targetUrl?: string) => void }) {

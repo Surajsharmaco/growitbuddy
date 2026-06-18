@@ -205,10 +205,10 @@ export function ImageCropUploader({ value, onChange, hint }: Props) {
         onChange(url);
       } else {
         const data = await res.json().catch(() => ({}));
-        setUploadError((data as { error?: string }).error ?? `Upload failed (${res.status}) — please try again`);
+        setUploadError((data as { error?: string }).error ?? `Upload failed (${res.status}) - please try again`);
       }
     } catch {
-      setUploadError("Network error — please check your connection and try again.");
+      setUploadError("Network error - please check your connection and try again.");
     } finally {
       setUploading(false);
     }

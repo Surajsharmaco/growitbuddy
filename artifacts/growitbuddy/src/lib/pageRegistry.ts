@@ -5,7 +5,7 @@
  * frontend, the API sitemap, and the static sitemap generator all stay in sync.
  * This file re-exports it so existing `@/lib/pageRegistry` imports keep working.
  *
- * To add or edit a page, edit `lib/seo/src/index.ts` — not this file.
+ * To add or edit a page, edit `lib/seo/src/index.ts` - not this file.
  */
 
 export {

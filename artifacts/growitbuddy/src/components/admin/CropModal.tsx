@@ -233,7 +233,7 @@ export function CropModal({
       const dispW = img.clientWidth || imgDisplay.w;
       const dispH = img.clientHeight || imgDisplay.h;
       if (!dispW || !dispH || !img.naturalWidth || !img.naturalHeight) {
-        throw new Error("Image not ready — please try again.");
+        throw new Error("Image not ready - please try again.");
       }
       const scaleX = img.naturalWidth / dispW;
       const scaleY = img.naturalHeight / dispH;
@@ -265,11 +265,11 @@ export function CropModal({
         0, 0, outW, outH
       );
       const blob = await new Promise<Blob>((resolve, reject) =>
-        canvas.toBlob((b) => b ? resolve(b) : reject(new Error("Could not render crop — please try again.")), "image/png", 0.92)
+        canvas.toBlob((b) => b ? resolve(b) : reject(new Error("Could not render crop - please try again.")), "image/png", 0.92)
       );
       onComplete(blob);
     } catch (err) {
-      setApplyError(err instanceof Error ? err.message : "Crop failed — please try again.");
+      setApplyError(err instanceof Error ? err.message : "Crop failed - please try again.");
       setWorking(false);
     }
   }

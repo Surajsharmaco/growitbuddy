@@ -313,7 +313,7 @@ export default function Contact() {
             {[
               "Response time: within 24 hours",
               "Minimum engagement: 3 months",
-              "Based globally — 4 timezones",
+              "Based globally - 4 timezones",
             ].map((text, i, arr) => (
               <div key={i} style={{ display: "flex", alignItems: "center" }}>
                 <span style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 24px", fontSize: 13, color: "#5F5F5F", fontWeight: 500 }}>

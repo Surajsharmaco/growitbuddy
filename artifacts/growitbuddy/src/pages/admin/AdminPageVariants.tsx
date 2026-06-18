@@ -1,4 +1,4 @@
-// Page Variants admin — list, create, edit, delete variants of any source page.
+// Page Variants admin - list, create, edit, delete variants of any source page.
 // Each variant has its own URL and its own per-section content (edited via the
 // existing admin form for that page, with ?variant=<slug> appended).
 import { useEffect, useMemo, useState } from "react";
@@ -167,7 +167,7 @@ export default function AdminPageVariants() {
           <h1 className="text-2xl font-black tracking-tight">Page Variants</h1>
           <p className="text-[13px] text-black/55 mt-1 max-w-2xl">
             Duplicate any page (Home, About, Services, Talent Pools, Blog, etc.) at a new URL with its own per-section content.
-            Same design, different content. Edit each variant just like you edit the original — open the variant, click Edit Content,
+            Same design, different content. Edit each variant just like you edit the original - open the variant, click Edit Content,
             and the existing admin form lets you change every section.
           </p>
         </div>
@@ -212,7 +212,7 @@ export default function AdminPageVariants() {
               type="text"
               value={newLabel}
               onChange={(e) => setNewLabel(e.target.value)}
-              placeholder="e.g. Home for Students, About — Diwali Campaign"
+              placeholder="e.g. Home for Students, About - Diwali Campaign"
               className="w-full px-3 py-2 rounded-lg border text-[13px] bg-white"
               style={{ borderColor: "#E5E5E0" }}
             />
@@ -250,7 +250,7 @@ export default function AdminPageVariants() {
             </label>
             <label className="inline-flex items-center gap-2 text-[12px]">
               <input type="checkbox" checked={newIsLive} onChange={(e) => setNewIsLive(e.target.checked)} />
-              <span>Publish immediately (otherwise hidden — only you can preview)</span>
+              <span>Publish immediately (otherwise hidden - only you can preview)</span>
             </label>
           </div>
 
@@ -285,7 +285,7 @@ export default function AdminPageVariants() {
             return (
               <section key={src.key} className="space-y-2">
                 <h2 className="text-[11px] font-bold uppercase tracking-[0.15em] text-black/45">
-                  {src.label} — original at <code>{src.basePath}</code> · {list.length} {list.length === 1 ? "variant" : "variants"}
+                  {src.label} - original at <code>{src.basePath}</code> · {list.length} {list.length === 1 ? "variant" : "variants"}
                 </h2>
                 <div className="space-y-2">
                   {list.map((v) => (

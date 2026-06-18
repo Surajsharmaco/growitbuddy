@@ -404,7 +404,7 @@ export default function AdminTalentPoolLeads() {
 
     ws.mergeCells(1, 1, 1, COLS.length);
     const titleCell = ws.getCell("A1");
-    titleCell.value = "GrowitBuddy — Talent Pool Submissions";
+    titleCell.value = "GrowitBuddy - Talent Pool Submissions";
     titleCell.font  = { bold: true, size: 15, color: { argb: "FF0A0A0A" }, name: "Calibri" };
     titleCell.fill  = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8F8F6" } };
     titleCell.alignment = { vertical: "middle" };

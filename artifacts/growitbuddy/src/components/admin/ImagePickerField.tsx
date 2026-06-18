@@ -54,7 +54,7 @@ export function ImagePickerField({ value, onChange, label, shape = "circle", siz
         setUploadError((data as { error?: string }).error ?? `Upload failed (${res.status})`);
       }
     } catch {
-      setUploadError("Network error — please try again.");
+      setUploadError("Network error - please try again.");
     } finally {
       setUploading(false);
     }

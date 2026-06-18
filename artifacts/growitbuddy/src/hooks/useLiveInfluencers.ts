@@ -18,8 +18,8 @@ interface InfluencerCache {
 // influencers), written server-side straight from Neon (no API cold start). This
 // makes the FIRST paint reflect CURRENT admin data and, crucially, respect an
 // intentionally-empty directory. Without it the page first-painted hardcoded demo
-// influencers and — if the free-tier API was asleep when the client refresh fired
-// — stayed stuck on that demo data (the "deleted influencers reappear / alternate
+// influencers and - if the free-tier API was asleep when the client refresh fired
+// - stayed stuck on that demo data (the "deleted influencers reappear / alternate
 // every refresh" bug).
 function readBootstrapInfluencers(): InfluencerCache | null {
   if (typeof window === "undefined") return null;
@@ -123,7 +123,7 @@ export function useLiveInfluencers(): LiveInfluencersResult {
         setCountries(data.countries);
       }
       // Resolve loading on BOTH success and failure: a sleeping API should
-      // surface an honest empty state, never an endless spinner — and never the
+      // surface an honest empty state, never an endless spinner - and never the
       // hardcoded demo data we deliberately stopped seeding into initial state.
       setLoading(false);
     }

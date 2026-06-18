@@ -8,7 +8,7 @@ export interface LinkItem {
   enabled?: boolean;
   /**
    * How this single link renders inside a "list" layout section:
-   * - "normal": compact row (icon/thumbnail left, text right) — the default.
+   * - "normal": compact row (icon/thumbnail left, text right) - the default.
    * - "large":  big thumbnail on top with the title + subtitle below it.
    * - "image":  just the big thumbnail, no text.
    */
@@ -291,7 +291,7 @@ export const LINKS_DEFAULTS: LinksData = {
  * NO `sections`. `usePublicContent` shallow-merges `LINKS_DEFAULTS` into fetched
  * rows, so a legacy row would otherwise pick up the DEFAULT sections (and even a
  * default `schemaVersion`). We therefore detect legacy data by the presence of
- * top-level `links`/`socials` keys — which v2 NEVER persists — and synthesize the
+ * top-level `links`/`socials` keys - which v2 NEVER persists - and synthesize the
  * sections from them so no saved content is ever lost.
  */
 export function migrateLinksData(raw: unknown): LinksData {

@@ -111,7 +111,7 @@ function DefaultErrorFallback() {
 
 /**
  * Error boundary that automatically resets when the route changes, so a
- * crash on one page doesn't trap the user — navigating elsewhere recovers.
+ * crash on one page doesn't trap the user - navigating elsewhere recovers.
  */
 export function RouteErrorBoundary({ children, fallback }: { children: ReactNode; fallback?: ReactNode }) {
   const [location] = useLocation();

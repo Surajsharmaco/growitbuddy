@@ -11,7 +11,7 @@ import { VariantProvider } from "@/context/VariantContext";
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 // Lazy-import all variant-capable source components on demand. Mirror of the
-// VARIANT_SOURCES registry in lib/variantSources.ts — keep in sync when
+// VARIANT_SOURCES registry in lib/variantSources.ts - keep in sync when
 // adding a new source page.
 const SOURCE_COMPONENTS: Record<string, React.LazyExoticComponent<React.ComponentType<unknown>>> = {
   "home":                     lazy(() => import("@/pages/Home")),

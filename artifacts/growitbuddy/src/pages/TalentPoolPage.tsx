@@ -149,7 +149,7 @@ function VideoPlayer({ url }: { url: string }) {
             {url && !embedSrc && <span style={{ fontSize: 11, fontWeight: 700, color: "#B4452F", letterSpacing: "0.12em", textTransform: "uppercase" }}>Unsupported URL</span>}
             {parsed.source === "drive" && !playing && (
               <span style={{ display: "block", fontSize: 11, color: "rgba(255,255,255,0.7)", marginTop: 8, letterSpacing: "0.06em" }}>
-                Drive video — ensure "Anyone with link" access
+                Drive video - ensure "Anyone with link" access
               </span>
             )}
           </div>
@@ -200,15 +200,15 @@ function PoolForm({ d, formVariant, poolType, submitLabel }: PoolFormProps) {
   }
 
   const successMessages: Record<string, string> = {
-    designers:  "Design submission received — you're in the network.",
-    thumbnail:  "Thumbnail submission received — we'll be in touch.",
-    writers:    "Writing sample received — welcome to the network.",
-    social:     "Profile received — you're part of the ecosystem.",
-    motion:     "Reel received — welcome to the motion network.",
-    ai:         "AI project received — we'll review and reach out.",
-    ugc:        "Content received — you're part of the UGC network.",
-    editors:    "Reel received — welcome to the video editor network.",
-    meme:       "Memes received — you're part of the culture network.",
+    designers:  "Design submission received - you're in the network.",
+    thumbnail:  "Thumbnail submission received - we'll be in touch.",
+    writers:    "Writing sample received - welcome to the network.",
+    social:     "Profile received - you're part of the ecosystem.",
+    motion:     "Reel received - welcome to the motion network.",
+    ai:         "AI project received - we'll review and reach out.",
+    ugc:        "Content received - you're part of the UGC network.",
+    editors:    "Reel received - welcome to the video editor network.",
+    meme:       "Memes received - you're part of the culture network.",
   };
 
   const inp = (label: string, val: string, onChange: (v: string) => void, type = "text", placeholder = "", required = true) => (
@@ -270,7 +270,7 @@ function PoolForm({ d, formVariant, poolType, submitLabel }: PoolFormProps) {
           <CheckCircle size={26} color="#1E293B" />
         </div>
         <h3 style={{ fontSize: 22, fontWeight: 800, color: "#0A0A0A", marginBottom: 10, letterSpacing: "-0.02em" }}>
-          {successMessages[formVariant] ?? "Submission received — thank you."}
+          {successMessages[formVariant] ?? "Submission received - thank you."}
         </h3>
         <p style={{ fontSize: 15, color: "#5F5F5F", maxWidth: 420, margin: "0 auto", lineHeight: 1.65 }}>
           You're now part of the GrowitBuddy creator ecosystem. We'll reach out when new opportunities align with your craft.
@@ -340,7 +340,7 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
         .tp-container-sm { max-width: 820px; margin: 0 auto; padding: 0 24px; }
         .tp-container-xs { max-width: 660px; margin: 0 auto; padding: 0 24px; }
 
-        /* Typography — site editorial scale */
+        /* Typography - site editorial scale */
         .tp-eyebrow {
           display: block;
           font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;

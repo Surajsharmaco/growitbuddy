@@ -1,4 +1,4 @@
-// Page Variants — registry of source pages that can be "duplicated" at a new
+// Page Variants - registry of source pages that can be "duplicated" at a new
 // URL. Each variant clones one of these pages (same React component, same
 // design) but reads its content from a namespaced site_content key so the
 // admin can edit each section independently per variant.

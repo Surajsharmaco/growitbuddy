@@ -10,7 +10,7 @@ const inFlight = new Map<string, Promise<object | null>>();
 
 // Seed the cache from the server-injected bootstrap (window.__GB_PUBLIC_CONTENT__,
 // written by the Vercel SSR renderer in api/render.ts). This makes the very
-// first render use CURRENT content with no network wait — eliminating the
+// first render use CURRENT content with no network wait - eliminating the
 // content flash and letting crawlers' JS render see real data immediately.
 try {
   const boot = (globalThis as { __GB_PUBLIC_CONTENT__?: Record<string, unknown> })
@@ -21,7 +21,7 @@ try {
     }
   }
 } catch {
-  /* no bootstrap (local dev or fallback shell) — non-fatal */
+  /* no bootstrap (local dev or fallback shell) - non-fatal */
 }
 
 // localStorage key used by the admin to signal "I just saved this section,
@@ -43,7 +43,7 @@ function parseBroadcast(value: string | null): string | null {
 
 export { parseBroadcast };
 
-// Per-section monotonic version counter — prevents an older in-flight fetch
+// Per-section monotonic version counter - prevents an older in-flight fetch
 // from overwriting newer data when refresh() is called multiple times.
 const versionCounter = new Map<string, number>();
 function nextVersion(section: string): number {
@@ -155,7 +155,7 @@ export function usePublicContent<T extends object>(
       setData((prev) => {
         const next = { ...prev, ...(fresh as Partial<T>) } as T;
         // Skip the state update (and re-render) when nothing actually
-        // changed — eliminates the visible "flash" on background refreshes.
+        // changed - eliminates the visible "flash" on background refreshes.
         return shallowEqual(prev as object, next as object) ? prev : next;
       });
     }
@@ -181,7 +181,7 @@ export function usePublicContent<T extends object>(
       const sec = parseBroadcast(e.newValue);
       if (sec === effectiveSection) refresh();
     }
-    // When the tab regains focus, also re-validate — covers the case where
+    // When the tab regains focus, also re-validate - covers the case where
     // a user updates the admin in one window and switches back to the public
     // window in another browser session that wasn't open at save time.
     function onVisible() {

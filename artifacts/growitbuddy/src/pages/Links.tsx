@@ -65,7 +65,7 @@ function initialsOf(name: string): string {
   );
 }
 
-/** Animated film-grain — same recipe used across the site (no dot grids). */
+/** Animated film-grain - same recipe used across the site (no dot grids). */
 function GrainOverlay() {
   return (
     <svg
@@ -358,7 +358,7 @@ function SocialRow({ section, accent }: { section: SocialsSection; accent: strin
 // ── Video block ───────────────────────────────────────────────────────
 // A few seconds after the video scrolls into view it auto-plays on its own
 // (muted, because browsers block unmuted autoplay). Until then it shows the
-// video's thumbnail as a preview — just like an image. Tapping the play
+// video's thumbnail as a preview - just like an image. Tapping the play
 // button starts it immediately, with sound.
 const VIDEO_AUTOPLAY_DELAY_MS = 1800;
 
@@ -520,7 +520,7 @@ function VideoBlock({ section, accent }: { section: VideoSection; accent: string
   } else if (canEmbed) {
     player = <EmbedVideoPlayer url={url} title={section.title} />;
   } else {
-    // Unrecognized provider — degrade to a tappable link rather than failing.
+    // Unrecognized provider - degrade to a tappable link rather than failing.
     const href = normalizeLinkUrl(url);
     player = (
       <a
@@ -629,7 +629,7 @@ function SectionRenderer({ section, accent }: { section: LinkSection; accent: st
             }
           >
             {items.map((link) => {
-              // "large" and "image" always render as a full-width block — in a
+              // "large" and "image" always render as a full-width block - in a
               // grid they span both columns so they never get squeezed.
               if (link.display === "large") {
                 return (
@@ -681,7 +681,7 @@ export default function Links() {
   return (
     <div style={{ position: "relative", minHeight: "100vh", background: BG, fontFamily: "'Inter', sans-serif", overflow: "hidden" }}>
       <SEOMeta
-        title={`${data.profileName} — Links`}
+        title={`${data.profileName} - Links`}
         description={data.bio || "All my links in one place."}
       />
 

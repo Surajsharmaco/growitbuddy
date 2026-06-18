@@ -19,16 +19,16 @@ interface SpeedData { dbResponseMs: number; contentRows: number; leadsRows: numb
 interface IssueData { warnings: string[]; imageCount: number; largeCount: number; totalKb: number; }
 interface LogEntry { ts: number; action: string; detail: string; ok: boolean; }
 
-// Build-time optimizations — baked into the Vite/Rollup build. Always on in production.
+// Build-time optimizations - baked into the Vite/Rollup build. Always on in production.
 // Shown as read-only status badges (no fake switches).
 const BUILD_TIME_OPTS = [
   { id: "lazyLoad",   label: "Lazy Loading",     desc: "Images & off-screen content load only when scrolled into view.", icon: <Layers size={15} /> },
-  { id: "codeSplit",  label: "Code Splitting",   desc: "JavaScript is split per route — visitors download only what they need.", icon: <Cpu size={15} /> },
+  { id: "codeSplit",  label: "Code Splitting",   desc: "JavaScript is split per route - visitors download only what they need.", icon: <Cpu size={15} /> },
   { id: "preconnect", label: "DNS Preconnect",   desc: "Early DNS resolution for fonts, calendar, and image CDN.", icon: <TrendingUp size={15} /> },
   { id: "treeshake",  label: "Tree Shaking",     desc: "Unused code is automatically removed at build time.", icon: <Zap size={15} /> },
 ];
 
-// Runtime toggles — persisted in DB, applied live without redeploy. Safe to flip.
+// Runtime toggles - persisted in DB, applied live without redeploy. Safe to flip.
 interface OptimizeSettings {
   keepDbWarm: boolean;
   publicReadCache: "off" | "short" | "medium";
@@ -366,12 +366,12 @@ export default function AdminOptimize() {
             <ShieldCheck size={18} className="text-emerald-600 shrink-0 mt-0.5" />
             <div className="text-[12.5px] text-emerald-900 leading-snug">
               <span className="font-bold">Safe by design.</span> All toggles below default to OFF, take effect instantly,
-              and can be turned back off any time. They never delete or alter your content — they only change
+              and can be turned back off any time. They never delete or alter your content - they only change
               how the server caches and warms responses. Max cache TTL is 5 minutes so your edits always show up quickly.
             </div>
           </div>
 
-          {/* Warm Up Now — one-click power action */}
+          {/* Warm Up Now - one-click power action */}
           <Card>
             <div className="flex items-start gap-3 mb-3">
               <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 shrink-0">
@@ -430,7 +430,7 @@ export default function AdminOptimize() {
               onToggle={(v) => saveSettings({ ...settings, strictImageHeaders: v }, "strictImageHeaders")}
             />
 
-            {/* Public Read Cache — segmented control */}
+            {/* Public Read Cache - segmented control */}
             <div className="flex items-start gap-4 p-4 rounded-2xl border border-[#0B0B0B]/8 bg-white">
               <div className="w-8 h-8 rounded-xl bg-[#0B0B0B]/6 flex items-center justify-center text-[#0B0B0B]/50 shrink-0">
                 <RefreshCw size={15} />

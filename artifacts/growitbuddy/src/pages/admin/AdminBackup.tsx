@@ -19,9 +19,9 @@ type ZipStatus = "idle" | "loading" | "done" | "error";
 type PromptStatus = "loading" | "ready" | "error";
 
 const INCLUDED = [
-  "Poora source code (saari files — website + admin + API + libraries)",
+  "Poora source code (saari files - website + admin + API + libraries)",
   "AI ke liye guide: architecture, setup & deploy, database, har connection",
-  "Ready-to-paste AI prompt — kisi bhi AI ko de do, project samajh jayega",
+  "Ready-to-paste AI prompt - kisi bhi AI ko de do, project samajh jayega",
   "Website ka live content snapshot (pages, portfolio, logos, certificates)",
 ];
 
@@ -87,7 +87,7 @@ export default function AdminBackup() {
       setCopyError(null);
       setTimeout(() => setCopied(false), 2200);
     } catch {
-      setCopyError("Copy nahi ho paaya — neeche box mein click karke (sab select hoga) manually copy karo.");
+      setCopyError("Copy nahi ho paaya - neeche box mein click karke (sab select hoga) manually copy karo.");
     }
   }
 
@@ -196,7 +196,7 @@ export default function AdminBackup() {
           <h2 style={{ fontSize: 16, fontWeight: 800, color: "#0B0B0B", margin: 0 }}>Master AI Prompt</h2>
         </div>
         <p style={{ fontSize: 13, color: "rgba(11,11,11,0.55)", lineHeight: 1.55, margin: "0 0 16px" }}>
-          Isme project ka poora structure, kaise bana hai, kaise deploy hota hai — sab kuch likha hai, aur
+          Isme project ka poora structure, kaise bana hai, kaise deploy hota hai - sab kuch likha hai, aur
           aapki website ka live content bhi andar hai.
         </p>
 
@@ -399,7 +399,7 @@ export default function AdminBackup() {
         </div>
         <p style={{ fontSize: 13, color: "rgba(11,11,11,0.55)", lineHeight: 1.55, margin: "0 0 14px" }}>
           Agar aapko poore project ka <strong>actual code</strong> bhi chahiye (sirf prompt nahi), toh ye
-          ZIP download karo — isme saara source code + saari guide files hoti hain. Ye GitHub se code laata
+          ZIP download karo - isme saara source code + saari guide files hoti hain. Ye GitHub se code laata
           hai, isliye banne mein kuch second lagte hain.
         </p>
         <button
@@ -511,7 +511,7 @@ export default function AdminBackup() {
         <Bot size={18} color="#1E293B" style={{ flexShrink: 0, marginTop: 1 }} />
         <p style={{ fontSize: 12.5, color: "rgba(11,11,11,0.6)", lineHeight: 1.6, margin: 0 }}>
           <strong>Kaise use karein:</strong> upar <strong>Copy Prompt</strong> dabao aur kisi bhi AI
-          (ChatGPT, Claude, etc.) ke chat mein paste kar do — AI poora project samajh jayega. Live content
+          (ChatGPT, Claude, etc.) ke chat mein paste kar do - AI poora project samajh jayega. Live content
           wahi aata hai jo abhi website par dikh raha hai. Agar AI ko code bhi chahiye toh "Full source
           backup (ZIP)" de do.
         </p>

@@ -369,7 +369,7 @@ export default function Services() {
 
             {/* Footer */}
             <p style={{ fontSize: 12, lineHeight: "1.8", color: "#8A8A8A", paddingTop: 18, borderTop: "1px solid #EEEEEA", margin: 0, fontStyle: "italic" }}>
-              Positioning · Production · Distribution · Inbound Demand — one compounding system.
+              Positioning · Production · Distribution · Inbound Demand - one compounding system.
             </p>
           </motion.div>
         </div>

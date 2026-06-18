@@ -34,7 +34,7 @@ const CONTEXT_COPY: Record<string, ContextCopy> = {
   contact: {
     label: "Growth Insights",
     heading: "Get Authority & Growth Insights",
-    subtext: "Receive creator systems, authority frameworks, AI workflows, and distribution insights — sent when it matters.",
+    subtext: "Receive creator systems, authority frameworks, AI workflows, and distribution insights - sent when it matters.",
     tag: "service_lead",
   },
   creator: {
@@ -106,7 +106,7 @@ const CONTEXT_COPY: Record<string, ContextCopy> = {
   blog: {
     label: "Growth Insights",
     heading: "Get Weekly Growth Insights",
-    subtext: "Founder positioning, creator systems, AI workflows, and authority-building insights — directly in your inbox.",
+    subtext: "Founder positioning, creator systems, AI workflows, and authority-building insights - directly in your inbox.",
     tag: "blog_subscriber",
   },
 };
@@ -114,7 +114,7 @@ const CONTEXT_COPY: Record<string, ContextCopy> = {
 const DEFAULT_COPY: ContextCopy = {
   label: "Ecosystem Updates",
   heading: "Get Weekly Growth Insights",
-  subtext: "Founder positioning, creator systems, AI workflows, and authority-building insights — directly in your inbox.",
+  subtext: "Founder positioning, creator systems, AI workflows, and authority-building insights - directly in your inbox.",
   tag: "subscriber",
 };
 

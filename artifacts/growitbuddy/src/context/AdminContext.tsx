@@ -125,7 +125,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         });
         break;
       } catch {
-        if (attempt === 3) throw new Error("Server is not responding. It may be starting up — please wait 30 seconds and try again.");
+        if (attempt === 3) throw new Error("Server is not responding. It may be starting up - please wait 30 seconds and try again.");
         await new Promise((res) => setTimeout(res, attempt * 2000));
       }
     }
@@ -155,7 +155,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         });
         break;
       } catch {
-        if (attempt === 3) throw new Error("Server is not responding. It may be starting up — please wait 30 seconds and try again.");
+        if (attempt === 3) throw new Error("Server is not responding. It may be starting up - please wait 30 seconds and try again.");
         await new Promise((res) => setTimeout(res, attempt * 2000));
       }
     }
@@ -188,7 +188,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   // ── Variant-aware editing ──
   // When admin navigates to e.g. /admin/home?variant=home-students, all
   // getContent/saveContent calls for section "home" are transparently
-  // redirected to the namespaced key `home__v__home-students` — so the same
+  // redirected to the namespaced key `home__v__home-students` - so the same
   // existing admin forms (AdminHome, AdminAbout, etc.) edit variant content
   // without any per-page changes.
   const [location] = useLocation();
@@ -202,7 +202,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     if (!slug || !isAuthenticated) { setCurrentVariant(null); return; }
     let cancelled = false;
     // Use the auth-protected admin list so HIDDEN variants are also resolved
-    // — otherwise edits to a draft variant would silently overwrite the base
+    // - otherwise edits to a draft variant would silently overwrite the base
     // page's content. The public list filters out non-live variants.
     authFetch(`${API_BASE}/admin/variants`)
       .then((r) => (r.ok ? r.json() : []))

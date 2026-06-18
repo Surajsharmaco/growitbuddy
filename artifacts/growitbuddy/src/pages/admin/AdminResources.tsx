@@ -1,4 +1,4 @@
-// Admin: Resources — rich CMS for the public Resources page.
+// Admin: Resources - rich CMS for the public Resources page.
 // Supports unlimited resources of any type (eBook, PDF, Drive link, Notion,
 // video, template, toolkit, etc.) plus full page-level SEO + GEO/AEO/AIO
 // signals that get baked into the page's JSON-LD CollectionPage + ItemList
@@ -146,7 +146,7 @@ export default function AdminResources() {
     <div>
       <PageHeader
         title="Resources Page"
-        description="Add unlimited resources of any format — Drive links, Notion templates, eBooks, PDFs, videos. Each resource has its own SEO. Page-level AI / GEO / AEO signals are baked into structured data automatically."
+        description="Add unlimited resources of any format - Drive links, Notion templates, eBooks, PDFs, videos. Each resource has its own SEO. Page-level AI / GEO / AEO signals are baked into structured data automatically."
       />
 
       {/* ── Stats strip ── */}
@@ -173,7 +173,7 @@ export default function AdminResources() {
       <Card>
         <SectionTitle>Categories</SectionTitle>
         <Field
-          label="Filter chips (comma separated — order matters)"
+          label="Filter chips (comma separated - order matters)"
           hint="Leave blank to auto-build from the unique tags on your resources. Use this to enforce a custom order or hide niche tags."
         >
           <input
@@ -215,7 +215,7 @@ export default function AdminResources() {
                 className="border rounded-xl bg-white"
                 style={{ borderColor: item.isFeatured ? "#C2A878" : "#E5E5E0" }}
               >
-                {/* Row header — always visible */}
+                {/* Row header - always visible */}
                 <div className="flex items-center gap-2 p-3">
                   <button
                     type="button"
@@ -271,7 +271,7 @@ export default function AdminResources() {
 
                     <Input label="Title" value={item.title} onChange={(e) => setItem(i, { title: e.target.value })} />
                     <Textarea label="Short Description (card)" value={item.desc} onChange={(e) => setItem(i, { desc: e.target.value })} />
-                    <Textarea label="Long Description (optional — used in structured data + AI)" value={item.longDesc ?? ""} onChange={(e) => setItem(i, { longDesc: e.target.value })} />
+                    <Textarea label="Long Description (optional - used in structured data + AI)" value={item.longDesc ?? ""} onChange={(e) => setItem(i, { longDesc: e.target.value })} />
 
                     <div className="grid grid-cols-2 gap-3">
                       <Input label="Tag / Category" value={item.tag} onChange={(e) => setItem(i, { tag: e.target.value })} placeholder="e.g. Template, Playbook" />
@@ -284,7 +284,7 @@ export default function AdminResources() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
-                      <Input label="Secondary Link (optional — Preview / Walkthrough)" value={item.secondaryCtaUrl ?? ""} onChange={(e) => setItem(i, { secondaryCtaUrl: e.target.value })} placeholder="https://..." />
+                      <Input label="Secondary Link (optional - Preview / Walkthrough)" value={item.secondaryCtaUrl ?? ""} onChange={(e) => setItem(i, { secondaryCtaUrl: e.target.value })} placeholder="https://..." />
                       <Input label="Secondary Button Label" value={item.secondaryCtaLabel ?? ""} onChange={(e) => setItem(i, { secondaryCtaLabel: e.target.value })} placeholder="Preview / Watch demo" />
                     </div>
 
@@ -314,7 +314,7 @@ export default function AdminResources() {
                         <Sparkles size={11} /> SEO / AI per resource
                       </p>
                       <Input label="Keywords (comma separated)" value={item.keywords ?? ""} onChange={(e) => setItem(i, { keywords: e.target.value })} placeholder="founder branding, distribution playbook" />
-                      <Textarea label="AI Summary (1-2 sentences — used by LLM citations)" value={item.aiSummary ?? ""} onChange={(e) => setItem(i, { aiSummary: e.target.value })} />
+                      <Textarea label="AI Summary (1-2 sentences - used by LLM citations)" value={item.aiSummary ?? ""} onChange={(e) => setItem(i, { aiSummary: e.target.value })} />
                     </div>
                   </div>
                 )}
@@ -360,7 +360,7 @@ export default function AdminResources() {
 
       {/* ── SEO basics ── */}
       <Card>
-        <SectionTitle>SEO — Basics</SectionTitle>
+        <SectionTitle>SEO - Basics</SectionTitle>
         <Input label="Page Title (60 chars ideal)" value={data.seoTitle} onChange={(e) => set("seoTitle", e.target.value)} hint={`${(data.seoTitle || "").length} chars`} />
         <Textarea label="Meta Description (155 chars ideal)" value={data.seoDesc} onChange={(e) => set("seoDesc", e.target.value)} hint={`${(data.seoDesc || "").length} chars`} />
         <div className="grid grid-cols-2 gap-3">
@@ -369,7 +369,7 @@ export default function AdminResources() {
         </div>
       </Card>
 
-      {/* ── Advanced SEO — collapsible ── */}
+      {/* ── Advanced SEO - collapsible ── */}
       <Card>
         <button
           type="button"
@@ -377,7 +377,7 @@ export default function AdminResources() {
           className="w-full flex items-center justify-between text-left"
         >
           <div>
-            <SectionTitle>SEO — Advanced (AI / GEO / AEO / AISEO)</SectionTitle>
+            <SectionTitle>SEO - Advanced (AI / GEO / AEO / AISEO)</SectionTitle>
             <p className="text-[12px] text-[#0B0B0B]/50 -mt-2">
               Signals for AI search (ChatGPT/Perplexity), Generative Engine Optimization, Answer Engine Optimization, and entity SEO. All fields below are injected into the page's structured data and rendered as a citable "Quick Answer" block at the top of the public page.
             </p>
@@ -387,7 +387,7 @@ export default function AdminResources() {
 
         {advancedOpen && (
           <div className="space-y-3 mt-4 pt-4 border-t" style={{ borderColor: "#F0F0EC" }}>
-            <Field label="AI Quick-Answer Summary" hint="2-3 sentences that directly answer 'What is GrowitBuddy Resources?' — surfaced as a Quick Answer card on the page AND fed to JSON-LD `abstract` for LLM citation.">
+            <Field label="AI Quick-Answer Summary" hint="2-3 sentences that directly answer 'What is GrowitBuddy Resources?' - surfaced as a Quick Answer card on the page AND fed to JSON-LD `abstract` for LLM citation.">
               <textarea
                 rows={3}
                 value={data.aiSummary ?? ""}
@@ -408,7 +408,7 @@ export default function AdminResources() {
                 <Input label="Language" value={data.geoLanguage ?? ""} onChange={(e) => set("geoLanguage", e.target.value)} placeholder="en" />
               </div>
             </div>
-            <Field label="Factual Claims (one per line)" hint="Verifiable facts about your offering — shown as a bullet list under the Quick Answer block. Strong signal for AI citation and AEO.">
+            <Field label="Factual Claims (one per line)" hint="Verifiable facts about your offering - shown as a bullet list under the Quick Answer block. Strong signal for AI citation and AEO.">
               <textarea
                 rows={4}
                 value={data.factualClaims ?? ""}

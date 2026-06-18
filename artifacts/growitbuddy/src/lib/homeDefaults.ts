@@ -156,7 +156,7 @@ export const HOME_DEFAULTS: HomeData = {
     {
       step: "02",
       title: "Production",
-      desc: "Create high-signal content built for attention, trust, and consistency at scale — video, copy, and graphics that communicate authority.",
+      desc: "Create high-signal content built for attention, trust, and consistency at scale - video, copy, and graphics that communicate authority.",
     },
     {
       step: "03",
@@ -166,7 +166,7 @@ export const HOME_DEFAULTS: HomeData = {
     {
       step: "04",
       title: "Inbound Demand",
-      desc: "Turn compounding visibility into authority, qualified leads, and inbound opportunities — without chasing anyone.",
+      desc: "Turn compounding visibility into authority, qualified leads, and inbound opportunities - without chasing anyone.",
     },
   ],
   frameworkCTA: "Explore the Full Framework",
@@ -230,14 +230,14 @@ export const HOME_DEFAULTS: HomeData = {
   testimonials: [
     {
       quote:
-        "Honestly, I was skeptical at first — I'd worked with two agencies before and both just recycled my old posts. The GrowitBuddy team actually sat with me for two hours figuring out what I wanted to be known for. Three months in, I'm getting cold DMs from people I used to look up to. That's the part nobody warned me would feel weird.",
+        "Honestly, I was skeptical at first - I'd worked with two agencies before and both just recycled my old posts. The GrowitBuddy team actually sat with me for two hours figuring out what I wanted to be known for. Three months in, I'm getting cold DMs from people I used to look up to. That's the part nobody warned me would feel weird.",
       name: "Rohan Mehta",
       role: "Founder, Aarna Consumer Labs",
       initials: "RM",
     },
     {
       quote:
-        "The first month was slower than I'd hoped — they kept pushing back on my ideas which annoyed me a little, in hindsight rightly so. By month two the inbound started: two podcast invites, one investor intro, and a partnership conversation that's now signed. I still write my own posts; they just made me sound more like myself.",
+        "The first month was slower than I'd hoped - they kept pushing back on my ideas which annoyed me a little, in hindsight rightly so. By month two the inbound started: two podcast invites, one investor intro, and a partnership conversation that's now signed. I still write my own posts; they just made me sound more like myself.",
       name: "Priya Iyer",
       role: "Co-founder, Lumen.health",
       initials: "PI",

@@ -108,7 +108,7 @@ export default function Internship() {
   return (
     <div style={{ background: "var(--gb-bg)", fontFamily: "'Inter', sans-serif", minHeight: "100vh" }}>
       <SEOMeta
-        title="Internship — GrowitBuddy"
+        title="Internship - GrowitBuddy"
         description="Work on real projects, gain hands-on experience, and become part of a high-performance content and authority studio."
         robots="noindex,follow"
       />
@@ -131,7 +131,7 @@ export default function Internship() {
             transition={{ delay: 0.1 }}
             style={{ fontSize: 17, color: "#5F5F5F", lineHeight: 1.75, maxWidth: "50ch" }}
           >
-            Work alongside creators, brands, and modern content systems while learning through execution — not theory.
+            Work alongside creators, brands, and modern content systems while learning through execution - not theory.
           </motion.p>
         </div>
       </section>
@@ -194,7 +194,7 @@ export default function Internship() {
             </div>
           </div>
 
-          {/* Right — Form */}
+          {/* Right - Form */}
           <div ref={successRef}>
             {submitted ? (
               <>

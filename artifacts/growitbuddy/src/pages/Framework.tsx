@@ -85,7 +85,7 @@ export default function Framework() {
               .fw-step-arrow { transition: transform .28s ease, background .28s ease, border-color .28s ease, color .28s ease; }
               .fw-step-row:hover .fw-step-arrow { background: var(--gb-accent); border-color: var(--gb-accent); color: #FFFFFF; transform: translateX(2px); }
             `}</style>
-            {/* Vertical connecting line — slate tinted, full opacity for visibility */}
+            {/* Vertical connecting line - slate tinted, full opacity for visibility */}
             <div style={{ position: "absolute", left: 23, top: 22, bottom: 22, width: 2, background: "linear-gradient(to bottom, rgba(30,41,59,0.18), rgba(30,41,59,0.08))", zIndex: 0 }} />
 
             {STEPS.map((step, i) => (
@@ -97,7 +97,7 @@ export default function Framework() {
                 transition={{ delay: i * 0.08, duration: 0.5 }}
                 style={{ display: "flex", alignItems: "center", gap: 20, padding: "12px 0", position: "relative", zIndex: 1 }}
               >
-                {/* Step dot — slate filled, white number */}
+                {/* Step dot - slate filled, white number */}
                 <div
                   style={{
                     width: 48,

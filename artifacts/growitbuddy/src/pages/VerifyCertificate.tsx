@@ -192,7 +192,7 @@ export default function VerifyCertificate() {
                 </p>
               </div>
 
-              {/* Detail list in framed band — stacked one-by-one so every value
+              {/* Detail list in framed band - stacked one-by-one so every value
                   gets full width on every screen (no squeeze, no cut-off). */}
               <div style={{ position: "relative", padding: "0 28px 32px" }}>
                 <ul style={{

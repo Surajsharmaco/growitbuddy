@@ -109,12 +109,12 @@ function validate(seo: PageSEOData, eff: { title: string; description: string })
   const out: Issue[] = [];
   if (!eff.title.trim()) out.push({ level: "error", message: "Missing title" });
   else if (eff.title.length > 60) out.push({ level: "warn", message: `Title is ${eff.title.length} chars (recommended ≤ 60)` });
-  else if (eff.title.length < 25) out.push({ level: "warn", message: `Title is short — ${eff.title.length} chars (recommended 25–60)` });
+  else if (eff.title.length < 25) out.push({ level: "warn", message: `Title is short - ${eff.title.length} chars (recommended 25–60)` });
   else out.push({ level: "ok", message: `Title length OK (${eff.title.length} chars)` });
 
   if (!eff.description.trim()) out.push({ level: "error", message: "Missing meta description" });
   else if (eff.description.length > 160) out.push({ level: "warn", message: `Description is ${eff.description.length} chars (recommended ≤ 160)` });
-  else if (eff.description.length < 70) out.push({ level: "warn", message: `Description is short — ${eff.description.length} chars (recommended 70–160)` });
+  else if (eff.description.length < 70) out.push({ level: "warn", message: `Description is short - ${eff.description.length} chars (recommended 70–160)` });
   else out.push({ level: "ok", message: `Description length OK (${eff.description.length} chars)` });
 
   if (seo.canonical && !/^(https?:\/\/|\/)/.test(seo.canonical)) {
@@ -123,11 +123,11 @@ function validate(seo: PageSEOData, eff: { title: string; description: string })
 
   if (seo.schema && seo.schema.trim()) {
     try { JSON.parse(seo.schema); out.push({ level: "ok", message: "JSON-LD schema valid" }); }
-    catch { out.push({ level: "error", message: "JSON-LD schema is invalid JSON — will be skipped" }); }
+    catch { out.push({ level: "error", message: "JSON-LD schema is invalid JSON - will be skipped" }); }
   }
 
   if (seo.index === false && seo.sitemap !== false) {
-    out.push({ level: "warn", message: "Page is noindex but still in sitemap — usually you want both off" });
+    out.push({ level: "warn", message: "Page is noindex but still in sitemap - usually you want both off" });
   }
 
   return out;
@@ -288,7 +288,7 @@ export default function AdminSEO() {
             <p className="text-[12px] text-[#0B0B0B]/60 mt-1.5 leading-relaxed">
               Master switch for the <strong>entire website</strong>. When OFF, every public page is served with
               <code className="px-1 mx-1 bg-[#0B0B0B]/8 rounded text-[11px]">noindex,nofollow</code>
-              and the sitemap is emptied — search engines will stop showing the site in results.
+              and the sitemap is emptied - search engines will stop showing the site in results.
               When ON, each page falls back to its own per-page indexability setting below.
             </p>
             {!siteIndexable && (

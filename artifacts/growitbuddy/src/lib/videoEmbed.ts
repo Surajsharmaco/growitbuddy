@@ -33,7 +33,7 @@ export function extractEmbedUrl(input: string): string {
 // Detect the intended aspect ratio of a pasted embed snippet.
 // Returns "9/16" for vertical (Shorts/Reel) embeds, "16/9" otherwise.
 // Looks at `aspect-ratio:` declarations and explicit width/height attributes
-// in the snippet — falls back to 16/9 when nothing is detected.
+// in the snippet - falls back to 16/9 when nothing is detected.
 export function detectAspectRatio(input: string): "16/9" | "9/16" {
   if (!input) return "16/9";
   const s = input.toLowerCase();
@@ -133,7 +133,7 @@ export function getThumbnail(url: string): string {
   if (!id) return "";
   if (source === "youtube") return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
   if (source === "vimeo") return `https://vumbnail.com/${id}.jpg`;
-  // Modern Drive CDN — more reliable than drive.google.com/thumbnail (which often 403s)
+  // Modern Drive CDN - more reliable than drive.google.com/thumbnail (which often 403s)
   if (source === "drive") return `https://lh3.googleusercontent.com/d/${id}=w800`;
   if (source === "gumlet") return gumletThumbProxy(id);
   return "";
@@ -161,7 +161,7 @@ export function getHiResThumbnail(url: string): string {
 export function isShortVideo(url: string): boolean {
   if (!url) return false;
   // 1. Aspect-ratio detection works on the raw pasted snippet (which is what
-  //    the admin actually saves for Gumlet etc.) — must run BEFORE we strip
+  //    the admin actually saves for Gumlet etc.) - must run BEFORE we strip
   //    the snippet down to just the iframe `src`.
   if (detectAspectRatio(url) === "9/16") return true;
   // 2. URL-shape detection (YouTube Shorts).

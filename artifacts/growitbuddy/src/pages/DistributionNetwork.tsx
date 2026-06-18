@@ -91,7 +91,7 @@ function PageCard({ page }: { page: DistributionPage }) {
             <p style={{ fontSize: 13, fontWeight: 500, color: "#7A7A85", marginTop: 3 }}>{page.handle}</p>
           </div>
           {/* Only show the "View Page" CTA when there is an actual profile link to
-              open — otherwise it is a dead button that does nothing on click. */}
+              open - otherwise it is a dead button that does nothing on click. */}
           {instagramUrl && (
             <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#0A0A0A", whiteSpace: "nowrap", flexShrink: 0 }}>
               View Page <ArrowRight style={{ width: 12, height: 12 }} />

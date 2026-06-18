@@ -6,7 +6,7 @@ export default function NotFound() {
   return (
     <div className="flex flex-col items-center justify-center text-center" style={{ minHeight: "70vh", padding: 24 }}>
       <SEOMeta
-        title="Page not found — GrowitBuddy"
+        title="Page not found - GrowitBuddy"
         description="The page you're looking for doesn't exist or has moved."
         robots="noindex,follow"
       />
@@ -25,7 +25,7 @@ export default function NotFound() {
         <AlertCircle size={24} color="#1E293B" />
       </div>
       <h1 style={{ fontSize: 22, fontWeight: 800, color: "#0B0B0B", letterSpacing: "-0.02em", margin: 0 }}>
-        404 — Page not found
+        404 - Page not found
       </h1>
       <p style={{ marginTop: 8, fontSize: 14, color: "rgba(11,11,11,0.55)", maxWidth: 440, lineHeight: 1.55 }}>
         The page you're looking for doesn't exist or may have moved. Let's get you back on track.

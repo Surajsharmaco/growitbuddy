@@ -230,7 +230,7 @@ export default function CaseStudy() {
   if (notFound || !item) {
     return (
       <div style={{ minHeight: "100vh", background: BG, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-        <SEOMeta title="Case study not found — GrowitBuddy" description="This case study doesn't exist or has moved." robots="noindex,follow" />
+        <SEOMeta title="Case study not found - GrowitBuddy" description="This case study doesn't exist or has moved." robots="noindex,follow" />
         <div style={{ textAlign: "center" }}>
           <p style={{ fontSize: 16, color: MUTED, marginBottom: 16 }}>Case study not found.</p>
           <Link href={sharePrefix} style={{ color: SLATE, fontWeight: 700, textDecoration: "underline" }}>
@@ -253,7 +253,7 @@ export default function CaseStudy() {
     .replace(/<[^>]+>/g, "").trim().slice(0, 155);
   const caseSeo = (
     <SEOMeta
-      title={`${item.title} — Case Study | GrowitBuddy`}
+      title={`${item.title} - Case Study | GrowitBuddy`}
       description={caseDesc}
       canonical={caseCanonical}
       ogType="article"

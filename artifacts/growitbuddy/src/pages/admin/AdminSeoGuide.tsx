@@ -72,7 +72,7 @@ export default function AdminSeoGuide() {
           <SectionTitle>Hero</SectionTitle>
           <div className="space-y-3">
             <Input label="Badge / Eyebrow" value={data.hero.badge} onChange={(e) => setHero("badge", e.target.value)} placeholder="Internal · Not Indexed" />
-            <Input label="Title" value={data.hero.title} onChange={(e) => setHero("title", e.target.value)} placeholder="GrowitBuddy — SEO Control Guide" />
+            <Input label="Title" value={data.hero.title} onChange={(e) => setHero("title", e.target.value)} placeholder="GrowitBuddy - SEO Control Guide" />
             <Textarea label="Lede" value={data.hero.lede} onChange={(e) => setHero("lede", e.target.value)} rows={4} placeholder="Intro paragraph (line breaks are preserved)" />
           </div>
         </Card>

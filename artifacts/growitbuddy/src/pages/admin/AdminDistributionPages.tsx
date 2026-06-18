@@ -103,14 +103,14 @@ function PageRow({
   return (
     <Card className="p-0 overflow-hidden">
       <div className="flex items-center gap-2 pr-3">
-        {/* Reorder handle — sets the order on the public page (no rank shown) */}
+        {/* Reorder handle - sets the order on the public page (no rank shown) */}
         <div className="flex flex-col items-center justify-center shrink-0 pl-3 text-[#0B0B0B]/30">
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
             disabled={!canMoveUp}
             aria-label={`Move ${page.name || "page"} up`}
-            title="Move up — shows higher on the public page"
+            title="Move up - shows higher on the public page"
             className="p-0.5 rounded hover:bg-[#0B0B0B]/8 hover:text-[#0B0B0B] disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-[#0B0B0B]/30 disabled:cursor-not-allowed transition-colors"
           >
             <ChevronUp size={14} />
@@ -120,7 +120,7 @@ function PageRow({
             onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
             disabled={!canMoveDown}
             aria-label={`Move ${page.name || "page"} down`}
-            title="Move down — shows lower on the public page"
+            title="Move down - shows lower on the public page"
             className="p-0.5 rounded hover:bg-[#0B0B0B]/8 hover:text-[#0B0B0B] disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-[#0B0B0B]/30 disabled:cursor-not-allowed transition-colors"
           >
             <ChevronDown size={14} />
@@ -241,7 +241,7 @@ function PageRow({
                 </div>
                 <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                   {slugTaken && (
-                    <p className="text-[11px] text-red-500 font-semibold">⚠ Another page already uses this slug — change it.</p>
+                    <p className="text-[11px] text-red-500 font-semibold">⚠ Another page already uses this slug - change it.</p>
                   )}
                   {page.slug && !slugTaken && (
                     <>
@@ -470,7 +470,7 @@ function AddDistributionModal({
               className="flex-1 px-3 py-2.5 text-[13px] text-[#0B0B0B] placeholder-[#0B0B0B]/30 outline-none font-mono"
             />
           </div>
-          {slugClash && <p className="text-[11px] text-amber-600 font-semibold mt-1.5">This slug is taken — it'll be auto-numbered when you add the page.</p>}
+          {slugClash && <p className="text-[11px] text-amber-600 font-semibold mt-1.5">This slug is taken - it'll be auto-numbered when you add the page.</p>}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -933,7 +933,7 @@ export default function AdminDistributionPages() {
             <span className="text-[12px] text-[#0B0B0B]/40">
               Showing {filtered.length} of {activeItems.length} pages
             </span>
-            <span className="text-[11px] text-[#0B0B0B]/35 italic">· Reordering paused — clear filters to change the public order</span>
+            <span className="text-[11px] text-[#0B0B0B]/35 italic">· Reordering paused - clear filters to change the public order</span>
             <button
               onClick={() => { setSearch(""); setNicheFilter("All"); setCountryFilter("All"); setDateFilter("all"); }}
               className="text-[11px] text-[#0B0B0B]/40 hover:text-[#0B0B0B] underline underline-offset-2 transition-colors"

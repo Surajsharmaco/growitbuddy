@@ -64,7 +64,7 @@ const CATEGORY_META: Record<string, { slug: string; tagline: string; type: Categ
   },
 };
 
-// Single brand palette accent — used for all service cards and hero backgrounds
+// Single brand palette accent - used for all service cards and hero backgrounds
 const BRAND_ACCENT = "linear-gradient(135deg, #1E293B 0%, #0F172A 100%)";
 
 function slugToCategory(slug: string): string | null {
@@ -91,7 +91,7 @@ interface PortfolioItem {
   caseStudy?: CaseStudyMini | null;
 }
 
-// ── Video Tile (16:9) — long-form ──
+// ── Video Tile (16:9) - long-form ──
 function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?: boolean }) {
   const [playing, setPlaying] = useState(false);
   const embedUrl = getEmbedUrl(item.youtubeUrl, { autoplay: true });
@@ -145,13 +145,13 @@ function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?:
                   if (el.src !== fallback) {
                     el.src = fallback;
                   } else {
-                    // Both hi-res and standard failed (common for private Drive files) — hide so play button shows on clean bg
+                    // Both hi-res and standard failed (common for private Drive files) - hide so play button shows on clean bg
                     el.style.display = "none";
                   }
                 }}
               />
             )}
-            {/* Click surface — subtle dark veil only on hover so the
+            {/* Click surface - subtle dark veil only on hover so the
                 creator's branding/logo in the thumbnail stays visible
                 at rest. Play button sits center, gold-ringed, premium. */}
             <div
@@ -209,7 +209,7 @@ function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?:
   );
 }
 
-// ── Reel Tile (9:16) — short-form, aligned grid ──
+// ── Reel Tile (9:16) - short-form, aligned grid ──
 function ReelTile({ item }: { item: PortfolioItem }) {
   const [playing, setPlaying] = useState(false);
   const embedUrl = getEmbedUrl(item.youtubeUrl, { autoplay: true });
@@ -268,7 +268,7 @@ function ReelTile({ item }: { item: PortfolioItem }) {
                 }}
               />
             )}
-            {/* Click surface — entire tile, with centered glass play
+            {/* Click surface - entire tile, with centered glass play
                 button. Top half is fully clear (no overlay) so brand
                 logos visible at rest. Veil deepens on hover. */}
             <div
@@ -300,7 +300,7 @@ function ReelTile({ item }: { item: PortfolioItem }) {
                 <Play size={22} style={{ color: "#fff", marginLeft: 3 }} fill="#fff" />
               </div>
             </div>
-            {/* Title overlay — rendered AFTER the click surface and
+            {/* Title overlay - rendered AFTER the click surface and
                 given z-index:2 so the hover veil cannot bury it.
                 Strong dark gradient + gold accent bar make the title
                 pop even at rest; hover adds a gold underline reveal. */}
@@ -353,7 +353,7 @@ function caseHeroImage(item: PortfolioItem, w: number, h: number) {
   return `https://picsum.photos/seed/cs-${item.id}/${w}/${h}`;
 }
 
-// ── Case Study Tile — image only, title separated below as highlighted heading ──
+// ── Case Study Tile - image only, title separated below as highlighted heading ──
 function CaseStudyTile({ item, featured = false, sharePrefix = "/portfolio" }: { item: PortfolioItem; featured?: boolean; sharePrefix?: string }) {
   const [, setLocation] = useLocation();
   const meta = CATEGORY_META[item.category];
@@ -472,7 +472,7 @@ function CaseStudyTile({ item, featured = false, sharePrefix = "/portfolio" }: {
 }
 
 // ── Service Card Palettes ──
-// 4 variants cycled by index — strict brand palette only.
+// 4 variants cycled by index - strict brand palette only.
 type ServiceCardPalette = {
   bg: string;
   border: string;
@@ -491,7 +491,7 @@ type ServiceCardPalette = {
 };
 
 const SERVICE_PALETTES: ServiceCardPalette[] = [
-  // 0 — Dark slate (signature)
+  // 0 - Dark slate (signature)
   {
     bg: "linear-gradient(160deg, #1E293B 0%, #0F172A 100%)",
     border: "1px solid rgba(255,255,255,0.06)",
@@ -508,7 +508,7 @@ const SERVICE_PALETTES: ServiceCardPalette[] = [
     dotDivider: "#C2A878",
     dotColor: "rgba(194,168,120,0.10)",
   },
-  // 1 — Cream + dark slate text
+  // 1 - Cream + dark slate text
   {
     bg: "#FFFFFF",
     border: "1px solid rgba(20,32,46,0.14)",
@@ -525,7 +525,7 @@ const SERVICE_PALETTES: ServiceCardPalette[] = [
     dotDivider: "#C2A878",
     dotColor: "rgba(30,41,59,0.07)",
   },
-  // 2 — Off-cream with stronger gold corner
+  // 2 - Off-cream with stronger gold corner
   {
     bg: "linear-gradient(160deg, #EFEFEA 0%, #F8F8F6 100%)",
     border: "1px solid rgba(30,41,59,0.12)",
@@ -546,7 +546,7 @@ const SERVICE_PALETTES: ServiceCardPalette[] = [
 
 type ServiceCardVariant = "standard" | "spotlight" | "compact" | "horizontal";
 
-// ── Service Category Card (landing) — colour-differentiated branded design ──
+// ── Service Category Card (landing) - colour-differentiated branded design ──
 function ServiceCard({
   category, count, index, variant = "standard", sharePrefix = "/portfolio",
 }: { category: string; count: number; index: number; variant?: ServiceCardVariant; sharePrefix?: string }) {
@@ -629,7 +629,7 @@ function ServiceCard({
         }}
       />
 
-      {/* Gold accent rail — top */}
+      {/* Gold accent rail - top */}
       <div
         style={{
           position: "absolute", top: 0, left: 0, right: 0, height: 3,
@@ -637,7 +637,7 @@ function ServiceCard({
         }}
       />
 
-      {/* Dotted-grid corner decoration — bottom-right (hidden on compact) */}
+      {/* Dotted-grid corner decoration - bottom-right (hidden on compact) */}
       {!isCompact && (
         <div
           style={{
@@ -925,7 +925,7 @@ export default function Portfolio() {
         <div style={{ background: BRAND_ACCENT, padding: "120px 24px 84px", position: "relative", overflow: "hidden" }}>
           {/* Top accent line */}
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #C2A878, #D4BB90)" }} />
-          {/* Soft gold radial glow — adds depth without colour shift */}
+          {/* Soft gold radial glow - adds depth without colour shift */}
           <div
             aria-hidden
             style={{
@@ -1197,7 +1197,7 @@ export default function Portfolio() {
   );
 }
 
-// ── Cinematic ecosystem strip — between featured zone and main grid ──
+// ── Cinematic ecosystem strip - between featured zone and main grid ──
 function EcosystemStrip() {
   const pillars = [
     { num: "01", title: "Position",   sub: "Authority-first messaging that compounds trust." },

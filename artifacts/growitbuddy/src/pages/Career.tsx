@@ -139,7 +139,7 @@ export default function Career() {
   return (
     <div style={{ background: "#F8F8F6", fontFamily: "'Inter', sans-serif" }}>
       <SEOMeta
-        title="Careers — GrowitBuddy"
+        title="Careers - GrowitBuddy"
         description="Join GrowitBuddy as a full-time team member, intern, or part of our talent network. Real work, real impact, real growth."
         robots="index,follow"
       />

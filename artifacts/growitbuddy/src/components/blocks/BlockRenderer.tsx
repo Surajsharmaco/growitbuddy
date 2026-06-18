@@ -3,7 +3,7 @@ import { getEmbedUrl as buildEmbedUrl } from "@/lib/videoEmbed";
 import { resolveMediaUrl } from "@/lib/api";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BlockRenderer — Phase 1 of the Wix/Elementor-style Case Study inline editor.
+// BlockRenderer - Phase 1 of the Wix/Elementor-style Case Study inline editor.
 //
 // Public, read-only renderer. Takes a Block[] (typed in @workspace/db) and
 // renders it using the site's existing visual language (cream bg, Inter, etc).

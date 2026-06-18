@@ -27,7 +27,7 @@ export async function resolveWpFeaturedImages(wpSlugs: string[]): Promise<Record
         }
       }
     } catch {
-      /* leave unresolved — a later call retries */
+      /* leave unresolved - a later call retries */
     }
   }
   const out: Record<string, string> = {};

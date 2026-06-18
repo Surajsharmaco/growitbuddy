@@ -1,4 +1,4 @@
-// Resources — rich schema for the public Resources page and its admin editor.
+// Resources - rich schema for the public Resources page and its admin editor.
 // Backward-compatible with the original {title, desc, tag, link} resource shape;
 // every new field is optional so existing CMS rows continue to load unchanged.
 
@@ -35,7 +35,7 @@ export interface ResourceItem {
   type?: ResourceType;       // controls icon + auto fileFormat
   longDesc?: string;         // shown in JSON-LD description; richer than `desc`
   coverImage?: string;       // optional thumbnail / cover image URL
-  ctaLabel?: string;         // primary button label — "Download" by default
+  ctaLabel?: string;         // primary button label - "Download" by default
   secondaryCtaLabel?: string; // optional 2nd button label (e.g. "Preview")
   secondaryCtaUrl?: string;   // optional 2nd button URL (e.g. live demo / preview)
   badgeText?: string;        // custom corner badge text (e.g. "New", "Popular")
@@ -71,7 +71,7 @@ export interface ResourcesData {
   seoTitle: string;
   seoDesc: string;
 
-  // Advanced — AI / GEO / AEO / AISEO signals injected into JSON-LD + visible
+  // Advanced - AI / GEO / AEO / AISEO signals injected into JSON-LD + visible
   // "Quick Answer" block at the top of the page so LLMs and answer engines
   // can find a canonical, citable summary without scraping the whole grid.
   aiSummary?: string;       // canonical answer to "what is GrowitBuddy resources?"
@@ -81,7 +81,7 @@ export interface ResourcesData {
   audience?: string;        // e.g. "Founders, creators, growth marketers"
   geoLocation?: string;     // primary geo location (e.g. "India", "Bangalore, India")
   geoLanguage?: string;     // language code (en, hi, etc.)
-  factualClaims?: string;   // newline-separated factual statements — used as text and JSON-LD `mentions`/`about`
+  factualClaims?: string;   // newline-separated factual statements - used as text and JSON-LD `mentions`/`about`
   canonicalUrl?: string;    // override canonical (defaults to https://growitbuddy.com/resources)
   ogImage?: string;         // social share image URL
 }
@@ -89,7 +89,7 @@ export interface ResourcesData {
 export const RESOURCES_DEFAULTS: ResourcesData = {
   heroEyebrow: "Resources",
   heroHeadline: "Authority, content, and distribution systems.",
-  heroSubtext: "Authority, content, and distribution systems for founders, creators, and modern brands — packaged as free templates, playbooks, eBooks and toolkits you can ship today.",
+  heroSubtext: "Authority, content, and distribution systems for founders, creators, and modern brands - packaged as free templates, playbooks, eBooks and toolkits you can ship today.",
   ctaLabel: "Book a Strategy Call",
   ctaUrl: "/contact",
   items: [
@@ -112,7 +112,7 @@ export const RESOURCES_DEFAULTS: ResourcesData = {
       aiSummary: "A 47-point self-assessment used by GrowitBuddy to diagnose authority gaps for founders, creators, and modern brands.",
     },
     {
-      title: "Distribution Stack — Notion Template",
+      title: "Distribution Stack - Notion Template",
       desc: "The exact Notion workspace we use to plan, ship, and distribute content for clients across every channel.",
       tag: "Template",
       link: "https://www.notion.so/templates/sample-distribution-stack",
@@ -177,7 +177,7 @@ export const RESOURCES_DEFAULTS: ResourcesData = {
   faqs: [
     {
       q: "Are these resources really free?",
-      a: "Yes — every template, eBook, and playbook on this page is free. Some require an email so we can send updates when we improve them.",
+      a: "Yes - every template, eBook, and playbook on this page is free. Some require an email so we can send updates when we improve them.",
     },
     {
       q: "Can I use these resources for my agency or clients?",
@@ -185,12 +185,12 @@ export const RESOURCES_DEFAULTS: ResourcesData = {
     },
     {
       q: "How often are new resources added?",
-      a: "We ship new resources roughly once a month — the ones we wish existed when we were figuring out distribution.",
+      a: "We ship new resources roughly once a month - the ones we wish existed when we were figuring out distribution.",
     },
   ],
   seoTitle: "Free Authority, Content & Distribution Resources for Founders, Creators & Modern Brands | GrowitBuddy",
-  seoDesc: "Authority, content, and distribution systems for founders, creators, and modern brands — free templates, playbooks, eBooks, and toolkits you can copy and ship today.",
-  aiSummary: "GrowitBuddy Resources is a free library of authority-building, content, and distribution systems for founders, creators, and modern brands — shipped as templates, playbooks, toolkits, and eBooks.",
+  seoDesc: "Authority, content, and distribution systems for founders, creators, and modern brands - free templates, playbooks, eBooks, and toolkits you can copy and ship today.",
+  aiSummary: "GrowitBuddy Resources is a free library of authority-building, content, and distribution systems for founders, creators, and modern brands - shipped as templates, playbooks, toolkits, and eBooks.",
   aiKeywords: "authority building resources, content systems for founders, distribution playbook, creator growth toolkit, notion templates for founders, modern brand frameworks",
   primaryEntity: "Authority, content and distribution systems",
   relatedTopics: "Personal branding, Distribution systems, Short-form video, Authority building, Founder-led marketing, Modern brand building",

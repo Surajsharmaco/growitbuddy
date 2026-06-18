@@ -4,7 +4,7 @@ import type { LucideIcon } from "lucide-react";
 // ── Shared "watercolor wash" card system ──────────────────────────────────
 // Single source of truth for the premium card surfaces used across Home,
 // Services, About, Resources and the talent pools. COHESIVE by design: every
-// wash is drawn from the brand's OWN two colors — a warm champagne GOLD
+// wash is drawn from the brand's OWN two colors - a warm champagne GOLD
 // (--gb-gold) as the dominant highlight, with a soft slate/navy (--gb-authority)
 // accent on every third card for gentle rhythm. No off-brand rainbow hues. An
 // ivory/cream base carries only low-alpha radial blobs so cards read warm and
@@ -53,7 +53,7 @@ export function getWashCardStyle(i: number, overrides: CSSProperties = {}): CSSP
     position: "relative",
     overflow: "hidden",
     // Establish a stacking context so <CardGrain/> (zIndex:-1) paints above the
-    // wash background but below ALL card content — callers don't need to mark
+    // wash background but below ALL card content - callers don't need to mark
     // children position:relative for them to stay legible.
     isolation: "isolate",
     ...overrides,
@@ -61,12 +61,12 @@ export function getWashCardStyle(i: number, overrides: CSSProperties = {}): CSSP
 }
 
 // ── Solid brand card system ───────────────────────────────────────────────
-// "kuch dark kuch normal": every card is a SOLID brand surface — warm cream
+// "kuch dark kuch normal": every card is a SOLID brand surface - warm cream
 // (light) or deep navy (dark), NO colored gradient. Use solidIsDark(i) for an
 // automatic rhythm (every 3rd card dark) or pass an explicit boolean.
 // getSolidText(dark) returns the matching text palette so dark cards flip to
 // light type. BOTH light and dark cards carry the same film-grain texture via
-// <CardGrain dark={dark}/> — the premium "Problem-card" tactile look.
+// <CardGrain dark={dark}/> - the premium "Problem-card" tactile look.
 export const SOLID_LIGHT_BG = "#FFFFFF";
 export const SOLID_DARK_BG = "#16202E";
 
@@ -126,7 +126,7 @@ export function getSolidText(dark: boolean): SolidTextPalette {
 // (it sets isolation:isolate, so the negative z-index keeps grain above the card
 // background yet behind all content). Works on BOTH surfaces: on LIGHT cards it
 // multiplies (dark speckle); on DARK cards it blends normally so the bright
-// grain reads as visible texture — the same "Problem-card" look on every card.
+// grain reads as visible texture - the same "Problem-card" look on every card.
 export function CardGrain({ dark = false }: { dark?: boolean } = {}) {
   return (
     <div

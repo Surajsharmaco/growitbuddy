@@ -22,7 +22,7 @@ const ARTICLE_CSS = `
 .article-body .wp-block-paragraph { font-size: 17px; color: rgba(11,11,11,0.78); line-height: 1.85; margin: 0 0 22px; }
 .article-body p:empty,
 .article-body p:has(br:only-child) { display: none; }
-/* WP often wraps a lone image in a <p> — strip its bottom margin so it sits flush */
+/* WP often wraps a lone image in a <p> - strip its bottom margin so it sits flush */
 .article-body p:has(> img:only-child) { margin: 0; }
 
 /* ── Headings ── */
@@ -35,7 +35,7 @@ const ARTICLE_CSS = `
 .article-body h4,
 .article-body .wp-block-heading h4 { font-weight: 700; font-size: 17px; color: #0A0A0A; margin: 28px 0 10px; }
 .article-body h5, .article-body h6 { font-weight: 700; font-size: 15px; color: #0A0A0A; margin: 24px 0 8px; }
-/* Heading immediately after image — tighten the gap (image already provides air below) */
+/* Heading immediately after image - tighten the gap (image already provides air below) */
 .article-body figure + h2,
 .article-body .wp-block-image + h2,
 .article-body figure + h3,
@@ -81,7 +81,7 @@ const ARTICLE_CSS = `
 .article-body p > img { margin: 28px auto; }
 .article-body figcaption,
 .article-body .wp-block-image figcaption { font-size: 13px; color: rgba(11,11,11,0.5); text-align: center; margin: 12px 0 0; font-style: italic; line-height: 1.5; }
-/* Two figures back-to-back — collapse the gap so they don't double-margin */
+/* Two figures back-to-back - collapse the gap so they don't double-margin */
 .article-body figure + figure,
 .article-body .wp-block-image + .wp-block-image { margin-top: 12px; }
 /* WP alignment classes */
@@ -124,13 +124,13 @@ const ARTICLE_CSS = `
 .article-body .wp-block-pullquote p { font-size: 22px; font-weight: 700; color: #1E293B; font-style: italic; letter-spacing: -0.02em; margin: 0; }
 
 /* ── Buttons (WP) ── */
-/* ── WordPress Button block — brand-matched ──
+/* ── WordPress Button block - brand-matched ──
    Editor → "/" → Button → choose Fill (default) or Outline style.
    Both variants auto-render on-brand on growitbuddy.com. */
 .article-body .wp-block-buttons { display: flex; flex-wrap: wrap; gap: 12px; margin: 32px 0; }
 .article-body .wp-block-button { margin: 0; }
 
-/* Filled (default) — primary CTA */
+/* Filled (default) - primary CTA */
 .article-body .wp-block-button__link,
 .article-body .wp-block-button.is-style-fill .wp-block-button__link {
   display: inline-flex; align-items: center; gap: 8px;
@@ -153,7 +153,7 @@ const ARTICLE_CSS = `
 }
 .article-body .wp-block-button__link:hover::after { transform: translateX(3px); }
 
-/* Outline variant — secondary CTA (WP: Styles → Outline) */
+/* Outline variant - secondary CTA (WP: Styles → Outline) */
 .article-body .wp-block-button.is-style-outline .wp-block-button__link {
   background: transparent !important;
   color: #1E293B !important;
@@ -166,7 +166,7 @@ const ARTICLE_CSS = `
   color: #1E293B !important;
 }
 
-/* Accent variant — gold (add class "is-style-accent" in WP Advanced → Additional CSS class) */
+/* Accent variant - gold (add class "is-style-accent" in WP Advanced → Additional CSS class) */
 .article-body .wp-block-button.is-style-accent .wp-block-button__link {
   background: linear-gradient(135deg, #C2A878 0%, #B8975F 100%) !important;
   box-shadow: 0 6px 18px rgba(194,168,120,0.32);
@@ -440,7 +440,7 @@ function buildPostSchema(post: BlogPost): Record<string, unknown>[] {
     "inLanguage": "en-US",
     "wordCount": wordCount,
     "isAccessibleForFree": true,
-    // Speakable — voice assistants & AI overviews can read these aloud
+    // Speakable - voice assistants & AI overviews can read these aloud
     "speakable": { "@type": "SpeakableSpecification", "cssSelector": [".article-body h2", ".article-body p"] },
   };
 
@@ -465,7 +465,7 @@ function buildPostSchema(post: BlogPost): Record<string, unknown>[] {
   return schemas;
 }
 
-/** Sticky share bar — visible at the bottom on mobile, side rail on desktop. */
+/** Sticky share bar - visible at the bottom on mobile, side rail on desktop. */
 function ShareBar({ url, title }: { url: string; title: string }) {
   const [copied, setCopied] = useState(false);
   const enc = (s: string) => encodeURIComponent(s);
@@ -605,7 +605,7 @@ export default function InsightDetail() {
         schema={buildPostSchema(post)}
       />
 
-      {/* Hero — tight vertical rhythm, white space minimized */}
+      {/* Hero - tight vertical rhythm, white space minimized */}
       <section style={{ paddingTop: "clamp(56px, 9vw, 80px)", paddingBottom: 0, background: "#FFFFFF" }}>
         <div className="max-w-[760px] mx-auto" style={{ padding: "0 18px" }}>
           <Link href="/blog">
@@ -678,10 +678,10 @@ export default function InsightDetail() {
         <div style={{ height: 1, background: "rgba(10,10,10,0.03)", marginTop: post.featuredImage ? 20 : 0 }} />
       </section>
 
-      {/* Article body — tighter top padding so "On this page" sits close to the image */}
+      {/* Article body - tighter top padding so "On this page" sits close to the image */}
       <section className="gb-article-section" style={{ padding: "clamp(20px, 4vw, 36px) 18px 100px", background: "#FFFFFF" }}>
         <div className="max-w-[680px] mx-auto">
-          {/* Auto Table of Contents — appears only if the article has 2+ H2 sections */}
+          {/* Auto Table of Contents - appears only if the article has 2+ H2 sections */}
           {toc.length >= 2 && (
             <nav aria-label="On this page" className="article-toc" style={{ padding: "16px 20px", marginBottom: 24, background: "#F8F8F6", border: "1px solid #EFEFEA", borderRadius: 14 }}>
               <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.15em", textTransform: "uppercase", color: "#7A7A85", margin: 0, marginBottom: 12, display: "inline-flex", alignItems: "center", gap: 7 }}>

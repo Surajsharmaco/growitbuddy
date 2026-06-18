@@ -275,10 +275,10 @@ function App() {
           <Route path="/admin/:rest*" component={AdminRoutes} />
           <Route path="/admin" component={AdminRoutes} />
 
-          {/* Internal SEO guide — standalone (no layout chrome), permanently noindex via the page itself */}
+          {/* Internal SEO guide - standalone (no layout chrome), permanently noindex via the page itself */}
           <Route path="/seo-guide">{() => <Suspense fallback={<PageSpinner />}><PageGate slug="seo-guide"><SEOGuide /></PageGate></Suspense>}</Route>
 
-          {/* Bio link page — standalone (no site navbar/footer chrome) */}
+          {/* Bio link page - standalone (no site navbar/footer chrome) */}
           <Route path="/links">{() => <Suspense fallback={<PageSpinner />}><PageGate slug="links"><Links /></PageGate></Suspense>}</Route>
 
           <Route>
@@ -295,7 +295,7 @@ function App() {
                       <Route path="/framework">{() => <PageGate slug="framework"><Framework /></PageGate>}</Route>
                       <Route path="/blog">{() => <PageGate slug="insights"><Insights /></PageGate>}</Route>
                       <Route path="/blog/:slug">{() => <PageGate slug="insights"><InsightDetail /></PageGate>}</Route>
-                      {/* Back-compat — old /insights URLs permanently redirect to /blog */}
+                      {/* Back-compat - old /insights URLs permanently redirect to /blog */}
                       <Route path="/insights">{() => <Redirect to="/blog" />}</Route>
                       <Route path="/insights/:slug">{(params) => <Redirect to={`/blog/${params.slug}`} />}</Route>
                       <Route path="/influencers">{() => <PageGate slug="influencers"><InfluencerExplore /></PageGate>}</Route>
@@ -304,7 +304,7 @@ function App() {
                       <Route path="/join/page-owner">{() => <PageGate slug="join-page-owner"><PageOwnerApply /></PageGate>}</Route>
                       <Route path="/creators">{() => <PageGate slug="creators"><Creators /></PageGate>}</Route>
                       <Route path="/career">{() => <PageGate slug="career"><Career /></PageGate>}</Route>
-                      {/* Back-compat — old career URLs preselect the right tab */}
+                      {/* Back-compat - old career URLs preselect the right tab */}
                       <Route path="/freelancers">{() => <Redirect to="/career?type=freelancer" />}</Route>
                       <Route path="/full-time">{() => <Redirect to="/career?type=full-time" />}</Route>
                       <Route path="/internship">{() => <Redirect to="/career?type=internship" />}</Route>
@@ -336,7 +336,7 @@ function App() {
                       <Route path="/ugc-creators">{() => <PageGate slug="ugc-creators"><UGCCreatorsPool /></PageGate>}</Route>
                       <Route path="/meme-designers">{() => <PageGate slug="meme-designers"><MemeDesignersPool /></PageGate>}</Route>
                       <Route path="/video-editors">{() => <PageGate slug="video-editors"><EditorsPool /></PageGate>}</Route>
-                      {/* Page Variants — catch-all that resolves /:slug to a variant of a source page.
+                      {/* Page Variants - catch-all that resolves /:slug to a variant of a source page.
                           Falls through to NotFound if the slug doesn't match a live variant. */}
                       <Route path="/:slug" component={VariantResolver} />
                       <Route component={NotFound} />

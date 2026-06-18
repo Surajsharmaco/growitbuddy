@@ -8,7 +8,7 @@
  *
  * IMPORTANT: every tag this component writes is stamped with
  * `data-gb-admin="1"`. Page-level <SEOMeta> checks for that flag and
- * refuses to overwrite — so admin overrides always win, even across
+ * refuses to overwrite - so admin overrides always win, even across
  * re-renders.
  */
 
@@ -77,7 +77,7 @@ function applySEO(entry: PageRegistryEntry, seo: PageSEOData, pathname: string, 
   const title       = seo.title       ?? entry.defaults.title;
   const description = seo.description ?? entry.defaults.description;
 
-  // Indexability — global master switch overrides everything when OFF.
+  // Indexability - global master switch overrides everything when OFF.
   // Otherwise: admin per-page value > registry default > true.
   const indexResolved  = globalIndexable ? (seo.index  ?? entry.defaults.index  ?? true) : false;
   const followResolved = globalIndexable ? (seo.follow ?? true)                          : false;
@@ -234,7 +234,7 @@ export default function DynamicPageSEO() {
       // ("seo-global") changes.
       if (sec === `seo:${entry!.slug}` || sec === "seo-global") load();
     }
-    // Re-validate when the tab regains focus — covers the case where the
+    // Re-validate when the tab regains focus - covers the case where the
     // user edited in another window and switches back to the public tab.
     function onVisible() {
       if (document.visibilityState === "visible") load();

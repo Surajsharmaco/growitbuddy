@@ -60,7 +60,7 @@ export default function SiteGuide() {
   return (
     <div style={{ background: C.bg, fontFamily: "'Inter', sans-serif", color: C.text }}>
       <SEOMeta
-        title="Site Guide — How GrowitBuddy Works"
+        title="Site Guide - How GrowitBuddy Works"
         description="Complete beginner-friendly guide to the GrowitBuddy website: pages, admin panel, CRM, SEO, talent pools, and email system."
       />
 
@@ -92,7 +92,7 @@ export default function SiteGuide() {
             {data.hero.lede}
           </motion.p>
 
-          {/* Quick links — derived from section headings */}
+          {/* Quick links - derived from section headings */}
           <div style={{ marginTop: 40, display: "flex", flexWrap: "wrap", gap: 10 }}>
             {toc.map((t) => (
               <a
@@ -140,7 +140,7 @@ export default function SiteGuide() {
             Open the admin panel and start editing.
           </h2>
           <p style={{ fontSize: 16, color: "#cbd5e1", lineHeight: 1.7, maxWidth: "52ch", margin: "0 auto 32px" }}>
-            Most things are 2-3 clicks away. This guide always lives at <code style={{ background: "rgba(255,255,255,0.1)", padding: "2px 8px", borderRadius: 4, fontSize: 14 }}>/guide</code> — bookmark it.
+            Most things are 2-3 clicks away. This guide always lives at <code style={{ background: "rgba(255,255,255,0.1)", padding: "2px 8px", borderRadius: 4, fontSize: 14 }}>/guide</code> - bookmark it.
           </p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <Link
