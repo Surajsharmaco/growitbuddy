@@ -93,6 +93,7 @@ const AdminTerms              = lazy(() => import("@/pages/admin/AdminTerms"));
 const AdminNetworkForm        = lazy(() => import("@/pages/admin/AdminNetworkForm"));
 const AdminSeoGuide           = lazy(() => import("@/pages/admin/AdminSeoGuide"));
 const AdminSiteGuide          = lazy(() => import("@/pages/admin/AdminSiteGuide"));
+const AdminBackup             = lazy(() => import("@/pages/admin/AdminBackup"));
 
 // ── Minimal spinner (no layout shift, no external deps) ──────────────────────
 function PageSpinner() {
@@ -205,6 +206,7 @@ function AdminRoutes() {
       <Route path="/admin/terms">{() => <AdminGuard><AdminTerms /></AdminGuard>}</Route>
       <Route path="/admin/seo-guide">{() => <AdminGuard><AdminSeoGuide /></AdminGuard>}</Route>
       <Route path="/admin/site-guide">{() => <AdminGuard><AdminSiteGuide /></AdminGuard>}</Route>
+      <Route path="/admin/backup">{() => <AdminGuard><AdminBackup /></AdminGuard>}</Route>
       <Route path="/admin/creators-form">{() => <AdminGuard><AdminNetworkForm contentKey="creators-form" slug="creators" title="Creators Page Form" description="Edit the headings, benefits, callout, form copy, and SEO of the public /creators page." /></AdminGuard>}</Route>
       <Route path="/admin/page-owner-form">{() => <AdminGuard><AdminNetworkForm contentKey="page-owner-form" slug="join-page-owner" title="Page Owner Form" description="Edit the headings, benefits, callout, form copy, and SEO of the public /join/page-owner page." /></AdminGuard>}</Route>
       <Route path="/admin">{() => <AdminGuard><AdminDashboard /></AdminGuard>}</Route>

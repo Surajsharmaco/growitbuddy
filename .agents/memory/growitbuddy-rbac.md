@@ -8,11 +8,25 @@ description: How super/member access control is enforced and the invariants to k
 The backend (`api-server admin.ts`) is the authoritative gate; the frontend sidebar
 and route guard are a DISPLAY mirror only and must never be the sole protection.
 
-**"super" is defined as `role === "super" OR permissions includes "all"`** and this
-definition must be identical in all four places, or a member with `["all"]` ends up
-half-super: backend `isSuperReq` + `superAdminOnly`, and frontend `isSuperAdmin` +
-`hasPermission`. Keeping only some of them treating `"all"` as super was an actual
-inconsistency that had to be fixed.
+**"super" has TWO tiers — keep them distinct (this overrides the older "must be
+identical in all 4 spots" rule):**
+- **Super-only ROUTES** (team management, page variants admin, optimize lock,
+  backup/export) are gated by `superAdminOnly`, which checks `role === "super"`
+  ONLY and must NEVER honor the `"all"` permission wildcard. **Why:** team-member
+  permission arrays are NOT validated server-side, so a member can be assigned
+  `["all"]`; if super-only routes honored `"all"`, that member would escalate to
+  full super (manage team, export the entire project). Verified by test: a member
+  with `["all"]` gets 403 on `/admin/backup` and `/admin/team`.
+- **Content permissions** still treat `role === "super" OR permissions includes
+  "all"` as all-access (`isSuperReq` / `hasPermission`, and frontend
+  `isSuperAdmin` / `hasPermission`). This is a deliberate convenience for an
+  explicitly trusted member and is acceptable for CMS content.
+
+**Residual (known):** because the content gate's super bypass still honors `"all"`,
+a member granted `["all"]` can also reach `__super__` content sections
+(page_visibility, variants, seo). If that ever matters, the clean fix is to forbid
+assigning `"all"` to members (validate team permissions) — do NOT weaken the
+route-level role check.
 
 **Section→permission mapping** (`sectionToPermission`) resolves a CMS content
 section key to the permission needed to edit it. Identity for most keys; explicit

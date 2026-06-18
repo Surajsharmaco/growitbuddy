@@ -4,6 +4,7 @@ import { db, pool, siteContent, leads, certificates, teamMembers, portfolioItems
 import { eq, desc, count, asc, lt } from "drizzle-orm";
 import { logger } from "../lib/logger";
 import { cloudinaryConfigured, uploadToCloudinary } from "../lib/cloudinary";
+import { buildContentSnapshot, buildHandoffDocs, assembleBackupZip, type BackupMeta } from "../lib/backup";
 import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -197,7 +198,11 @@ function superAdminOnly(
   res: import("express").Response,
   next: import("express").NextFunction,
 ) {
-  if (!isSuperReq(req)) {
+  // AUTHORITATIVE super-only gate. We check the role directly (NOT isSuperReq):
+  // a team member must never reach super-only routes (team management, page
+  // variants, backup/export) even if their permission list happens to contain
+  // the wildcard "all". "all" is a super-login implementation detail only.
+  if (req.adminRole !== "super") {
     res.status(403).json({ error: "Super admin access required" });
     return;
   }
@@ -1549,6 +1554,121 @@ router.post("/redeploy", authMiddleware, superAdminOnly, async (req, res) => {
   await Promise.all(tasks);
   logger.info({ target, results }, "redeploy triggered");
   return res.json({ success: true, results });
+});
+
+// ── Super-admin backup / migration export ────────────────────────────────────
+// One-click download of a SINGLE ZIP that lets any AI (or developer) fully
+// understand and rebuild the project. The source code is fetched from GitHub
+// (committed files only — never node_modules, .git or .env/secrets), then merged
+// with generated AI-handoff docs and a sanitized snapshot of public CMS content.
+router.get("/backup", authMiddleware, superAdminOnly, async (_req, res) => {
+  const token = process.env.GITHUB_TOKEN;
+  const repo = process.env.GITHUB_REPO || "Surajsharmaco/growitbuddy";
+  const branch = process.env.GITHUB_BRANCH || "main";
+  if (!token) {
+    res.status(500).json({
+      error: "GITHUB_TOKEN not set — backup needs it to fetch the source code from GitHub.",
+    });
+    return;
+  }
+  const ghHeaders = {
+    Authorization: `Bearer ${token}`,
+    Accept: "application/vnd.github+json",
+    "User-Agent": "growitbuddy-admin",
+    "X-GitHub-Api-Version": "2022-11-28",
+  };
+  try {
+    // 1. Latest commit on the branch (used only to label the bundle).
+    const commitRes = await fetch(`https://api.github.com/repos/${repo}/commits/${branch}`, {
+      headers: ghHeaders,
+      signal: AbortSignal.timeout(20_000),
+    });
+    if (!commitRes.ok) {
+      logger.error({ status: commitRes.status }, "backup: GitHub commit lookup failed");
+      res.status(502).json({ error: `Could not reach GitHub to read the latest commit (status ${commitRes.status}).` });
+      return;
+    }
+    const commitData = (await commitRes.json()) as { sha: string; commit: { message: string; author: { date: string } } };
+    const sha = commitData.sha;
+    const shortSha = sha.slice(0, 7);
+    const commitMsg = commitData.commit?.message?.split("\n")[0] ?? "";
+    const commitDate = commitData.commit?.author?.date ?? "";
+
+    // 2. Download the full repository as a ZIP. fetch follows GitHub's redirect
+    //    to codeload automatically (and drops the auth header cross-origin).
+    const zipRes = await fetch(`https://api.github.com/repos/${repo}/zipball/${branch}`, {
+      headers: ghHeaders,
+      signal: AbortSignal.timeout(60_000),
+    });
+    if (!zipRes.ok) {
+      logger.error({ status: zipRes.status }, "backup: GitHub zipball download failed");
+      res.status(502).json({ error: `Could not download the source code from GitHub (status ${zipRes.status}).` });
+      return;
+    }
+    const zipBuffer = Buffer.from(await zipRes.arrayBuffer());
+    // Bound the compressed download before we inflate it (defense-in-depth; the
+    // source is our own repo but we never want a pathological archive to OOM).
+    const MAX_SOURCE_ZIP_BYTES = 200 * 1024 * 1024; // 200 MB compressed
+    if (zipBuffer.length > MAX_SOURCE_ZIP_BYTES) {
+      logger.error({ bytes: zipBuffer.length }, "backup: source archive exceeds size limit");
+      res.status(502).json({ error: "The source archive from GitHub is unexpectedly large; backup aborted." });
+      return;
+    }
+
+    // 3. Sanitized snapshot of public CMS content + generated handoff docs.
+    const snapshot = await buildContentSnapshot();
+    const meta: BackupMeta = {
+      repo,
+      branch,
+      sha,
+      shortSha,
+      commitMsg,
+      commitDate,
+      generatedAt: new Date().toISOString(),
+    };
+    const files: Record<string, string> = {
+      ...buildHandoffDocs(meta, snapshot),
+      "_DATA/cms-content-snapshot.json": JSON.stringify(snapshot, null, 2),
+    };
+
+    // 4. Build the final flat ZIP. Any throw here is caught below as a clean
+    //    JSON error because no response bytes have been sent yet.
+    const bundle = assembleBackupZip(zipBuffer, files);
+
+    const filename = `growitbuddy-backup-${meta.generatedAt.slice(0, 10)}-${shortSha}.zip`;
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    res.send(bundle);
+
+    // 5. Audit the action (never the contents).
+    try {
+      await db.insert(adminActionLogs).values({
+        action: "backup-export",
+        detail: `Generated AI-handoff backup from ${repo}@${shortSha}`,
+        ok: true,
+      });
+    } catch {
+      /* audit log is non-fatal */
+    }
+    logger.info({ repo, sha: shortSha, bytes: bundle.length }, "backup generated");
+  } catch (err) {
+    const isTimeout = err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError");
+    logger.error({ err }, "backup generation failed");
+    if (!res.headersSent) {
+      if (isTimeout) {
+        res.status(504).json({ error: "Backup timed out while contacting GitHub. Please try again." });
+      } else {
+        res.status(500).json({ error: "Backup generation failed. Please check the server logs and try again." });
+      }
+    } else {
+      try {
+        res.end();
+      } catch {
+        /* noop */
+      }
+    }
+  }
 });
 
 export { authMiddleware };

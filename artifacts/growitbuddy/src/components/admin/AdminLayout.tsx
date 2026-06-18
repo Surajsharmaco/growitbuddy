@@ -5,6 +5,7 @@ import {
   Home, Layers, Menu as MenuIcon, AlignLeft, Info, LogOut,
   ChevronRight, Inbox, Mail, GitBranch, UserPlus, Building2, Network, Image,
   Share2, Scan, BookOpen, ShieldCheck, UserCog, Zap, Play, TrendingUp, EyeOff, Search, Copy as CopyIcon, Link2,
+  DownloadCloud,
 } from "lucide-react";
 import { VariantBanner } from "@/components/admin/VariantBanner";
 import { useEffect, useState } from "react";
@@ -92,6 +93,7 @@ const navGroups: NavGroup[] = [
       { label: "SEO Control", path: "/admin/seo", icon: <Search size={15} />, superOnly: true },
       { label: "Settings", path: "/admin/settings", icon: <Settings size={15} />, permission: "settings" },
       { label: "Optimize", path: "/admin/optimize", icon: <Zap size={15} />, superOnly: true },
+      { label: "Backup / Migration", path: "/admin/backup", icon: <DownloadCloud size={15} />, superOnly: true },
     ],
   },
 ];
