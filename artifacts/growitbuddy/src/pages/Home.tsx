@@ -502,15 +502,7 @@ export default function Home() {
       </section>
 
       {/* ══ 6. ECOSYSTEM ══ */}
-      <section style={{
-        padding: "100px 24px",
-        backgroundColor: "#F2EFE7",
-        backgroundImage:
-          "radial-gradient(120% 80% at 50% -12%, rgba(194,168,120,0.18) 0%, rgba(194,168,120,0) 56%), radial-gradient(92% 72% at 100% 114%, rgba(96,114,146,0.12) 0%, rgba(96,114,146,0) 60%), url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Ccircle cx='2' cy='2' r='1.4' fill='%23B89B6A' fill-opacity='0.13'/%3E%3C/svg%3E\"), var(--gb-grain)",
-        backgroundSize: "100% 100%, 100% 100%, 28px 28px, 150px 150px",
-        backgroundRepeat: "no-repeat, no-repeat, repeat, repeat",
-        borderTop: "1px solid #E5E5E0",
-      }}>
+      <section style={{ padding: "100px 24px", background: BG, borderTop: "1px solid #E5E5E0" }}>
         <div className="max-w-[1100px] mx-auto">
           <FadeUp>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#7A7A85", marginBottom: 16 }}>{hm.ecosystemLabel}</p>
@@ -525,9 +517,6 @@ export default function Home() {
             ].map((card, i) => {
               const dark = card.dark;
               const P = getSolidText(dark);
-              const cardBg = dark
-                ? "radial-gradient(100% 92% at 100% 0%, rgba(217,194,142,0.17) 0%, rgba(217,194,142,0) 56%), radial-gradient(88% 82% at 0% 100%, rgba(120,140,180,0.13) 0%, rgba(120,140,180,0) 60%), #16202E"
-                : "radial-gradient(96% 86% at 0% 0%, rgba(194,168,120,0.22) 0%, rgba(194,168,120,0) 58%), radial-gradient(82% 78% at 100% 100%, rgba(96,114,146,0.10) 0%, rgba(96,114,146,0) 60%), #FCFAF6";
               return (
               <m.div
                 key={i}
@@ -535,7 +524,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1, duration: 0.5 }}
-                style={getSolidCardStyle(dark, { padding: "40px 36px", background: cardBg })}
+                style={getSolidCardStyle(dark, { padding: "40px 36px" })}
               >
                 <CardGrain dark={dark} />
                 <p style={{ position: "relative", fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: P.accent, marginBottom: 20 }}>{card.tag}</p>
