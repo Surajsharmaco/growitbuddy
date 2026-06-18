@@ -15,12 +15,12 @@ import { getWashCardStyle, getWashBorder, CardGrain, WashIconChip } from "@/comp
 // High-quality product-style images for the "Everything you need" services grid,
 // mapped by card order so the content stays admin-editable (the services array
 // carries no image field). Same cohesive premium 3D style across all 6 for symmetry.
-import imgContentCreation from "@assets/generated_images/svc-content-creation.webp";
-import imgPersonalBranding from "@assets/generated_images/svc-personal-branding.webp";
-import imgDistributionGrowth from "@assets/generated_images/svc-distribution-growth.webp";
-import imgWebFunnel from "@assets/generated_images/svc-web-funnel.webp";
-import imgAiAutomation from "@assets/generated_images/svc-ai-automation.webp";
-import imgDigitalProducts from "@assets/generated_images/svc-digital-products.webp";
+import imgContentCreation from "@assets/generated_images/svc-content-creation-cut.webp";
+import imgPersonalBranding from "@assets/generated_images/svc-personal-branding-cut.webp";
+import imgDistributionGrowth from "@assets/generated_images/svc-distribution-growth-cut.webp";
+import imgWebFunnel from "@assets/generated_images/svc-web-funnel-cut.webp";
+import imgAiAutomation from "@assets/generated_images/svc-ai-automation-cut.webp";
+import imgDigitalProducts from "@assets/generated_images/svc-digital-products-cut.webp";
 
 const SERVICE_IMAGES: string[] = [
   imgContentCreation,
@@ -401,31 +401,42 @@ export default function Home() {
                   style={{
                     position: "relative",
                     overflow: "hidden",
-                    borderRadius: 24,
+                    borderRadius: 20,
                     background: "#FFFFFF",
-                    border: "1px solid rgba(15,23,42,0.06)",
-                    boxShadow: "0 30px 60px -38px rgba(15,23,42,0.20), 0 8px 22px -16px rgba(15,23,42,0.05)",
+                    border: "1px solid rgba(15,23,42,0.07)",
+                    boxShadow: "0 22px 48px -34px rgba(15,23,42,0.22), 0 4px 14px -10px rgba(15,23,42,0.05)",
+                    minHeight: 234,
                     display: "flex",
-                    flexDirection: "column",
+                    alignItems: "stretch",
                   }}
                 >
-                  {/* Name + description on top (Apple product-grid style) */}
-                  <div style={{ padding: "28px 28px 20px", display: "flex", flexDirection: "column" }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", color: "#C2A878", marginBottom: 10 }}>
+                  {/* Text column (left) */}
+                  <div
+                    style={{
+                      position: "relative",
+                      zIndex: 1,
+                      flex: "1 1 0%",
+                      minWidth: 0,
+                      padding: "26px 6px 24px 26px",
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.02em", color: "#E1562A", marginBottom: 12 }}>
                       {s.num}
                     </div>
-                    <h3 style={{ fontWeight: 700, fontSize: 21, letterSpacing: "-0.02em", color: "#1A1C20", margin: 0, marginBottom: 10 }}>
+                    <h3 style={{ fontWeight: 700, fontSize: 19, letterSpacing: "-0.02em", color: "#15171A", margin: 0, marginBottom: 10, lineHeight: 1.25 }}>
                       {s.title}
                     </h3>
                     <p
                       style={{
-                        fontSize: 14,
+                        fontSize: 13.5,
                         color: "#6A6F77",
                         lineHeight: "1.6",
                         margin: 0,
-                        marginBottom: 16,
+                        marginBottom: 18,
                         display: "-webkit-box",
-                        WebkitLineClamp: 2,
+                        WebkitLineClamp: 4,
                         WebkitBoxOrient: "vertical",
                         overflow: "hidden",
                       } as React.CSSProperties}
@@ -436,26 +447,42 @@ export default function Home() {
                       href={s.href}
                       aria-label={`Explore ${s.title} service`}
                       style={{
+                        marginTop: "auto",
                         display: "inline-flex",
                         alignItems: "center",
-                        gap: 5,
-                        fontSize: 14,
+                        gap: 6,
+                        fontSize: 13.5,
                         fontWeight: 600,
                         textDecoration: "none",
-                        color: "#1A1C20",
+                        color: "#15171A",
                       }}
                     >
                       Explore Service <span aria-hidden="true" style={{ fontSize: 15 }}>→</span>
                     </a>
                   </div>
-                  {/* Product image sits at the bottom */}
-                  <div style={{ flex: 1, minHeight: 210, width: "100%", overflow: "hidden", background: "#DED5C6" }}>
+                  {/* Floating product image (right) */}
+                  <div
+                    style={{
+                      flex: "0 0 42%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "16px 14px 16px 0",
+                      pointerEvents: "none",
+                    }}
+                  >
                     <img
                       src={img}
                       alt={`${s.title} illustration`}
                       loading="lazy"
                       decoding="async"
-                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "74%",
+                        objectFit: "contain",
+                        display: "block",
+                        filter: "drop-shadow(0 16px 20px rgba(15,23,42,0.16))",
+                      }}
                     />
                   </div>
                 </m.div>
