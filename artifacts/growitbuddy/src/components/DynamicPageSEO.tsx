@@ -12,7 +12,7 @@
  * re-renders.
  */
 
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import { useLocation } from "wouter";
 import { API_BASE } from "@/lib/api";
 import {
@@ -144,8 +144,36 @@ function parseBroadcastSection(value: string | null): string | null {
   return m ? m[1] : value;
 }
 
+function readBootstrap(slug: string): { boot: PageSEOData; bootGlobal: boolean } {
+  const w = window as unknown as {
+    __GB_SEO__?: { slug?: string; data?: PageSEOData; globalIndexable?: boolean };
+  };
+  const bootSeo =
+    typeof window !== "undefined" && w.__GB_SEO__ && w.__GB_SEO__.slug === slug
+      ? w.__GB_SEO__
+      : null;
+  return {
+    boot: bootSeo?.data ?? {},
+    bootGlobal:
+      bootSeo && typeof bootSeo.globalIndexable === "boolean" ? bootSeo.globalIndexable : true,
+  };
+}
+
 export default function DynamicPageSEO() {
   const [location] = useLocation();
+
+  // Synchronously lock the SSR-injected (bootstrap) SEO for this page BEFORE any
+  // page-level <SEOMeta> passive effect runs. useLayoutEffect fires before
+  // useEffect, and the bootstrap matches what the server already put in <head>,
+  // so the correct <title> is stamped data-gb-admin first and <SEOMeta> yields —
+  // closing the race that let a hardcoded client title flicker in and made Google
+  // index an inconsistent desktop title.
+  useLayoutEffect(() => {
+    const entry = findEntryByPath(location);
+    if (!entry) return;
+    const { boot, bootGlobal } = readBootstrap(entry.slug);
+    applySEO(entry, boot, location, bootGlobal);
+  }, [location]);
 
   useEffect(() => {
     const entry = findEntryByPath(location);
@@ -156,16 +184,7 @@ export default function DynamicPageSEO() {
     // Vercel SSR renderer in api/render.ts). Used as the fallback base so a
     // failed client fetch can never downgrade correct server-rendered meta
     // back to bare registry defaults.
-    const w = window as unknown as {
-      __GB_SEO__?: { slug?: string; data?: PageSEOData; globalIndexable?: boolean };
-    };
-    const bootSeo =
-      typeof window !== "undefined" && w.__GB_SEO__ && w.__GB_SEO__.slug === entry.slug
-        ? w.__GB_SEO__
-        : null;
-    const boot: PageSEOData = bootSeo?.data ?? {};
-    const bootGlobal: boolean =
-      bootSeo && typeof bootSeo.globalIndexable === "boolean" ? bootSeo.globalIndexable : true;
+    const { boot, bootGlobal } = readBootstrap(entry.slug);
 
     async function loadGlobalIndexable(): Promise<boolean> {
       try {

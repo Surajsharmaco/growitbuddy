@@ -21,6 +21,31 @@ reintroduce a second hand-maintained list.
 - The API sitemap respects live admin index/sitemap DB toggles, so it can legitimately list
   fewer urls than the static fallback. That divergence is expected, not a bug.
 
+# Client title race: SEOMeta vs DynamicPageSEO
+
+Two client SEO writers exist: page-level `<SEOMeta>` (passive `useEffect`) and the app-root
+`DynamicPageSEO`. DynamicPageSEO is the authoritative final source — it stamps
+`<title data-gb-admin="1">` (+ meta) and SEOMeta *yields* to anything already stamped.
+
+**Why it mattered:** SEOMeta's effect fires before DynamicPageSEO's async admin-SEO fetch
+resolves, so a page that hardcoded a DIFFERENT `<SEOMeta title>` flashed that title in the gap.
+Googlebot snapshotting before/after the gap indexed an inconsistent desktop title (mobile was fine).
+
+**Rules to keep:**
+- A page's `<SEOMeta title/description>` must NOT diverge from its `@workspace/seo` registry
+  default. Home pulls them from `findEntryBySlug("home")?.defaults`; do the same for any page.
+- DynamicPageSEO applies the SSR bootstrap (`window.__GB_SEO__`, via `readBootstrap()`)
+  **synchronously in `useLayoutEffect`** so the server/admin title is stamped BEFORE any passive
+  SEOMeta effect — layout effects always run before passive ones. This closes the race site-wide
+  and survives future admin title edits. The existing async `useEffect` still refines after.
+- `window.__GB_SEO__` is injected ONLY by prod SSR (`ssr/render.ts` → prebuilt `api/render.js`);
+  in dev it's undefined so readBootstrap returns `boot={}` → registry defaults. Frontend-only fix,
+  no SSR rebuild needed. Google also rewrites the homepage `<title>` toward the bare brand on its
+  own — keep the title ≤60 chars to reduce that.
+- Follow-up (not done): other pages' registry defaults are terser than their old client SEOMeta
+  titles; since DynamicPageSEO wins, those terse defaults are the live titles. Audit & enrich the
+  registry/admin titles if richer keywords are wanted — don't reintroduce divergent client titles.
+
 # Build gotchas for shared composite `lib/*` packages (this repo)
 
 - `dist/` is gitignored repo-wide. Declarations are built fresh by the root

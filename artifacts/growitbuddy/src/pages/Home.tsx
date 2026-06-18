@@ -7,6 +7,7 @@ import { Link } from "wouter";
 import { FadeUp } from "@/components/effects/TextReveal";
 import CountUp from "@/components/effects/CountUp";
 import SEOMeta from "@/components/SEOMeta";
+import { findEntryBySlug } from "@/lib/pageRegistry";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import DotGrid from "@/components/effects/DotGrid";
 import { HOME_DEFAULTS as DEFAULTS, type HomeData } from "@/lib/homeDefaults";
@@ -15,6 +16,17 @@ import { getSolidCardStyle, getSolidText, solidIsDark, CardGrain, WashIconChip }
 // Icons for the "Everything you need" services grid, mapped by card order so the
 // content stays admin-editable (the services array carries no icon field).
 const SERVICE_ICONS: LucideIcon[] = [Search, Calendar, ScanLine, Send, Bot, Box];
+
+// Home <title>/description come from the shared SEO registry (@workspace/seo) —
+// the SAME source the SSR renderer and admin Core Meta use. Keeping the client
+// SEOMeta in lockstep avoids the race where a hardcoded client title overwrote
+// the server title before admin SEO loaded, which made Google index/show an
+// inconsistent title on desktop.
+const HOME_SEO = findEntryBySlug("home")?.defaults ?? {
+  title: "GrowitBuddy - Personal Branding, Content & Distribution Studio",
+  description:
+    "Personal branding, content creation, and video editing for founders, creators, and building their online distribution, Authority & Inbound Leads",
+};
 
 // Services cards are intentionally monochrome line-art (Apple-style) — no per-card
 // colour. A faint oversized icon watermark gives each card an illustrative feel.
@@ -110,8 +122,8 @@ export default function Home() {
   return (
     <div style={{ background: BG, color: TEXT, fontFamily: "'Inter', sans-serif" }}>
       <SEOMeta
-        title="GrowitBuddy - Content Marketing Agency | Authority Systems for Founders & Creators"
-        description="Build real authority and inbound growth. GrowitBuddy creates content systems, personal branding strategies, and distribution infrastructure that compounds over time for founders and creators."
+        title={HOME_SEO.title}
+        description={HOME_SEO.description}
         schema={{
           "@type": "FAQPage",
           "mainEntity": [
