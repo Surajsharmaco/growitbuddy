@@ -17,20 +17,8 @@ import { getWashCardStyle, getWashBorder, CardGrain, WashIconChip } from "@/comp
 // content stays admin-editable (the services array carries no icon field).
 const SERVICE_ICONS: LucideIcon[] = [Search, Calendar, ScanLine, Send, Bot, Box];
 
-// Per-card Apple-style accent colours for the home "Services" grid ONLY. Cards are
-// clean white; colour appears only as a tasteful icon accent (the way Apple uses
-// colour), never as a full-card wash. Kept local so the shared WashCard system
-// used on other pages stays untouched.
-// `icon` = bright accent for the icon glyph; `link` = darker, WCAG-AA-safe shade of
-// the same hue for the "Explore Service" text link on white.
-const HOME_SERVICE_ACCENTS: { icon: string; chip: string; link: string }[] = [
-  { icon: "#0A84FF", chip: "rgba(10,132,255,0.10)", link: "#0066CC" }, // 01 blue
-  { icon: "#F5841F", chip: "rgba(245,132,31,0.12)", link: "#C2410C" }, // 02 orange
-  { icon: "#0FB5C9", chip: "rgba(15,181,201,0.12)", link: "#0B6B79" }, // 03 teal
-  { icon: "#2FA84F", chip: "rgba(47,168,79,0.12)", link: "#1B7A31" }, // 04 green
-  { icon: "#7B61FF", chip: "rgba(123,97,255,0.11)", link: "#5B43D6" }, // 05 purple
-  { icon: "#F43F77", chip: "rgba(244,63,119,0.10)", link: "#C81E5B" }, // 06 pink
-];
+// Services cards are intentionally monochrome line-art (Apple-style) — no per-card
+// colour. A faint oversized icon watermark gives each card an illustrative feel.
 
 function GrainOverlay() {
   return (
@@ -392,7 +380,6 @@ export default function Home() {
           <div className="home-system-grid">
             {(hm.services || []).map((s, i) => {
               const Icon = SERVICE_ICONS[i % SERVICE_ICONS.length];
-              const accent = HOME_SERVICE_ACCENTS[i % HOME_SERVICE_ACCENTS.length];
               return (
                 <m.div
                   key={i}
@@ -407,35 +394,31 @@ export default function Home() {
                     background: "#FFFFFF",
                     border: "1px solid rgba(15,23,42,0.07)",
                     boxShadow: "0 12px 32px -20px rgba(15,23,42,0.25)",
-                    padding: "30px 28px 28px",
+                    padding: "32px 28px 28px",
                     display: "flex",
                     flexDirection: "column",
                   }}
                 >
-                  {/* Soft tinted chip holding the accent-coloured icon (Apple-style accent) */}
+                  {/* Faint oversized line-art watermark for an illustrative, Apple-like feel */}
                   <div
-                    style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 14,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      background: accent.chip,
-                      marginBottom: 24,
-                    }}
+                    aria-hidden="true"
+                    style={{ position: "absolute", right: -22, bottom: -24, color: "#0F172A", opacity: 0.05, pointerEvents: "none", zIndex: 0 }}
                   >
-                    <Icon size={24} strokeWidth={1.9} color={accent.icon} aria-hidden="true" focusable="false" />
+                    <Icon size={150} strokeWidth={1} />
+                  </div>
+                  {/* Clean monochrome line-art icon */}
+                  <div style={{ position: "relative", zIndex: 1, marginBottom: 26, color: "#1D1D1F" }}>
+                    <Icon size={40} strokeWidth={1.4} aria-hidden="true" focusable="false" />
                   </div>
                   {/* Card number, then the title beneath it */}
-                  <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: "#9AA0A6", marginBottom: 10 }}>
+                  <div style={{ position: "relative", zIndex: 1, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: "#9AA0A6", marginBottom: 10 }}>
                     {s.num}
                   </div>
-                  <h3 style={{ fontWeight: 800, fontSize: 19, letterSpacing: "-0.02em", color: "#0A0A0A", margin: 0, marginBottom: 12 }}>
+                  <h3 style={{ position: "relative", zIndex: 1, fontWeight: 800, fontSize: 19, letterSpacing: "-0.02em", color: "#0A0A0A", margin: 0, marginBottom: 12 }}>
                     {s.title}
                   </h3>
-                  <p style={{ fontSize: 14, color: "#5F636B", lineHeight: "1.7", flex: 1, margin: 0 }}>{s.desc}</p>
-                  <div style={{ marginTop: 24 }}>
+                  <p style={{ position: "relative", zIndex: 1, fontSize: 14, color: "#5F636B", lineHeight: "1.7", flex: 1, margin: 0 }}>{s.desc}</p>
+                  <div style={{ position: "relative", zIndex: 1, marginTop: 24 }}>
                     <a
                       href={s.href}
                       style={{
@@ -445,7 +428,7 @@ export default function Home() {
                         fontSize: 14,
                         fontWeight: 600,
                         textDecoration: "none",
-                        color: accent.link,
+                        color: "#1D1D1F",
                       }}
                     >
                       Explore Service <span aria-hidden="true" style={{ fontSize: 15 }}>→</span>
