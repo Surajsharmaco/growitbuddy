@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { CheckCircle, XCircle, X } from "lucide-react";
+import { CheckCircle, XCircle, X, ChevronUp, ChevronDown } from "lucide-react";
 
 interface FieldProps {
   label: string;
@@ -108,6 +108,81 @@ export function SaveBar({
         </button>
       </div>
     </>
+  );
+}
+
+/* ── Order control: a numbered position box + up/down nudge buttons ──────────
+   Lets an admin type the exact position an item should take on the public page
+   (1 = first, 2 = second, …) instead of clicking the chevrons many times. */
+export function PositionControl({
+  position,
+  total,
+  disabled = false,
+  onMove,
+  onSet,
+}: {
+  position: number;
+  total: number;
+  disabled?: boolean;
+  onMove: (dir: -1 | 1) => void;
+  onSet: (pos: number) => void;
+}) {
+  const [draft, setDraft] = useState(String(position));
+  useEffect(() => { setDraft(String(position)); }, [position]);
+
+  const commit = () => {
+    const n = parseInt(draft, 10);
+    if (Number.isNaN(n)) { setDraft(String(position)); return; }
+    const clamped = Math.max(1, Math.min(n, total));
+    if (clamped !== position) onSet(clamped);
+    else setDraft(String(position));
+  };
+
+  return (
+    <div className="flex items-center gap-1 shrink-0 pl-3 text-[#0B0B0B]/30">
+      <input
+        type="number"
+        min={1}
+        max={total}
+        value={draft}
+        disabled={disabled}
+        onClick={(e) => e.stopPropagation()}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            commit();
+            (e.target as HTMLInputElement).blur();
+          }
+        }}
+        title={disabled ? "Clear filters to change the order" : "Position on the public page (1 = first). Type a number, then press Enter."}
+        aria-label="Position on the public page"
+        className="w-9 text-center text-[12px] font-semibold border border-[#0B0B0B]/15 rounded-md py-1 text-[#0B0B0B] outline-none focus:border-[#0B0B0B]/45 bg-white disabled:opacity-40 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+      />
+      <div className="flex flex-col">
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onMove(-1); }}
+          disabled={disabled || position <= 1}
+          aria-label="Move up one position"
+          title="Move up one position"
+          className="p-0.5 rounded hover:bg-[#0B0B0B]/8 hover:text-[#0B0B0B] disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-[#0B0B0B]/30 disabled:cursor-not-allowed transition-colors"
+        >
+          <ChevronUp size={13} />
+        </button>
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onMove(1); }}
+          disabled={disabled || position >= total}
+          aria-label="Move down one position"
+          title="Move down one position"
+          className="p-0.5 rounded hover:bg-[#0B0B0B]/8 hover:text-[#0B0B0B] disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-[#0B0B0B]/30 disabled:cursor-not-allowed transition-colors"
+        >
+          <ChevronDown size={13} />
+        </button>
+      </div>
+    </div>
   );
 }
 

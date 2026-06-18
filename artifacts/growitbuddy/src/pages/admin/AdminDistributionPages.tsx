@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { DISTRIBUTION_NICHES, DISTRIBUTION_COUNTRIES, type DistributionPage } from "@/data/distributionPages";
-import { PageHeader, Card, Input, SaveBar, Modal } from "@/components/admin/AdminField";
+import { PageHeader, Card, Input, SaveBar, Modal, PositionControl } from "@/components/admin/AdminField";
 import { ImagePickerField } from "@/components/admin/ImagePickerField";
 import { Plus, Trash2, Search, X, Eye, EyeOff, ChevronDown, ChevronUp, Settings2, Clock, Download, Zap, Copy, ExternalLink, Check, RotateCcw } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -71,10 +71,12 @@ function PageRow({
   onChange,
   onDelete,
   onDuplicate,
+  position,
+  total,
+  reorderDisabled,
   onMoveUp,
   onMoveDown,
-  canMoveUp,
-  canMoveDown,
+  onSetPosition,
   defaultOpen = false,
 }: {
   page: DistPage;
@@ -85,10 +87,12 @@ function PageRow({
   onChange: (i: number, val: DistPage) => void;
   onDelete: (i: number) => void;
   onDuplicate: (i: number) => void;
+  position: number;
+  total: number;
+  reorderDisabled: boolean;
   onMoveUp: () => void;
   onMoveDown: () => void;
-  canMoveUp: boolean;
-  canMoveDown: boolean;
+  onSetPosition: (pos: number) => void;
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -103,29 +107,14 @@ function PageRow({
   return (
     <Card className="p-0 overflow-hidden">
       <div className="flex items-center gap-2 pr-3">
-        {/* Reorder handle - sets the order on the public page (no rank shown) */}
-        <div className="flex flex-col items-center justify-center shrink-0 pl-3 text-[#0B0B0B]/30">
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
-            disabled={!canMoveUp}
-            aria-label={`Move ${page.name || "page"} up`}
-            title="Move up - shows higher on the public page"
-            className="p-0.5 rounded hover:bg-[#0B0B0B]/8 hover:text-[#0B0B0B] disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-[#0B0B0B]/30 disabled:cursor-not-allowed transition-colors"
-          >
-            <ChevronUp size={14} />
-          </button>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
-            disabled={!canMoveDown}
-            aria-label={`Move ${page.name || "page"} down`}
-            title="Move down - shows lower on the public page"
-            className="p-0.5 rounded hover:bg-[#0B0B0B]/8 hover:text-[#0B0B0B] disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-[#0B0B0B]/30 disabled:cursor-not-allowed transition-colors"
-          >
-            <ChevronDown size={14} />
-          </button>
-        </div>
+        {/* Order control - type the position this page takes on the public page (1 = first) */}
+        <PositionControl
+          position={position}
+          total={total}
+          disabled={reorderDisabled}
+          onMove={(dir) => (dir === -1 ? onMoveUp() : onMoveDown())}
+          onSet={onSetPosition}
+        />
         <div
           onClick={() => setOpen((p) => !p)}
           className="flex-1 flex items-center gap-3 pl-2 pr-5 py-3.5 min-w-0 cursor-pointer hover:bg-[#0B0B0B]/3 transition-colors"
@@ -611,6 +600,27 @@ export default function AdminDistributionPages() {
     });
   }
 
+  // Jump a page straight to a chosen position (1 = first on the public page).
+  // Reorders only the active (non-trashed) pages; trashed items stay put.
+  function moveToPosition(realIndex: number, newPos: number) {
+    const item = items[realIndex];
+    if (!item) return;
+    setSaved(false);
+    setNewIndex(null);
+    setItems((prev) => {
+      const active = prev.filter((x) => !x.trashed);
+      const curPos = active.indexOf(item);
+      if (curPos === -1) return prev;
+      const clamped = Math.max(0, Math.min(newPos - 1, active.length - 1));
+      if (clamped === curPos) return prev;
+      const nextActive = [...active];
+      nextActive.splice(curPos, 1);
+      nextActive.splice(clamped, 0, item);
+      let ai = 0;
+      return prev.map((x) => (x.trashed ? x : nextActive[ai++]));
+    });
+  }
+
   function handleRestore(i: number) {
     setSaved(false);
     const now = new Date().toISOString();
@@ -686,6 +696,7 @@ export default function AdminDistributionPages() {
   }
 
   async function handleSave() {
+    if (saving) return;
     setSaving(true);
     try {
       await saveContent("distribution-pages", { items, niches, countries });
@@ -873,6 +884,15 @@ export default function AdminDistributionPages() {
         >
           <Plus size={15} /> Add Page
         </button>
+
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          title="Save all changes"
+          className="flex items-center gap-2 text-[13px] font-semibold px-4 py-2.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition-colors disabled:opacity-50 whitespace-nowrap cursor-pointer"
+        >
+          <Check size={15} /> {saving ? "Saving..." : "Save changes"}
+        </button>
       </div>
 
       {/* Date filter */}
@@ -945,8 +965,9 @@ export default function AdminDistributionPages() {
       </div>
 
       <div className="space-y-3">
-        {filtered.map((page, pos) => {
+        {filtered.map((page) => {
           const realIndex = items.indexOf(page);
+          const activePos = activeItems.indexOf(page) + 1;
           return (
             <PageRow
               key={page.slug + realIndex}
@@ -958,10 +979,12 @@ export default function AdminDistributionPages() {
               onChange={handleChange}
               onDelete={handleDelete}
               onDuplicate={handleDuplicate}
+              position={activePos}
+              total={activeItems.length}
+              reorderDisabled={filtersActive}
               onMoveUp={() => moveItem(realIndex, -1)}
               onMoveDown={() => moveItem(realIndex, 1)}
-              canMoveUp={!filtersActive && pos > 0}
-              canMoveDown={!filtersActive && pos < filtered.length - 1}
+              onSetPosition={(n) => moveToPosition(realIndex, n)}
               defaultOpen={realIndex === newIndex}
             />
           );

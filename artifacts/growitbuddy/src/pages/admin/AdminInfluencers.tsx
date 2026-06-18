@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { NICHE_CATEGORIES, COUNTRIES, type Influencer } from "@/data/influencers";
-import { PageHeader, Card, Input, Textarea, SaveBar, Modal } from "@/components/admin/AdminField";
+import { PageHeader, Card, Input, Textarea, SaveBar, Modal, PositionControl } from "@/components/admin/AdminField";
 import { ImagePickerField } from "@/components/admin/ImagePickerField";
 import {
   Plus, Trash2, Search, X, Eye, EyeOff, ChevronDown, ChevronUp,
@@ -109,15 +109,17 @@ function SectionHead({ icon, label }: { icon: React.ReactNode; label: string }) 
 /* ── Full influencer editor row ──────────────────────────── */
 function InfluencerRow({
   inf, index, genres, countries, onChange, onDelete,
-  onMoveUp, onMoveDown, canMoveUp, canMoveDown, defaultOpen = false,
+  position, total, reorderDisabled, onMoveUp, onMoveDown, onSetPosition, defaultOpen = false,
 }: {
   inf: Influencer; index: number; genres: string[]; countries: string[];
   onChange: (i: number, val: Influencer) => void;
   onDelete: (i: number) => void;
+  position: number;
+  total: number;
+  reorderDisabled: boolean;
   onMoveUp: () => void;
   onMoveDown: () => void;
-  canMoveUp: boolean;
-  canMoveDown: boolean;
+  onSetPosition: (pos: number) => void;
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -128,29 +130,14 @@ function InfluencerRow({
     <Card className="p-0 overflow-hidden">
       {/* Row header */}
       <div className="flex items-center gap-2 pr-3">
-        {/* Reorder handle - sets the order on the public page (no rank shown) */}
-        <div className="flex flex-col items-center justify-center shrink-0 pl-3 text-[#0B0B0B]/30">
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
-            disabled={!canMoveUp}
-            aria-label={`Move ${inf.name || "influencer"} up`}
-            title="Move up - shows higher on the public page"
-            className="p-0.5 rounded hover:bg-[#0B0B0B]/8 hover:text-[#0B0B0B] disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-[#0B0B0B]/30 disabled:cursor-not-allowed transition-colors"
-          >
-            <ChevronUp size={14} />
-          </button>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
-            disabled={!canMoveDown}
-            aria-label={`Move ${inf.name || "influencer"} down`}
-            title="Move down - shows lower on the public page"
-            className="p-0.5 rounded hover:bg-[#0B0B0B]/8 hover:text-[#0B0B0B] disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-[#0B0B0B]/30 disabled:cursor-not-allowed transition-colors"
-          >
-            <ChevronDown size={14} />
-          </button>
-        </div>
+        {/* Order control - type the position this creator takes on the public page (1 = first) */}
+        <PositionControl
+          position={position}
+          total={total}
+          disabled={reorderDisabled}
+          onMove={(dir) => (dir === -1 ? onMoveUp() : onMoveDown())}
+          onSet={onSetPosition}
+        />
         <div
           onClick={() => setOpen((p) => !p)}
           className="flex-1 flex items-center gap-3 pl-2 pr-5 py-3.5 min-w-0 cursor-pointer hover:bg-[#0B0B0B]/3 transition-colors"
@@ -568,6 +555,26 @@ export default function AdminInfluencers() {
     });
   }
 
+  // Jump a creator straight to a chosen position (1 = first on the public page).
+  // Reorders only the active (non-trashed) creators; trashed items stay put.
+  function moveToPosition(realIndex: number, newPos: number) {
+    const item = items[realIndex];
+    if (!item) return;
+    setSaved(false);
+    setItems((prev) => {
+      const active = prev.filter((x) => !x.trashed);
+      const curPos = active.indexOf(item);
+      if (curPos === -1) return prev;
+      const clamped = Math.max(0, Math.min(newPos - 1, active.length - 1));
+      if (clamped === curPos) return prev;
+      const nextActive = [...active];
+      nextActive.splice(curPos, 1);
+      nextActive.splice(clamped, 0, item);
+      let ai = 0;
+      return prev.map((x) => (x.trashed ? x : nextActive[ai++]));
+    });
+  }
+
   function handleRestore(i: number) {
     setSaved(false);
     const now = new Date().toISOString();
@@ -599,6 +606,7 @@ export default function AdminInfluencers() {
   }
 
   async function handleSave() {
+    if (saving) return;
     setSaving(true);
     try {
       await saveContent("influencers", { items, genres, countries });
@@ -942,6 +950,14 @@ export default function AdminInfluencers() {
             >
               <Plus size={15} /> Add Influencer
             </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              title="Save all changes"
+              className="flex items-center gap-2 text-[13px] font-semibold px-4 py-2.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition-colors disabled:opacity-50 whitespace-nowrap"
+            >
+              <Check size={15} /> {saving ? "Saving..." : "Save changes"}
+            </button>
           </div>
 
           {/* Date filter */}
@@ -1009,8 +1025,9 @@ export default function AdminInfluencers() {
 
           {/* List */}
           <div className="space-y-3">
-            {filtered.map((inf, pos) => {
+            {filtered.map((inf) => {
               const realIndex = items.indexOf(inf);
+              const activePos = activeItems.indexOf(inf) + 1;
               return (
                 <InfluencerRow
                   key={realIndex}
@@ -1020,10 +1037,12 @@ export default function AdminInfluencers() {
                   countries={countries}
                   onChange={handleChange}
                   onDelete={handleDelete}
+                  position={activePos}
+                  total={activeItems.length}
+                  reorderDisabled={filtersActive}
                   onMoveUp={() => moveItem(realIndex, -1)}
                   onMoveDown={() => moveItem(realIndex, 1)}
-                  canMoveUp={!filtersActive && pos > 0}
-                  canMoveDown={!filtersActive && pos < filtered.length - 1}
+                  onSetPosition={(n) => moveToPosition(realIndex, n)}
                   defaultOpen={false}
                 />
               );
