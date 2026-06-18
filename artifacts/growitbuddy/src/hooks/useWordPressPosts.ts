@@ -1,7 +1,42 @@
 import { useState, useEffect } from "react";
 import type { BlogPost } from "@/data/blogPosts";
+import { API_BASE } from "@/lib/api";
 
 const WP_API = "https://blog.growitbuddy.com/wp-json/wp/v2";
+
+// The WP REST media endpoint is locked for anonymous requests, so posts never
+// carry a featured-image URL via the API. The api-server resolves each post's
+// featured image from its public HTML page; cache resolved URLs for the session
+// so navigating list <-> detail doesn't re-request them.
+const featuredImageCache = new Map<string, string>();
+
+export async function resolveWpFeaturedImages(wpSlugs: string[]): Promise<Record<string, string>> {
+  const unique = Array.from(new Set(wpSlugs.filter(Boolean)));
+  const need = unique.filter((s) => !featuredImageCache.has(s));
+  if (need.length) {
+    try {
+      const res = await fetch(
+        `${API_BASE}/wp/featured-images?slugs=${encodeURIComponent(need.join(","))}`,
+        { signal: AbortSignal.timeout(12000) },
+      );
+      if (res.ok) {
+        const json = (await res.json()) as { images?: Record<string, string | null> };
+        for (const s of need) {
+          const url = json.images?.[s];
+          if (url) featuredImageCache.set(s, url);
+        }
+      }
+    } catch {
+      /* leave unresolved — a later call retries */
+    }
+  }
+  const out: Record<string, string> = {};
+  for (const s of unique) {
+    const url = featuredImageCache.get(s);
+    if (url) out[s] = url;
+  }
+  return out;
+}
 
 interface WPPost {
   id: number;
@@ -80,7 +115,22 @@ export function useWordPressPosts() {
       .then((r) => r.json())
       .then((data: WPPost[]) => {
         if (!cancelled && Array.isArray(data)) {
-          setPosts(data.map(wpPostToBlogPost));
+          const mapped = data.map(wpPostToBlogPost);
+          setPosts(mapped);
+          // Backfill featured images the REST API hides behind its locked media endpoint.
+          const missing = mapped.filter((p) => !p.featuredImage).map((p) => p.slug.replace(/^wp-/, ""));
+          if (missing.length) {
+            resolveWpFeaturedImages(missing).then((imgs) => {
+              if (cancelled) return;
+              setPosts((prev) =>
+                prev.map((p) => {
+                  if (p.featuredImage) return p;
+                  const url = imgs[p.slug.replace(/^wp-/, "")];
+                  return url ? { ...p, featuredImage: url } : p;
+                }),
+              );
+            });
+          }
         }
       })
       .catch(() => {
@@ -98,7 +148,14 @@ export async function fetchWpPostBySlug(slug: string): Promise<BlogPost | null> 
   try {
     const res = await fetch(`${WP_API}/posts?_embed=1&slug=${encodeURIComponent(wpSlug)}&status=publish`);
     const data: WPPost[] = await res.json();
-    if (Array.isArray(data) && data.length > 0) return wpPostToBlogPost(data[0]);
+    if (Array.isArray(data) && data.length > 0) {
+      const post = wpPostToBlogPost(data[0]);
+      if (!post.featuredImage) {
+        const imgs = await resolveWpFeaturedImages([wpSlug]);
+        if (imgs[wpSlug]) post.featuredImage = imgs[wpSlug];
+      }
+      return post;
+    }
   } catch { /* network error */ }
   return null;
 }

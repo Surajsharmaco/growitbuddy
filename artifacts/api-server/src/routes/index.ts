@@ -4,6 +4,7 @@ import formsRouter from "./forms";
 import adminRouter from "./admin";
 import aiSeoRouter from "./ai-seo";
 import sitemapRouter from "./sitemap";
+import wpRouter from "./wp";
 import { db, mediaFiles, siteContent } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
@@ -12,6 +13,7 @@ const router: IRouter = Router();
 router.use(healthRouter);
 router.use(sitemapRouter);
 router.use("/forms", formsRouter);
+router.use("/wp", wpRouter);
 
 // ── Public media serving (no auth, serves images/videos stored in DB) ──
 router.get("/media/file/:id", async (req: Request, res: Response) => {
