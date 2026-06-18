@@ -108,11 +108,16 @@ function SectionHead({ icon, label }: { icon: React.ReactNode; label: string }) 
 
 /* ── Full influencer editor row ──────────────────────────── */
 function InfluencerRow({
-  inf, index, genres, countries, onChange, onDelete, defaultOpen = false,
+  inf, index, genres, countries, onChange, onDelete,
+  onMoveUp, onMoveDown, canMoveUp, canMoveDown, defaultOpen = false,
 }: {
   inf: Influencer; index: number; genres: string[]; countries: string[];
   onChange: (i: number, val: Influencer) => void;
   onDelete: (i: number) => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -123,9 +128,32 @@ function InfluencerRow({
     <Card className="p-0 overflow-hidden">
       {/* Row header */}
       <div className="flex items-center gap-2 pr-3">
+        {/* Reorder handle — sets the order on the public page (no rank shown) */}
+        <div className="flex flex-col items-center justify-center shrink-0 pl-3 text-[#0B0B0B]/30">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
+            disabled={!canMoveUp}
+            aria-label={`Move ${inf.name || "influencer"} up`}
+            title="Move up — shows higher on the public page"
+            className="p-0.5 rounded hover:bg-[#0B0B0B]/8 hover:text-[#0B0B0B] disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-[#0B0B0B]/30 disabled:cursor-not-allowed transition-colors"
+          >
+            <ChevronUp size={14} />
+          </button>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
+            disabled={!canMoveDown}
+            aria-label={`Move ${inf.name || "influencer"} down`}
+            title="Move down — shows lower on the public page"
+            className="p-0.5 rounded hover:bg-[#0B0B0B]/8 hover:text-[#0B0B0B] disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-[#0B0B0B]/30 disabled:cursor-not-allowed transition-colors"
+          >
+            <ChevronDown size={14} />
+          </button>
+        </div>
         <div
           onClick={() => setOpen((p) => !p)}
-          className="flex-1 flex items-center gap-3 px-5 py-3.5 min-w-0 cursor-pointer hover:bg-[#0B0B0B]/3 transition-colors"
+          className="flex-1 flex items-center gap-3 pl-2 pr-5 py-3.5 min-w-0 cursor-pointer hover:bg-[#0B0B0B]/3 transition-colors"
         >
           {inf.photo ? (
             <img src={inf.photo} alt={inf.name} className={`w-9 h-9 rounded-full object-cover shrink-0 ${!enabled ? "grayscale opacity-50" : ""}`} />
@@ -516,6 +544,30 @@ export default function AdminInfluencers() {
     setItems((p) => p.map((x, idx) => (idx === i ? { ...x, trashed: true, trashedAt: now, updatedAt: now } : x)));
   }
 
+  // Reorder active influencers. The public Influencers page renders creators in
+  // this exact array order (no rank number is ever shown), so moving a row up or
+  // down is what decides who appears first, second, third… on the live site.
+  // We swap with the adjacent *visible* row, so it stays correct even when a
+  // search / genre / country filter is narrowing the list.
+  function moveItem(realIndex: number, dir: -1 | 1) {
+    const item = items[realIndex];
+    if (!item) return;
+    const pos = filtered.indexOf(item);
+    const target = filtered[pos + dir];
+    if (pos === -1 || !target) return;
+    setSaved(false);
+    setItems((prev) => {
+      // Recompute indices against the freshest state so a fast double-click
+      // can never swap the wrong rows.
+      const a = prev.indexOf(item);
+      const b = prev.indexOf(target);
+      if (a === -1 || b === -1) return prev;
+      const next = [...prev];
+      [next[a], next[b]] = [next[b], next[a]];
+      return next;
+    });
+  }
+
   function handleRestore(i: number) {
     setSaved(false);
     const now = new Date().toISOString();
@@ -583,6 +635,10 @@ export default function AdminInfluencers() {
     }
     return matchSearch && matchNiche && matchCountry && matchDate;
   });
+
+  // Reorder is only meaningful against the full active list, so it's paused
+  // while any search/filter narrows the view (keeps 1st/2nd/3rd unambiguous).
+  const filtersActive = search !== "" || nicheFilter !== "All" || countryFilter !== "All" || dateFilter !== "all";
 
   async function exportExcel() {
     const DATE_LABELS: Record<typeof dateFilter, string> = {
@@ -940,6 +996,7 @@ export default function AdminInfluencers() {
             {(search || nicheFilter !== "All" || countryFilter !== "All" || dateFilter !== "all") && (
               <div className="flex items-center gap-2 mt-2">
                 <span className="text-[12px] text-[#0B0B0B]/40">Showing {filtered.length} of {activeItems.length} influencers</span>
+                <span className="text-[11px] text-[#0B0B0B]/35 italic">· Reordering paused — clear filters to change the public order</span>
                 <button
                   onClick={() => { setSearch(""); setNicheFilter("All"); setCountryFilter("All"); setDateFilter("all"); }}
                   className="text-[11px] text-[#0B0B0B]/40 hover:text-[#0B0B0B] underline underline-offset-2 transition-colors"
@@ -952,7 +1009,7 @@ export default function AdminInfluencers() {
 
           {/* List */}
           <div className="space-y-3">
-            {filtered.map((inf) => {
+            {filtered.map((inf, pos) => {
               const realIndex = items.indexOf(inf);
               return (
                 <InfluencerRow
@@ -963,6 +1020,10 @@ export default function AdminInfluencers() {
                   countries={countries}
                   onChange={handleChange}
                   onDelete={handleDelete}
+                  onMoveUp={() => moveItem(realIndex, -1)}
+                  onMoveDown={() => moveItem(realIndex, 1)}
+                  canMoveUp={!filtersActive && pos > 0}
+                  canMoveDown={!filtersActive && pos < filtered.length - 1}
                   defaultOpen={false}
                 />
               );
