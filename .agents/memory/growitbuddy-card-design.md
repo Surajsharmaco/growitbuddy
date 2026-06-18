@@ -92,3 +92,21 @@ motif as an accidental ugly margin, not a premium detail.
 owner complains about "lines/margins" on another page, Links is the likeliest
 culprit — remove it there next. Don't add new decorative hero effects without
 sign-off (8+ prior design rejections).
+
+## "Too white / white & blue" → warmth direction (accepted fix)
+
+When the owner says the homepage looks "all white / white and blue / nothing
+visible / flat", the fix that lands is WARMTH via the brand's own warm side, not
+a new hue: warm cream section backgrounds (e.g. stats band `#F2EAD9` + a warm
+radial GOLD glow `rgba(194,168,120,..)` + cream vertical gradient) + GrainOverlay
+for texture + gold accents. Keep big numbers / headings DEEP NAVY (`#14202E`) on
+cream for contrast — never gold-on-cream (low contrast, reads unreadable).
+Refined fading dividers (`::after` top/bottom-transparent gradient) > cold solid
+gray borders.
+
+**Why:** the page is white sections + one navy section, so it reads cold/"white &
+blue"; adding warm cream+gold bands restores rhythm and richness on-brand. The
+owner rejects COOL tints (lavender) — warmth must stay warm (cream/gold).
+**How to apply:** flat `#FFFFFF` / near-white `#FCFAF6` light bands are the usual
+culprits; convert the flat ones to warm cream + gold glow + grain, alternating
+with the navy sections, before reaching for any new color.

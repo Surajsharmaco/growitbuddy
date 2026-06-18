@@ -141,8 +141,9 @@ export default function Home() {
 
       <style>{`
         .home-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); }
-        .home-stats-item { border-right: 1px solid rgba(10,10,10,0.06); }
-        .home-stats-item:last-child { border-right: none; }
+        .home-stats-item { position: relative; }
+        .home-stats-item::after { content: ""; position: absolute; top: 26%; bottom: 26%; right: 0; width: 1px; background: linear-gradient(180deg, rgba(20,32,46,0) 0%, rgba(20,32,46,0.16) 50%, rgba(20,32,46,0) 100%); }
+        .home-stats-item:last-child::after { display: none; }
         .home-proof-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
         .home-system-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 
@@ -158,7 +159,8 @@ export default function Home() {
         }
         @media (max-width: 600px) {
           .home-stats-grid { grid-template-columns: 1fr; }
-          .home-stats-item { border-right: none; border-bottom: 1px solid rgba(10,10,10,0.06); padding: 36px 24px !important; }
+          .home-stats-item { border-bottom: 1px solid rgba(20,32,46,0.08); padding: 36px 24px !important; }
+          .home-stats-item::after { display: none; }
           .home-stats-item:last-child { border-bottom: none; }
           .home-proof-grid { grid-template-columns: 1fr; }
           .home-system-grid { grid-template-columns: 1fr; }
@@ -278,8 +280,9 @@ export default function Home() {
       </section>
 
       {/* ══ 2. STATS ══ */}
-      <section style={{ borderTop: "1px solid #E5E5E0", borderBottom: "1px solid #E5E5E0", backgroundColor: "#FFFFFF", padding: "0 24px", ...softTex }}>
-        <div className="max-w-[1100px] mx-auto home-stats-grid">
+      <section style={{ position: "relative", overflow: "hidden", borderTop: "1px solid rgba(20,32,46,0.08)", borderBottom: "1px solid rgba(20,32,46,0.08)", padding: "0 24px", backgroundColor: "#F2EAD9", backgroundImage: "radial-gradient(120% 80% at 50% -10%, rgba(194,168,120,0.22) 0%, rgba(194,168,120,0) 60%), linear-gradient(180deg, #F7F1E5 0%, #EFE6D3 100%)" }}>
+        <GrainOverlay />
+        <div className="max-w-[1100px] mx-auto home-stats-grid" style={{ position: "relative", zIndex: 1 }}>
           {(hm.stats || []).map((stat, i) => (
             <m.div
               key={i}
@@ -289,18 +292,18 @@ export default function Home() {
               transition={{ delay: i * 0.07, duration: 0.5 }}
               className="home-stats-item"
               style={{
-                padding: "48px 32px",
+                padding: "60px 32px",
                 textAlign: "center",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
               }}
             >
-              <div style={{ width: 32, height: 2, background: "#C2A878", borderRadius: 2, marginBottom: 20 }} />
-              <div style={{ fontSize: "clamp(36px, 4.5vw, 56px)", fontWeight: 800, letterSpacing: "-0.04em", color: TEXT, lineHeight: 1, marginBottom: 12 }}>
+              <div style={{ width: 38, height: 3, background: "linear-gradient(90deg, #B8995F 0%, #E2D0A6 100%)", borderRadius: 3, marginBottom: 22, boxShadow: "0 1px 6px rgba(194,168,120,0.45)" }} />
+              <div style={{ fontSize: "clamp(38px, 4.6vw, 58px)", fontWeight: 800, letterSpacing: "-0.045em", color: "#14202E", lineHeight: 1, marginBottom: 12 }}>
                 <CountUp value={stat.value} />
               </div>
-              <div style={{ fontSize: 13, color: "#8A8A8A", fontWeight: 500, maxWidth: "20ch", lineHeight: 1.6, textAlign: "center" }}>{stat.label}</div>
+              <div style={{ fontSize: 13, color: "#6B655B", fontWeight: 500, maxWidth: "20ch", lineHeight: 1.6, textAlign: "center", letterSpacing: "0.01em" }}>{stat.label}</div>
             </m.div>
           ))}
         </div>
