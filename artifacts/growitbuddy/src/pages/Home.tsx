@@ -467,7 +467,23 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08, duration: 0.5 }}
-                style={getSolidCardStyle(dark, { padding: "32px 28px" })}
+                style={getSolidCardStyle(
+                  dark,
+                  dark
+                    ? { padding: "32px 28px" }
+                    : {
+                        // Light proof cards were near-identical to the page BG
+                        // (#FCFAF6 card vs #F8F8F6 section) so they blended in.
+                        // Lift them off: brighter white surface + a real soft
+                        // elevation shadow + a touch firmer border. No new hue
+                        // (owner rejects tints) — pure neutral separation.
+                        padding: "32px 28px",
+                        background: "#FFFFFF",
+                        border: "1px solid rgba(20,32,46,0.12)",
+                        boxShadow:
+                          "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
+                      },
+                )}
               >
                 <CardGrain dark={dark} />
                 <p style={{ position: "relative", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: P.muted, marginBottom: 20 }}>{p.category}</p>
