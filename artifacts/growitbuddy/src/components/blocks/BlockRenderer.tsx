@@ -1,5 +1,6 @@
 import React from "react";
 import { getEmbedUrl as buildEmbedUrl } from "@/lib/videoEmbed";
+import { resolveMediaUrl } from "@/lib/api";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BlockRenderer — Phase 1 of the Wix/Elementor-style Case Study inline editor.
@@ -112,7 +113,7 @@ function ImageBlock({ block }: { block: Block }) {
   return (
     <div style={{ ...applyStyle(block.style), width: "100%" }}>
       <figure style={{ maxWidth: max, margin: "0 auto", padding: "0 24px" }}>
-        <img src={src} alt={alt} style={{ width: "100%", borderRadius: 12, display: "block" }} />
+        <img src={resolveMediaUrl(src)} alt={alt} style={{ width: "100%", borderRadius: 12, display: "block" }} />
         {caption && (
           <figcaption style={{ fontSize: 13, color: MUTED, marginTop: 10, textAlign: "center" }}>{caption}</figcaption>
         )}
@@ -221,7 +222,7 @@ function GalleryBlock({ block }: { block: Block }) {
     <Container block={block}>
       <div style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 14 }}>
         {images.map((src, i) => (
-          <img key={i} src={src} alt="" style={{ width: "100%", borderRadius: 10, display: "block" }} />
+          <img key={i} src={resolveMediaUrl(src)} alt="" style={{ width: "100%", borderRadius: 10, display: "block" }} />
         ))}
       </div>
     </Container>

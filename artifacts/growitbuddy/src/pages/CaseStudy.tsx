@@ -3,7 +3,7 @@ import { useRoute, useLocation, Link } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowUpRight, CheckCircle2, Quote } from "lucide-react";
 
-import { API_BASE } from "@/lib/api";
+import { API_BASE, resolveMediaUrl } from "@/lib/api";
 import BlockRenderer, { type Block } from "@/components/blocks/BlockRenderer";
 import BlockEditor from "@/components/blocks/BlockEditor";
 import CaseStudyInlineEditor from "@/components/CaseStudyInlineEditor";
@@ -463,14 +463,14 @@ export default function CaseStudy() {
                   boxShadow: "0 4px 14px rgba(0,0,0,0.06)",
                 }}
               >
-                <img src={cs.clientLogoUrl} alt={cs.clientName ?? "Client"} style={{ width: 22, height: 22, objectFit: "contain", borderRadius: 4 }} />
+                <img src={resolveMediaUrl(cs.clientLogoUrl)} alt={cs.clientName ?? "Client"} style={{ width: 22, height: 22, objectFit: "contain", borderRadius: 4 }} />
                 {cs.clientName && (
                   <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.04em", color: TEXT }}>{cs.clientName}</span>
                 )}
               </div>
             )}
             <img
-              src={heroImg}
+              src={resolveMediaUrl(heroImg)}
               alt={item.title}
               loading="eager"
               style={{ display: "block", width: "100%", aspectRatio: heroRatio, objectFit: "cover" }}
@@ -576,7 +576,7 @@ export default function CaseStudy() {
                 }}
               >
                 <img
-                  src={g.url}
+                  src={resolveMediaUrl(g.url)}
                   alt=""
                   loading="lazy"
                   style={{ display: "block", width: "100%", aspectRatio: g.ratio || "3/2", objectFit: "cover" }}

@@ -45,7 +45,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   tokenRef.current = token;
 
   const isAuthenticated = token !== null;
-  const isSuperAdmin = role === "super";
+  const isSuperAdmin = role === "super" || permissions.includes("all");
 
   const hasPermission = useCallback(
     (perm: string): boolean => {

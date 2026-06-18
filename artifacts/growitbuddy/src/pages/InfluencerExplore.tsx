@@ -5,6 +5,7 @@ import SEOMeta from "@/components/SEOMeta";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useLiveInfluencers } from "@/hooks/useLiveInfluencers";
 import { usePublicContent } from "@/hooks/usePublicContent";
+import { resolveMediaUrl } from "@/lib/api";
 
 import type { Influencer } from "@/data/influencers";
 
@@ -35,7 +36,7 @@ function InfluencerCard({ inf, i }: { inf: Influencer; i: number }) {
           <div style={{ position: "relative", width: "100%", aspectRatio: "1/1", overflow: "hidden", background: inf.accentColor }}>
             {!imgError ? (
               <img
-                src={inf.photo}
+                src={resolveMediaUrl(inf.photo)}
                 alt={inf.name}
                 onError={() => setImgError(true)}
                 style={inf.photoShape === "circle"

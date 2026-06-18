@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import SEOMeta from "@/components/SEOMeta";
 import { useLiveInfluencers } from "@/hooks/useLiveInfluencers";
+import { resolveMediaUrl } from "@/lib/api";
 
 export default function InfluencerProfile() {
   const { slug } = useParams<{ slug: string }>();
@@ -80,7 +81,7 @@ export default function InfluencerProfile() {
             <div style={{ position: "relative", width: "100%", aspectRatio: "1/1", maxHeight: 320, overflow: "hidden", background: inf.accentColor }}>
               {!imgError && inf.photo ? (
                 <img
-                  src={inf.photo}
+                  src={resolveMediaUrl(inf.photo)}
                   alt={inf.name}
                   onError={() => setImgError(true)}
                   style={inf.photoShape === "circle"

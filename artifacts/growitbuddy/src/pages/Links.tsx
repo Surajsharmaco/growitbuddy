@@ -7,6 +7,7 @@ import {
 import SEOMeta from "@/components/SEOMeta";
 import BlueprintLines from "@/components/effects/BlueprintLines";
 import { usePublicContent } from "@/hooks/usePublicContent";
+import { resolveMediaUrl } from "@/lib/api";
 import {
   LINKS_DEFAULTS, normalizeLinkUrl, migrateLinksData,
   type LinksData, type LinkItem, type LinkSection,
@@ -138,7 +139,7 @@ function LinkButton({ link, accent }: { link: LinkItem; accent: string }) {
     >
       {link.thumbnailUrl ? (
         <img
-          src={link.thumbnailUrl}
+          src={resolveMediaUrl(link.thumbnailUrl)}
           alt=""
           style={{ width: 44, height: 44, borderRadius: 12, objectFit: "cover", flexShrink: 0, border: `1px solid ${BORDER}` }}
         />
@@ -198,7 +199,7 @@ function LinkCard({ link, accent }: { link: LinkItem; accent: string }) {
       }}
     >
       {link.thumbnailUrl ? (
-        <img src={link.thumbnailUrl} alt="" style={{ width: 52, height: 52, borderRadius: 14, objectFit: "cover", border: `1px solid ${BORDER}` }} />
+        <img src={resolveMediaUrl(link.thumbnailUrl)} alt="" style={{ width: 52, height: 52, borderRadius: 14, objectFit: "cover", border: `1px solid ${BORDER}` }} />
       ) : (
         <span
           style={{
@@ -245,7 +246,7 @@ function LinkLarge({ link, accent }: { link: LinkItem; accent: string }) {
     >
       {link.thumbnailUrl ? (
         <img
-          src={link.thumbnailUrl}
+          src={resolveMediaUrl(link.thumbnailUrl)}
           alt={link.label || ""}
           style={{ width: "100%", aspectRatio: "16 / 9", objectFit: "cover", display: "block", borderBottom: `1px solid ${BORDER}` }}
         />
@@ -300,7 +301,7 @@ function LinkImageOnly({ link, accent }: { link: LinkItem; accent: string }) {
     >
       {link.thumbnailUrl ? (
         <img
-          src={link.thumbnailUrl}
+          src={resolveMediaUrl(link.thumbnailUrl)}
           alt=""
           style={{ width: "100%", aspectRatio: "16 / 9", objectFit: "cover", display: "block" }}
         />
@@ -470,7 +471,7 @@ function ImageBlock({ section, accent }: { section: ImageSection; accent: string
   const radius = section.rounded === false ? 0 : 16;
   const img = (
     <img
-      src={section.imageUrl}
+      src={resolveMediaUrl(section.imageUrl)}
       alt={section.caption || section.title || ""}
       style={{ width: "100%", display: "block", borderRadius: radius, border: `1px solid ${BORDER}`, objectFit: "cover" }}
     />
@@ -597,7 +598,7 @@ export default function Links() {
         >
           <div style={{ width: 104, height: 104, borderRadius: "50%", padding: 3, background: `linear-gradient(135deg, ${accent}, ${hexToRgba(accent, 0.3)})`, boxShadow: `0 12px 36px ${hexToRgba(accent, 0.28)}` }}>
             {data.avatarUrl ? (
-              <img src={data.avatarUrl} alt={data.profileName} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", display: "block", border: `3px solid ${BG}` }} />
+              <img src={resolveMediaUrl(data.avatarUrl)} alt={data.profileName} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", display: "block", border: `3px solid ${BG}` }} />
             ) : (
               <img src={`${import.meta.env.BASE_URL}logo-circle.png`} alt={data.profileName} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", display: "block", background: NAVY, border: `3px solid ${BG}` }} />
             )}

@@ -96,6 +96,17 @@ const navGroups: NavGroup[] = [
   },
 ];
 
+// Single source of truth for route-level access control. Derived from the sidebar
+// navGroups so the AdminGuard (direct-URL navigation) and the sidebar visibility
+// can never drift apart.
+export type NavGating = { permission?: string; anyPermission?: string[]; superOnly?: boolean };
+export const NAV_GATING: Record<string, NavGating> = navGroups.reduce((acc, g) => {
+  for (const it of g.items) {
+    acc[it.path] = { permission: it.permission, anyPermission: it.anyPermission, superOnly: it.superOnly };
+  }
+  return acc;
+}, {} as Record<string, NavGating>);
+
 interface VariantNavRow { id: number; slug: string; sourceKey: string; label: string; isLive: boolean; }
 
 export function AdminLayout({ children }: { children: ReactNode }) {

@@ -3,7 +3,7 @@ import { Play, ArrowLeft, ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRoute, Link, useLocation } from "wouter";
 
-import { API_BASE } from "@/lib/api";
+import { API_BASE, resolveMediaUrl } from "@/lib/api";
 import { getEmbedUrl, getThumbnail, getHiResThumbnail, isShortVideo } from "@/lib/videoEmbed";
 import { PORTFOLIO_CATEGORIES } from "@/lib/portfolioCategories";
 
@@ -132,7 +132,7 @@ function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?:
           <>
             {thumb && (
               <img
-                src={thumb}
+                src={resolveMediaUrl(thumb)}
                 alt={item.title}
                 style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
                 loading="lazy"
@@ -248,7 +248,7 @@ function ReelTile({ item }: { item: PortfolioItem }) {
           <>
             {thumb && (
               <img
-                src={thumb}
+                src={resolveMediaUrl(thumb)}
                 alt={item.title}
                 style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
                 loading="lazy"

@@ -5,6 +5,7 @@ import { distributionPages as DEFAULT_DIST_PAGES, DISTRIBUTION_NICHES, DISTRIBUT
 import SEOMeta from "@/components/SEOMeta";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { usePublicContent } from "@/hooks/usePublicContent";
+import { resolveMediaUrl } from "@/lib/api";
 
 import { DISTRIBUTION_NETWORK_DEFAULTS as DN_DEFAULTS, type DistributionNetworkData, type DistNetAdvItem as AdvItem, type DistNetStep as DistStep } from "@/lib/distributionNetworkDefaults";
 
@@ -51,7 +52,7 @@ function PageCard({ page, i }: { page: DistributionPage; i: number }) {
         <div style={{ position: "relative", width: "100%", aspectRatio: "1/1", overflow: "hidden", background: page.accentColor, flexShrink: 0 }}>
           {!imgError ? (
             <img
-              src={page.photo}
+              src={resolveMediaUrl(page.photo)}
               alt={page.name}
               onError={() => setImgError(true)}
               style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block", opacity: 0.85 }}

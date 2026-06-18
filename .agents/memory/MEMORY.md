@@ -9,3 +9,5 @@
 - [Dev DB & prod health-check](growitbuddy-dev-db-and-verification.md) — dev DB has NO schema; form 200 ≠ saved (saveLead swallows errors); executeSql hits a different DB; how to verify prod (Render/Neon/Cloudinary) without admin creds.
 - [Resend lead-email enablement](growitbuddy-deploy-and-email.md) — onboarding@resend.dev only mails the Resend account owner; simplest fix: sign up Resend with the destination Gmail + set RESEND_API_KEY in Render (prod env lives in Render, not Replit).
 - [GrowitBuddy ghost data](growitbuddy-ghost-data.md) — empty admin lists must stay empty: test `Array.isArray` (not `.length`); never seed demo defaults into initial render; bootstrap-seed influencers + resolve loading on fetch failure.
+- [GrowitBuddy media URLs](growitbuddy-media-urls.md) — admin-uploaded media saved as relative `/api/media/...` 404s on split-origin prod (Vercel+Render); wrap EVERY public render with resolveMediaUrl (not video embeds).
+- [GrowitBuddy admin RBAC](growitbuddy-rbac.md) — backend authoritative; super = role 'super' OR perms 'all' in ALL 4 spots; page_visibility/variants/seo are `__super__`; /upload deliberately auth-only.

@@ -20,6 +20,8 @@ const upload = multer({
   },
 });
 
+let warnedCloudinaryUnconfigured = false;
+
 async function saveFileToDb(file: Express.Multer.File): Promise<{ id: number; url: string }> {
   if (cloudinaryConfigured()) {
     try {
@@ -36,6 +38,16 @@ async function saveFileToDb(file: Express.Multer.File): Promise<{ id: number; ur
     } catch (err) {
       logger.error({ err }, "Cloudinary upload failed; falling back to DB storage");
     }
+  } else if (!warnedCloudinaryUnconfigured) {
+    // Log once: when Cloudinary is unconfigured, uploads are stored as base64 in
+    // Postgres and served from a relative /api/media/file/:id URL. On a split
+    // frontend+API deploy the public site MUST resolve that to the API origin
+    // (see resolveMediaUrl) or images will 404. This warning surfaces the
+    // misconfiguration in production logs instead of failing silently.
+    warnedCloudinaryUnconfigured = true;
+    logger.warn(
+      "CLOUDINARY not configured — uploaded media is stored in the database and served from relative /api/media URLs. Set CLOUDINARY_URL for CDN-backed uploads.",
+    );
   }
   const b64 = file.buffer.toString("base64");
   const rows = await db.insert(mediaFiles).values({
@@ -185,11 +197,71 @@ function superAdminOnly(
   res: import("express").Response,
   next: import("express").NextFunction,
 ) {
-  if (req.adminRole !== "super") {
+  if (!isSuperReq(req)) {
     res.status(403).json({ error: "Super admin access required" });
     return;
   }
   next();
+}
+
+// ── Permission-based authorization (server-side; AUTHORITATIVE) ──────────────
+// authMiddleware only proves identity. These helpers enforce WHAT a team member
+// may touch. The frontend AdminLayout.tsx navGroups is a DISPLAY mirror only and
+// must never be the sole gate. Super admins (role "super" / perms ["all"]) bypass
+// every check. Fail-closed: a member lacking the required permission gets 403.
+function isSuperReq(req: import("express").Request): boolean {
+  return req.adminRole === "super" || (req.adminPermissions?.includes("all") ?? false);
+}
+
+function hasPermission(req: import("express").Request, permission: string): boolean {
+  if (isSuperReq(req)) return true;
+  return req.adminPermissions?.includes(permission) ?? false;
+}
+
+// Resolve a CMS content section key to the permission required to read/edit it.
+// Most section keys equal their permission name (identity); the few that differ
+// are listed below. "__super__" marks sections only super admins may touch.
+const SECTION_PERMISSION_OVERRIDES: Record<string, string> = {
+  fulltime: "full-time",
+  joinnetwork: "join-network",
+};
+function sectionToPermission(section: string): string {
+  if (section === "page_visibility") return "__super__"; // page show/hide is super-only
+  if (section.includes("__v__")) return "__super__"; // page variants are super-only
+  if (section.startsWith("seo:") || section === "seo-global") return "__super__"; // SEO records
+  if (section.startsWith("pool-") || section.endsWith("-pool")) return "creator-school"; // talent pools
+  return SECTION_PERMISSION_OVERRIDES[section] ?? section; // identity for the rest
+}
+
+// Gate a route on a single fixed permission.
+function requirePermission(permission: string) {
+  return (
+    req: import("express").Request,
+    res: import("express").Response,
+    next: import("express").NextFunction,
+  ): void => {
+    if (hasPermission(req, permission)) { next(); return; }
+    logger.warn({ permission, role: req.adminRole }, "Admin permission denied");
+    res.status(403).json({ error: "You don't have permission to access this." });
+  };
+}
+
+// Gate a CMS content route by its :section param.
+function requireSectionPermission(
+  req: import("express").Request,
+  res: import("express").Response,
+  next: import("express").NextFunction,
+): void {
+  if (isSuperReq(req)) { next(); return; }
+  const section = String(req.params.section);
+  const perm = sectionToPermission(section);
+  if (perm === "__super__") {
+    res.status(403).json({ error: "This section is restricted to super admins." });
+    return;
+  }
+  if (req.adminPermissions?.includes(perm)) { next(); return; }
+  logger.warn({ section, perm, role: req.adminRole }, "Admin permission denied for content section");
+  res.status(403).json({ error: "You don't have permission to edit this section." });
 }
 
 // ── Auth ──
@@ -483,13 +555,8 @@ router.get("/sections", authMiddleware, async (_req, res) => {
   res.json(rows);
 });
 
-router.get("/content/:section", authMiddleware, async (req, res) => {
+router.get("/content/:section", authMiddleware, requireSectionPermission, async (req, res) => {
   const section = String(req.params.section);
-  // SEO records are super-admin only (per-page indexability + meta is sensitive)
-  if (section.startsWith("seo:") && req.adminRole !== "super") {
-    res.status(403).json({ error: "SEO controls are restricted to super admins." });
-    return;
-  }
   const rows = await db
     .select()
     .from(siteContent)
@@ -505,19 +572,14 @@ router.get("/content/:section", authMiddleware, async (req, res) => {
 // To unlock a section, a developer must explicitly remove it from this list.
 const LOCKED_SECTIONS = [] as const;
 
-router.put("/content/:section", authMiddleware, async (req, res) => {
+router.put("/content/:section", authMiddleware, requireSectionPermission, async (req, res) => {
   const section = String(req.params.section);
   if ((LOCKED_SECTIONS as readonly string[]).includes(section)) {
     res.status(403).json({ error: `The "${section}" section is locked and cannot be modified. Contact a developer to make changes.` });
     return;
   }
-  // SEO records are super-admin only (per-page indexability + meta is sensitive)
-  if (section.startsWith("seo:") && req.adminRole !== "super") {
-    res.status(403).json({ error: "SEO controls are restricted to super admins." });
-    return;
-  }
   const { data } = req.body;
-  if (data === undefined) {
+  if (data === undefined || data === null) {
     res.status(400).json({ error: "data field required" });
     return;
   }
@@ -534,7 +596,7 @@ router.put("/content/:section", authMiddleware, async (req, res) => {
 
 // ── Leads / CRM ──
 
-router.get("/leads", authMiddleware, async (req, res) => {
+router.get("/leads", authMiddleware, requirePermission("leads"), async (req, res) => {
   const { type } = req.query;
   let rows;
   if (type && type !== "all") {
@@ -545,7 +607,7 @@ router.get("/leads", authMiddleware, async (req, res) => {
   res.json(rows);
 });
 
-router.get("/leads/stats", authMiddleware, async (_req, res) => {
+router.get("/leads/stats", authMiddleware, requirePermission("leads"), async (_req, res) => {
   const rows = await db.select().from(leads);
   const byType: Record<string, number> = {};
   for (const row of rows) {
@@ -554,7 +616,7 @@ router.get("/leads/stats", authMiddleware, async (_req, res) => {
   res.json({ total: rows.length, byType });
 });
 
-router.patch("/leads/:id", authMiddleware, async (req, res) => {
+router.patch("/leads/:id", authMiddleware, requirePermission("leads"), async (req, res) => {
   const id = parseInt(String(req.params.id));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const { status, notes } = req.body as { status?: string; notes?: string };
@@ -567,7 +629,7 @@ router.patch("/leads/:id", authMiddleware, async (req, res) => {
   res.json(rows[0]);
 });
 
-router.delete("/leads/:id", authMiddleware, async (req, res) => {
+router.delete("/leads/:id", authMiddleware, requirePermission("leads"), async (req, res) => {
   const id = parseInt(String(req.params.id));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   await db.delete(leads).where(eq(leads.id, id));
@@ -608,7 +670,7 @@ router.get("/media", authMiddleware, async (_req, res) => {
   }
 });
 
-router.delete("/media/:filename", authMiddleware, async (req, res) => {
+router.delete("/media/:filename", authMiddleware, requirePermission("media"), async (req, res) => {
   const id = parseInt(String(req.params.filename));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   try {
@@ -646,12 +708,12 @@ router.get("/public/certificate/:certificateId", async (req, res) => {
   }
 });
 
-router.get("/certificates", authMiddleware, async (_req, res) => {
+router.get("/certificates", authMiddleware, requirePermission("certificates"), async (_req, res) => {
   const rows = await db.select().from(certificates).orderBy(desc(certificates.createdAt));
   res.json(rows);
 });
 
-router.post("/certificates", authMiddleware, async (req, res) => {
+router.post("/certificates", authMiddleware, requirePermission("certificates"), async (req, res) => {
   const { certificateId, name, email, role, issueDate, status, remark } = req.body;
   if (!certificateId || !name || !role || !issueDate) {
     res.status(400).json({ error: "certificateId, name, role, and issueDate are required" });
@@ -674,7 +736,7 @@ router.post("/certificates", authMiddleware, async (req, res) => {
   res.status(201).json(rows[0]);
 });
 
-router.put("/certificates/:id", authMiddleware, async (req, res) => {
+router.put("/certificates/:id", authMiddleware, requirePermission("certificates"), async (req, res) => {
   const id = parseInt(String(req.params.id));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const { name, email, role, issueDate, status, remark } = req.body;
@@ -693,7 +755,7 @@ router.put("/certificates/:id", authMiddleware, async (req, res) => {
   res.json(rows[0]);
 });
 
-router.delete("/certificates/:id", authMiddleware, async (req, res) => {
+router.delete("/certificates/:id", authMiddleware, requirePermission("certificates"), async (req, res) => {
   const id = parseInt(String(req.params.id));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   await db.delete(certificates).where(eq(certificates.id, id));
@@ -780,13 +842,13 @@ router.post("/optimize/cache-clear", authMiddleware, superAdminOnly, async (_req
     const result = await db.delete(revokedTokensTable).where(lt(revokedTokensTable.expiresAt, new Date()));
     purged = result.rowCount ?? 0;
   } catch { /* non-fatal */ }
-  const detail = `${purged} expired session token${purged === 1 ? "" : "s"} purged from DB`;
+  const detail = `${purged} expired session token${purged === 1 ? "" : "s"} cleared. Public pages always fetch content live (no server-side HTML cache), so visitors already see your latest edits.`;
   await pushLog("Cache Clear", detail, true);
   res.json({ ok: true, detail });
 });
 
 router.post("/optimize/image-cache-clear", authMiddleware, superAdminOnly, async (_req, res) => {
-  const detail = "Image cache headers refreshed — browsers will re-fetch on next load";
+  const detail = "Uploaded images are served fresh and browsers re-fetch changed images automatically — there is no server-side image cache to clear.";
   await pushLog("Image Cache Clear", detail, true);
   res.json({ ok: true, detail });
 });
@@ -802,7 +864,7 @@ router.post("/optimize/full-cache-clear", authMiddleware, superAdminOnly, async 
     await pool.query("ANALYZE");
     dbOk = true;
   } catch { /* non-fatal */ }
-  const detail = `${purged} expired tokens purged, DB statistics refreshed${dbOk ? "" : " (skipped)"}`;
+  const detail = `${purged} expired session token${purged === 1 ? "" : "s"} cleared and database statistics refreshed${dbOk ? "" : " (skipped)"}. Public content is served live with no stale server cache.`;
   await pushLog("Full Cache Clear (Safe)", detail, true);
   res.json({ ok: true, detail });
 });
@@ -1075,7 +1137,7 @@ router.get("/portfolio/items", async (_req, res) => {
 
 // ── Portfolio CRUD (admin only) ──
 
-router.get("/portfolio", authMiddleware, async (_req, res) => {
+router.get("/portfolio", authMiddleware, superAdminOnly, async (_req, res) => {
   try {
     const rows = await db.select().from(portfolioItems).orderBy(asc(portfolioItems.sortOrder), desc(portfolioItems.createdAt));
     res.json(rows);
@@ -1085,7 +1147,7 @@ router.get("/portfolio", authMiddleware, async (_req, res) => {
   }
 });
 
-router.post("/portfolio", authMiddleware, async (req, res) => {
+router.post("/portfolio", authMiddleware, superAdminOnly, async (req, res) => {
   const { title, category, youtubeUrl, description, sortOrder, caseStudy, customThumbnailUrl, blocks } = req.body;
   if (!title || !category || !youtubeUrl) {
     res.status(400).json({ error: "title, category, and youtubeUrl are required" });
@@ -1114,7 +1176,7 @@ router.post("/portfolio", authMiddleware, async (req, res) => {
   }
 });
 
-router.put("/portfolio/:id", authMiddleware, async (req, res) => {
+router.put("/portfolio/:id", authMiddleware, superAdminOnly, async (req, res) => {
   const id = parseInt(String(req.params.id));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const { title, category, youtubeUrl, description, sortOrder, caseStudy, customThumbnailUrl, blocks } = req.body;
@@ -1151,7 +1213,7 @@ router.put("/portfolio/:id", authMiddleware, async (req, res) => {
   }
 });
 
-router.delete("/portfolio/:id", authMiddleware, async (req, res) => {
+router.delete("/portfolio/:id", authMiddleware, superAdminOnly, async (req, res) => {
   const id = parseInt(String(req.params.id));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   try {
@@ -1212,7 +1274,7 @@ router.get("/portfolio/shares/public/:slug", async (req, res) => {
 
 // ── Portfolio Shares CRUD (admin only) ──
 
-router.get("/portfolio/shares", authMiddleware, async (_req, res) => {
+router.get("/portfolio/shares", authMiddleware, superAdminOnly, async (_req, res) => {
   try {
     const rows = await db.select().from(portfolioShares).orderBy(desc(portfolioShares.createdAt));
     // Annotate each share with how many of its hidden IDs no longer exist,
@@ -1235,7 +1297,7 @@ function genSlug(): string {
   return randomBytes(4).toString("hex"); // 8-char hex
 }
 
-router.post("/portfolio/shares", authMiddleware, async (req, res) => {
+router.post("/portfolio/shares", authMiddleware, superAdminOnly, async (req, res) => {
   const title = String(req.body.title ?? "").trim();
   let slug = String(req.body.slug ?? "").trim().toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/^-+|-+$/g, "");
   const hiddenCategories: string[] = Array.isArray(req.body.hiddenCategories) ? req.body.hiddenCategories.map(String) : [];
@@ -1260,7 +1322,7 @@ router.post("/portfolio/shares", authMiddleware, async (req, res) => {
   }
 });
 
-router.put("/portfolio/shares/:id", authMiddleware, async (req, res) => {
+router.put("/portfolio/shares/:id", authMiddleware, superAdminOnly, async (req, res) => {
   const id = parseInt(String(req.params.id));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   try {
@@ -1279,7 +1341,7 @@ router.put("/portfolio/shares/:id", authMiddleware, async (req, res) => {
   }
 });
 
-router.delete("/portfolio/shares/:id", authMiddleware, async (req, res) => {
+router.delete("/portfolio/shares/:id", authMiddleware, superAdminOnly, async (req, res) => {
   const id = parseInt(String(req.params.id));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   try {
@@ -1305,7 +1367,7 @@ router.get("/logos/public", async (_req, res) => {
 
 // ── Client Logos CRUD (admin only) ──
 
-router.get("/logos", authMiddleware, async (_req, res) => {
+router.get("/logos", authMiddleware, requirePermission("media"), async (_req, res) => {
   try {
     const rows = await db.select().from(clientLogos).orderBy(asc(clientLogos.sortOrder), asc(clientLogos.createdAt));
     res.json(rows);
@@ -1315,7 +1377,7 @@ router.get("/logos", authMiddleware, async (_req, res) => {
   }
 });
 
-router.post("/logos", authMiddleware, upload.single("image"), async (req, res) => {
+router.post("/logos", authMiddleware, requirePermission("media"), upload.single("image"), async (req, res) => {
   let imageUrl = req.body.imageUrl as string | undefined;
   if (req.file) {
     try {
@@ -1345,7 +1407,7 @@ router.post("/logos", authMiddleware, upload.single("image"), async (req, res) =
   }
 });
 
-router.put("/logos/:id", authMiddleware, upload.single("image"), async (req, res) => {
+router.put("/logos/:id", authMiddleware, requirePermission("media"), upload.single("image"), async (req, res) => {
   const id = parseInt(String(req.params.id));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   try {
@@ -1368,7 +1430,7 @@ router.put("/logos/:id", authMiddleware, upload.single("image"), async (req, res
   }
 });
 
-router.delete("/logos/:id", authMiddleware, async (req, res) => {
+router.delete("/logos/:id", authMiddleware, requirePermission("media"), async (req, res) => {
   const id = parseInt(String(req.params.id));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   try {

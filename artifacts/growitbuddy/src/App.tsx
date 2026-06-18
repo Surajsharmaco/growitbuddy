@@ -1,17 +1,18 @@
 import { lazy, Suspense, useEffect } from "react";
 import { LazyMotion, domAnimation } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
-import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
+import { Switch, Route, Router as WouterRouter, Redirect, useLocation } from "wouter";
 import { prefetchSections, usePublicContent } from "@/hooks/usePublicContent";
 import { prefetchInfluencers } from "@/hooks/useLiveInfluencers";
 import Home from "@/pages/Home";
 import PageIntro from "@/components/effects/PageIntro";
 import ScrollToTop from "@/components/ScrollToTop";
 import { AdminProvider, useAdmin } from "@/context/AdminContext";
-import { AdminLayout } from "@/components/admin/AdminLayout";
+import { AdminLayout, NAV_GATING } from "@/components/admin/AdminLayout";
 import { PageGate } from "@/components/PageGate";
 import DynamicPageSEO from "@/components/DynamicPageSEO";
 import { VariantResolver } from "@/components/VariantResolver";
+import { resolveMediaUrl } from "@/lib/api";
 
 // ── Lazy-loaded public pages ──────────────────────────────────────────────────
 // Home stays eager (it's the LCP page). Everything else loads on demand.
@@ -107,8 +108,21 @@ function PageSpinner() {
   );
 }
 
+function AccessDenied() {
+  return (
+    <div className="flex flex-col items-center justify-center text-center" style={{ minHeight: "60vh", padding: 24 }}>
+      <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(11,11,11,0.06)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16, fontSize: 24 }}>🔒</div>
+      <h1 style={{ fontSize: 20, fontWeight: 800, color: "#0B0B0B", letterSpacing: "-0.02em", margin: 0 }}>Access restricted</h1>
+      <p style={{ marginTop: 8, fontSize: 14, color: "rgba(11,11,11,0.55)", maxWidth: 440, lineHeight: 1.55 }}>
+        You don't have permission to view this section. Ask a super-admin to grant you access if you need it.
+      </p>
+    </div>
+  );
+}
+
 function AdminGuard({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, verifying } = useAdmin();
+  const { isAuthenticated, verifying, isSuperAdmin, hasPermission } = useAdmin();
+  const [location] = useLocation();
   if (verifying) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "#0B0B0F" }}>
@@ -117,9 +131,24 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
     );
   }
   if (!isAuthenticated) return <Redirect to="/admin/login" />;
+  const path = (location.split("?")[0].replace(/\/+$/, "")) || "/admin";
+  const isVariantEdit =
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).has("variant");
+  const gating = NAV_GATING[path];
+  const allowed = isVariantEdit
+    ? isSuperAdmin
+    : !gating
+      ? true
+      : gating.superOnly
+        ? isSuperAdmin
+        : gating.anyPermission?.length
+          ? gating.anyPermission.some((p) => hasPermission(p))
+          : gating.permission
+            ? hasPermission(gating.permission)
+            : true;
   return (
     <AdminLayout>
-      <Suspense fallback={<PageSpinner />}>{children}</Suspense>
+      <Suspense fallback={<PageSpinner />}>{allowed ? children : <AccessDenied />}</Suspense>
     </AdminLayout>
   );
 }
@@ -203,7 +232,7 @@ function FaviconInjector() {
     existing.forEach((el) => el.remove());
     const link = document.createElement("link");
     link.rel = "icon";
-    link.href = url;
+    link.href = resolveMediaUrl(url);
     document.head.appendChild(link);
   }, [(settings as { faviconUrl?: string }).faviconUrl]);
   return null;

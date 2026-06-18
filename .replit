@@ -36,3 +36,4 @@ channel = "stable-25_05"
 [userenv]
 
 [userenv.development]
+ADMIN_PASSWORD = "gb-dev-admin-7351"

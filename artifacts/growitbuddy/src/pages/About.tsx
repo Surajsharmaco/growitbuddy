@@ -4,6 +4,7 @@ import { Link } from "wouter";
 import SEOMeta from "@/components/SEOMeta";
 import { getWashCardStyle, CardGrain, WashIconChip } from "@/components/WashCard";
 import { usePublicContent } from "@/hooks/usePublicContent";
+import { resolveMediaUrl } from "@/lib/api";
 
 import { ABOUT_DEFAULTS as DEFAULTS, type AboutData } from "@/lib/aboutDefaults";
 
@@ -240,7 +241,7 @@ export default function About() {
                     </span>
                     {data.founderPhoto && (
                       <img
-                        src={data.founderPhoto}
+                        src={resolveMediaUrl(data.founderPhoto)}
                         alt={data.founderName}
                         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
                         onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
@@ -360,7 +361,7 @@ export default function About() {
                 <div key={i} style={{ textAlign: "center" }}>
                   <div style={{ width: 80, height: 80, borderRadius: "50%", overflow: "hidden", margin: "0 auto 14px", background: "#E8E8E5", border: "2px solid #E5E5E0" }}>
                     {m.photo ? (
-                      <img src={m.photo} alt={m.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <img src={resolveMediaUrl(m.photo)} alt={m.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     ) : (
                       <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, fontWeight: 800, color: "#0A0A0A" }}>
                         {m.name.charAt(0)}
