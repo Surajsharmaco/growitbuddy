@@ -593,7 +593,7 @@ export default function Home() {
                 transition={{ delay: i * 0.07, duration: 0.5 }}
                 style={getSolidCardStyle(dark, {
                   padding: "26px 26px 28px",
-                  minHeight: 320,
+                  minHeight: 200,
                   display: "flex",
                   flexDirection: "column",
                   gap: 0,
@@ -601,7 +601,7 @@ export default function Home() {
               >
                 <CardGrain dark={dark} />
                 <WashIconChip index={i} icon={Icon} dark={dark} />
-                <h3 style={{ position: "relative", fontWeight: 800, fontSize: 23, letterSpacing: "-0.02em", color: P.title, marginTop: "auto", marginBottom: 10 }}>
+                <h3 style={{ position: "relative", fontWeight: 800, fontSize: 23, letterSpacing: "-0.02em", color: P.title, marginTop: 20, marginBottom: 10 }}>
                   {card.title}
                 </h3>
                 <p style={{ position: "relative", fontSize: 13.5, fontWeight: 700, color: P.strong, marginBottom: 10, letterSpacing: "0.01em" }}>
