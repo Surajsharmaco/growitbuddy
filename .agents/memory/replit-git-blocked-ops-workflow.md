@@ -26,6 +26,13 @@ merge/lock/index state in this repo.
 - A stale 0-byte `.git/index.lock` from a crashed git process also blocks the
   Replit Git panel (Complete Merge / Push silently do nothing). Remove it inside
   the workflow script (`rm -f .git/index.lock`).
+- **Don't judge a lock by size — judge by mtime.** The Replit auto-checkpoint writes
+  a FULL-SIZE index.lock (tens of KB) during its normal git-add at turn boundaries,
+  and it recreates one moments after you clear it. A big/recent lock is the LIVE
+  checkpoint, not a crash — force-removing it can corrupt the index. Only treat it as
+  stale and remove it (via workflow) when its mtime is >~60s old and unchanging. After
+  a read-only `git status --short` returns clean, you're done; ignore a transient lock
+  that merely blocks a follow-up `git diff` — it's the checkpoint, not breakage.
 - A fresh repl may have NO git identity → `git commit` fails "Author identity
   unknown". Set it locally first: `git config user.email ...; git config user.name ...`.
 - Use `GIT_EDITOR=true git commit --no-edit` so no interactive editor stalls the run.
