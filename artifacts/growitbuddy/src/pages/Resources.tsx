@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
-import { API_BASE } from "@/lib/api";
+import { API_BASE, resolveMediaUrl } from "@/lib/api";
 import { getWash, getWashBorder, CardGrain } from "@/components/WashCard";
 import { RESOURCES_DEFAULTS as DEFAULTS, type ResourcesData, type ResourceItem, type ResourceType } from "@/lib/resourcesDefaults";
 
@@ -87,7 +87,7 @@ export default function Resources() {
     const target = gateUrl ?? gateItem?.link ?? null;
     setUnlocked(true);
     closeGate();
-    if (target) window.open(target, "_blank", "noopener,noreferrer");
+    if (target) window.open(resolveMediaUrl(target), "_blank", "noopener,noreferrer");
   };
 
   // ── JSON-LD graph: CollectionPage + ItemList + FAQPage + BreadcrumbList ────
@@ -111,7 +111,7 @@ export default function Resources() {
           "@type": "DigitalDocument",
           name: it.title,
           description: it.longDesc || it.aiSummary || it.desc,
-          url: it.link || `${canonical}#${slug}`,
+          url: resolveMediaUrl(it.link || `${canonical}#${slug}`),
           inLanguage: cms.geoLanguage || "en",
           encodingFormat: typeLabel(it),
           datePublished: it.publishedDate || undefined,
@@ -211,7 +211,7 @@ export default function Resources() {
           </motion.p>
 
           {cms.ctaLabel && cms.ctaUrl && (
-            <a href={cms.ctaUrl} style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 28, padding: "13px 22px", borderRadius: 100, background: "#0A0A0A", color: "#F8F8F6", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
+            <a href={resolveMediaUrl(cms.ctaUrl)} style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 28, padding: "13px 22px", borderRadius: 100, background: "#0A0A0A", color: "#F8F8F6", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
               {cms.ctaLabel} <ArrowRight size={14} />
             </a>
           )}
@@ -507,7 +507,7 @@ function CtaRow({ item, dark = false, unlocked, onLockedClick }: { item: Resourc
             <Lock size={13} /> {primaryLabel}
           </button>
         ) : (
-          <a href={item.link} target="_blank" rel="noopener noreferrer" style={primaryStyle}>
+          <a href={resolveMediaUrl(item.link)} target="_blank" rel="noopener noreferrer" style={primaryStyle}>
             <PrimaryIcon size={13} /> {primaryLabel}
           </a>
         )
@@ -518,7 +518,7 @@ function CtaRow({ item, dark = false, unlocked, onLockedClick }: { item: Resourc
             <Lock size={13} /> {item.secondaryCtaLabel || "Preview"}
           </button>
         ) : (
-          <a href={item.secondaryCtaUrl} target="_blank" rel="noopener noreferrer" style={secondaryStyle}>
+          <a href={resolveMediaUrl(item.secondaryCtaUrl)} target="_blank" rel="noopener noreferrer" style={secondaryStyle}>
             {item.secondaryCtaLabel || "Preview"} <ArrowRight size={13} />
           </a>
         )

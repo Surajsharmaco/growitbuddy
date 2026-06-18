@@ -5,7 +5,7 @@ import { getWashCardStyle, CardGrain } from "@/components/WashCard";
 import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import EcosystemOptIn from "@/components/EcosystemOptIn";
-import { API_BASE } from "@/lib/api";
+import { API_BASE, resolveMediaUrl } from "@/lib/api";
 import { getEmbedUrl, getHiResThumbnail, getThumbnail, parseVideo, detectAspectRatio } from "@/lib/videoEmbed";
 
 const VARIANT_TO_CONTEXT: Record<string, string> = {
@@ -586,7 +586,7 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
             <div className="tp-res-grid">
               {(d.resources || []).map((r, i) => {
                 const fallback = config.defaults.resources.find((dr) => dr.id === r.id);
-                const link = r.link || fallback?.link || "";
+                const link = resolveMediaUrl(r.link || fallback?.link || "");
                 const btnLabel = r.btnLabel || fallback?.btnLabel || "Open";
                 return (
                   <motion.div key={r.id} {...FI(0.08 + i * 0.08)} className="tp-res-card" style={getWashCardStyle(i, { borderRadius: 14 })}>

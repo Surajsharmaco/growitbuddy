@@ -24,3 +24,14 @@ BlockRenderer (image + gallery blocks), and the App favicon injector. Do NOT wra
 video embed iframes (YouTube/Vimeo embed URLs) — those are already absolute and not
 media uploads. When adding any new admin-editable image field, wrap its public
 render in the same call or it will silently break on prod only.
+
+**Also covers file/download links, not just images:** the talent-pool "Resources &
+Downloads" file `<a href>` (TalentPoolPage), the Resources page primary/secondary
+download `<a href>`, the email-gate `window.open()` target, the hero CTA href, and
+the JSON-LD `url` field all carry admin URLs that can be uploaded media → all must
+be `resolveMediaUrl`-wrapped too. An unwrapped one shows/works in dev but 404s live.
+
+**Upload is image/video-only by design (not a bug):** the admin upload endpoint's
+`fileFilter` rejects anything that isn't `image/*` or `video/*` (no PDF/doc hosting).
+Resource/file "downloads" are link fields where admins paste EXTERNAL URLs (Drive,
+etc.); there is no UI to upload a file into a link field. Blank link → "Soon" badge.
