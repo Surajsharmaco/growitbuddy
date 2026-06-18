@@ -4,6 +4,7 @@ import { db, pool, siteContent, leads, certificates, teamMembers, portfolioItems
 import { eq, desc, count, asc, lt } from "drizzle-orm";
 import { logger } from "../lib/logger";
 import { cloudinaryConfigured, uploadToCloudinary } from "../lib/cloudinary";
+import { convertImageBuffer, type ConvertFormat } from "../lib/imageConvert";
 import { buildContentSnapshot, buildHandoffDocs, assembleBackupZip, type BackupMeta } from "../lib/backup";
 import multer from "multer";
 import path from "path";
@@ -664,7 +665,7 @@ router.get("/media", authMiddleware, async (_req, res) => {
       .limit(200);
     res.json(rows.map((r) => ({
       filename: String(r.id),
-      url: r.url ?? `/api/media/file/${r.id}`,
+      url: r.url ?? `/api/media/file/${r.id}?v=${r.uploadedAt.getTime()}`,
       uploadedAt: r.uploadedAt.getTime(),
       size: r.size,
       originalName: r.filename,
@@ -684,6 +685,224 @@ router.delete("/media/:filename", authMiddleware, requirePermission("media"), as
   } catch {
     res.status(404).json({ error: "File not found" });
   }
+});
+
+// ── Bulk media conversion (WebP / AVIF) ──
+// Re-encodes selected images in place to a smaller format. The result is stored
+// the same way uploads are (Cloudinary when configured, else base64 in Postgres)
+// and the row keeps its id, so id-based URLs stay valid. References across all
+// content tables (siteContent, clientLogos, portfolioItems) are rewritten to the
+// new URL so existing pages serve the smaller asset. Old Cloudinary assets are
+// intentionally NOT deleted: keeping them means a missed/failed reference rewrite
+// can never break a live page (the old URL still resolves). No DB schema change.
+
+const MAX_CONVERT_BATCH = 50;
+const MAX_CONVERT_SOURCE_BYTES = 50 * 1024 * 1024; // 50 MB safety cap per image
+
+type MediaRow = typeof mediaFiles.$inferSelect;
+
+async function loadMediaBytes(row: MediaRow): Promise<Buffer | null> {
+  if (row.data) {
+    const buf = Buffer.from(row.data, "base64");
+    return buf.length > MAX_CONVERT_SOURCE_BYTES ? null : buf;
+  }
+  if (row.url && /^https?:\/\//i.test(row.url)) {
+    const res = await fetch(row.url, { signal: AbortSignal.timeout(15000) });
+    if (!res.ok) return null;
+    const ab = await res.arrayBuffer();
+    const buf = Buffer.from(ab);
+    return buf.length > MAX_CONVERT_SOURCE_BYTES ? null : buf;
+  }
+  return null;
+}
+
+type MediaReplacement = { id: number; oldUrl: string | null; newUrl: string };
+
+// Apply all id-based and absolute-URL replacements to a raw string (a JSON blob
+// or a single scalar URL). The id pattern has a `(?![0-9])` boundary so id 5 does
+// not match inside `/api/media/file/55`, and tolerates an existing `?v=` suffix.
+// Function replacements keep `$` in URLs literal.
+function applyMediaReplacements(input: string, reps: MediaReplacement[]): string {
+  let out = input;
+  for (const r of reps) {
+    const idPattern = new RegExp(`/api/media/file/${r.id}(?![0-9])(\\?v=\\d+)?`, "g");
+    out = out.replace(idPattern, () => r.newUrl);
+    if (r.oldUrl && /^https?:\/\//i.test(r.oldUrl)) {
+      out = out.split(r.oldUrl).join(r.newUrl);
+    }
+  }
+  return out;
+}
+
+// Rewrite every reference to a converted image across all content tables so live
+// pages immediately serve the new (smaller) asset. Covers siteContent.data (jsonb),
+// clientLogos.imageUrl (scalar), and portfolioItems.customThumbnailUrl (scalar) +
+// caseStudy/blocks (jsonb). Returns the number of rows updated.
+async function rewriteMediaReferences(reps: MediaReplacement[]): Promise<number> {
+  if (!reps.length) return 0;
+  let changed = 0;
+
+  const scRows = await db.select().from(siteContent);
+  for (const row of scRows) {
+    const before = JSON.stringify(row.data);
+    const after = applyMediaReplacements(before, reps);
+    if (after !== before) {
+      await db
+        .update(siteContent)
+        .set({ data: JSON.parse(after) as Record<string, unknown>, updatedAt: new Date() })
+        .where(eq(siteContent.section, row.section));
+      changed++;
+    }
+  }
+
+  const clRows = await db.select().from(clientLogos);
+  for (const row of clRows) {
+    const after = applyMediaReplacements(row.imageUrl, reps);
+    if (after !== row.imageUrl) {
+      await db.update(clientLogos).set({ imageUrl: after }).where(eq(clientLogos.id, row.id));
+      changed++;
+    }
+  }
+
+  const piRows = await db.select().from(portfolioItems);
+  for (const row of piRows) {
+    const patch: Partial<typeof portfolioItems.$inferInsert> = {};
+    if (row.customThumbnailUrl) {
+      const after = applyMediaReplacements(row.customThumbnailUrl, reps);
+      if (after !== row.customThumbnailUrl) patch.customThumbnailUrl = after;
+    }
+    if (row.caseStudy) {
+      const before = JSON.stringify(row.caseStudy);
+      const after = applyMediaReplacements(before, reps);
+      if (after !== before) patch.caseStudy = JSON.parse(after) as (typeof portfolioItems.$inferSelect)["caseStudy"];
+    }
+    if (row.blocks) {
+      const before = JSON.stringify(row.blocks);
+      const after = applyMediaReplacements(before, reps);
+      if (after !== before) patch.blocks = JSON.parse(after) as (typeof portfolioItems.$inferSelect)["blocks"];
+    }
+    if (Object.keys(patch).length) {
+      patch.updatedAt = new Date();
+      await db.update(portfolioItems).set(patch).where(eq(portfolioItems.id, row.id));
+      changed++;
+    }
+  }
+
+  return changed;
+}
+
+interface ConvertItemResult {
+  id: number;
+  ok: boolean;
+  oldSize?: number;
+  newSize?: number;
+  savedBytes?: number;
+  savedPct?: number;
+  newUrl?: string;
+  skipped?: string;
+  error?: string;
+}
+
+router.post("/media/convert", authMiddleware, requirePermission("media"), async (req, res) => {
+  const body = (req.body ?? {}) as { ids?: unknown; format?: unknown };
+  const ids = Array.isArray(body.ids)
+    ? Array.from(new Set(body.ids.filter((x): x is number => typeof x === "number" && Number.isInteger(x))))
+    : [];
+  const format: ConvertFormat | null =
+    body.format === "webp" || body.format === "avif" ? body.format : null;
+
+  if (!format) { res.status(400).json({ error: "format must be 'webp' or 'avif'" }); return; }
+  if (ids.length === 0) { res.status(400).json({ error: "No images selected" }); return; }
+  if (ids.length > MAX_CONVERT_BATCH) {
+    res.status(400).json({ error: `Too many images — convert at most ${MAX_CONVERT_BATCH} at a time` });
+    return;
+  }
+  const fmt: ConvertFormat = format;
+
+  const results: ConvertItemResult[] = [];
+  const replacements: MediaReplacement[] = [];
+  const queue = [...ids];
+
+  async function worker(): Promise<void> {
+    for (let id = queue.shift(); id !== undefined; id = queue.shift()) {
+      try {
+        const rows = await db.select().from(mediaFiles).where(eq(mediaFiles.id, id)).limit(1);
+        if (!rows.length) { results.push({ id, ok: false, error: "Not found" }); continue; }
+        const row = rows[0];
+
+        const src = await loadMediaBytes(row);
+        if (!src) { results.push({ id, ok: false, skipped: "Could not load source image" }); continue; }
+
+        const conv = await convertImageBuffer(src, fmt, row.mimetype);
+        if (!conv.ok) { results.push({ id, ok: false, skipped: conv.reason }); continue; }
+
+        const oldSize = row.size;
+        const oldUrl = row.url ?? `/api/media/file/${id}`;
+        let newUrl: string;
+
+        if (cloudinaryConfigured()) {
+          const up = await uploadToCloudinary(conv.buffer, conv.mimetype);
+          await db
+            .update(mediaFiles)
+            .set({
+              url: up.url,
+              cloudinaryPublicId: up.publicId,
+              mimetype: conv.mimetype,
+              size: conv.buffer.length,
+              data: null,
+              uploadedAt: new Date(),
+            })
+            .where(eq(mediaFiles.id, id));
+          newUrl = up.url;
+          // Old Cloudinary asset is intentionally retained (see header note):
+          // it keeps every not-yet-rewritten reference working.
+        } else {
+          await db
+            .update(mediaFiles)
+            .set({
+              data: conv.buffer.toString("base64"),
+              mimetype: conv.mimetype,
+              size: conv.buffer.length,
+              url: null,
+              cloudinaryPublicId: null,
+              uploadedAt: new Date(),
+            })
+            .where(eq(mediaFiles.id, id));
+          newUrl = `/api/media/file/${id}?v=${Date.now()}`;
+        }
+
+        replacements.push({ id, oldUrl, newUrl });
+        const newSize = conv.buffer.length;
+        results.push({
+          id,
+          ok: true,
+          oldSize,
+          newSize,
+          savedBytes: oldSize - newSize,
+          savedPct: oldSize > 0 ? Math.round((1 - newSize / oldSize) * 100) : 0,
+          newUrl,
+        });
+      } catch (err) {
+        logger.error({ err, id }, "media convert failed");
+        results.push({ id, ok: false, error: "Conversion failed" });
+      }
+    }
+  }
+
+  await Promise.all([worker(), worker()]);
+
+  let referencesUpdated = 0;
+  let warning: string | undefined;
+  try {
+    referencesUpdated = await rewriteMediaReferences(replacements);
+  } catch (err) {
+    logger.warn({ err }, "media reference rewrite failed (conversions applied; old assets retained)");
+    warning = "Images were converted, but updating their references in your pages failed. Old versions are kept so nothing is broken — you can run the conversion again.";
+  }
+
+  const converted = results.filter((r) => r.ok).length;
+  const savedBytes = results.reduce((s, r) => s + (r.savedBytes ?? 0), 0);
+  res.json({ results, converted, total: ids.length, savedBytes, referencesUpdated, warning });
 });
 
 // ── Certificates ──

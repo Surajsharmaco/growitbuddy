@@ -3,7 +3,7 @@ import { PageHeader, Card } from "@/components/admin/AdminField";
 import { useAdmin } from "@/context/AdminContext";
 import {
   Upload, Trash2, Copy, Check, RefreshCw, ImageIcon,
-  Search, X, ZoomIn, AlertCircle,
+  Search, X, ZoomIn, AlertCircle, Wand2, Loader2, CheckSquare, Square, MinusSquare,
 } from "lucide-react";
 
 import { API_BASE as API, resolveMediaUrl } from "@/lib/api";
@@ -12,6 +12,8 @@ interface MediaItem {
   filename: string;
   url: string;
   uploadedAt: number;
+  size?: number;
+  originalName?: string;
 }
 
 function fmtDate(ts: number) {
@@ -21,6 +23,13 @@ function fmtDate(ts: number) {
 
 function cleanName(filename: string) {
   return filename.replace(/^\d+_/, "");
+}
+
+function fmtBytes(n?: number) {
+  if (!n || n <= 0) return "";
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${Math.round(n / 1024)} KB`;
+  return `${(n / 1024 / 1024).toFixed(1)} MB`;
 }
 
 export default function AdminMediaLibrary() {
@@ -36,6 +45,9 @@ export default function AdminMediaLibrary() {
   const [preview, setPreview] = useState<MediaItem | null>(null);
   const [dragging, setDragging] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [converting, setConverting] = useState(false);
+  const [convertResult, setConvertResult] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -124,6 +136,75 @@ export default function AdminMediaLibrary() {
     return !q || cleanName(item.filename).toLowerCase().includes(q);
   });
 
+  const idOf = (item: MediaItem) => Number(item.filename);
+  const allFilteredSelected = filtered.length > 0 && filtered.every((i) => selected.has(idOf(i)));
+  const selectedSize = items.filter((i) => selected.has(idOf(i))).reduce((s, i) => s + (i.size ?? 0), 0);
+
+  function toggleSelect(id: number) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+  function toggleSelectAll() {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allFilteredSelected) filtered.forEach((i) => next.delete(idOf(i)));
+      else filtered.forEach((i) => next.add(idOf(i)));
+      return next;
+    });
+  }
+  function clearSelection() { setSelected(new Set()); }
+
+  async function runConvert(format: "webp" | "avif") {
+    const ids = Array.from(selected);
+    if (!ids.length || converting) return;
+    const label = format.toUpperCase();
+    const plural = ids.length !== 1;
+    const ok = window.confirm(
+      `Convert ${ids.length} image${plural ? "s" : ""} to ${label}?\n\n` +
+      `This replaces the original${plural ? "s" : ""} in place with a smaller, compressed ${label} ` +
+      `version (no visible quality loss). Images already optimal or unsupported (SVG, animated GIF) ` +
+      `are skipped automatically. This cannot be undone.`,
+    );
+    if (!ok) return;
+    setConverting(true);
+    setConvertResult(null);
+    setUploadError(null);
+    try {
+      const res = await authFetch(`${API}/admin/media/convert`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids, format }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setUploadError((data as { error?: string }).error ?? `Conversion failed (${res.status})`);
+        return;
+      }
+      const d = data as {
+        converted?: number; total?: number; savedBytes?: number;
+        results?: Array<{ ok: boolean }>; warning?: string;
+      };
+      const converted = d.converted ?? 0;
+      const total = d.total ?? ids.length;
+      const savedBytes = d.savedBytes ?? 0;
+      const skipped = (d.results ?? []).filter((r) => !r.ok).length;
+      let msg = `${converted} of ${total} image${total !== 1 ? "s" : ""} converted to ${label}`;
+      if (savedBytes > 0) msg += ` · saved ${fmtBytes(savedBytes)}`;
+      if (skipped > 0) msg += ` · ${skipped} skipped (already optimal or unsupported)`;
+      setConvertResult(msg);
+      if (d.warning) setUploadError(d.warning);
+      clearSelection();
+      await load();
+    } catch {
+      setUploadError("Network error during conversion.");
+    } finally {
+      setConverting(false);
+    }
+  }
+
   return (
     <div>
       <PageHeader
@@ -143,6 +224,13 @@ export default function AdminMediaLibrary() {
         <div className="mb-4 flex items-center gap-2.5 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
           <Check size={15} className="text-emerald-500 shrink-0" />
           <p className="text-[12px] text-emerald-700">{uploadSuccess} image{uploadSuccess !== 1 ? "s" : ""} uploaded successfully</p>
+        </div>
+      )}
+      {convertResult && (
+        <div className="mb-4 flex items-start gap-2.5 bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3">
+          <Wand2 size={15} className="text-indigo-500 mt-0.5 shrink-0" />
+          <p className="text-[12px] text-indigo-700 flex-1">{convertResult}</p>
+          <button onClick={() => setConvertResult(null)} className="text-indigo-400 hover:text-indigo-600 shrink-0"><X size={13} /></button>
         </div>
       )}
 
@@ -196,6 +284,15 @@ export default function AdminMediaLibrary() {
           )}
         </div>
         <button
+          onClick={toggleSelectAll}
+          disabled={filtered.length === 0}
+          className="flex items-center gap-1.5 px-3 py-2.5 border border-[#0B0B0B]/12 rounded-xl hover:bg-[#0B0B0B]/5 text-[#0B0B0B]/60 text-[12px] font-semibold transition-colors disabled:opacity-40"
+          title={allFilteredSelected ? "Clear selection" : "Select all"}
+        >
+          {allFilteredSelected ? <MinusSquare size={15} /> : <CheckSquare size={15} />}
+          {allFilteredSelected ? "Clear" : "Select all"}
+        </button>
+        <button
           onClick={load}
           className="p-2.5 border border-[#0B0B0B]/12 rounded-xl hover:bg-[#0B0B0B]/5 text-[#0B0B0B]/50 transition-colors"
           title="Refresh"
@@ -230,29 +327,47 @@ export default function AdminMediaLibrary() {
             {filtered.map((item) => {
               const isCopied = copied === item.url;
               const isDeleting = deleting === item.filename;
+              const id = idOf(item);
+              const isSelected = selected.has(id);
               return (
                 <div
                   key={item.filename}
-                  className="group relative rounded-xl overflow-hidden border border-[#0B0B0B]/8 bg-[#F7F7F5] flex flex-col"
+                  className={`group relative rounded-xl overflow-hidden border bg-[#F7F7F5] flex flex-col transition-all ${
+                    isSelected ? "border-indigo-500 ring-2 ring-indigo-400/40" : "border-[#0B0B0B]/8"
+                  }`}
                   style={{ aspectRatio: "1" }}
                 >
-                  <div className="relative flex-1 overflow-hidden">
+                  <div
+                    className="relative flex-1 overflow-hidden cursor-pointer"
+                    onClick={() => toggleSelect(id)}
+                  >
                     <img
                       src={resolveMediaUrl(item.url)}
                       alt={cleanName(item.filename)}
                       className="w-full h-full object-cover"
                       loading="lazy"
                     />
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleSelect(id); }}
+                      className={`absolute top-2 left-2 z-10 rounded-md p-0.5 transition-all ${
+                        isSelected
+                          ? "bg-indigo-500 text-white"
+                          : "bg-white/85 text-[#0B0B0B]/40 opacity-0 group-hover:opacity-100"
+                      }`}
+                      title={isSelected ? "Deselect" : "Select"}
+                    >
+                      {isSelected ? <CheckSquare size={16} /> : <Square size={16} />}
+                    </button>
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
                       <button
-                        onClick={() => setPreview(item)}
+                        onClick={(e) => { e.stopPropagation(); setPreview(item); }}
                         className="p-2 bg-white/90 rounded-lg hover:bg-white transition-colors"
                         title="Preview"
                       >
                         <ZoomIn size={14} className="text-[#0B0B0B]" />
                       </button>
                       <button
-                        onClick={() => copyUrl(item.url)}
+                        onClick={(e) => { e.stopPropagation(); copyUrl(item.url); }}
                         className={`p-2 rounded-lg transition-colors ${isCopied ? "bg-emerald-500" : "bg-white/90 hover:bg-white"}`}
                         title="Copy URL"
                       >
@@ -261,7 +376,7 @@ export default function AdminMediaLibrary() {
                           : <Copy size={14} className="text-[#0B0B0B]" />}
                       </button>
                       <button
-                        onClick={() => handleDelete(item)}
+                        onClick={(e) => { e.stopPropagation(); handleDelete(item); }}
                         disabled={isDeleting}
                         className="p-2 bg-red-500/90 hover:bg-red-500 rounded-lg transition-colors disabled:opacity-50"
                         title="Delete"
@@ -270,9 +385,9 @@ export default function AdminMediaLibrary() {
                       </button>
                     </div>
                   </div>
-                  <div className="px-2 py-1.5 bg-white border-t border-[#0B0B0B]/6 shrink-0">
-                    <p className="text-[10px] font-semibold text-[#0B0B0B]/60 truncate">{cleanName(item.filename)}</p>
-                    <p className="text-[9px] text-[#0B0B0B]/30 mt-0.5">{fmtDate(item.uploadedAt)}</p>
+                  <div className="px-2 py-1.5 bg-white border-t border-[#0B0B0B]/6 shrink-0 flex items-center justify-between gap-1">
+                    <p className="text-[9px] text-[#0B0B0B]/30">{fmtDate(item.uploadedAt)}</p>
+                    {item.size ? <p className="text-[9px] font-semibold text-[#0B0B0B]/45 shrink-0">{fmtBytes(item.size)}</p> : null}
                   </div>
                 </div>
               );
@@ -342,6 +457,40 @@ export default function AdminMediaLibrary() {
               <p className="text-[11px] text-[#0B0B0B]/40 font-mono truncate">{preview.url}</p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Bulk-convert action bar */}
+      {selected.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 bg-[#0B0B0B] text-white rounded-2xl shadow-2xl px-4 py-3">
+          <span className="text-[12px] font-semibold whitespace-nowrap">
+            {selected.size} selected{selectedSize > 0 ? ` · ${fmtBytes(selectedSize)}` : ""}
+          </span>
+          <div className="h-5 w-px bg-white/20" />
+          <button
+            onClick={() => runConvert("webp")}
+            disabled={converting}
+            className="flex items-center gap-1.5 text-[12px] font-semibold bg-white text-[#0B0B0B] px-3 py-2 rounded-xl hover:bg-white/90 transition-colors disabled:opacity-50"
+          >
+            {converting ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
+            Convert to WebP
+          </button>
+          <button
+            onClick={() => runConvert("avif")}
+            disabled={converting}
+            className="flex items-center gap-1.5 text-[12px] font-semibold bg-indigo-500 text-white px-3 py-2 rounded-xl hover:bg-indigo-400 transition-colors disabled:opacity-50"
+          >
+            {converting ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
+            Convert to AVIF
+          </button>
+          <button
+            onClick={clearSelection}
+            disabled={converting}
+            className="text-white/60 hover:text-white transition-colors disabled:opacity-40"
+            title="Clear selection"
+          >
+            <X size={16} />
+          </button>
         </div>
       )}
     </div>
