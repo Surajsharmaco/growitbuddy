@@ -30,6 +30,7 @@ interface DeployData {
   deployments?: Deployment[];
   checkRuns?: CheckRun[];
   error?: string;
+  needsToken?: boolean;
 }
 
 type RedeployTarget = "vercel" | "render" | "all";
@@ -211,6 +212,17 @@ export function DeployStatus() {
         <div className="flex items-center gap-2 py-4 justify-center">
           <Loader2 size={14} className="animate-spin text-[#0B0B0B]/30" />
           <span className="text-[12px] text-[#0B0B0B]/30">Loading deploy status...</span>
+        </div>
+      ) : data?.needsToken ? (
+        <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
+          <p className="text-[12px] font-bold text-amber-700 mb-1.5">Deploy tracking is turned off</p>
+          <p className="text-[11px] text-amber-700/80 leading-relaxed">
+            To show live Vercel &amp; Render deploy status here, add a{" "}
+            <span className="font-mono font-semibold">GITHUB_TOKEN</span> to the API server's
+            environment on Render (Dashboard → your API service → Environment). Use a read-only
+            GitHub access token. Your website works perfectly without it — this panel is only for
+            tracking deployments.
+          </p>
         </div>
       ) : data?.error ? (
         <p className="text-[12px] text-red-500 py-2">{data.error}</p>

@@ -1672,7 +1672,7 @@ router.get("/deploy-status", authMiddleware, async (_req, res) => {
   const token = process.env.GITHUB_TOKEN;
   const repo = "Surajsharmaco/growitbuddy";
   if (!token) {
-    return res.json({ error: "GITHUB_TOKEN not set", deployments: [] });
+    return res.json({ error: "GITHUB_TOKEN not set", needsToken: true, deployments: [] });
   }
   try {
     const headers = {
