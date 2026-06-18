@@ -4,6 +4,7 @@ import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/comp
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
 import { Plus, Trash2, ExternalLink } from "lucide-react";
 import { sourceLabel, getEmbedUrl, detectAspectRatio } from "@/lib/videoEmbed";
+import { ImageUrlField } from "@/components/admin/ImageUrlField";
 
 interface ResourceCard { id: string; title: string; desc: string; link: string; btnLabel: string; }
 interface Step { number: string; title: string; desc: string; }
@@ -11,7 +12,7 @@ interface Step { number: string; title: string; desc: string; }
 interface PoolData {
   eyebrow: string; headline: string; description: string;
   opportunityText: string; ctaPrimary: string; ctaSecondary: string;
-  videoUrl: string; heroTrustText: string;
+  videoUrl: string; bannerUrl: string; heroTrustText: string;
   stepsTitle: string; steps: Step[];
   resourcesTitle: string; resourcesSubtext: string; resources: ResourceCard[];
   formTitle: string; formSubtext: string; formDisclaimer: string; formNotifyEmail: string;
@@ -22,7 +23,7 @@ interface PoolData {
 const EMPTY: PoolData = {
   eyebrow: "", headline: "", description: "",
   opportunityText: "", ctaPrimary: "Submit Your Work", ctaSecondary: "View Resources",
-  videoUrl: "", heroTrustText: "",
+  videoUrl: "", bannerUrl: "", heroTrustText: "",
   stepsTitle: "How it works.",
   steps: [
     { number: "01", title: "Watch Demo",       desc: "" },
@@ -103,9 +104,29 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
           <Input label="Opportunity Text" value={data.opportunityText} onChange={e => set("opportunityText", e.target.value)}
             hint="Shown as a small callout below the video. Leave blank to hide." />
           <Input label="Trust Text" value={data.heroTrustText} onChange={e => set("heroTrustText", e.target.value)}
-            hint="Small grey line shown below the CTAs. Leave blank to hide." />
+            hint="Small grey line shown below the hero media. Leave blank to hide." />
           <Input label="Secondary CTA Button" value={data.ctaSecondary} onChange={e => set("ctaSecondary", e.target.value)} />
         </div>
+      </Card>
+
+      {/* ── HERO BANNER IMAGE ── */}
+      <Card className="mb-4">
+        <SectionTitle>Hero Banner Image</SectionTitle>
+        <div className="bg-[#F8F8F6] border border-[#0B0B0B]/8 rounded-xl px-4 py-3 mb-4 flex gap-3 items-start">
+          <span className="text-[18px]">🖼️</span>
+          <div>
+            <p className="text-[13px] font-semibold text-[#0B0B0B] mb-0.5">Optional. If you upload a banner image here, it shows at the top of the page (right under the headline) instead of the video.</p>
+            <p className="text-[12px] text-[#0B0B0B]/50">Leave it empty to use the demo video below. Wide images (16:9) look best.</p>
+          </div>
+        </div>
+        <ImageUrlField
+          label="Banner Image"
+          value={data.bannerUrl}
+          onChange={(url) => set("bannerUrl", url)}
+          cropAspect="16:9"
+          previewHeight={160}
+          hint="Shown at the top as the VSL banner. Replaces the video when set."
+        />
       </Card>
 
       {/* ── VIDEO ── */}
@@ -116,6 +137,7 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
           <div>
             <p className="text-[13px] font-semibold text-[#0B0B0B] mb-0.5">Paste a video link OR the full embed code from Gumlet, YouTube, Vimeo, or Google Drive.</p>
             <p className="text-[12px] text-[#0B0B0B]/50">Examples: <span className="font-mono">https://play.gumlet.io/embed/abc123</span> &nbsp;·&nbsp; <span className="font-mono">&lt;iframe src="…"&gt;&lt;/iframe&gt;</span></p>
+            <p className="text-[12px] text-amber-700 font-medium mt-1">If a banner image is set above, it shows instead of this video.</p>
           </div>
         </div>
         <Textarea

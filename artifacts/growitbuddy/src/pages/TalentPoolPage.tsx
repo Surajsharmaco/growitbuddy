@@ -33,6 +33,7 @@ export interface PoolPageData {
   ctaPrimary: string;
   ctaSecondary: string;
   videoUrl: string;
+  bannerUrl?: string;
   heroTrustText: string;
   stepsTitle: string;
   steps: Step[];
@@ -321,6 +322,10 @@ function PoolForm({ d, formVariant, poolType, submitLabel }: PoolFormProps) {
 
 export default function TalentPoolPage({ config }: { config: PoolConfig }) {
   const d = usePublicContent<PoolPageData>(config.sectionKey, config.defaults);
+  const bannerSrc = d.bannerUrl ? resolveMediaUrl(d.bannerUrl) : "";
+  const [bannerError, setBannerError] = useState(false);
+  useEffect(() => { setBannerError(false); }, [bannerSrc]);
+  const showBanner = !!bannerSrc && !bannerError;
 
   return (
     <div style={{ background: "#F8F8F6", minHeight: "100vh" }}>
@@ -522,19 +527,19 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
               </motion.div>
               <motion.h1 {...FI(0.2)} className="tp-hero-h1">{d.headline}</motion.h1>
               <motion.p {...FI(0.3)} className="tp-hero-lead">{d.description}</motion.p>
-
-              <motion.div {...FI(0.4)} style={{ display: "flex", gap: 14, flexWrap: "wrap", justifyContent: "center", marginBottom: 48 }}>
-                <a href="#submit" className="gb-btn">
-                  {d.ctaPrimary} <ArrowRight size={16} />
-                </a>
-                <a href="#resources" className="gb-btn-outline" style={{ background: "#FFFFFF" }}>
-                  {d.ctaSecondary}
-                </a>
-              </motion.div>
             </div>
 
-            <motion.div {...FI(0.5)} style={{ maxWidth: 900, margin: "0 auto" }}>
-              <VideoPlayer url={d.videoUrl} />
+            <motion.div {...FI(0.4)} style={{ maxWidth: showBanner ? 1000 : 900, margin: "0 auto" }}>
+              {showBanner ? (
+                <img
+                  src={bannerSrc}
+                  alt={d.headline || "Banner"}
+                  onError={() => setBannerError(true)}
+                  style={{ width: "100%", height: "auto", display: "block", borderRadius: 16, boxShadow: "0 24px 60px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.08)" }}
+                />
+              ) : (
+                <VideoPlayer url={d.videoUrl} />
+              )}
               {d.heroTrustText && (
                 <div style={{ textAlign: "center", marginTop: 24 }}>
                   <p style={{ fontSize: 14, color: "#8A8A8A", fontWeight: 500, letterSpacing: "0.02em" }}>
@@ -542,6 +547,15 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
                   </p>
                 </div>
               )}
+            </motion.div>
+
+            <motion.div {...FI(0.5)} style={{ display: "flex", gap: 14, flexWrap: "wrap", justifyContent: "center", marginTop: 40 }}>
+              <a href="#submit" className="gb-btn">
+                {d.ctaPrimary} <ArrowRight size={16} />
+              </a>
+              <a href="#resources" className="gb-btn-outline" style={{ background: "#FFFFFF" }}>
+                {d.ctaSecondary}
+              </a>
             </motion.div>
           </div>
         </section>
