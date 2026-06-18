@@ -41,8 +41,23 @@ alternation the user reported).
 
 **How to apply:** The SSR bootstrap uses raw DB content, so it already respects empty —
 trust it over client defaults. `usePublicContent` correctly caches/merges `{items:[]}`
-(empty db wins over defaults). Pages deliberately NOT changed (different semantics):
-blog (WordPress/CMS-backed), authority-audit (needs questions to function), and the
-hidden SEO crawler body (`mergeForBody`) which still defaults when empty but is
-invisible sr-only text. The fix is client-only — no SSR rebuild needed. Reaches prod
-only via GitHub push (user-gated; never push manually).
+(empty db wins over defaults). The client fix (default `{items:[]}` / `{posts:[]}`, no
+seed import, honest empty state) now covers influencers, distribution-pages, AND blog
+(`Insights.tsx` listing + `InsightDetail.tsx` single post — a deleted slug now hits the
+existing "Post not found" instead of a seed post). Still client-only. Page deliberately
+NOT changed: authority-audit (needs its questions to function).
+
+**Known SSR limitation (SEO-only, not user-visible):** the hidden crawler body
+(`mergeForBody` + `CONTENT_DEFAULTS` `blog: blogPosts`, `distribution-pages:
+distributionPages` in `ssr/contentDefaults.ts`) STILL injects the seed when the DB list
+is empty — `isEmptyContent({posts:[]})` is true → falls back to the default array. This
+is wrapped in a visually-hidden `data-ssr-seo` block that `createRoot` clears on mount,
+so a JS browser user never sees it; it only affects raw HTML / crawlers / no-JS. Fixing
+it requires regenerating the committed `api/render.js` via `scripts/build-fn.mjs`, which
+**FAILS in this repl**: esbuild `Could not resolve "@neondatabase/serverless"` (not a
+direct dep here; the original bundle inlined it from an env where it resolved). Vercel
+deploys `api/render.js` AS-IS — the `build` script (`vite build` + `postbuild-ssr.mjs`)
+only regenerates `api/_template.js`, NOT render.js — so source-only edits to `ssr/*`
+never reach prod. Net: client fix is the shippable fix; the sr-only SSR seed cleanup is
+blocked until render.js can be rebuilt. Reaches prod only via GitHub push (user-gated;
+never push manually).

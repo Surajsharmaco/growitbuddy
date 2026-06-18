@@ -2,27 +2,21 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { ArrowRight } from "lucide-react";
-import { blogPosts as DEFAULT_POSTS, type BlogPost } from "@/data/blogPosts";
+import { type BlogPost } from "@/data/blogPosts";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import { useWordPressPosts } from "@/hooks/useWordPressPosts";
 import SEOMeta from "@/components/SEOMeta";
 
 export default function Insights() {
   const [activeTag, setActiveTag] = useState("All");
-  // CMS is the source of truth. If admin has saved posts (any count), show them.
-  // If CMS is empty AND WordPress has no posts either, fall back to the
-  // bundled seed posts so the page is never blank. The fallback automatically
-  // disappears the moment any real post is added (CMS or WordPress).
+  // CMS is the source of truth, merged with any WordPress posts. If both are
+  // empty the page shows an honest empty state — we never fall back to the
+  // bundled seed posts, because that resurrected deleted posts on every refresh.
   const { posts: cmsPosts } = usePublicContent<{ posts: BlogPost[] }>("blog", { posts: [] });
   const { posts: wpPosts } = useWordPressPosts();
 
   const blogPosts = useMemo(() => {
     const base: BlogPost[] = (cmsPosts ?? []).map((p) => ({ ...p, source: "cms" as const }));
-    if (base.length === 0 && wpPosts.length === 0) {
-      const seed = DEFAULT_POSTS.map((p) => ({ ...p, source: "cms" as const }));
-      seed.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      return seed;
-    }
     const combined = [...base, ...wpPosts];
     combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     return combined;
@@ -175,6 +169,13 @@ export default function Insights() {
               );
             })}
           </div>
+
+          {filtered.length === 0 && (
+            <div style={{ textAlign: "center", padding: "64px 0", color: "rgba(11,11,11,0.45)" }}>
+              <p style={{ fontSize: 16, fontWeight: 600, color: "#0A0A0A", marginBottom: 6 }}>No posts yet</p>
+              <p style={{ fontSize: 14 }}>New articles will appear here once published.</p>
+            </div>
+          )}
         </div>
       </section>
     </div>

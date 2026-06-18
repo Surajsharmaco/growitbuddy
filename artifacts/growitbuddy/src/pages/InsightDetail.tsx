@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useParams } from "wouter";
 import { ArrowLeft, ArrowRight, Calendar, Share2, Twitter, Linkedin, Link2, Check, List } from "lucide-react";
-import { blogPosts as DEFAULT_POSTS, defaultSeo, type BlogPost } from "@/data/blogPosts";
+import { defaultSeo, type BlogPost } from "@/data/blogPosts";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import { useWordPressPosts, fetchWpPostBySlug } from "@/hooks/useWordPressPosts";
 import SEOMeta from "@/components/SEOMeta";
@@ -522,7 +522,7 @@ export default function InsightDetail() {
   const slug = params.slug ?? "";
   const isWp = slug.startsWith("wp-");
 
-  const { posts: cmsPosts } = usePublicContent<{ posts: BlogPost[] }>("blog", { posts: DEFAULT_POSTS });
+  const { posts: cmsPosts } = usePublicContent<{ posts: BlogPost[] }>("blog", { posts: [] });
   const { posts: wpPosts } = useWordPressPosts();
 
   const [wpPost, setWpPost] = useState<BlogPost | null>(null);
@@ -549,7 +549,7 @@ export default function InsightDetail() {
   }, [slug]);
 
   const allPosts: BlogPost[] = [
-    ...(cmsPosts?.length ? cmsPosts : DEFAULT_POSTS),
+    ...(cmsPosts ?? []),
     ...wpPosts,
   ];
 
