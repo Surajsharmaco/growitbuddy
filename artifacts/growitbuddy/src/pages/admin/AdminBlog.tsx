@@ -1322,8 +1322,8 @@ function PostEditor({
         </div>
       )}
 
-      {/* Top bar */}
-      <div className="flex items-center gap-3 mb-5">
+      {/* Top bar — sticky so Save Draft/Publish stay visible without scrolling on long posts */}
+      <div className="sticky top-0 z-30 flex items-center gap-3 mb-5 py-3 bg-[#F7F7F5]/95 backdrop-blur border-b border-[#0B0B0B]/8">
         <button onClick={onBack} className="flex items-center gap-1.5 text-[13px] text-[#0B0B0B]/45 hover:text-[#0B0B0B] transition-colors">
           <ArrowLeft size={14} /> All Posts
         </button>

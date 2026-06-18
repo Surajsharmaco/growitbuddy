@@ -86,7 +86,7 @@ export function SaveBar({
     <>
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-[9999] flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-lg text-[13px] font-medium text-white pointer-events-none
+          className={`fixed bottom-24 right-6 z-[9999] flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-lg text-[13px] font-medium text-white pointer-events-none
             ${toast.type === "success" ? "bg-emerald-600" : "bg-red-500"}`}
         >
           {toast.type === "success"
@@ -95,8 +95,10 @@ export function SaveBar({
           {toast.msg}
         </div>
       )}
-      <div className="flex items-center justify-between pt-5 border-t border-[#0B0B0B]/8 mt-6">
-        <span className="text-[12px] text-[#0B0B0B]/40">
+      {/* Sticky action bar: stays pinned to the bottom of the viewport so the
+          admin can save from anywhere on a long form without scrolling. */}
+      <div className="sticky bottom-4 z-30 mt-8 flex items-center justify-between gap-3 rounded-2xl border border-[#0B0B0B]/10 bg-white/80 px-5 py-3 shadow-[0_10px_34px_rgba(0,0,0,0.12)] backdrop-blur-md">
+        <span className="text-[12px] text-[#0B0B0B]/45">
           {saving ? "Saving..." : saved ? "All changes saved" : "Unsaved changes"}
         </span>
         <button
