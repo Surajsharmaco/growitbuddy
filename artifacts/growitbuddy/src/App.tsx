@@ -11,6 +11,7 @@ import { AdminProvider, useAdmin } from "@/context/AdminContext";
 import { AdminLayout, NAV_GATING } from "@/components/admin/AdminLayout";
 import { PageGate } from "@/components/PageGate";
 import DynamicPageSEO from "@/components/DynamicPageSEO";
+import { prefetchAllSEO } from "@/lib/seoCache";
 import { VariantResolver } from "@/components/VariantResolver";
 import { RouteErrorBoundary } from "@/components/ErrorBoundary";
 import { resolveMediaUrl } from "@/lib/api";
@@ -253,7 +254,7 @@ function App() {
     const ric = (window as unknown as {
       requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
     }).requestIdleCallback;
-    const run = () => { prefetchSections(ALL_SECTIONS); prefetchInfluencers(); };
+    const run = () => { prefetchSections(ALL_SECTIONS); prefetchInfluencers(); prefetchAllSEO(); };
     let handle: number | NodeJS.Timeout;
     if (ric) handle = ric(run, { timeout: 800 });
     else handle = setTimeout(run, 300);

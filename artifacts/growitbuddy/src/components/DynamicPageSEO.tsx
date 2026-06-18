@@ -20,6 +20,14 @@ import {
   type PageRegistryEntry,
   type PageSEOData,
 } from "@/lib/pageRegistry";
+import {
+  readBootstrap,
+  syncSeoFor,
+  cachedSEO,
+  cachedGlobal,
+  recordSEO,
+  recordGlobal,
+} from "@/lib/seoCache";
 
 const SITE = "https://growitbuddy.com";
 const SITE_NAME = "GrowitBuddy";
@@ -123,13 +131,14 @@ function applySEO(entry: PageRegistryEntry, seo: PageSEOData, pathname: string, 
 }
 
 /**
- * NO in-memory cache. The /api/seo/:slug response is small (~1 KB) and the
- * server now sets Cache-Control: no-store. This means: edit in admin →
- * navigate to the public page → see new SEO immediately. No staleness.
+ * SEO is cached client-side (see lib/seoCache) so client-side navigation can
+ * apply the admin SEO SYNCHRONOUSLY and never flash the registry default first.
+ * Every navigation still re-fetches /api/seo/:slug with Cache-Control: no-store,
+ * so an admin edit shows on the very next visit — the cache only supplies the
+ * value painted on navigation, never a stale final value.
  *
  * Cross-tab live updates: when admin saves, it broadcasts via localStorage;
- * any open public tab on the same browser will re-apply on the next route
- * change (good enough for v1).
+ * any open public tab on the same browser re-applies on the next route change.
  */
 // Per-component monotonic load id so an older in-flight SEO fetch can't
 // overwrite a newer one (e.g. route change + broadcast firing in quick
@@ -144,21 +153,6 @@ function parseBroadcastSection(value: string | null): string | null {
   return m ? m[1] : value;
 }
 
-function readBootstrap(slug: string): { boot: PageSEOData; bootGlobal: boolean } {
-  const w = window as unknown as {
-    __GB_SEO__?: { slug?: string; data?: PageSEOData; globalIndexable?: boolean };
-  };
-  const bootSeo =
-    typeof window !== "undefined" && w.__GB_SEO__ && w.__GB_SEO__.slug === slug
-      ? w.__GB_SEO__
-      : null;
-  return {
-    boot: bootSeo?.data ?? {},
-    bootGlobal:
-      bootSeo && typeof bootSeo.globalIndexable === "boolean" ? bootSeo.globalIndexable : true,
-  };
-}
-
 export default function DynamicPageSEO() {
   const [location] = useLocation();
 
@@ -171,8 +165,8 @@ export default function DynamicPageSEO() {
   useLayoutEffect(() => {
     const entry = findEntryByPath(location);
     if (!entry) return;
-    const { boot, bootGlobal } = readBootstrap(entry.slug);
-    applySEO(entry, boot, location, bootGlobal);
+    const { data, global } = syncSeoFor(entry.slug);
+    applySEO(entry, data, location, global);
   }, [location]);
 
   useEffect(() => {
@@ -211,12 +205,17 @@ export default function DynamicPageSEO() {
         ]);
         clearTimeout(timer);
         if (cancelled || myId !== loadId) return;
-        if (!r.ok) { applySEO(entry!, boot, location, globalIndexable); return; }
+        recordGlobal(globalIndexable);
+        if (!r.ok) { applySEO(entry!, cachedSEO(entry!.slug) ?? boot, location, globalIndexable); return; }
         const body = (await r.json()) as { data: PageSEOData | null };
         if (cancelled || myId !== loadId) return;
-        applySEO(entry!, body.data ?? boot, location, globalIndexable);
+        const resolved = body.data ?? boot;
+        recordSEO(entry!.slug, resolved);
+        applySEO(entry!, resolved, location, globalIndexable);
       } catch {
-        if (!cancelled && myId === loadId) applySEO(entry!, boot, location, bootGlobal);
+        if (!cancelled && myId === loadId) {
+          applySEO(entry!, cachedSEO(entry!.slug) ?? boot, location, cachedGlobal() ?? bootGlobal);
+        }
       }
     }
 

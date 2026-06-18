@@ -6,7 +6,7 @@ import aiSeoRouter from "./ai-seo";
 import sitemapRouter from "./sitemap";
 import wpRouter from "./wp";
 import { db, mediaFiles, siteContent } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq, like } from "drizzle-orm";
 
 const router: IRouter = Router();
 
@@ -57,6 +57,36 @@ router.get("/seo/:slug", async (req: Request, res: Response) => {
     res.setHeader("Expires", "0");
     if (!rows.length) { res.json({ slug, data: null }); return; }
     res.json({ slug, data: rows[0].data, updatedAt: rows[0].updatedAt });
+  } catch {
+    res.status(500).json({ error: "failed" });
+  }
+});
+
+// ── Public bulk SEO (no auth) — every per-page override + the global switch in
+// ONE request. The client warms a cache from this at startup so client-side
+// navigation can apply admin SEO synchronously (no default→admin flash). ──
+router.get("/seo", async (_req: Request, res: Response) => {
+  try {
+    const [rows, globalRows] = await Promise.all([
+      db
+        .select({ section: siteContent.section, data: siteContent.data })
+        .from(siteContent)
+        .where(like(siteContent.section, "seo:%")),
+      db
+        .select({ data: siteContent.data })
+        .from(siteContent)
+        .where(eq(siteContent.section, "seo-global"))
+        .limit(1),
+    ]);
+    const pages: Record<string, unknown> = {};
+    for (const r of rows) {
+      pages[r.section.replace(/^seo:/, "")] = r.data;
+    }
+    const g = (globalRows[0]?.data as { siteIndexable?: boolean } | undefined) ?? undefined;
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+    res.json({ global: { siteIndexable: g?.siteIndexable !== false }, pages });
   } catch {
     res.status(500).json({ error: "failed" });
   }
