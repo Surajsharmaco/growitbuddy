@@ -1,5 +1,6 @@
 - [GrowitBuddy SEO single source](growitbuddy-seo.md) — page list, sitemaps & JSON-LD all derive from `@workspace/seo`; blog canonical `/blog`; composite lib needs built `dist/` (TS6305 gotcha).
 - [GrowitBuddy admin↔public field audit](growitbuddy-admin-audit.md) — grep each field key in the public page before removing admin sections; automated audits gave false positives.
+- [GrowitBuddy admin form layout](growitbuddy-admin-form-layout.md) — photo in full-width box on top + fields in `grid grid-cols-1 sm:grid-cols-2 gap-4`; full-width rows use `sm:col-span-2` (not bare `col-span-2`).
 - [robots.txt per-agent override](robots-txt-per-agent-override.md) — named bot blocks ignore the wildcard block; repeat global Disallow rules in each.
 - [Admin-editable content pattern](admin-editable-content.md) — generic /content/:section (no whitelist); usePublicContent + AdminField + must PageGate public route for visibility to apply.
 - [GrowitBuddy SSR prebuilt render.js](growitbuddy-ssr-prebuilt.md) — api/render.js is a COMMITTED esbuild bundle; editing any ssr/* source does nothing in prod until build-fn.mjs regenerates it; user-deletable lists default to []. Optimize/cache-clear are honest no-ops (purge tokens + ANALYZE), NOT a Vercel CDN purge — "stale on refresh" = SSR demo-default resurrection, not server cache.

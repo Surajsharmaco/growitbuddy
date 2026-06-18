@@ -173,19 +173,18 @@ function PageRow({
 
       {open && (
         <div className="border-t border-[#0B0B0B]/8 px-5 py-5">
-          <div className="flex gap-5 items-start">
-            <div className="shrink-0">
-              <ImagePickerField
-                label="Photo"
-                value={page.photo}
-                onChange={(url) => set({ photo: url })}
-                shape="circle"
-                size={80}
-                hint="Recommended: 400 × 400 px (square)"
-              />
-            </div>
-            <div className="flex-1 grid grid-cols-2 gap-3 pt-1">
-              <div className="col-span-2">
+          <div className="rounded-xl border border-[#0B0B0B]/8 bg-[#fafafa] px-4 py-4 mb-4">
+            <ImagePickerField
+              label="Photo"
+              value={page.photo}
+              onChange={(url) => set({ photo: url })}
+              shape="circle"
+              size={72}
+              hint="Recommended: 400 × 400 px (square)"
+            />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="sm:col-span-2">
                 <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-1.5 uppercase tracking-wider">
                   URL Slug <span className="text-[#0B0B0B]/35 font-normal normal-case tracking-normal">— this becomes /distribution/<strong className="font-semibold text-[#0B0B0B]/60">{page.slug || "your-slug"}</strong></span>
                 </label>
@@ -286,7 +285,7 @@ function PageRow({
                   />
                 </div>
               </div>
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-2 uppercase tracking-wider">High Engagement Badge</label>
                 <button
                   type="button"
@@ -302,7 +301,6 @@ function PageRow({
                 </button>
               </div>
             </div>
-          </div>
         </div>
       )}
     </Card>
@@ -396,38 +394,36 @@ function AddDistributionModal({
         </>
       }
     >
-      <div className="space-y-4">
-        <div className="flex gap-4 items-start">
-          <div className="shrink-0">
-            <ImagePickerField
-              label="Photo"
-              value={draft.photo}
-              onChange={(url) => set({ photo: url })}
-              shape="circle"
-              size={72}
-              hint="400 × 400 px"
+      <div className="space-y-5">
+        <div className="rounded-xl border border-[#0B0B0B]/8 bg-[#fafafa] px-4 py-4">
+          <ImagePickerField
+            label="Photo"
+            value={draft.photo}
+            onChange={(url) => set({ photo: url })}
+            shape="circle"
+            size={72}
+            hint="400 × 400 px"
+          />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="sm:col-span-2">
+            <Input
+              label="Page Name *"
+              value={draft.name}
+              onChange={(e) => {
+                const name = e.target.value;
+                setDraft((p) => ({
+                  ...p,
+                  name,
+                  initials: p.initials || name.split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase(),
+                  slug: p.slug ? p.slug : slugify(name),
+                }));
+              }}
+              placeholder="Hustle Empire"
             />
           </div>
-          <div className="flex-1 grid grid-cols-2 gap-3">
-            <div className="col-span-2">
-              <Input
-                label="Page Name *"
-                value={draft.name}
-                onChange={(e) => {
-                  const name = e.target.value;
-                  setDraft((p) => ({
-                    ...p,
-                    name,
-                    initials: p.initials || name.split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase(),
-                    slug: p.slug ? p.slug : slugify(name),
-                  }));
-                }}
-                placeholder="Hustle Empire"
-              />
-            </div>
-            <Input label="Handle" value={draft.handle} onChange={(e) => set({ handle: e.target.value })} placeholder="@hustleempire" />
-            <Input label="Followers (display)" value={draft.followers} onChange={(e) => set({ followers: e.target.value })} placeholder="3.4M" />
-          </div>
+          <Input label="Handle" value={draft.handle} onChange={(e) => set({ handle: e.target.value })} placeholder="@hustleempire" />
+          <Input label="Followers (display)" value={draft.followers} onChange={(e) => set({ followers: e.target.value })} placeholder="3.4M" />
         </div>
 
         <div>
@@ -446,7 +442,7 @@ function AddDistributionModal({
           {slugClash && <p className="text-[11px] text-amber-600 font-semibold mt-1.5">This slug is taken — it'll be auto-numbered when you add the page.</p>}
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-1.5 uppercase tracking-wider">Niche</label>
             <select

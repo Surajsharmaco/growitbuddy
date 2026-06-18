@@ -185,20 +185,20 @@ function InfluencerRow({
           {/* ─ Profile ─ */}
           <div>
             <SectionHead icon={<User size={13} />} label="Profile" />
-            <div className="flex gap-5 items-start">
-              <div className="shrink-0">
-                <ImagePickerField
-                  label="Photo"
-                  value={inf.photo}
-                  onChange={(url) => set({ photo: url })}
-                  shapeValue={inf.photoShape ?? "square"}
-                  onShapeChange={(s) => set({ photoShape: s })}
-                  size={80}
-                  requireCrop
-                  hint="Recommended: 400 × 400 px (square) • Face centered"
-                />
-              </div>
-              <div className="flex-1 grid grid-cols-2 gap-3">
+            <div className="rounded-xl border border-[#0B0B0B]/8 bg-[#fafafa] px-4 py-4 mb-4">
+              <ImagePickerField
+                label="Photo"
+                value={inf.photo}
+                onChange={(url) => set({ photo: url })}
+                shapeValue={inf.photoShape ?? "square"}
+                onShapeChange={(s) => set({ photoShape: s })}
+                size={72}
+                requireCrop
+                hint="Recommended: 400 × 400 px (square) • Face centered"
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="sm:col-span-2">
                 <Input
                   label="Full Name"
                   value={inf.name}
@@ -212,66 +212,62 @@ function InfluencerRow({
                   }}
                   placeholder="Aisha Rahman"
                 />
-                <Input
-                  label="Username / Handle"
-                  value={inf.username}
-                  onChange={(e) => set({ username: e.target.value })}
-                  placeholder="@aisharahman"
-                />
-                <div>
-                  <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-1.5 uppercase tracking-wider">Niche / Category</label>
-                  <select
-                    value={inf.niche}
-                    onChange={(e) => set({ niche: e.target.value })}
-                    className="w-full border border-[#0B0B0B]/12 rounded-xl px-3.5 py-2.5 text-[13px] text-[#0B0B0B] outline-none focus:border-[#0B0B0B]/40 bg-white"
-                  >
-                    {genres.map((n) => <option key={n} value={n}>{n}</option>)}
-                  </select>
-                </div>
-                <Input
-                  label="Followers"
-                  value={inf.followers}
-                  onChange={(e) => set({ followers: e.target.value })}
-                  placeholder="284K"
-                />
-                <Input
-                  label="Engagement Rate"
-                  value={inf.engagementRate}
-                  onChange={(e) => set({ engagementRate: e.target.value })}
-                  placeholder="4.8%"
-                />
-                <div className="flex gap-3">
-                  <div className="flex-1">
-                    <Input
-                      label="Initials"
-                      value={inf.initials}
-                      onChange={(e) => set({ initials: e.target.value.slice(0, 3).toUpperCase() })}
-                      placeholder="AR"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-1.5 uppercase tracking-wider">Accent</label>
-                    <div className="flex items-center gap-2 border border-[#0B0B0B]/12 rounded-xl px-3 py-2.5 bg-white">
-                      <input
-                        type="color"
-                        value={inf.accentColor}
-                        onChange={(e) => set({ accentColor: e.target.value })}
-                        className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0"
-                      />
-                      <span className="text-[12px] font-mono text-[#0B0B0B]/50">{inf.accentColor}</span>
-                    </div>
-                  </div>
+              </div>
+              <Input
+                label="Username / Handle"
+                value={inf.username}
+                onChange={(e) => set({ username: e.target.value })}
+                placeholder="@aisharahman"
+              />
+              <div>
+                <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-1.5 uppercase tracking-wider">Niche / Category</label>
+                <select
+                  value={inf.niche}
+                  onChange={(e) => set({ niche: e.target.value })}
+                  className="w-full border border-[#0B0B0B]/12 rounded-xl px-3.5 py-2.5 text-[13px] text-[#0B0B0B] outline-none focus:border-[#0B0B0B]/40 bg-white"
+                >
+                  {genres.map((n) => <option key={n} value={n}>{n}</option>)}
+                </select>
+              </div>
+              <Input
+                label="Followers"
+                value={inf.followers}
+                onChange={(e) => set({ followers: e.target.value })}
+                placeholder="284K"
+              />
+              <Input
+                label="Engagement Rate"
+                value={inf.engagementRate}
+                onChange={(e) => set({ engagementRate: e.target.value })}
+                placeholder="4.8%"
+              />
+              <Input
+                label="Initials"
+                value={inf.initials}
+                onChange={(e) => set({ initials: e.target.value.slice(0, 3).toUpperCase() })}
+                placeholder="AR"
+              />
+              <div>
+                <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-1.5 uppercase tracking-wider">Accent</label>
+                <div className="flex items-center gap-2 border border-[#0B0B0B]/12 rounded-xl px-3 py-2.5 bg-white">
+                  <input
+                    type="color"
+                    value={inf.accentColor}
+                    onChange={(e) => set({ accentColor: e.target.value })}
+                    className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0"
+                  />
+                  <span className="text-[12px] font-mono text-[#0B0B0B]/50">{inf.accentColor}</span>
                 </div>
               </div>
-            </div>
-            <div className="mt-3">
-              <Textarea
-                label="Short Description"
-                value={inf.description}
-                onChange={(e) => set({ description: e.target.value })}
-                placeholder="One-line bio shown on the influencer card..."
-                rows={2}
-              />
+              <div className="sm:col-span-2">
+                <Textarea
+                  label="Short Description"
+                  value={inf.description}
+                  onChange={(e) => set({ description: e.target.value })}
+                  placeholder="One-line bio shown on the influencer card..."
+                  rows={2}
+                />
+              </div>
             </div>
           </div>
 
@@ -377,65 +373,63 @@ function AddInfluencerModal({
         </>
       }
     >
-      <div className="space-y-4">
-        <div className="flex gap-4 items-start">
-          <div className="shrink-0">
-            <ImagePickerField
-              label="Photo"
-              value={draft.photo}
-              onChange={(url) => set({ photo: url })}
-              shapeValue={draft.photoShape ?? "square"}
-              onShapeChange={(s) => set({ photoShape: s })}
-              size={72}
-              requireCrop
-              hint="400 × 400 px"
+      <div className="space-y-5">
+        <div className="rounded-xl border border-[#0B0B0B]/8 bg-[#fafafa] px-4 py-4">
+          <ImagePickerField
+            label="Photo"
+            value={draft.photo}
+            onChange={(url) => set({ photo: url })}
+            shapeValue={draft.photoShape ?? "square"}
+            onShapeChange={(s) => set({ photoShape: s })}
+            size={72}
+            requireCrop
+            hint="400 × 400 px"
+          />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="sm:col-span-2">
+            <Input
+              label="Full Name *"
+              value={draft.name}
+              onChange={(e) => {
+                const name = e.target.value;
+                set({
+                  name,
+                  initials: name.split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase(),
+                  slug: slugify(name),
+                });
+              }}
+              placeholder="Aisha Rahman"
             />
           </div>
-          <div className="flex-1 grid grid-cols-2 gap-3">
-            <div className="col-span-2">
-              <Input
-                label="Full Name *"
-                value={draft.name}
-                onChange={(e) => {
-                  const name = e.target.value;
-                  set({
-                    name,
-                    initials: name.split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase(),
-                    slug: slugify(name),
-                  });
-                }}
-                placeholder="Aisha Rahman"
-              />
-            </div>
-            <Input
-              label="Username / Handle"
-              value={draft.username}
-              onChange={(e) => set({ username: e.target.value })}
-              placeholder="@aisharahman"
-            />
-            <div>
-              <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-1.5 uppercase tracking-wider">Niche / Category</label>
-              <select
-                value={draft.niche}
-                onChange={(e) => set({ niche: e.target.value })}
-                className="w-full border border-[#0B0B0B]/12 rounded-xl px-3.5 py-2.5 text-[13px] text-[#0B0B0B] outline-none focus:border-[#0B0B0B]/40 bg-white"
-              >
-                {genres.map((n) => <option key={n} value={n}>{n}</option>)}
-              </select>
-            </div>
-            <Input
-              label="Followers"
-              value={draft.followers}
-              onChange={(e) => set({ followers: e.target.value })}
-              placeholder="284K"
-            />
-            <Input
-              label="Engagement Rate"
-              value={draft.engagementRate}
-              onChange={(e) => set({ engagementRate: e.target.value })}
-              placeholder="4.8%"
-            />
+          <Input
+            label="Username / Handle"
+            value={draft.username}
+            onChange={(e) => set({ username: e.target.value })}
+            placeholder="@aisharahman"
+          />
+          <div>
+            <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-1.5 uppercase tracking-wider">Niche / Category</label>
+            <select
+              value={draft.niche}
+              onChange={(e) => set({ niche: e.target.value })}
+              className="w-full border border-[#0B0B0B]/12 rounded-xl px-3.5 py-2.5 text-[13px] text-[#0B0B0B] outline-none focus:border-[#0B0B0B]/40 bg-white"
+            >
+              {genres.map((n) => <option key={n} value={n}>{n}</option>)}
+            </select>
           </div>
+          <Input
+            label="Followers"
+            value={draft.followers}
+            onChange={(e) => set({ followers: e.target.value })}
+            placeholder="284K"
+          />
+          <Input
+            label="Engagement Rate"
+            value={draft.engagementRate}
+            onChange={(e) => set({ engagementRate: e.target.value })}
+            placeholder="4.8%"
+          />
         </div>
 
         <Textarea
