@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { m } from "framer-motion";
 import { API_BASE } from "@/lib/api";
-import { ArrowRight, Building2, Check, ChevronRight, Cloud, GraduationCap, Rocket, ShoppingBag, Sparkles, Star, X } from "lucide-react";
+import { ArrowRight, Bot, Box, Building2, Calendar, Check, ChevronRight, Cloud, GraduationCap, Rocket, ScanLine, Search, Send, ShoppingBag, Sparkles, Star, X } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Link } from "wouter";
 import { FadeUp } from "@/components/effects/TextReveal";
 import CountUp from "@/components/effects/CountUp";
@@ -11,6 +12,10 @@ import BlueprintLines from "@/components/effects/BlueprintLines";
 import DotGrid from "@/components/effects/DotGrid";
 import { HOME_DEFAULTS as DEFAULTS, type HomeData } from "@/lib/homeDefaults";
 import { getWashCardStyle, getWashBorder, CardGrain, WashIconChip } from "@/components/WashCard";
+
+// Icons for the "Everything you need" services grid, mapped by card order so the
+// content stays admin-editable (the services array carries no icon field).
+const SERVICE_ICONS: LucideIcon[] = [Search, Calendar, ScanLine, Send, Bot, Box];
 
 function GrainOverlay() {
   return (
@@ -371,6 +376,7 @@ export default function Home() {
 
           <div className="home-system-grid">
             {(hm.services || []).map((s, i) => {
+              const Icon = SERVICE_ICONS[i % SERVICE_ICONS.length];
               return (
                 <m.div
                   key={i}
@@ -379,28 +385,25 @@ export default function Home() {
                   viewport={{ once: true }}
                   transition={{ delay: (i % 3) * 0.09, duration: 0.5 }}
                   style={getWashCardStyle(i, {
-                    padding: "32px 28px",
+                    padding: "30px 28px 28px",
                     display: "flex",
                     flexDirection: "column",
                   })}
                 >
                   <CardGrain />
-                  <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                    <div style={{
-                      width: 34, height: 34, borderRadius: 10,
-                      background: "rgba(255,255,255,0.62)",
-                      border: `1px solid ${getWashBorder(i)}`,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 12, fontWeight: 800, letterSpacing: "0.03em",
-                      color: "#0F1822",
-                      flexShrink: 0,
-                    }}>
-                      {s.num}
-                    </div>
-                    <h3 style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.02em", color: "#0F1822", margin: 0 }}>{s.title}</h3>
+                  {/* Outline icon at the top of the card */}
+                  <div style={{ position: "relative", marginBottom: 26, color: "#14202E" }}>
+                    <Icon size={26} strokeWidth={1.6} aria-hidden="true" focusable="false" />
                   </div>
-                  <p style={{ position: "relative", fontSize: 14, color: "#374151", lineHeight: "1.7", flex: 1 }}>{s.desc}</p>
-                  <div style={{ position: "relative", marginTop: 24 }}>
+                  {/* Card number, then the title beneath it */}
+                  <div style={{ position: "relative", fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: "#9A9488", marginBottom: 10 }}>
+                    {s.num}
+                  </div>
+                  <h3 style={{ position: "relative", fontWeight: 800, fontSize: 19, letterSpacing: "-0.02em", color: "#0F1822", margin: 0, marginBottom: 12 }}>
+                    {s.title}
+                  </h3>
+                  <p style={{ position: "relative", fontSize: 14, color: "#4B5563", lineHeight: "1.7", flex: 1, margin: 0 }}>{s.desc}</p>
+                  <div style={{ position: "relative", marginTop: 26 }}>
                     <a
                       href={s.href}
                       style={{
@@ -409,16 +412,17 @@ export default function Home() {
                         gap: 6,
                         fontSize: 13,
                         fontWeight: 600,
-                        padding: "8px 16px",
-                        borderRadius: 6,
+                        padding: "9px 16px",
+                        borderRadius: 9,
                         textDecoration: "none",
-                        transition: "opacity 0.15s",
-                        background: "rgba(255,255,255,0.6)",
+                        transition: "box-shadow 0.15s ease, transform 0.15s ease",
+                        background: "#FFFFFF",
                         color: "#1E293B",
-                        border: `1px solid ${getWashBorder(i)}`,
+                        border: "1px solid rgba(15,24,34,0.10)",
+                        boxShadow: "0 4px 12px -6px rgba(30,41,59,0.22)",
                       }}
                     >
-                      Explore Service <span style={{ fontSize: 14 }}>→</span>
+                      Explore Service <span aria-hidden="true" style={{ fontSize: 14 }}>→</span>
                     </a>
                   </div>
                 </m.div>
