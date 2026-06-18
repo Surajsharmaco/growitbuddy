@@ -449,7 +449,7 @@ export default function Home() {
                     </a>
                   </div>
                   {/* Product image sits at the bottom */}
-                  <div style={{ flex: 1, minHeight: 210, width: "100%", overflow: "hidden", background: "#F1ECE3" }}>
+                  <div style={{ flex: 1, minHeight: 210, width: "100%", overflow: "hidden", background: "#DED5C6" }}>
                     <img
                       src={img}
                       alt={`${s.title} illustration`}
