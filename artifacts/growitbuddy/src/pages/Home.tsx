@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { m } from "framer-motion";
 import { API_BASE } from "@/lib/api";
-import { ArrowRight, Bot, Box, Building2, Calendar, Check, ChevronRight, Cloud, GraduationCap, Rocket, ScanLine, Search, Send, ShoppingBag, Sparkles, Star, X } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { ArrowRight, Building2, Check, ChevronRight, Cloud, GraduationCap, Rocket, ShoppingBag, Sparkles, Star, X } from "lucide-react";
 import { Link } from "wouter";
 import { FadeUp } from "@/components/effects/TextReveal";
 import CountUp from "@/components/effects/CountUp";
@@ -12,10 +11,6 @@ import { usePublicContent } from "@/hooks/usePublicContent";
 import DotGrid from "@/components/effects/DotGrid";
 import { HOME_DEFAULTS as DEFAULTS, type HomeData } from "@/lib/homeDefaults";
 import { getSolidCardStyle, getSolidText, solidIsDark, CardGrain, WashIconChip } from "@/components/WashCard";
-
-// Icons for the "Everything you need" services grid, mapped by card order so the
-// content stays admin-editable (the services array carries no icon field).
-const SERVICE_ICONS: LucideIcon[] = [Search, Calendar, ScanLine, Send, Bot, Box];
 
 // Home <title>/description come from the shared SEO registry (@workspace/seo) —
 // the SAME source the SSR renderer and admin Core Meta use. Keeping the client
@@ -27,9 +22,6 @@ const HOME_SEO = findEntryBySlug("home")?.defaults ?? {
   description:
     "Personal branding, content creation, and video editing for founders, creators, and building their online distribution, Authority & Inbound Leads",
 };
-
-// Services cards are intentionally monochrome line-art (Apple-style) — no per-card
-// colour. A faint oversized icon watermark gives each card an illustrative feel.
 
 function GrainOverlay() {
   return (
@@ -396,7 +388,6 @@ export default function Home() {
 
           <div className="home-system-grid">
             {(hm.services || []).map((s, i) => {
-              const Icon = SERVICE_ICONS[i % SERVICE_ICONS.length];
               return (
                 <m.div
                   key={i}
@@ -411,15 +402,11 @@ export default function Home() {
                     background: "linear-gradient(180deg, #FFFFFF 0%, #FAFAFB 100%)",
                     border: "1px solid rgba(15,23,42,0.05)",
                     boxShadow: "0 30px 60px -38px rgba(15,23,42,0.20), 0 8px 22px -16px rgba(15,23,42,0.05)",
-                    padding: "34px 30px 30px",
+                    padding: "30px 30px 30px",
                     display: "flex",
                     flexDirection: "column",
                   }}
                 >
-                  {/* Clean, soft line-art icon */}
-                  <div style={{ marginBottom: 24, color: "#2A2E35" }}>
-                    <Icon size={38} strokeWidth={1.5} aria-hidden="true" focusable="false" />
-                  </div>
                   {/* Card number, then the title beneath it */}
                   <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: "#A2A7AE", marginBottom: 10 }}>
                     {s.num}

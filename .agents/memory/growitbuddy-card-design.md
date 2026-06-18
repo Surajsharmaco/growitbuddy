@@ -93,6 +93,23 @@ owner complains about "lines/margins" on another page, Links is the likeliest
 culprit — remove it there next. Don't add new decorative hero effects without
 sign-off (8+ prior design rejections).
 
+## Home services-grid icons: REMOVED (Jun 2026)
+
+The Home "Everything you need" services grid cards used to render a per-card
+monochrome lucide line-art icon (mapped by card order via a `SERVICE_ICONS`
+array — Search/Calendar/ScanLine/Send/Bot/Box). The owner asked to REMOVE them
+("not looking good and taking too much space"). All icon plumbing was deleted
+(the `<Icon>` element + wrapper, the `SERVICE_ICONS` const, the `LucideIcon`
+type import, and the now-unused lucide icon imports). Cards now start directly
+with the number label → title → desc; card top padding trimmed 34px→30px.
+
+**Why:** durable taste signal — owner had ALSO rejected ~8 earlier image/3D icon
+variants as "गंदा"; the line-art set was a later compromise but is now also out.
+Service cards are icon-less by owner decision.
+**How to apply:** do NOT re-add any service-card icon (line-art, image, or 3D)
+without explicit sign-off. The ecosystem "Built for" cards (`card.icon` +
+`WashIconChip`) are a SEPARATE section and still keep their icons — leave those.
+
 ## "Too white / white & blue" → warmth direction (accepted fix)
 
 When the owner says the homepage looks "all white / white and blue / nothing
