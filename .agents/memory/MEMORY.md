@@ -11,3 +11,4 @@
 - [GrowitBuddy ghost data](growitbuddy-ghost-data.md) — empty admin lists must stay empty: test `Array.isArray` (not `.length`); never seed demo defaults into initial render; bootstrap-seed influencers + resolve loading on fetch failure.
 - [GrowitBuddy media URLs](growitbuddy-media-urls.md) — admin-uploaded media saved as relative `/api/media/...` 404s on split-origin prod (Vercel+Render); wrap EVERY public render with resolveMediaUrl (not video embeds).
 - [GrowitBuddy admin RBAC](growitbuddy-rbac.md) — backend authoritative; super = role 'super' OR perms 'all' in ALL 4 spots; page_visibility/variants/seo are `__super__`; /upload deliberately auth-only.
+- [GrowitBuddy staleness verdict](growitbuddy-staleness-verified.md) — admin edits reflect immediately (Playwright-verified); staleness = Render cold-start/deploy infra, not content code; cache-clear = honest no-ops by design.
