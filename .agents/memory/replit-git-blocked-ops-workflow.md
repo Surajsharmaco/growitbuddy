@@ -62,3 +62,16 @@ Two routes:
    no OAuth context); the inline helper + `core.askpass=` override bypasses it. The secret
    is present in the workflow env. **Never print the token.** Agent bash still blocks
    `git push` and even `rm .git/index.lock`, so this must run from the workflow.
+
+## Verifying a Vercel deploy after the push (also needs the workflow)
+The `code_execution` sandbox has NO access to secrets via `process.env` (`process.env` is
+undefined there), so any GITHUB_TOKEN-authed GitHub/Vercel API check must ALSO run from a
+console workflow (where the env is populated), same as the push. Useful confirmations:
+- `GET /repos/<owner>/<repo>/commits/<sha>/statuses` → context `Vercel` should reach `success`.
+- `GET /repos/<owner>/<repo>/deployments?sha=<sha>` → a `Production#<id>` deployment exists.
+- `GET /repos/<owner>/<repo>/deployments/<id>/statuses` → definitive `success` (the commit
+  /statuses list keeps the old `pending` row around, so it reads ambiguously — trust the
+  per-deployment status).
+- `GET https://growitbuddy.com/` → 200 + the `/assets/index-*.js` bundle hash.
+Cleanup gotcha: delete the temp `*.mjs`/`*.sh` helper AND `removeWorkflow` afterward, or a
+checkpoint git-adds them to main and they ride along on the next push.
