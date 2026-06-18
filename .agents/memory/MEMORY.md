@@ -2,6 +2,7 @@
 - [GrowitBuddy admin↔public field audit](growitbuddy-admin-audit.md) — grep each field key in the public page before removing admin sections; automated audits gave false positives.
 - [robots.txt per-agent override](robots-txt-per-agent-override.md) — named bot blocks ignore the wildcard block; repeat global Disallow rules in each.
 - [Admin-editable content pattern](admin-editable-content.md) — generic /content/:section (no whitelist); usePublicContent + AdminField + must PageGate public route for visibility to apply.
+- [GrowitBuddy SSR prebuilt render.js](growitbuddy-ssr-prebuilt.md) — api/render.js is a COMMITTED esbuild bundle; editing any ssr/* source does nothing in prod until build-fn.mjs regenerates it; user-deletable lists default to []. Optimize/cache-clear are honest no-ops (purge tokens + ANALYZE), NOT a Vercel CDN purge — "stale on refresh" = SSR demo-default resurrection, not server cache.
 - [GrowitBuddy ghost-data fix](growitbuddy-ghost-data.md) — admin list editors must fail closed on failed content reads & init arrays to [], never DEFAULT_*, or Save re-seeds deleted demo data.
 - [GrowitBuddy↔GitHub reconciled](growitbuddy-github-divergence.md) — RESOLVED; local main == origin/main; push now automatable via GITHUB_TOKEN secret + workflow.
 - [Run blocked git ops via workflow](replit-git-blocked-ops-workflow.md) — main-agent bash blocks ALL destructive git incl. `rm .git/index.lock`; run them in a console workflow; commit+push works there, push uses GITHUB_TOKEN inline credential helper.

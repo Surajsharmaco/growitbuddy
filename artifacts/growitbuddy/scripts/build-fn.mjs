@@ -16,7 +16,10 @@
 //   node scripts/build-fn.mjs
 //
 // api/render.js is committed and deployed AS-IS; Vercel never runs this script.
-// Re-run it only when ssr/render.ts changes.
+// Re-run it after ANY change to an SSR bundle input — not just ssr/render.ts but
+// also ssr/contentDefaults.ts and any module those files import (e.g. defaults).
+// If you edit an SSR source and forget to regenerate, the committed bundle goes
+// stale and Vercel serves the OLD SSR output (this caused demo data to resurrect).
 import { readFileSync, readdirSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import path from "node:path";

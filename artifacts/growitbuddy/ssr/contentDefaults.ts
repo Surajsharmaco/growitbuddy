@@ -29,8 +29,6 @@ import { PRIVACY_DEFAULTS } from "../src/lib/privacyDefaults";
 import { TERMS_DEFAULTS } from "../src/lib/termsDefaults";
 import { LINKS_DEFAULTS } from "../src/lib/linksDefaults";
 import { JOIN_NETWORK_DEFAULTS } from "../src/lib/joinNetworkDefaults";
-import { blogPosts } from "../src/data/blogPosts";
-import { distributionPages } from "../src/data/distributionPages";
 import {
   CREATORS_FORM_DEFAULTS,
   PAGE_OWNER_FORM_DEFAULTS,
@@ -46,10 +44,15 @@ export const CONTENT_DEFAULTS: Record<string, unknown> = {
   "authority-audit": AUTHORITY_AUDIT_DEFAULTS,
   "influencer-explore": INFLUENCER_EXPLORE_DEFAULTS,
   "distribution-network": DISTRIBUTION_NETWORK_DEFAULTS,
-  "distribution-pages": distributionPages,
+  // User-deletable list: NEVER fall back to demo data. When the DB has no rows
+  // (e.g. SSR can't reach the DB), an empty list is the correct answer — the
+  // client fills it from the live API. Demo defaults here resurrected deleted
+  // pages in the crawler body / first paint.
+  "distribution-pages": { items: [] },
   links: LINKS_DEFAULTS,
   joinnetwork: JOIN_NETWORK_DEFAULTS,
-  blog: blogPosts,
+  // User-deletable list: empty fallback (never demo posts), same reason as above.
+  blog: { posts: [] },
   fulltime: FULLTIME_DEFAULTS,
   internship: INTERNSHIP_DEFAULTS,
   freelancers: FREELANCERS_DEFAULTS,
