@@ -337,10 +337,14 @@ export default function Home() {
                   borderRadius: 16,
                   position: "relative",
                   overflow: "hidden",
+                  isolation: "isolate",
                   display: "flex",
                   flexDirection: "column",
                 }}
               >
+                {/* Film-grain texture — matches the solid cards & dark sections */}
+                <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: "var(--gb-grain)", backgroundSize: "150px 150px", backgroundRepeat: "repeat", opacity: 0.5, pointerEvents: "none", zIndex: -1 }} />
+
                 {/* Gold top accent bar */}
                 <div style={{ position: "absolute", top: 0, left: 32, right: 32, height: 2, background: "linear-gradient(90deg, #C2A878 0%, transparent 100%)", borderRadius: 1 }} />
 

@@ -43,6 +43,23 @@ a dark variant would need a palette prop threaded end-to-end — too risky for a
 visual-only pass. Light-solid still satisfies "no wash"; site-wide dark rhythm
 comes from Home/Services/About/TalentPool.
 
+## Texture (film grain) — light vs dark surfaces
+
+`var(--gb-grain)` (index.css) is a fractalNoise SVG with BOTH a white and a black
+noise layer. Apply it two different ways:
+- **Light cards:** `<CardGrain/>` component — `mixBlendMode: multiply`, opacity 0.45,
+  zIndex -1. Multiply only reads on light backgrounds.
+- **Dark cards/sections:** a plain absolute overlay div, `inset:0`,
+  `opacity ~0.5`, **NO** mixBlendMode (multiply would vanish on dark) — this lets
+  the WHITE noise layer show. Same pattern used by About dark cards, the dark
+  sections, and now the Home "Problem" cards.
+  Parent needs `position: relative` + `isolation: isolate` so the grain's
+  `zIndex:-1` paints above the card background yet below content.
+
+**Why:** owner explicitly wanted the grain texture on EVERY card incl. the dark
+"Problem" cards, matching the textured solid cards. CardGrain alone is invisible on
+dark, hence the no-multiply overlay variant.
+
 ## Leftovers (intentional, non-blocking)
 
 Old exports `getWash`/`getWashBorder`/`getWashCardStyle`/`WASH_CARD_*` remain in
