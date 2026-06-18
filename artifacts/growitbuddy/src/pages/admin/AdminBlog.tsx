@@ -823,7 +823,7 @@ function PostEditor({
     }
   }
 
-  function applyFix(field: string, value: string) {
+  function applyFixField(field: string, value: string) {
     if (field === "slug") {
       setField("slug", value);
     } else if (field === "focusKeyword") {
@@ -831,8 +831,21 @@ function PostEditor({
     } else {
       setSeoField(field as keyof PostSeo, value);
     }
+  }
+
+  function applyFix(field: string, value: string) {
+    applyFixField(field, value);
     showToast("Fix applied", "success");
     setExpandedFix(null);
+  }
+
+  // Apply many fixes at once but show a SINGLE summary toast — avoids the
+  // "toast storm" where one alert fired per fix when using "Fix All".
+  function applyAllFixes(fixes: { field: string; value: string }[]) {
+    if (fixes.length === 0) return;
+    fixes.forEach((f) => applyFixField(f.field, f.value));
+    setExpandedFix(null);
+    showToast(`Applied ${fixes.length} fix${fixes.length > 1 ? "es" : ""}.`, "success");
   }
 
   function showToast(msg: string, type: "success" | "error" | "info" = "success") {
@@ -985,7 +998,7 @@ function PostEditor({
 
   async function handleSave(mode: "draft" | "publish" = "draft") {
     const content = captureContent();
-    const slug = data.slug || data.title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "").slice(0, 80);
+    const slug = (data.slug || data.title).toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "").slice(0, 80);
     if (!slug) {
       showToast("Please add a title or URL slug before saving.", "error");
       return;
@@ -1002,8 +1015,9 @@ function PostEditor({
       } else {
         showToast("Draft saved.", "info");
       }
-    } catch {
-      showToast(mode === "publish" ? "Failed to publish. Please try again." : "Failed to save draft.", "error");
+    } catch (err) {
+      const fallback = mode === "publish" ? "Failed to publish. Please try again." : "Failed to save draft.";
+      showToast(err instanceof Error && err.message ? err.message : fallback, "error");
     } finally {
       setSaving(false);
     }
@@ -1933,7 +1947,7 @@ function PostEditor({
                       </span>
                       {fixable.length > 0 && (
                         <button
-                          onClick={() => { fixable.forEach(c => applyFix(c.fix!.applyField!, c.fix!.applyValue!)); }}
+                          onClick={() => applyAllFixes(fixable.map(c => ({ field: c.fix!.applyField!, value: c.fix!.applyValue! })))}
                           className="ml-auto text-[10px] font-bold bg-emerald-600 text-white px-2.5 py-1 rounded-lg hover:bg-emerald-700 transition-colors"
                         >
                           Fix All ({fixable.length})
@@ -1960,7 +1974,7 @@ function PostEditor({
                         {allGood ? "All Good" : errors > 0 ? `${errors} Error${errors > 1 ? "s" : ""}` : `${warns} Warning${warns > 1 ? "s" : ""}`}
                       </span>
                       {fixable.length > 0 && (
-                        <button onClick={() => fixable.forEach(c => applyFix(c.fix!.applyField!, c.fix!.applyValue!))}
+                        <button onClick={() => applyAllFixes(fixable.map(c => ({ field: c.fix!.applyField!, value: c.fix!.applyValue! })))}
                           className="ml-auto text-[10px] font-bold bg-emerald-600 text-white px-2.5 py-1 rounded-lg hover:bg-emerald-700 transition-colors">
                           Fix All ({fixable.length})
                         </button>
@@ -1986,7 +2000,7 @@ function PostEditor({
                         {allGood ? "All Good" : errors > 0 ? `${errors} Error${errors > 1 ? "s" : ""}` : `${warns} Warning${warns > 1 ? "s" : ""}`}
                       </span>
                       {fixable.length > 0 && (
-                        <button onClick={() => fixable.forEach(c => applyFix(c.fix!.applyField!, c.fix!.applyValue!))}
+                        <button onClick={() => applyAllFixes(fixable.map(c => ({ field: c.fix!.applyField!, value: c.fix!.applyValue! })))}
                           className="ml-auto text-[10px] font-bold bg-emerald-600 text-white px-2.5 py-1 rounded-lg hover:bg-emerald-700 transition-colors">
                           Fix All ({fixable.length})
                         </button>
@@ -2033,7 +2047,7 @@ function PostEditor({
                       </span>
                       <span className="text-[10px] text-[#0B0B0B]/35">{passed}/{checks.length} passed</span>
                       {fixable.length > 0 && (
-                        <button onClick={() => fixable.forEach(c => applyFix(c.fix!.applyField!, c.fix!.applyValue!))}
+                        <button onClick={() => applyAllFixes(fixable.map(c => ({ field: c.fix!.applyField!, value: c.fix!.applyValue! })))}
                           className="ml-auto text-[10px] font-bold bg-emerald-600 text-white px-2.5 py-1 rounded-lg hover:bg-emerald-700 transition-colors">
                           Fix All ({fixable.length})
                         </button>
@@ -2644,6 +2658,15 @@ export default function AdminBlog() {
   }
 
   async function handleSave(post: BlogPost) {
+    // Enforce unique slugs so two posts can never collide — a collision makes
+    // a post appear to "duplicate" or silently overwrite another on save.
+    const norm = (s?: string) => (s ?? "").trim().toLowerCase();
+    const slugTaken = posts.some(
+      (p) => norm(p.slug) === norm(post.slug) && norm(p.slug) !== norm(editing?.post.slug),
+    );
+    if (slugTaken) {
+      throw new Error("A post with this URL slug already exists. Please choose a unique slug.");
+    }
     let updated: BlogPost[];
     if (editing?.isNew) {
       updated = [...posts, post];
@@ -2656,19 +2679,27 @@ export default function AdminBlog() {
     }
   }
 
-  // Soft delete → move to Trash (reversible, so no confirm needed).
+  // Soft delete → move to Trash. Reversible, but we still confirm so a
+  // misclick on the trash icon can't make a post "disappear" unexpectedly.
   function handleDelete(_slug: string, idx: number) {
+    if (!confirm("Move this post to Trash? You can restore it anytime from the Trash tab.")) return;
     const now = new Date().toISOString();
-    persist(posts.map((p, i) => (i === idx ? { ...p, trashed: true, trashedAt: now } : p)));
+    persist(posts.map((p, i) => (i === idx ? { ...p, trashed: true, trashedAt: now } : p))).catch(
+      () => alert("Couldn't move the post to Trash. Please try again."),
+    );
   }
 
   function handleRestore(idx: number) {
-    persist(posts.map((p, i) => (i === idx ? { ...p, trashed: false, trashedAt: undefined } : p)));
+    persist(posts.map((p, i) => (i === idx ? { ...p, trashed: false, trashedAt: undefined } : p))).catch(
+      () => alert("Couldn't restore the post. Please try again."),
+    );
   }
 
   function handlePermanentDelete(_slug: string, idx: number) {
     if (!confirm("Delete this post permanently? This cannot be undone.")) return;
-    persist(posts.filter((_, i) => i !== idx));
+    persist(posts.filter((_, i) => i !== idx)).catch(
+      () => alert("Couldn't delete the post. Please try again."),
+    );
   }
 
   if (loadState !== "ready") {
