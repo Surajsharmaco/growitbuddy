@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, Calendar, Share2, Twitter, Linkedin, Link2, Chec
 import { defaultSeo, type BlogPost } from "@/data/blogPosts";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import { useWordPressPosts, fetchWpPostBySlug } from "@/hooks/useWordPressPosts";
+import { resolveMediaUrl } from "@/lib/api";
 import SEOMeta from "@/components/SEOMeta";
 
 const ARTICLE_CSS = `
@@ -422,7 +423,7 @@ function buildPostSchema(post: BlogPost): Record<string, unknown>[] {
   const modIsoDate = post.modifiedIsoDate ?? isoDate;
   const wordCount = countWords(post.content);
   const url = `${SITE}/blog/${post.slug}`;
-  const imageUrl = post.featuredImage || seo.ogImage || `${SITE}/opengraph.jpg`;
+  const imageUrl = resolveMediaUrl(post.featuredImage || seo.ogImage || "") || `${SITE}/opengraph.jpg`;
 
   const base: Record<string, unknown> = {
     "headline": seo.seoTitle || post.title,
@@ -597,7 +598,7 @@ export default function InsightDetail() {
       <SEOMeta
         title={`${post.seo?.seoTitle || post.title} | GrowitBuddy Insights`}
         description={post.seo?.metaDescription || post.excerpt}
-        ogImage={post.seo?.ogImage || post.featuredImage}
+        ogImage={resolveMediaUrl(post.seo?.ogImage || post.featuredImage || "") || undefined}
         ogType="article"
         canonical={post.seo?.canonicalUrl || undefined}
         robots={post.seo?.noIndex ? "noindex,nofollow" : "index,follow"}
@@ -661,7 +662,7 @@ export default function InsightDetail() {
               style={{ borderRadius: 20, overflow: "hidden", background: "#e8e8e6", boxShadow: "0 4px 40px rgba(11,11,11,0.10)" }}
             >
               <img
-                src={post.featuredImage}
+                src={resolveMediaUrl(post.featuredImage)}
                 alt={post.title}
                 width={1600}
                 height={900}
@@ -739,7 +740,7 @@ export default function InsightDetail() {
                     >
                       {p.featuredImage && (
                         <div style={{ height: 160, overflow: "hidden", flexShrink: 0 }}>
-                          <img src={p.featuredImage} alt={p.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                          <img src={resolveMediaUrl(p.featuredImage)} alt={p.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                         </div>
                       )}
                       <div style={{ padding: "22px 24px 24px", flex: 1, display: "flex", flexDirection: "column" }}>

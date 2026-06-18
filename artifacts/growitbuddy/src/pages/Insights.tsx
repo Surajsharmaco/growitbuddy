@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { type BlogPost } from "@/data/blogPosts";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import { useWordPressPosts } from "@/hooks/useWordPressPosts";
+import { resolveMediaUrl } from "@/lib/api";
 import SEOMeta from "@/components/SEOMeta";
 
 export default function Insights() {
@@ -128,7 +129,7 @@ export default function Insights() {
                       {post.featuredImage && (
                         <div style={{ aspectRatio: "16/10", overflow: "hidden", flexShrink: 0, background: "#e8e8e6" }}>
                           <img
-                            src={post.featuredImage}
+                            src={resolveMediaUrl(post.featuredImage)}
                             alt={post.title}
                             loading={i < 3 ? "eager" : "lazy"}
                             decoding="async"
