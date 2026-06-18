@@ -247,6 +247,39 @@ h1, h2, h3, h4 {
 .gb-btn:disabled::before { display: none; }
 .gb-btn:disabled:hover { transform: none; box-shadow: 0 2px 8px rgba(30,41,59,0.10); }
 
+/* ── GB Button: light — inverse pill for dark (navy) cards ── */
+.gb-btn-light {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #FFFFFF;
+  color: #16202E;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  padding: 14px 28px;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.18);
+  cursor: pointer;
+  overflow: hidden;
+  transition: background 0.25s ease, transform 0.25s cubic-bezier(0.22,1,0.36,1),
+              box-shadow 0.25s ease;
+  text-decoration: none;
+  box-shadow: 0 8px 22px -10px rgba(0,0,0,0.45);
+  white-space: nowrap;
+}
+.gb-btn-light:hover {
+  background: #F2ECDD;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -10px rgba(0,0,0,0.50);
+}
+.gb-btn-light:active { transform: translateY(0); transition-duration: 0.1s; }
+.gb-btn-light svg { transition: transform 0.3s cubic-bezier(0.22,1,0.36,1); flex-shrink: 0; }
+.gb-btn-light:hover svg { transform: translateX(4px); }
+
 /* ── GB Button: outline — matching pill ── */
 .gb-btn-outline {
   display: inline-flex;

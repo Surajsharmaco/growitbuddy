@@ -11,7 +11,7 @@ import { usePublicContent } from "@/hooks/usePublicContent";
 import BlueprintLines from "@/components/effects/BlueprintLines";
 import DotGrid from "@/components/effects/DotGrid";
 import { HOME_DEFAULTS as DEFAULTS, type HomeData } from "@/lib/homeDefaults";
-import { getWashCardStyle, getWashBorder, CardGrain, WashIconChip } from "@/components/WashCard";
+import { getSolidCardStyle, getSolidText, solidIsDark, CardGrain, WashIconChip } from "@/components/WashCard";
 
 // Icons for the "Everything you need" services grid, mapped by card order so the
 // content stays admin-editable (the services array carries no icon field).
@@ -453,24 +453,28 @@ export default function Home() {
             </h2>
           </FadeUp>
           <div className="home-proof-grid">
-            {(hm.proof || []).map((p, i) => (
+            {(hm.proof || []).map((p, i) => {
+              const dark = solidIsDark(i);
+              const P = getSolidText(dark);
+              return (
               <m.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08, duration: 0.5 }}
-                style={getWashCardStyle(i, { padding: "32px 28px" })}
+                style={getSolidCardStyle(dark, { padding: "32px 28px" })}
               >
-                <CardGrain />
-                <p style={{ position: "relative", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#5A6675", marginBottom: 20 }}>{p.category}</p>
-                <div style={{ position: "relative", fontSize: "clamp(36px, 4vw, 52px)", fontWeight: 800, letterSpacing: "-0.04em", color: "#0F1822", lineHeight: 1, marginBottom: 4 }}>
+                {!dark && <CardGrain />}
+                <p style={{ position: "relative", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: P.muted, marginBottom: 20 }}>{p.category}</p>
+                <div style={{ position: "relative", fontSize: "clamp(36px, 4vw, 52px)", fontWeight: 800, letterSpacing: "-0.04em", color: P.title, lineHeight: 1, marginBottom: 4 }}>
                   <CountUp value={p.metric} />
                 </div>
-                <p style={{ position: "relative", fontSize: 13, color: "#5A6675", marginBottom: 16 }}>{p.unit}</p>
-                <h3 style={{ position: "relative", fontSize: 16, fontWeight: 700, color: "#0F1822", lineHeight: 1.4 }}>{p.name}</h3>
+                <p style={{ position: "relative", fontSize: 13, color: P.muted, marginBottom: 16 }}>{p.unit}</p>
+                <h3 style={{ position: "relative", fontSize: 16, fontWeight: 700, color: P.title, lineHeight: 1.4 }}>{p.name}</h3>
               </m.div>
-            ))}
+              );
+            })}
           </div>
           <div style={{ marginTop: 40, textAlign: "center" }}>
             <Link href="/work">
@@ -493,27 +497,31 @@ export default function Home() {
             {[
               { tag: hm.ecosystemCreatorTag, title: hm.ecosystemCreatorTitle, desc: hm.ecosystemCreatorDesc, cta: hm.ecosystemCreatorCTA, href: "/creators", dark: false },
               { tag: hm.ecosystemFreelancerTag, title: hm.ecosystemFreelancerTitle, desc: hm.ecosystemFreelancerDesc, cta: hm.ecosystemFreelancerCTA, href: "/freelancers", dark: true },
-            ].map((card, i) => (
+            ].map((card, i) => {
+              const dark = card.dark;
+              const P = getSolidText(dark);
+              return (
               <m.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1, duration: 0.5 }}
-                style={getWashCardStyle(i, { padding: "40px 36px" })}
+                style={getSolidCardStyle(dark, { padding: "40px 36px" })}
               >
-                <CardGrain />
-                <p style={{ position: "relative", fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--gb-accent)", marginBottom: 20 }}>{card.tag}</p>
-                <h3 style={{ position: "relative", fontWeight: 800, fontSize: "clamp(22px, 3vw, 30px)", letterSpacing: "-0.03em", lineHeight: "1.15", color: "#0F1822", marginBottom: 16 }}>{card.title}</h3>
-                <p style={{ position: "relative", fontSize: 15, color: "#374151", lineHeight: "1.75", marginBottom: 32 }}>{card.desc}</p>
+                {!dark && <CardGrain />}
+                <p style={{ position: "relative", fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: P.accent, marginBottom: 20 }}>{card.tag}</p>
+                <h3 style={{ position: "relative", fontWeight: 800, fontSize: "clamp(22px, 3vw, 30px)", letterSpacing: "-0.03em", lineHeight: "1.15", color: P.title, marginBottom: 16 }}>{card.title}</h3>
+                <p style={{ position: "relative", fontSize: 15, color: P.body, lineHeight: "1.75", marginBottom: 32 }}>{card.desc}</p>
                 <Link href={card.href}>
-                  <span className="gb-btn">
+                  <span className={dark ? "gb-btn-light" : "gb-btn"}>
                     {card.cta}
                     <ArrowRight className="w-4 h-4" />
                   </span>
                 </Link>
               </m.div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -570,6 +578,8 @@ export default function Home() {
               },
             ].map((card, i) => {
               const Icon = card.icon;
+              const dark = solidIsDark(i);
+              const P = getSolidText(dark);
               return (
               <m.div
                 key={i}
@@ -577,7 +587,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.07, duration: 0.5 }}
-                style={getWashCardStyle(i, {
+                style={getSolidCardStyle(dark, {
                   padding: "26px 26px 28px",
                   minHeight: 320,
                   display: "flex",
@@ -585,15 +595,15 @@ export default function Home() {
                   gap: 0,
                 })}
               >
-                <CardGrain />
-                <WashIconChip index={i} icon={Icon} />
-                <h3 style={{ position: "relative", fontWeight: 800, fontSize: 23, letterSpacing: "-0.02em", color: "#0F1822", marginTop: "auto", marginBottom: 10 }}>
+                {!dark && <CardGrain />}
+                <WashIconChip index={i} icon={Icon} dark={dark} />
+                <h3 style={{ position: "relative", fontWeight: 800, fontSize: 23, letterSpacing: "-0.02em", color: P.title, marginTop: "auto", marginBottom: 10 }}>
                   {card.title}
                 </h3>
-                <p style={{ position: "relative", fontSize: 13.5, fontWeight: 700, color: "#283440", marginBottom: 10, letterSpacing: "0.01em" }}>
+                <p style={{ position: "relative", fontSize: 13.5, fontWeight: 700, color: P.strong, marginBottom: 10, letterSpacing: "0.01em" }}>
                   ↳ {card.problem}
                 </p>
-                <p style={{ position: "relative", fontSize: 14, fontWeight: 500, color: "#374151", lineHeight: "1.7" }}>
+                <p style={{ position: "relative", fontSize: 14, fontWeight: 500, color: P.body, lineHeight: "1.7" }}>
                   {card.outcome}
                 </p>
               </m.div>
@@ -612,29 +622,33 @@ export default function Home() {
             </h2>
           </FadeUp>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
-            {(hm.testimonials || []).map((t, i) => (
+            {(hm.testimonials || []).map((t, i) => {
+              const dark = solidIsDark(i);
+              const P = getSolidText(dark);
+              return (
               <m.div
                 key={i}
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08, duration: 0.5 }}
-                style={getWashCardStyle(i, { padding: "28px" })}
+                style={getSolidCardStyle(dark, { padding: "28px" })}
               >
-                <CardGrain />
+                {!dark && <CardGrain />}
                 <div style={{ position: "relative", display: "flex", gap: 2, marginBottom: 16 }}>
                   {[...Array(5)].map((_, j) => <Star key={j} className="w-4 h-4" style={{ color: "#C2A878", fill: "#C2A878" }} />)}
                 </div>
-                <p style={{ position: "relative", fontSize: 15, color: "#374151", lineHeight: "1.75", marginBottom: 24 }}>"{t.quote}"</p>
+                <p style={{ position: "relative", fontSize: 15, color: P.body, lineHeight: "1.75", marginBottom: 24 }}>"{t.quote}"</p>
                 <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.62)", border: `1px solid ${getWashBorder(i)}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#1E293B", flexShrink: 0 }}>{t.initials}</div>
+                  <div style={{ width: 40, height: 40, borderRadius: "50%", background: dark ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.62)", border: `1px solid ${dark ? "rgba(255,255,255,0.20)" : "rgba(20,32,46,0.12)"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: dark ? "#E8DCC0" : "#1E293B", flexShrink: 0 }}>{t.initials}</div>
                   <div>
-                    <p style={{ position: "relative", fontSize: 14, fontWeight: 700, color: "#0F1822" }}>{t.name}</p>
-                    <p style={{ position: "relative", fontSize: 12, color: "#5A6675" }}>{t.role}</p>
+                    <p style={{ position: "relative", fontSize: 14, fontWeight: 700, color: P.title }}>{t.name}</p>
+                    <p style={{ position: "relative", fontSize: 12, color: P.muted }}>{t.role}</p>
                   </div>
                 </div>
               </m.div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

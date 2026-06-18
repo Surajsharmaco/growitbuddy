@@ -1,3 +1,4 @@
+- [GrowitBuddy solid card system](growitbuddy-card-design.md) — wash cards replaced by getSolidCardStyle/getSolidText/solidIsDark (i%3===2 dark); CSS-class pages flip dark text via `is-dark` class+overrides; Resources light-only by design.
 - [GrowitBuddy SEO single source](growitbuddy-seo.md) — page list, sitemaps & JSON-LD all derive from `@workspace/seo`; blog canonical `/blog`; composite lib needs built `dist/` (TS6305 gotcha).
 - [GrowitBuddy admin↔public field audit](growitbuddy-admin-audit.md) — grep each field key in the public page before removing admin sections; automated audits gave false positives.
 - [GrowitBuddy admin form layout](growitbuddy-admin-form-layout.md) — photo in full-width box on top + fields in `grid grid-cols-1 sm:grid-cols-2 gap-4`; full-width rows use `sm:col-span-2` (not bare `col-span-2`).

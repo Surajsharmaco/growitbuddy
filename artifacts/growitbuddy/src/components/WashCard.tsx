@@ -60,6 +60,63 @@ export function getWashCardStyle(i: number, overrides: CSSProperties = {}): CSSP
   };
 }
 
+// ── Solid brand card system ───────────────────────────────────────────────
+// "kuch dark kuch normal": every card is a SOLID brand surface — warm ivory
+// (light) or deep navy (dark) — instead of a tinted wash. Use solidIsDark(i)
+// for an automatic rhythm (every 3rd card dark) or pass an explicit boolean.
+// getSolidText(dark) returns the matching text palette so dark cards flip to
+// light type. All colors are the brand navy/gold/cream — nothing off-brand.
+export const SOLID_LIGHT_BG = "#FCFAF6";
+export const SOLID_DARK_BG = "#16202E";
+
+export function solidIsDark(i: number): boolean {
+  return (((i % 3) + 3) % 3) === 2;
+}
+
+export function getSolidCardStyle(dark: boolean, overrides: CSSProperties = {}): CSSProperties {
+  return {
+    background: dark ? SOLID_DARK_BG : SOLID_LIGHT_BG,
+    border: `1px solid ${dark ? "rgba(255,255,255,0.08)" : "rgba(20,32,46,0.10)"}`,
+    borderRadius: 20,
+    boxShadow: dark
+      ? "0 22px 50px -32px rgba(8,14,24,0.70)"
+      : "0 14px 40px -30px rgba(30,41,59,0.18)",
+    position: "relative",
+    overflow: "hidden",
+    isolation: "isolate",
+    ...overrides,
+  };
+}
+
+export interface SolidTextPalette {
+  isDark: boolean;
+  title: string;
+  body: string;
+  strong: string;
+  muted: string;
+  accent: string;
+}
+
+export function getSolidText(dark: boolean): SolidTextPalette {
+  return dark
+    ? {
+        isDark: true,
+        title: "#FFFFFF",
+        body: "rgba(255,255,255,0.72)",
+        strong: "rgba(255,255,255,0.90)",
+        muted: "rgba(255,255,255,0.52)",
+        accent: "#D9C28E",
+      }
+    : {
+        isDark: false,
+        title: "#0F1822",
+        body: "#374151",
+        strong: "#283440",
+        muted: "#5A6675",
+        accent: "#1E293B",
+      };
+}
+
 // Rough film-grain overlay. Render anywhere inside a wash card built with
 // getWashCardStyle: its negative z-index keeps it above the wash background yet
 // behind every content node.
@@ -91,6 +148,7 @@ export function WashIconChip({
   size = 48,
   iconSize = 23,
   style,
+  dark = false,
 }: {
   index: number;
   icon?: LucideIcon;
@@ -98,7 +156,11 @@ export function WashIconChip({
   size?: number;
   iconSize?: number;
   style?: CSSProperties;
+  dark?: boolean;
 }) {
+  const chipBg = dark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.62)";
+  const chipBorder = dark ? "rgba(255,255,255,0.18)" : getWashBorder(index);
+  const contentColor = dark ? "#E8DCC0" : "#14202E";
   return (
     <div
       style={{
@@ -110,17 +172,17 @@ export function WashIconChip({
         alignItems: "center",
         justifyContent: "center",
         flexShrink: 0,
-        background: "rgba(255,255,255,0.62)",
-        border: `1px solid ${getWashBorder(index)}`,
-        boxShadow: "0 6px 16px -8px rgba(30,41,59,0.28)",
+        background: chipBg,
+        border: `1px solid ${chipBorder}`,
+        boxShadow: dark ? "0 6px 16px -8px rgba(0,0,0,0.45)" : "0 6px 16px -8px rgba(30,41,59,0.28)",
         backdropFilter: "blur(2px)",
         ...style,
       }}
     >
       {Icon ? (
-        <Icon size={iconSize} strokeWidth={1.75} color="#14202E" />
+        <Icon size={iconSize} strokeWidth={1.75} color={contentColor} />
       ) : (
-        <span style={{ fontWeight: 800, fontSize: 17, letterSpacing: "-0.02em", color: "#14202E" }}>{label}</span>
+        <span style={{ fontWeight: 800, fontSize: 17, letterSpacing: "-0.02em", color: contentColor }}>{label}</span>
       )}
     </div>
   );

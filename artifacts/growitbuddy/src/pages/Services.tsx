@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import BlueprintLines from "@/components/effects/BlueprintLines";
 import { ArrowRight, Check, BadgeCheck, Video, Rocket, LayoutTemplate, Cpu, ShoppingBag } from "lucide-react";
-import { getWashCardStyle, CardGrain, WashIconChip } from "@/components/WashCard";
+import { getSolidCardStyle, solidIsDark, CardGrain, WashIconChip } from "@/components/WashCard";
 import { Link } from "wouter";
 import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
@@ -417,6 +417,11 @@ export default function Services() {
           .svc-bento-pill { padding: 7px 13px; border-radius: 100px; font-size: 12px; font-weight: 500; background: rgba(10,10,10,0.035); color: #3A3A38; border: 1px solid rgba(10,10,10,0.09); }
           .svc-bento-cta { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; margin-top: auto; font-size: 13.5px; font-weight: 700; color: #1E293B; cursor: pointer; transition: gap 0.2s ease, opacity 0.2s ease; }
           .svc-bento-cta:hover { gap: 12px; opacity: 0.85; }
+          .svc-bento-card.is-dark .svc-bento-sub { color: #D9C28E; }
+          .svc-bento-card.is-dark .svc-bento-title { color: #FFFFFF; }
+          .svc-bento-card.is-dark .svc-bento-desc { color: rgba(255,255,255,0.72); }
+          .svc-bento-card.is-dark .svc-bento-pill { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.80); border-color: rgba(255,255,255,0.14); }
+          .svc-bento-card.is-dark .svc-bento-cta { color: #FFFFFF; }
           @media (max-width: 980px) {
             .svc-bento-grid { grid-template-columns: repeat(2, 1fr); }
           }
@@ -448,19 +453,20 @@ export default function Services() {
           <div className="svc-bento-grid">
             {services.map((s, i) => {
               const Icon = SVC_ICONS[i % SVC_ICONS.length];
+              const dark = solidIsDark(i);
               return (
                 <motion.div
                   key={s.id}
-                  className="svc-bento-card"
+                  className={`svc-bento-card${dark ? " is-dark" : ""}`}
                   initial={{ opacity: 0, y: 24 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.07, duration: 0.5 }}
                   id={`service-${s.id}`}
-                  style={{ scrollMarginTop: 80, ...getWashCardStyle(i, { borderRadius: 22 }) }}
+                  style={{ scrollMarginTop: 80, ...getSolidCardStyle(dark, { borderRadius: 22 }) }}
                 >
-                  <CardGrain />
-                  <WashIconChip index={i} icon={Icon} iconSize={26} size={50} style={{ marginBottom: 22 }} />
+                  {!dark && <CardGrain />}
+                  <WashIconChip index={i} icon={Icon} iconSize={26} size={50} dark={dark} style={{ marginBottom: 22 }} />
                   <div className="svc-bento-sub">{s.subtitle}</div>
                   <h3 className="svc-bento-title">{s.title}</h3>
                   <p className="svc-bento-desc">{s.description}</p>

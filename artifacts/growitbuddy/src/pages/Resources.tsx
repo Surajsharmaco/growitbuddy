@@ -7,7 +7,7 @@ import {
 import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import { API_BASE, resolveMediaUrl } from "@/lib/api";
-import { getWash, getWashBorder, CardGrain } from "@/components/WashCard";
+import { SOLID_LIGHT_BG, CardGrain } from "@/components/WashCard";
 import { RESOURCES_DEFAULTS as DEFAULTS, type ResourcesData, type ResourceItem, type ResourceType } from "@/lib/resourcesDefaults";
 
 const UNLOCK_KEY = "gb_resources_unlocked";
@@ -548,11 +548,11 @@ function FeaturedCard({ item, index, unlocked, onLockedClick }: { item: Resource
     <div
       style={{
         position: "relative",
-        background: getWash(index),
+        background: SOLID_LIGHT_BG,
         color: "#0F1822",
         borderRadius: 18,
         padding: "26px 26px 22px",
-        border: `1px solid ${getWashBorder(index)}`,
+        border: `1px solid rgba(20,32,46,0.10)`,
         height: "100%",
         display: "flex",
         flexDirection: "column",
@@ -569,7 +569,7 @@ function FeaturedCard({ item, index, unlocked, onLockedClick }: { item: Resource
           fontSize: 10, fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase",
           padding: "5px 12px", borderRadius: 100,
           background: "rgba(255,255,255,0.7)",
-          border: `1px solid ${getWashBorder(index)}`,
+          border: `1px solid rgba(20,32,46,0.10)`,
           color: "#0F1822",
         }}>
           {typeIcon(item.type)} {item.tag}
@@ -603,8 +603,8 @@ function ResourceCard({ item, index, unlocked, onLockedClick }: { item: Resource
     <div
       style={{
         position: "relative",
-        background: getWash(index),
-        border: `1px solid ${getWashBorder(index)}`,
+        background: SOLID_LIGHT_BG,
+        border: `1px solid rgba(20,32,46,0.10)`,
         borderRadius: 18,
         padding: 0,
         height: "100%",

@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Link } from "wouter";
 import SEOMeta from "@/components/SEOMeta";
-import { getWashCardStyle, CardGrain, WashIconChip } from "@/components/WashCard";
+import { getSolidCardStyle, getSolidText, solidIsDark, CardGrain, WashIconChip } from "@/components/WashCard";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import { resolveMediaUrl } from "@/lib/api";
 
@@ -330,21 +330,25 @@ export default function About() {
               <h2 style={{ fontWeight: 800, fontSize: "clamp(22px, 4vw, 52px)", letterSpacing: "-0.04em", lineHeight: 1.05, color: "#0A0A0A", maxWidth: "14ch" }}>How we operate.</h2>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 24 }}>
-              {(data.values || []).map((v, i) => (
+              {(data.values || []).map((v, i) => {
+                const dark = solidIsDark(i);
+                const P = getSolidText(dark);
+                return (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.08 }}
-                  style={getWashCardStyle(i, { padding: "32px 30px" })}
+                  style={getSolidCardStyle(dark, { padding: "32px 30px" })}
                 >
-                  <CardGrain />
-                  <WashIconChip index={i} label={String(i + 1).padStart(2, "0")} style={{ marginBottom: 22 }} />
-                  <h3 style={{ position: "relative", fontSize: 21, fontWeight: 800, letterSpacing: "-0.03em", color: "#0F1822", marginBottom: 10 }}>{v.title}</h3>
-                  <p style={{ position: "relative", fontSize: 14.5, color: "#374151", lineHeight: "1.7", fontWeight: 500 }}>{v.description}</p>
+                  {!dark && <CardGrain />}
+                  <WashIconChip index={i} label={String(i + 1).padStart(2, "0")} dark={dark} style={{ marginBottom: 22 }} />
+                  <h3 style={{ position: "relative", fontSize: 21, fontWeight: 800, letterSpacing: "-0.03em", color: P.title, marginBottom: 10 }}>{v.title}</h3>
+                  <p style={{ position: "relative", fontSize: 14.5, color: P.body, lineHeight: "1.7", fontWeight: 500 }}>{v.description}</p>
                 </motion.div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>

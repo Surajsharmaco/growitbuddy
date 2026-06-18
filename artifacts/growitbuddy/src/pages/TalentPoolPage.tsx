@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Play, CheckCircle, ArrowUpRight } from "lucide-react";
-import { getWashCardStyle, CardGrain } from "@/components/WashCard";
+import { getSolidCardStyle, getSolidText, solidIsDark, CardGrain } from "@/components/WashCard";
 import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import EcosystemOptIn from "@/components/EcosystemOptIn";
@@ -451,6 +451,10 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
         .tp-res-card:hover .tp-res-btn {
           background: var(--gb-accent); color: #fff; border-color: var(--gb-accent);
         }
+        .tp-step-card.is-dark .tp-step-num { color: #D9C28E; }
+        .tp-step-card.is-dark .tp-step-num::after { background: rgba(255,255,255,0.16); }
+        .tp-res-card.is-dark .tp-res-btn { background: rgba(255,255,255,0.08); color: #fff; border-color: rgba(255,255,255,0.20); }
+        .tp-res-card.is-dark:hover .tp-res-btn { background: var(--gb-accent); color: #fff; border-color: var(--gb-accent); }
 
         /* Form */
         .tp-form-wrapper {
@@ -556,18 +560,22 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
             </motion.div>
 
             <div className="tp-steps-grid">
-              {(d.steps || []).map((step, i) => (
-                <motion.div key={i} {...FI(0.1 + i * 0.08)} className="tp-step-card" style={getWashCardStyle(i, { borderRadius: 14 })}>
-                  <CardGrain />
+              {(d.steps || []).map((step, i) => {
+                const dark = solidIsDark(i);
+                const P = getSolidText(dark);
+                return (
+                <motion.div key={i} {...FI(0.1 + i * 0.08)} className={`tp-step-card${dark ? " is-dark" : ""}`} style={getSolidCardStyle(dark, { borderRadius: 14 })}>
+                  {!dark && <CardGrain />}
                   <div className="tp-step-num" style={{ position: "relative" }}>{step.number}</div>
-                  <h3 style={{ position: "relative", fontSize: 17, fontWeight: 800, color: "#0F1822", marginBottom: 10, letterSpacing: "-0.01em" }}>
+                  <h3 style={{ position: "relative", fontSize: 17, fontWeight: 800, color: P.title, marginBottom: 10, letterSpacing: "-0.01em" }}>
                     {step.title}
                   </h3>
-                  <p style={{ position: "relative", fontSize: 14, color: "#374151", lineHeight: 1.6 }}>
+                  <p style={{ position: "relative", fontSize: 14, color: P.body, lineHeight: 1.6 }}>
                     {step.desc}
                   </p>
                 </motion.div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
@@ -588,14 +596,16 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
                 const fallback = config.defaults.resources.find((dr) => dr.id === r.id);
                 const link = resolveMediaUrl(r.link || fallback?.link || "");
                 const btnLabel = r.btnLabel || fallback?.btnLabel || "Open";
+                const dark = solidIsDark(i);
+                const P = getSolidText(dark);
                 return (
-                  <motion.div key={r.id} {...FI(0.08 + i * 0.08)} className="tp-res-card" style={getWashCardStyle(i, { borderRadius: 14 })}>
-                    <CardGrain />
+                  <motion.div key={r.id} {...FI(0.08 + i * 0.08)} className={`tp-res-card${dark ? " is-dark" : ""}`} style={getSolidCardStyle(dark, { borderRadius: 14 })}>
+                    {!dark && <CardGrain />}
                     <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
-                      <h3 style={{ fontSize: 16, fontWeight: 800, color: "#0F1822", marginBottom: 6, letterSpacing: "-0.01em" }}>
+                      <h3 style={{ fontSize: 16, fontWeight: 800, color: P.title, marginBottom: 6, letterSpacing: "-0.01em" }}>
                         {r.title}
                       </h3>
-                      <p style={{ fontSize: 14, color: "#374151", lineHeight: 1.6 }}>
+                      <p style={{ fontSize: 14, color: P.body, lineHeight: 1.6 }}>
                         {r.desc}
                       </p>
                     </div>
@@ -604,7 +614,7 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
                         {btnLabel} <ArrowUpRight size={15} style={{ opacity: 0.6 }} />
                       </a>
                     ) : (
-                      <span style={{ position: "relative", padding: "7px 14px", background: "rgba(30,41,59,0.06)", color: "var(--gb-authority)", borderRadius: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                      <span style={{ position: "relative", padding: "7px 14px", background: dark ? "rgba(255,255,255,0.10)" : "rgba(30,41,59,0.06)", color: dark ? "#D9C28E" : "var(--gb-authority)", borderRadius: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}>
                         Soon
                       </span>
                     )}
