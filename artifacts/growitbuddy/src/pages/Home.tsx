@@ -390,35 +390,28 @@ export default function Home() {
                   style={{
                     position: "relative",
                     overflow: "hidden",
-                    borderRadius: 22,
-                    background: "#FFFFFF",
-                    border: "1px solid rgba(15,23,42,0.07)",
-                    boxShadow: "0 12px 32px -20px rgba(15,23,42,0.25)",
-                    padding: "32px 28px 28px",
+                    borderRadius: 24,
+                    background: "linear-gradient(180deg, #FFFFFF 0%, #FAFAFB 100%)",
+                    border: "1px solid rgba(15,23,42,0.05)",
+                    boxShadow: "0 30px 60px -38px rgba(15,23,42,0.20), 0 8px 22px -16px rgba(15,23,42,0.05)",
+                    padding: "34px 30px 30px",
                     display: "flex",
                     flexDirection: "column",
                   }}
                 >
-                  {/* Faint oversized line-art watermark for an illustrative, Apple-like feel */}
-                  <div
-                    aria-hidden="true"
-                    style={{ position: "absolute", right: -22, bottom: -24, color: "#0F172A", opacity: 0.05, pointerEvents: "none", zIndex: 0 }}
-                  >
-                    <Icon size={150} strokeWidth={1} />
-                  </div>
-                  {/* Clean monochrome line-art icon */}
-                  <div style={{ position: "relative", zIndex: 1, marginBottom: 26, color: "#1D1D1F" }}>
-                    <Icon size={40} strokeWidth={1.4} aria-hidden="true" focusable="false" />
+                  {/* Clean, soft line-art icon */}
+                  <div style={{ marginBottom: 24, color: "#2A2E35" }}>
+                    <Icon size={38} strokeWidth={1.5} aria-hidden="true" focusable="false" />
                   </div>
                   {/* Card number, then the title beneath it */}
-                  <div style={{ position: "relative", zIndex: 1, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: "#9AA0A6", marginBottom: 10 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: "#A2A7AE", marginBottom: 10 }}>
                     {s.num}
                   </div>
-                  <h3 style={{ position: "relative", zIndex: 1, fontWeight: 800, fontSize: 19, letterSpacing: "-0.02em", color: "#0A0A0A", margin: 0, marginBottom: 12 }}>
+                  <h3 style={{ fontWeight: 700, fontSize: 19, letterSpacing: "-0.02em", color: "#1A1C20", margin: 0, marginBottom: 12 }}>
                     {s.title}
                   </h3>
-                  <p style={{ position: "relative", zIndex: 1, fontSize: 14, color: "#5F636B", lineHeight: "1.7", flex: 1, margin: 0 }}>{s.desc}</p>
-                  <div style={{ position: "relative", zIndex: 1, marginTop: 24 }}>
+                  <p style={{ fontSize: 14, color: "#6A6F77", lineHeight: "1.75", flex: 1, margin: 0 }}>{s.desc}</p>
+                  <div style={{ marginTop: 22 }}>
                     <a
                       href={s.href}
                       style={{
@@ -428,7 +421,7 @@ export default function Home() {
                         fontSize: 14,
                         fontWeight: 600,
                         textDecoration: "none",
-                        color: "#1D1D1F",
+                        color: "#1A1C20",
                       }}
                     >
                       Explore Service <span aria-hidden="true" style={{ fontSize: 15 }}>→</span>
