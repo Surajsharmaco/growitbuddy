@@ -17,31 +17,19 @@ import { getWashCardStyle, getWashBorder, CardGrain, WashIconChip } from "@/comp
 // content stays admin-editable (the services array carries no icon field).
 const SERVICE_ICONS: LucideIcon[] = [Search, Calendar, ScanLine, Send, Bot, Box];
 
-// Per-card pastel washes for the home "Services" grid ONLY (blue / peach / blue /
-// green / lavender / peach), to match the requested reference. Kept local so the
-// shared WashCard gold+slate system used on other pages stays untouched.
-const HOME_SERVICE_WASHES: string[] = [
-  // 01 — cool blue
-  "radial-gradient(70% 60% at 22% 18%, rgba(120,150,196,0.16) 0%, rgba(120,150,196,0) 64%), radial-gradient(64% 58% at 82% 84%, rgba(138,166,206,0.12) 0%, rgba(138,166,206,0) 66%), linear-gradient(160deg, #FBFCFE 0%, #EDF2F8 100%)",
-  // 02 — warm peach
-  "radial-gradient(70% 60% at 22% 18%, rgba(232,176,128,0.18) 0%, rgba(232,176,128,0) 64%), radial-gradient(64% 58% at 84% 84%, rgba(236,168,120,0.13) 0%, rgba(236,168,120,0) 66%), linear-gradient(160deg, #FFFCF8 0%, #FBEEE0 100%)",
-  // 03 — cool blue (variation)
-  "radial-gradient(70% 60% at 20% 20%, rgba(110,142,190,0.15) 0%, rgba(110,142,190,0) 64%), radial-gradient(64% 58% at 82% 82%, rgba(132,160,202,0.12) 0%, rgba(132,160,202,0) 66%), linear-gradient(160deg, #FAFCFE 0%, #EBF1F8 100%)",
-  // 04 — soft green
-  "radial-gradient(70% 60% at 20% 80%, rgba(150,188,142,0.17) 0%, rgba(150,188,142,0) 64%), radial-gradient(64% 58% at 80% 22%, rgba(168,200,160,0.12) 0%, rgba(168,200,160,0) 66%), linear-gradient(160deg, #FBFEF9 0%, #EDF5EA 100%)",
-  // 05 — lavender
-  "radial-gradient(70% 60% at 22% 20%, rgba(168,156,206,0.16) 0%, rgba(168,156,206,0) 64%), radial-gradient(64% 58% at 82% 84%, rgba(182,172,214,0.12) 0%, rgba(182,172,214,0) 66%), linear-gradient(160deg, #FDFCFE 0%, #F1EEF8 100%)",
-  // 06 — warm peach (variation)
-  "radial-gradient(70% 60% at 22% 18%, rgba(236,172,124,0.17) 0%, rgba(236,172,124,0) 64%), radial-gradient(64% 58% at 84% 84%, rgba(240,176,128,0.12) 0%, rgba(240,176,128,0) 66%), linear-gradient(160deg, #FFFCF7 0%, #FBEFE1 100%)",
-];
-
-const HOME_SERVICE_BORDERS: string[] = [
-  "rgba(130,158,196,0.30)",
-  "rgba(230,176,130,0.32)",
-  "rgba(124,152,194,0.30)",
-  "rgba(156,190,146,0.30)",
-  "rgba(172,160,206,0.30)",
-  "rgba(234,176,128,0.32)",
+// Per-card Apple-style accent colours for the home "Services" grid ONLY. Cards are
+// clean white; colour appears only as a tasteful icon accent (the way Apple uses
+// colour), never as a full-card wash. Kept local so the shared WashCard system
+// used on other pages stays untouched.
+// `icon` = bright accent for the icon glyph; `link` = darker, WCAG-AA-safe shade of
+// the same hue for the "Explore Service" text link on white.
+const HOME_SERVICE_ACCENTS: { icon: string; chip: string; link: string }[] = [
+  { icon: "#0A84FF", chip: "rgba(10,132,255,0.10)", link: "#0066CC" }, // 01 blue
+  { icon: "#F5841F", chip: "rgba(245,132,31,0.12)", link: "#C2410C" }, // 02 orange
+  { icon: "#0FB5C9", chip: "rgba(15,181,201,0.12)", link: "#0B6B79" }, // 03 teal
+  { icon: "#2FA84F", chip: "rgba(47,168,79,0.12)", link: "#1B7A31" }, // 04 green
+  { icon: "#7B61FF", chip: "rgba(123,97,255,0.11)", link: "#5B43D6" }, // 05 purple
+  { icon: "#F43F77", chip: "rgba(244,63,119,0.10)", link: "#C81E5B" }, // 06 pink
 ];
 
 function GrainOverlay() {
@@ -404,6 +392,7 @@ export default function Home() {
           <div className="home-system-grid">
             {(hm.services || []).map((s, i) => {
               const Icon = SERVICE_ICONS[i % SERVICE_ICONS.length];
+              const accent = HOME_SERVICE_ACCENTS[i % HOME_SERVICE_ACCENTS.length];
               return (
                 <m.div
                   key={i}
@@ -411,47 +400,55 @@ export default function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: (i % 3) * 0.09, duration: 0.5 }}
-                  style={getWashCardStyle(i, {
+                  style={{
+                    position: "relative",
+                    overflow: "hidden",
+                    borderRadius: 22,
+                    background: "#FFFFFF",
+                    border: "1px solid rgba(15,23,42,0.07)",
+                    boxShadow: "0 12px 32px -20px rgba(15,23,42,0.25)",
                     padding: "30px 28px 28px",
                     display: "flex",
                     flexDirection: "column",
-                    background: HOME_SERVICE_WASHES[i % HOME_SERVICE_WASHES.length],
-                    border: `1px solid ${HOME_SERVICE_BORDERS[i % HOME_SERVICE_BORDERS.length]}`,
-                  })}
+                  }}
                 >
-                  <CardGrain />
-                  {/* Outline icon at the top of the card */}
-                  <div style={{ position: "relative", marginBottom: 26, color: "#14202E" }}>
-                    <Icon size={26} strokeWidth={1.6} aria-hidden="true" focusable="false" />
+                  {/* Soft tinted chip holding the accent-coloured icon (Apple-style accent) */}
+                  <div
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 14,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: accent.chip,
+                      marginBottom: 24,
+                    }}
+                  >
+                    <Icon size={24} strokeWidth={1.9} color={accent.icon} aria-hidden="true" focusable="false" />
                   </div>
                   {/* Card number, then the title beneath it */}
-                  <div style={{ position: "relative", fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: "#9A9488", marginBottom: 10 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: "#9AA0A6", marginBottom: 10 }}>
                     {s.num}
                   </div>
-                  <h3 style={{ position: "relative", fontWeight: 800, fontSize: 19, letterSpacing: "-0.02em", color: "#0F1822", margin: 0, marginBottom: 12 }}>
+                  <h3 style={{ fontWeight: 800, fontSize: 19, letterSpacing: "-0.02em", color: "#0A0A0A", margin: 0, marginBottom: 12 }}>
                     {s.title}
                   </h3>
-                  <p style={{ position: "relative", fontSize: 14, color: "#4B5563", lineHeight: "1.7", flex: 1, margin: 0 }}>{s.desc}</p>
-                  <div style={{ position: "relative", marginTop: 26 }}>
+                  <p style={{ fontSize: 14, color: "#5F636B", lineHeight: "1.7", flex: 1, margin: 0 }}>{s.desc}</p>
+                  <div style={{ marginTop: 24 }}>
                     <a
                       href={s.href}
                       style={{
                         display: "inline-flex",
                         alignItems: "center",
-                        gap: 6,
-                        fontSize: 13,
+                        gap: 5,
+                        fontSize: 14,
                         fontWeight: 600,
-                        padding: "9px 16px",
-                        borderRadius: 9,
                         textDecoration: "none",
-                        transition: "box-shadow 0.15s ease, transform 0.15s ease",
-                        background: "#FFFFFF",
-                        color: "#1E293B",
-                        border: "1px solid rgba(15,24,34,0.10)",
-                        boxShadow: "0 4px 12px -6px rgba(30,41,59,0.22)",
+                        color: accent.link,
                       }}
                     >
-                      Explore Service <span aria-hidden="true" style={{ fontSize: 14 }}>→</span>
+                      Explore Service <span aria-hidden="true" style={{ fontSize: 15 }}>→</span>
                     </a>
                   </div>
                 </m.div>
