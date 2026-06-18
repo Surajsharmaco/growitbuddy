@@ -2549,7 +2549,7 @@ function PostList({ posts, onEdit, onDelete, onRestore, onPermanentDelete, onAdd
           <thead>
             <tr className="border-b border-[#0B0B0B]/6 bg-[#fafafa]">
               <th className="text-left px-5 py-3 text-[10px] font-bold text-[#0B0B0B]/40 uppercase tracking-widest">Title</th>
-              <th className="text-left px-3 py-3 text-[10px] font-bold text-[#0B0B0B]/40 uppercase tracking-widest w-24">Status</th>
+              <th className="text-left px-3 py-3 text-[10px] font-bold text-[#0B0B0B]/40 uppercase tracking-widest w-28 whitespace-nowrap">Status</th>
               <th className="text-left px-3 py-3 text-[10px] font-bold text-[#0B0B0B]/40 uppercase tracking-widest w-24">SEO</th>
               <th className="text-left px-3 py-3 text-[10px] font-bold text-[#0B0B0B]/40 uppercase tracking-widest w-28">Category</th>
               <th className="text-left px-3 py-3 text-[10px] font-bold text-[#0B0B0B]/40 uppercase tracking-widest w-32">Date</th>
@@ -2583,11 +2583,11 @@ function PostList({ posts, onEdit, onDelete, onRestore, onPermanentDelete, onAdd
                     {(() => {
                       const s = post.status ?? "published";
                       return s === "published" ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 whitespace-nowrap">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />Published
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 whitespace-nowrap">
                           <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />Draft
                         </span>
                       );
