@@ -104,16 +104,19 @@ export function parseVideo(url: string): ParsedVideo {
   return { source: null, id: "" };
 }
 
-export function getEmbedUrl(url: string, opts: { autoplay?: boolean } = {}): string {
+export function getEmbedUrl(url: string, opts: { autoplay?: boolean; mute?: boolean } = {}): string {
   const { source, id } = parseVideo(url);
   if (!id) return "";
   const ap = opts.autoplay ? 1 : 0;
-  if (source === "youtube") return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&autoplay=${ap}&playsinline=1`;
-  if (source === "vimeo") return `https://player.vimeo.com/video/${id}?title=0&byline=0&portrait=0&autoplay=${ap}&playsinline=1`;
+  // Browsers block unmuted autoplay without a prior user gesture, so muted
+  // autoplay is the only way to reliably auto-start a video on page load.
+  const mute = opts.mute ? 1 : 0;
+  if (source === "youtube") return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&autoplay=${ap}&mute=${mute}&playsinline=1`;
+  if (source === "vimeo") return `https://player.vimeo.com/video/${id}?title=0&byline=0&portrait=0&autoplay=${ap}&muted=${mute}&playsinline=1`;
   // Google Drive ignores autoplay in its /preview URL, click-to-play still works inside the iframe.
   if (source === "drive") return `https://drive.google.com/file/d/${id}/preview?usp=sharing`;
   // Gumlet expects boolean strings: autoplay=true / autoplay=false (not 1/0).
-  if (source === "gumlet") return `https://play.gumlet.io/embed/${id}?background=false&autoplay=${opts.autoplay ? "true" : "false"}&loop=false&disable_player_controls=false`;
+  if (source === "gumlet") return `https://play.gumlet.io/embed/${id}?background=false&autoplay=${opts.autoplay ? "true" : "false"}&muted=${opts.mute ? "true" : "false"}&loop=false&disable_player_controls=false`;
   return "";
 }
 

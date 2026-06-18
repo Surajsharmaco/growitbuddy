@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Instagram, Youtube, Twitter, Linkedin, Facebook, Github,
@@ -14,7 +15,7 @@ import {
   type LinksSection, type SocialsSection, type VideoSection,
   type TextSection, type ImageSection, type SpacerSection,
 } from "@/lib/linksDefaults";
-import { getEmbedUrl, isShortVideo } from "@/lib/videoEmbed";
+import { getEmbedUrl, getHiResThumbnail, getThumbnail, isShortVideo } from "@/lib/videoEmbed";
 
 // ── Brand palette (strictly navy / soft gold / cream) ──────────────────
 const BG = "#F8F8F6";
@@ -369,64 +370,186 @@ function SocialRow({ section, accent }: { section: SocialsSection; accent: strin
 }
 
 // ── Video block ───────────────────────────────────────────────────────
+// A few seconds after the video scrolls into view it auto-plays on its own
+// (muted, because browsers block unmuted autoplay). Until then it shows the
+// video's thumbnail as a preview — just like an image. Tapping the play
+// button starts it immediately, with sound.
+const VIDEO_AUTOPLAY_DELAY_MS = 1800;
+
+function EmbedVideoPlayer({ url, title }: { url: string; title?: string }) {
+  const [playing, setPlaying] = useState(false);
+  const [muted, setMuted] = useState(true);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  const canEmbed = !!getEmbedUrl(url, { autoplay: true });
+  const embedSrc = getEmbedUrl(url, { autoplay: true, mute: muted });
+  const thumbUrl = getHiResThumbnail(url);
+  const vertical = isShortVideo(url);
+
+  useEffect(() => {
+    if (!canEmbed) return;
+    const el = wrapRef.current;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const startSoon = () => {
+      if (timer) return;
+      timer = setTimeout(() => setPlaying(true), VIDEO_AUTOPLAY_DELAY_MS);
+    };
+    const cancel = () => {
+      if (timer) { clearTimeout(timer); timer = undefined; }
+    };
+    if (!el || typeof IntersectionObserver === "undefined") {
+      startSoon();
+      return cancel;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) startSoon();
+          else cancel();
+        }
+      },
+      { threshold: 0.5 },
+    );
+    io.observe(el);
+    return () => { io.disconnect(); cancel(); };
+  }, [url, canEmbed]);
+
+  return (
+    <div
+      ref={wrapRef}
+      style={{
+        width: vertical ? "min(100%, 300px)" : "100%",
+        margin: vertical ? "0 auto" : undefined,
+        aspectRatio: vertical ? "9 / 16" : "16 / 9",
+        borderRadius: 16, overflow: "hidden", position: "relative",
+        border: `1px solid ${BORDER}`, background: "#000",
+        boxShadow: "0 8px 24px rgba(16,24,40,0.08)",
+      }}
+    >
+      {thumbUrl && (
+        <img
+          src={thumbUrl}
+          alt={title || "Video thumbnail"}
+          referrerPolicy="no-referrer"
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: playing ? 0 : 1, transition: "opacity 0.6s ease" }}
+          onError={(e) => {
+            const el = e.currentTarget as HTMLImageElement;
+            const fallback = getThumbnail(url);
+            if (el.src !== fallback && fallback) el.src = fallback;
+            else el.style.display = "none";
+          }}
+        />
+      )}
+
+      {!playing && (
+        <button
+          type="button"
+          aria-label="Play video"
+          onClick={() => { setMuted(false); setPlaying(true); }}
+          style={{
+            position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", border: "none", padding: 0, margin: 0,
+            background: thumbUrl ? "rgba(10,10,10,0.28)" : NAVY,
+            transition: "background 0.3s ease",
+          }}
+        >
+          <span
+            style={{
+              width: 64, height: 64, borderRadius: "50%", background: "rgba(255,255,255,0.95)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 12px 34px rgba(0,0,0,0.35)",
+            }}
+          >
+            <Play size={26} color={NAVY} fill={NAVY} style={{ marginLeft: 4 }} />
+          </span>
+        </button>
+      )}
+
+      {playing && embedSrc && (
+        <iframe
+          src={embedSrc}
+          title={title || "Video"}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0, display: "block", zIndex: 1, background: "#000" }}
+        />
+      )}
+    </div>
+  );
+}
+
+function RawVideoPlayer({ url }: { url: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const startSoon = () => {
+      if (timer) return;
+      timer = setTimeout(() => { el.muted = true; el.play().catch(() => {}); }, VIDEO_AUTOPLAY_DELAY_MS);
+    };
+    const cancel = () => {
+      if (timer) { clearTimeout(timer); timer = undefined; }
+    };
+    if (typeof IntersectionObserver === "undefined") {
+      startSoon();
+      return cancel;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) startSoon();
+          else { cancel(); el.pause(); }
+        }
+      },
+      { threshold: 0.5 },
+    );
+    io.observe(el);
+    return () => { io.disconnect(); cancel(); };
+  }, []);
+
+  return (
+    <video
+      ref={ref}
+      src={url}
+      controls
+      muted
+      playsInline
+      preload="metadata"
+      style={{ width: "100%", display: "block", borderRadius: 16, border: `1px solid ${BORDER}`, background: "#000" }}
+    />
+  );
+}
+
 function VideoBlock({ section, accent }: { section: VideoSection; accent: string }) {
   const url = (section.videoUrl || "").trim();
   if (!url) return null;
-  const border = `1px solid ${BORDER}`;
   const isRawFile = /\.(mp4|webm|ogg)(\?|#|$)/i.test(url);
+  const canEmbed = !isRawFile && !!getEmbedUrl(url, { autoplay: true });
 
-  let player: React.ReactNode = null;
+  let player: React.ReactNode;
   if (isRawFile) {
-    player = (
-      <video
-        src={url}
-        controls
-        playsInline
-        style={{ width: "100%", display: "block", borderRadius: 16, border, background: "#000" }}
-      />
-    );
+    player = <RawVideoPlayer url={url} />;
+  } else if (canEmbed) {
+    player = <EmbedVideoPlayer url={url} title={section.title} />;
   } else {
-    const embed = getEmbedUrl(url);
-    if (embed) {
-      const vertical = isShortVideo(url);
-      player = (
-        <div
-          style={{
-            width: vertical ? "min(100%, 300px)" : "100%",
-            margin: vertical ? "0 auto" : undefined,
-            aspectRatio: vertical ? "9 / 16" : "16 / 9",
-            borderRadius: 16, overflow: "hidden", border, background: "#000",
-            boxShadow: "0 8px 24px rgba(16,24,40,0.08)",
-          }}
-        >
-          <iframe
-            src={embed}
-            title={section.title || "Video"}
-            loading="lazy"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-            style={{ width: "100%", height: "100%", border: 0, display: "block" }}
-          />
-        </div>
-      );
-    } else {
-      // Unrecognized provider — degrade to a tappable link rather than failing.
-      const href = normalizeLinkUrl(url);
-      player = (
-        <a
-          href={href || undefined}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 10, width: "100%",
-            padding: "16px 18px", borderRadius: 16, border, background: CARD, color: NAVY,
-            fontSize: 14, fontWeight: 700, textDecoration: "none",
-          }}
-        >
-          <Play size={16} style={{ color: accent }} /> Watch video
-        </a>
-      );
-    }
+    // Unrecognized provider — degrade to a tappable link rather than failing.
+    const href = normalizeLinkUrl(url);
+    player = (
+      <a
+        href={href || undefined}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 10, width: "100%",
+          padding: "16px 18px", borderRadius: 16, border: `1px solid ${BORDER}`, background: CARD, color: NAVY,
+          fontSize: 14, fontWeight: 700, textDecoration: "none",
+        }}
+      >
+        <Play size={16} style={{ color: accent }} /> Watch video
+      </a>
+    );
   }
 
   return (
