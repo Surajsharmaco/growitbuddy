@@ -27,8 +27,8 @@ function InfluencerCard({ inf, i }: { inf: Influencer; i: number }) {
             background: "#FFFFFF",
             borderRadius: 20,
             overflow: "hidden",
-            boxShadow: "0 2px 12px rgba(11,11,11,0.05)",
-            border: "1px solid #E5E5E0",
+            boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
+            border: "1px solid rgba(20,32,46,0.14)",
             height: "100%",
           }}
         >

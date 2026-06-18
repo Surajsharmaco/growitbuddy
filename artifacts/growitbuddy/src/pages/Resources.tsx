@@ -225,7 +225,8 @@ export default function Resources() {
                 padding: "20px 22px",
                 borderRadius: 14,
                 background: "#FFFFFF",
-                border: "1px solid #E5E5E0",
+                border: "1px solid rgba(20,32,46,0.14)",
+                boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
                 maxWidth: 720,
               }}
             >
@@ -426,7 +427,7 @@ function EmailGateModal({ item, onClose, onSuccess }: { item: ResourceItem; onCl
         onClick={(e) => e.stopPropagation()}
         style={{
           background: "#FFFFFF", borderRadius: 18, padding: "30px 28px",
-          width: "100%", maxWidth: 420, border: "1.5px solid #E5E5E0",
+          width: "100%", maxWidth: 420, border: "1px solid rgba(20,32,46,0.14)",
           boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
         }}
       >
@@ -552,7 +553,8 @@ function FeaturedCard({ item, index, unlocked, onLockedClick }: { item: Resource
         color: "#0F1822",
         borderRadius: 18,
         padding: "26px 26px 22px",
-        border: `1px solid rgba(20,32,46,0.10)`,
+        border: `1px solid rgba(20,32,46,0.14)`,
+        boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
         height: "100%",
         display: "flex",
         flexDirection: "column",
@@ -560,7 +562,9 @@ function FeaturedCard({ item, index, unlocked, onLockedClick }: { item: Resource
         isolation: "isolate",
         transition: "transform 0.22s, box-shadow 0.22s",
       }}
-      className="hover:-translate-y-1 hover:shadow-lg"
+      className="hover:-translate-y-1"
+      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 26px 60px -24px rgba(20,32,46,0.28), 0 10px 24px -10px rgba(20,32,46,0.12)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)"; }}
     >
       <CardGrain />
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18, gap: 8 }}>
@@ -604,8 +608,9 @@ function ResourceCard({ item, index, unlocked, onLockedClick }: { item: Resource
       style={{
         position: "relative",
         background: SOLID_LIGHT_BG,
-        border: `1px solid rgba(20,32,46,0.10)`,
+        border: `1px solid rgba(20,32,46,0.14)`,
         borderRadius: 18,
+        boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
         padding: 0,
         height: "100%",
         display: "flex",
@@ -614,7 +619,9 @@ function ResourceCard({ item, index, unlocked, onLockedClick }: { item: Resource
         isolation: "isolate",
         transition: "transform 0.2s, box-shadow 0.2s, border-color 0.2s",
       }}
-      className="hover:-translate-y-1 hover:shadow-md"
+      className="hover:-translate-y-1"
+      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 26px 60px -24px rgba(20,32,46,0.28), 0 10px 24px -10px rgba(20,32,46,0.12)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)"; }}
     >
       <CardGrain />
       {item.badgeText && (

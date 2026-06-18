@@ -42,19 +42,19 @@ export default function JoinNetwork() {
         .jn-card-dark {
           background: #EFEFEA;
           border: 1px solid rgba(30,41,59,0.25);
-          box-shadow: 0 4px 32px rgba(0,0,0,0.06);
+          box-shadow: 0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08);
         }
         .jn-card-dark:hover {
-          box-shadow: 0 28px 72px rgba(30,41,59,0.12);
+          box-shadow: 0 26px 60px -24px rgba(20,32,46,0.28), 0 10px 24px -10px rgba(20,32,46,0.12);
           border-color: rgba(30,41,59,0.45);
         }
         .jn-card-light {
           background: #FFFFFF;
-          border: 1.5px solid #E5E5E0;
-          box-shadow: 0 2px 16px rgba(0,0,0,0.3);
+          border: 1px solid rgba(20,32,46,0.14);
+          box-shadow: 0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08);
         }
         .jn-card-light:hover {
-          box-shadow: 0 28px 72px rgba(0,0,0,0.06);
+          box-shadow: 0 26px 60px -24px rgba(20,32,46,0.28), 0 10px 24px -10px rgba(20,32,46,0.12);
           border-color: rgba(30,41,59,0.20);
         }
         .jn-card-dark .jn-num   { color: var(--gb-accent); }

@@ -26,6 +26,7 @@ function ResultCard({ cert }: { cert: CertResult }) {
         overflow: "hidden",
         border: isVerified ? "1.5px solid rgba(16,185,129,0.25)" : "1.5px solid rgba(248,113,113,0.25)",
         background: "#FFFFFF",
+        boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
       }}
     >
       <div
@@ -265,9 +266,9 @@ export default function Verify() {
                 gap: 0,
                 background: "#FFFFFF",
                 borderRadius: 14,
-                border: "1.5px solid #E5E5E0",
+                border: "1px solid rgba(20,32,46,0.14)",
                 overflow: "hidden",
-                boxShadow: "0 2px 12px rgba(11,11,11,0.06)",
+                boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
               }}
             >
               <input
@@ -345,7 +346,8 @@ export default function Verify() {
                   padding: "20px 24px",
                   borderRadius: 14,
                   background: "#FFFFFF",
-                  border: "1.5px solid #E5E5E0",
+                  border: "1px solid rgba(20,32,46,0.14)",
+                  boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
                 }}
               >
                 <AlertCircle size={20} style={{ color: "#7A7A85", flexShrink: 0 }} />
@@ -371,7 +373,8 @@ export default function Verify() {
                   padding: "20px 24px",
                   borderRadius: 14,
                   background: "#FFFFFF",
-                  border: "1.5px solid #E5E5E0",
+                  border: "1px solid rgba(20,32,46,0.14)",
+                  boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
                 }}
               >
                 <AlertCircle size={20} style={{ color: "rgba(248,113,113,0.8)", flexShrink: 0 }} />

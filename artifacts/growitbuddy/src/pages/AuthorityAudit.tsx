@@ -351,7 +351,7 @@ export default function AuthorityAudit() {
                 style={{ display: "flex", flexDirection: "column", gap: 16 }}
               >
                 {/* ── Option 1: Self-serve free audit (primary) ── */}
-                <div style={{ background: "#FFFFFF", border: "2px solid #EFEFEA", borderRadius: 24, padding: "36px 36px 32px", display: "flex", flexDirection: "column", gap: 28 }}>
+                <div style={{ background: "#FFFFFF", border: "1px solid rgba(20,32,46,0.14)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)", borderRadius: 24, padding: "36px 36px 32px", display: "flex", flexDirection: "column", gap: 28 }}>
                   {/* Header row */}
                   <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
                     <div>
@@ -394,7 +394,7 @@ export default function AuthorityAudit() {
                 </div>
 
                 {/* ── Option 2: Team audit (secondary) ── */}
-                <div style={{ background: "#EFEFEA", borderRadius: 24, padding: "32px 36px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+                <div style={{ background: "#EFEFEA", borderRadius: 24, padding: "32px 36px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24, border: "1px solid rgba(30,41,59,0.12)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)" }}>
                   <div style={{ flex: 1, minWidth: 240 }}>
                     <span style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#8A8A8A", marginBottom: 12 }}>Done with you</span>
                     <h2 style={{ fontWeight: 800, fontSize: "clamp(20px, 2.5vw, 28px)", letterSpacing: "-0.04em", color: "#0A0A0A", margin: "0 0 10px", lineHeight: 1.15 }}>
@@ -479,7 +479,7 @@ export default function AuthorityAudit() {
               <motion.div key="result" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ maxWidth: 860, margin: "0 auto" }}>
 
                 {/* ── Score card ── */}
-                <div style={{ background: "#EFEFEA", borderRadius: 24, padding: "40px 36px", marginBottom: 12, display: "flex", alignItems: "center", gap: 36, flexWrap: "wrap" }}>
+                <div style={{ background: "#EFEFEA", borderRadius: 24, padding: "40px 36px", marginBottom: 12, display: "flex", alignItems: "center", gap: 36, flexWrap: "wrap", border: "1px solid rgba(30,41,59,0.12)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)" }}>
                   {/* Circle */}
                   <div style={{ position: "relative", width: 120, height: 120, flexShrink: 0 }}>
                     <svg width="120" height="120" viewBox="0 0 120 120" style={{ transform: "rotate(-90deg)" }}>
@@ -523,13 +523,13 @@ export default function AuthorityAudit() {
                 </div>
 
                 {/* Narrative */}
-                <div style={{ background: "#FFFFFF", borderRadius: 20, padding: "28px 28px", marginBottom: 12, border: "1.5px solid #E5E5E0" }}>
+                <div style={{ background: "#FFFFFF", borderRadius: 20, padding: "28px 28px", marginBottom: 12, border: "1px solid rgba(20,32,46,0.14)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)" }}>
                   <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#7A7A85", marginBottom: 14 }}>What the data tells us</p>
                   <p style={{ fontSize: 16, lineHeight: "1.8", color: TEXT, margin: 0 }}>{report.narrative}</p>
                 </div>
 
                 {/* Priority */}
-                <div style={{ background: "#FFFFFF", borderRadius: 20, padding: "28px 28px", marginBottom: 28, border: "1.5px solid #E5E5E0" }}>
+                <div style={{ background: "#FFFFFF", borderRadius: 20, padding: "28px 28px", marginBottom: 28, border: "1px solid rgba(20,32,46,0.14)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)" }}>
                   <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#7A7A85", marginBottom: 14 }}>Your #1 Priority Action</p>
                   <p style={{ fontSize: 16, fontWeight: 600, color: TEXT, lineHeight: "1.72", margin: 0 }}>{report.priorityAction}</p>
                 </div>
@@ -540,7 +540,7 @@ export default function AuthorityAudit() {
                     {/* Blurred preview of locked content */}
                     <div style={{ pointerEvents: "none", userSelect: "none", filter: "blur(5px)", opacity: 0.45 }}>
                       {/* Fake blocker preview */}
-                      <div style={{ background: "#FFFFFF", borderRadius: 20, padding: "28px 28px", marginBottom: 10, border: "1.5px solid #E5E5E0" }}>
+                      <div style={{ background: "#FFFFFF", borderRadius: 20, padding: "28px 28px", marginBottom: 10, border: "1px solid rgba(20,32,46,0.14)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)" }}>
                         <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#7A7A85", marginBottom: 20 }}>What's holding you back</p>
                         {report.blockers.slice(0, 2).map((b, i) => (
                           <div key={i} style={{ display: "flex", gap: 16, alignItems: "flex-start", marginBottom: 16 }}>
@@ -552,7 +552,7 @@ export default function AuthorityAudit() {
                           </div>
                         ))}
                       </div>
-                      <div style={{ background: "#FFFFFF", borderRadius: 20, padding: "28px 28px", border: "1.5px solid #E5E5E0" }}>
+                      <div style={{ background: "#FFFFFF", borderRadius: 20, padding: "28px 28px", border: "1px solid rgba(20,32,46,0.14)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)" }}>
                         <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#7A7A85", marginBottom: 20 }}>What to do about it</p>
                         {report.fixes.slice(0, 2).map((_, i) => (
                           <div key={i} style={{ display: "flex", gap: 16, alignItems: "flex-start", marginBottom: 16 }}>
@@ -616,7 +616,7 @@ export default function AuthorityAudit() {
                 ) : (
                   <motion.div key="unlocked" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
                     {/* Blockers */}
-                    <div style={{ background: "#FFFFFF", borderRadius: 20, padding: "28px 28px", marginBottom: 12, border: "1.5px solid #E5E5E0" }}>
+                    <div style={{ background: "#FFFFFF", borderRadius: 20, padding: "28px 28px", marginBottom: 12, border: "1px solid rgba(20,32,46,0.14)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)" }}>
                       <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#7A7A85", marginBottom: 20 }}>What's holding you back</p>
                       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                         {report.blockers.map((b, i) => (
@@ -634,7 +634,7 @@ export default function AuthorityAudit() {
                     </div>
 
                     {/* Fixes */}
-                    <div style={{ background: "#FFFFFF", borderRadius: 20, padding: "28px 28px", marginBottom: 12, border: "1.5px solid #E5E5E0" }}>
+                    <div style={{ background: "#FFFFFF", borderRadius: 20, padding: "28px 28px", marginBottom: 12, border: "1px solid rgba(20,32,46,0.14)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)" }}>
                       <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#7A7A85", marginBottom: 20 }}>What to do about it</p>
                       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                         {report.fixes.map((f, i) => (
@@ -652,7 +652,7 @@ export default function AuthorityAudit() {
                     </div>
 
                     {/* Outcomes */}
-                    <div style={{ background: "#FFFFFF", borderRadius: 20, padding: "28px 28px", marginBottom: 12, border: "1.5px solid #E5E5E0" }}>
+                    <div style={{ background: "#FFFFFF", borderRadius: 20, padding: "28px 28px", marginBottom: 12, border: "1px solid rgba(20,32,46,0.14)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)" }}>
                       <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#7A7A85", marginBottom: 20 }}>What you unlock when you fix this</p>
                       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                         {report.outcomes.map((o, i) => (
@@ -667,7 +667,7 @@ export default function AuthorityAudit() {
                     </div>
 
                     {/* CTA */}
-                    <div style={{ background: "#EFEFEA", borderRadius: 20, padding: "36px 28px", marginBottom: 12 }}>
+                    <div style={{ background: "#EFEFEA", borderRadius: 20, padding: "36px 28px", marginBottom: 12, border: "1px solid rgba(30,41,59,0.12)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)" }}>
                       <h3 style={{ fontWeight: 800, fontSize: "clamp(20px, 3.5vw, 28px)", letterSpacing: "-0.03em", color: "#0A0A0A", marginBottom: 10 }}>
                         Ready to build the system that fixes this?
                       </h3>

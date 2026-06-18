@@ -24,7 +24,7 @@ const TEXT = "#0A0A0A";
 const MUTED = "#5F5F5F";
 const FAINT = "#8A8A8A";
 const CARD = "#FFFFFF";
-const BORDER = "#E5E5E0";
+const BORDER = "rgba(20,32,46,0.14)";
 
 const SOCIAL_ICONS: Record<string, LucideIcon> = {
   instagram: Instagram,
@@ -116,26 +116,16 @@ function LinkButton({ link, accent }: { link: LinkItem; accent: string }) {
       style={{
         position: "relative", display: "flex", alignItems: "center", gap: 14, width: "100%",
         textDecoration: "none", borderRadius: 16, padding: "14px 16px", cursor: "pointer",
-        background: link.featured
-          ? `linear-gradient(135deg, ${hexToRgba(accent, 0.18)}, ${hexToRgba(accent, 0.06)})`
-          : CARD,
-        border: `1px solid ${link.featured ? hexToRgba(accent, 0.55) : BORDER}`,
-        boxShadow: link.featured
-          ? `0 10px 30px ${hexToRgba(accent, 0.2)}`
-          : "0 1px 2px rgba(16,24,40,0.04), 0 6px 16px rgba(16,24,40,0.05)",
-        transition: "background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease",
+        background: CARD,
+        border: `1px solid ${BORDER}`,
+        boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
+        transition: "box-shadow 0.2s ease",
       }}
       onMouseEnter={(e) => {
-        if (link.featured) return;
-        const t = e.currentTarget;
-        t.style.background = "#FFFDF8";
-        t.style.borderColor = hexToRgba(accent, 0.45);
+        e.currentTarget.style.boxShadow = "0 26px 60px -24px rgba(20,32,46,0.28), 0 10px 24px -10px rgba(20,32,46,0.12)";
       }}
       onMouseLeave={(e) => {
-        if (link.featured) return;
-        const t = e.currentTarget;
-        t.style.background = CARD;
-        t.style.borderColor = BORDER;
+        e.currentTarget.style.boxShadow = "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)";
       }}
     >
       {link.thumbnailUrl ? (
@@ -189,15 +179,13 @@ function LinkCard({ link, accent }: { link: LinkItem; accent: string }) {
       style={{
         display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center",
         gap: 10, padding: "18px 14px", textDecoration: "none", borderRadius: 16, cursor: "pointer",
-        background: link.featured
-          ? `linear-gradient(135deg, ${hexToRgba(accent, 0.18)}, ${hexToRgba(accent, 0.06)})`
-          : CARD,
-        border: `1px solid ${link.featured ? hexToRgba(accent, 0.55) : BORDER}`,
-        boxShadow: link.featured
-          ? `0 10px 30px ${hexToRgba(accent, 0.2)}`
-          : "0 1px 2px rgba(16,24,40,0.04), 0 6px 16px rgba(16,24,40,0.05)",
-        transition: "border-color 0.2s ease",
+        background: CARD,
+        border: `1px solid ${BORDER}`,
+        boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
+        transition: "box-shadow 0.2s ease",
       }}
+      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 26px 60px -24px rgba(20,32,46,0.28), 0 10px 24px -10px rgba(20,32,46,0.12)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)"; }}
     >
       {link.thumbnailUrl ? (
         <img src={resolveMediaUrl(link.thumbnailUrl)} alt="" style={{ width: 52, height: 52, borderRadius: 14, objectFit: "cover", border: `1px solid ${BORDER}` }} />
@@ -235,15 +223,13 @@ function LinkLarge({ link, accent }: { link: LinkItem; accent: string }) {
       style={{
         display: "block", width: "100%", textDecoration: "none", borderRadius: 18,
         overflow: "hidden", cursor: "pointer",
-        background: link.featured
-          ? `linear-gradient(135deg, ${hexToRgba(accent, 0.18)}, ${hexToRgba(accent, 0.06)})`
-          : CARD,
-        border: `1px solid ${link.featured ? hexToRgba(accent, 0.55) : BORDER}`,
-        boxShadow: link.featured
-          ? `0 12px 34px ${hexToRgba(accent, 0.22)}`
-          : "0 1px 2px rgba(16,24,40,0.04), 0 8px 22px rgba(16,24,40,0.06)",
-        transition: "box-shadow 0.2s ease, border-color 0.2s ease",
+        background: CARD,
+        border: `1px solid ${BORDER}`,
+        boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
+        transition: "box-shadow 0.2s ease",
       }}
+      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 26px 60px -24px rgba(20,32,46,0.28), 0 10px 24px -10px rgba(20,32,46,0.12)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)"; }}
     >
       {link.thumbnailUrl ? (
         <img
@@ -293,12 +279,12 @@ function LinkImageOnly({ link, accent }: { link: LinkItem; accent: string }) {
       style={{
         display: "block", width: "100%", textDecoration: "none", borderRadius: 18, overflow: "hidden",
         cursor: "pointer",
-        border: `1px solid ${link.featured ? hexToRgba(accent, 0.55) : BORDER}`,
-        boxShadow: link.featured
-          ? `0 12px 34px ${hexToRgba(accent, 0.22)}`
-          : "0 1px 2px rgba(16,24,40,0.04), 0 8px 22px rgba(16,24,40,0.06)",
-        transition: "box-shadow 0.2s ease, border-color 0.2s ease",
+        border: `1px solid ${BORDER}`,
+        boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
+        transition: "box-shadow 0.2s ease",
       }}
+      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 26px 60px -24px rgba(20,32,46,0.28), 0 10px 24px -10px rgba(20,32,46,0.12)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)"; }}
     >
       {link.thumbnailUrl ? (
         <img

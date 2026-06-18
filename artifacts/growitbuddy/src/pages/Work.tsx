@@ -133,11 +133,11 @@ export default function Work() {
                     backgroundImage: dark ? "var(--gb-grain)" : undefined,
                     backgroundSize: dark ? "150px 150px" : undefined,
                     backgroundRepeat: dark ? "repeat" : undefined,
-                    border: dark ? "none" : "1.5px solid #E5E5E0",
+                    border: dark ? "none" : "1px solid rgba(20,32,46,0.14)",
                     display: "flex",
                     flexDirection: "column",
                     overflow: "hidden",
-                    boxShadow: dark ? "0 20px 60px rgba(30,41,59,0.22), 0 4px 16px rgba(30,41,59,0.1)" : "0 2px 12px rgba(0,0,0,0.04)",
+                    boxShadow: dark ? "0 20px 60px rgba(30,41,59,0.22), 0 4px 16px rgba(30,41,59,0.1)" : "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
                   }}
                 >
                   {/* Gold accent bar */}
@@ -223,7 +223,8 @@ export default function Work() {
                     justifyContent: "center",
                     minHeight: 80,
                     transition: "background 0.2s",
-                    border: "1px solid #EEEEEA",
+                    border: "1px solid rgba(20,32,46,0.14)",
+                    boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
                   }}
                 >
                   {isReal && l ? (
@@ -285,8 +286,9 @@ export default function Work() {
                 style={{
                   padding: "32px 28px",
                   borderRadius: 14,
-                  background: "#F8F8F6",
-                  border: "1.5px solid #E5E5E0",
+                  background: "#FFFFFF",
+                  border: "1px solid rgba(20,32,46,0.14)",
+                  boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
                   position: "relative",
                 }}
               >

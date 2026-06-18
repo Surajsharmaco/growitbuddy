@@ -161,7 +161,7 @@ export default function Freelancers() {
               ))}
             </ul>
 
-            <div style={{ background: "#EFEFEA", borderRadius: 16, padding: "28px 32px" }}>
+            <div style={{ background: "#EFEFEA", border: "1px solid rgba(30,41,59,0.12)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)", borderRadius: 16, padding: "28px 32px" }}>
               <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#8A8A8A", marginBottom: 14 }}>{fl.notForEveryoneTitle}</p>
               {fl.notForEveryone.map((item, i) => (
                 <p key={i} style={{ fontSize: 14, color: "#5F5F5F", lineHeight: "1.7", marginBottom: 8 }}>{item}</p>
@@ -180,8 +180,9 @@ export default function Freelancers() {
               <>
                 <div
                   style={{
-                    background: "#F8F8F6",
-                    border: "1.5px solid #E5E5E0",
+                    background: "#FFFFFF",
+                    border: "1px solid rgba(20,32,46,0.14)",
+                    boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
                     borderRadius: 20,
                     padding: "48px 36px",
                     textAlign: "center",
@@ -196,7 +197,7 @@ export default function Freelancers() {
                 <EcosystemOptIn context="freelancer" prefillEmail={submittedEmail} />
               </>
             ) : (
-              <div style={{ background: "#F8F8F6", border: "1.5px solid #E5E5E0", borderRadius: 20, padding: "40px 32px" }}>
+              <div style={{ background: "#FFFFFF", border: "1px solid rgba(20,32,46,0.14)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)", borderRadius: 20, padding: "40px 32px" }}>
                 <h3 style={{ fontWeight: 800, fontSize: 24, letterSpacing: "-0.03em", color: "#0A0A0A", marginBottom: 8 }}>{fl.formHeadline}</h3>
                 <p style={{ fontSize: 14, color: "#5F5F5F", marginBottom: 28 }}>{fl.formSubtext}</p>
 

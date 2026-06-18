@@ -106,16 +106,18 @@ function VideoTile({ item, featured = false }: { item: PortfolioItem; featured?:
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       style={{
-        background: "#fff",
-        border: "1px solid #D8D6CE",
+        background: "#FFFFFF",
+        border: "1px solid rgba(20,32,46,0.14)",
         borderRadius: 18,
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
-        boxShadow: "0 1px 2px rgba(10,10,10,0.04), 0 8px 24px -8px rgba(10,10,10,0.10)",
+        boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
         transition: "transform 0.25s, box-shadow 0.25s, border-color 0.25s",
       }}
-      className="hover:-translate-y-1 hover:shadow-2xl hover:border-[#C2A878]"
+      className="hover:-translate-y-1"
+      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 26px 60px -24px rgba(20,32,46,0.28), 0 10px 24px -10px rgba(20,32,46,0.12)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)"; }}
     >
       <div style={{ position: "relative", aspectRatio: "16/9", background: "#0A0A0A" }}>
         {playing && embedUrl ? (
@@ -227,11 +229,13 @@ function ReelTile({ item }: { item: PortfolioItem }) {
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
-        border: "1px solid #D8D6CE",
-        boxShadow: "0 1px 2px rgba(10,10,10,0.05), 0 10px 28px -10px rgba(10,10,10,0.18)",
+        border: "1px solid rgba(20,32,46,0.14)",
+        boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
         transition: "transform 0.25s, box-shadow 0.25s, border-color 0.25s",
       }}
-      className="hover:-translate-y-1 hover:shadow-2xl hover:border-[#C2A878]"
+      className="hover:-translate-y-1"
+      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 26px 60px -24px rgba(20,32,46,0.28), 0 10px 24px -10px rgba(20,32,46,0.12)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)"; }}
     >
       <div style={{ position: "relative", aspectRatio: "9/16", background: "#0A0A0A" }}>
         {playing && embedUrl ? (
@@ -383,11 +387,14 @@ function CaseStudyTile({ item, featured = false, sharePrefix = "/portfolio" }: {
           borderRadius: 18,
           overflow: "hidden",
           background: BRAND_ACCENT,
-          border: "1.5px solid #E5E5E0",
+          border: "1px solid rgba(20,32,46,0.14)",
+          boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
           transition: "transform 0.3s, box-shadow 0.3s, border-color 0.3s",
           textDecoration: "none",
         }}
-        className="hover:-translate-y-1 hover:shadow-2xl hover:border-[#C2A878]"
+        className="hover:-translate-y-1"
+        onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 26px 60px -24px rgba(20,32,46,0.28), 0 10px 24px -10px rgba(20,32,46,0.12)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)"; }}
       >
         <img
           src={img}
@@ -503,9 +510,9 @@ const SERVICE_PALETTES: ServiceCardPalette[] = [
   },
   // 1 — Cream + dark slate text
   {
-    bg: "linear-gradient(160deg, #FFFFFF 0%, #F8F8F6 100%)",
-    border: "1.5px solid #E5E5E0",
-    shadow: "0 8px 28px rgba(30,41,59,0.08)",
+    bg: "#FFFFFF",
+    border: "1px solid rgba(20,32,46,0.14)",
+    shadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
     text: "#0A0A0A",
     mutedText: "#5F5F5F",
     eyebrow: "#C2A878",
@@ -521,8 +528,8 @@ const SERVICE_PALETTES: ServiceCardPalette[] = [
   // 2 — Off-cream with stronger gold corner
   {
     bg: "linear-gradient(160deg, #EFEFEA 0%, #F8F8F6 100%)",
-    border: "1.5px solid rgba(194,168,120,0.35)",
-    shadow: "0 8px 28px rgba(30,41,59,0.10)",
+    border: "1px solid rgba(30,41,59,0.12)",
+    shadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
     text: "#0A0A0A",
     mutedText: "#5F5F5F",
     eyebrow: "#1E293B",
@@ -547,6 +554,7 @@ function ServiceCard({
   const [, setLocation] = useLocation();
   const href = `${sharePrefix}/${meta.slug}`;
   const p = SERVICE_PALETTES[index % SERVICE_PALETTES.length];
+  const isDarkCard = index % SERVICE_PALETTES.length === 0;
 
   const go = (e: React.MouseEvent) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return; // allow new-tab
@@ -607,7 +615,9 @@ function ServiceCard({
         transition: "box-shadow 0.3s, border-color 0.3s",
         textDecoration: "none",
       }}
-      className={`service-card group hover:shadow-2xl ${gridSpanClass}`}
+      className={`service-card group ${gridSpanClass}`}
+      onMouseEnter={isDarkCard ? undefined : (e) => { e.currentTarget.style.boxShadow = "0 26px 60px -24px rgba(20,32,46,0.28), 0 10px 24px -10px rgba(20,32,46,0.12)"; }}
+      onMouseLeave={isDarkCard ? undefined : (e) => { e.currentTarget.style.boxShadow = p.shadow; }}
     >
       {/* Subtle dotted-grid pattern */}
       <div

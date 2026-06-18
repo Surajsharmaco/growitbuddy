@@ -174,7 +174,7 @@ export default function Internship() {
               ))}
             </ul>
 
-            <div style={{ background: "#FFFFFF", borderRadius: 14, padding: "22px 26px", border: "1px solid #E5E5E0" }}>
+            <div style={{ background: "#FFFFFF", borderRadius: 14, padding: "22px 26px", border: "1px solid rgba(20,32,46,0.14)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)" }}>
               <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#C2A878", marginBottom: 12 }}>
                 Ideal For
               </p>
@@ -201,7 +201,7 @@ export default function Internship() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.97 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  style={{ borderRadius: 16, background: "#FFFFFF", border: "1px solid #E5E5E0", padding: "48px 36px", textAlign: "center" }}
+                  style={{ borderRadius: 16, background: "#FFFFFF", border: "1px solid rgba(20,32,46,0.14)", padding: "48px 36px", textAlign: "center", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)" }}
                 >
                   <div style={{ width: 52, height: 52, borderRadius: "50%", background: "rgba(139,58,26,0.08)", border: "1.5px solid rgba(139,58,26,0.2)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
                     <Check size={22} color="var(--gb-accent)" />
@@ -214,7 +214,7 @@ export default function Internship() {
                 <EcosystemOptIn context="internship" prefillEmail={submittedEmail} />
               </>
             ) : (
-              <div style={{ background: "#FFFFFF", border: "1px solid #E5E5E0", borderRadius: 16, padding: "36px 32px" }}>
+              <div style={{ background: "#FFFFFF", border: "1px solid rgba(20,32,46,0.14)", borderRadius: 16, padding: "36px 32px", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)" }}>
                 <h3 style={{ fontWeight: 800, fontSize: 20, letterSpacing: "-0.02em", color: "#0A0A0A", marginBottom: 6 }}>Apply for Internship</h3>
                 <p style={{ fontSize: 13, color: "#8A8A8A", marginBottom: 28, lineHeight: 1.6 }}>
                   We read every application. If you're a fit, we'll be in touch.

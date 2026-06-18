@@ -114,8 +114,9 @@ export default function Insights() {
                   <Link href={`/blog/${post.slug}`}>
                     <div
                       style={{
-                        background: featured ? "#1E293B" : "#F8F8F6",
-                        border: featured ? "none" : "1.5px solid #E5E5E0",
+                        background: featured ? "#1E293B" : "#FFFFFF",
+                        border: featured ? "none" : "1px solid rgba(20,32,46,0.14)",
+                        boxShadow: featured ? "none" : "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
                         borderRadius: 20,
                         overflow: "hidden",
                         cursor: "pointer",
@@ -124,7 +125,9 @@ export default function Insights() {
                         display: "flex",
                         flexDirection: "column",
                       }}
-                      className="hover:-translate-y-1 hover:shadow-lg"
+                      className="hover:-translate-y-1"
+                      onMouseEnter={featured ? undefined : (e) => { e.currentTarget.style.boxShadow = "0 26px 60px -24px rgba(20,32,46,0.28), 0 10px 24px -10px rgba(20,32,46,0.12)"; }}
+                      onMouseLeave={featured ? undefined : (e) => { e.currentTarget.style.boxShadow = "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)"; }}
                     >
                       {post.featuredImage && (
                         <div style={{ aspectRatio: "16/10", overflow: "hidden", flexShrink: 0, background: "#e8e8e6" }}>

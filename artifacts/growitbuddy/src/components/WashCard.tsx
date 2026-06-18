@@ -67,7 +67,7 @@ export function getWashCardStyle(i: number, overrides: CSSProperties = {}): CSSP
 // getSolidText(dark) returns the matching text palette so dark cards flip to
 // light type. BOTH light and dark cards carry the same film-grain texture via
 // <CardGrain dark={dark}/> — the premium "Problem-card" tactile look.
-export const SOLID_LIGHT_BG = "#FCFAF6";
+export const SOLID_LIGHT_BG = "#FFFFFF";
 export const SOLID_DARK_BG = "#16202E";
 
 export function solidIsDark(i: number): boolean {
@@ -76,12 +76,16 @@ export function solidIsDark(i: number): boolean {
 
 export function getSolidCardStyle(dark: boolean, overrides: CSSProperties = {}): CSSProperties {
   return {
+    // Light cards used to be cream (#FCFAF6) on cream page backgrounds with a
+    // near-invisible shadow, so they blended in. Lift every light solid card off
+    // the page: bright white surface + firmer neutral border + a real soft
+    // elevation shadow. No hue introduced (owner rejects tints).
     background: dark ? SOLID_DARK_BG : SOLID_LIGHT_BG,
-    border: `1px solid ${dark ? "rgba(255,255,255,0.08)" : "rgba(20,32,46,0.10)"}`,
+    border: `1px solid ${dark ? "rgba(255,255,255,0.08)" : "rgba(20,32,46,0.14)"}`,
     borderRadius: 20,
     boxShadow: dark
       ? "0 22px 50px -32px rgba(8,14,24,0.70)"
-      : "0 14px 40px -30px rgba(30,41,59,0.18)",
+      : "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
     position: "relative",
     overflow: "hidden",
     isolation: "isolate",

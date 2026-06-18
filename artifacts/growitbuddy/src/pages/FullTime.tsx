@@ -146,7 +146,7 @@ export default function FullTime() {
               ))}
             </ul>
 
-            <div style={{ background: "#EFEFEA", borderRadius: 16, padding: "28px 32px" }}>
+            <div style={{ background: "#EFEFEA", border: "1px solid rgba(30,41,59,0.12)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)", borderRadius: 16, padding: "28px 32px" }}>
               <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#8A8A8A", marginBottom: 14 }}>{ft.rolesLabel}</p>
               {ft.roles.map((role, i) => (
                 <p key={i} style={{ fontSize: 14, color: "#5F5F5F", lineHeight: "1.7", marginBottom: 8 }}>{role}</p>
@@ -163,7 +163,7 @@ export default function FullTime() {
           >
             {submitted ? (
               <>
-                <div style={{ background: "#F8F8F6", border: "1.5px solid #E5E5E0", borderRadius: 20, padding: "48px 36px", textAlign: "center" }}>
+                <div style={{ background: "#FFFFFF", border: "1px solid rgba(20,32,46,0.14)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)", borderRadius: 20, padding: "48px 36px", textAlign: "center" }}>
                   <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#EFEFEA", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 28 }}>✓</div>
                   <h3 style={{ fontWeight: 800, fontSize: 26, letterSpacing: "-0.03em", color: "#0A0A0A", marginBottom: 12 }}>{ft.formSuccessHeadline}</h3>
                   <p style={{ fontSize: 15, color: "#5F5F5F", lineHeight: "1.75" }}>
@@ -173,7 +173,7 @@ export default function FullTime() {
                 <EcosystemOptIn context="full-time" prefillEmail={submittedEmail} />
               </>
             ) : (
-              <div style={{ background: "#F8F8F6", border: "1.5px solid #E5E5E0", borderRadius: 20, padding: "40px 32px" }}>
+              <div style={{ background: "#FFFFFF", border: "1px solid rgba(20,32,46,0.14)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)", borderRadius: 20, padding: "40px 32px" }}>
                 <h3 style={{ fontWeight: 800, fontSize: 24, letterSpacing: "-0.03em", color: "#0A0A0A", marginBottom: 8 }}>{ft.formHeadline}</h3>
                 <p style={{ fontSize: 14, color: "#5F5F5F", marginBottom: 28 }}>{ft.formSubtext}</p>
 

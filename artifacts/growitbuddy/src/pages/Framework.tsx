@@ -126,13 +126,13 @@ export default function Framework() {
                     alignItems: "center",
                     justifyContent: "space-between",
                     gap: 16,
-                    background: "linear-gradient(180deg, #FFFFFF 0%, #F6F6F3 100%)",
-                    border: "1px solid rgba(15,24,34,0.08)",
+                    background: "#FFFFFF",
+                    border: "1px solid rgba(20,32,46,0.14)",
                     borderRadius: 16,
                     position: "relative",
                     overflow: "hidden",
                     isolation: "isolate",
-                    boxShadow: "0 10px 28px -20px rgba(30,41,59,0.22)",
+                    boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
                     textDecoration: "none",
                   }}
                 >
@@ -246,12 +246,12 @@ export default function Framework() {
             style={{
               position: "relative",
               background: "#EFEFEA",
-              border: "1px solid rgba(30,41,59,0.10)",
+              border: "1px solid rgba(30,41,59,0.12)",
               borderRadius: 24,
               padding: "clamp(40px, 6vw, 72px) clamp(24px, 5vw, 56px)",
               textAlign: "center",
               overflow: "hidden",
-              boxShadow: "0 1px 0 rgba(255,255,255,0.6) inset, 0 24px 60px -32px rgba(30,41,59,0.25)",
+              boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
             }}
           >
             {/* gold accent strip */}

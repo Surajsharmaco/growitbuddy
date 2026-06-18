@@ -332,7 +332,7 @@ export default function Services() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
             className="svc-hero-card"
-            style={{ background: "#FFFFFF", borderRadius: 16, padding: "28px 28px 20px", border: "1px solid #E5E5E0", boxShadow: "0 2px 16px rgba(10,10,10,0.04)" }}
+            style={{ background: "#FFFFFF", borderRadius: 16, padding: "28px 28px 20px", border: "1px solid rgba(20,32,46,0.14)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)" }}
           >
             {/* Card header */}
             <div className="svc-hero-badge" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22, paddingBottom: 16, borderBottom: "1px solid #E5E5E0" }}>

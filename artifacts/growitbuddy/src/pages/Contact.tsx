@@ -231,7 +231,7 @@ export default function Contact() {
               initial={{ opacity: 0, y: 14 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              style={{ background: "#FFFFFF", border: "1.5px solid #E5E5E0", borderRadius: 16, padding: "36px 32px" }}
+              style={{ background: "#FFFFFF", border: "1px solid rgba(20,32,46,0.14)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)", borderRadius: 16, padding: "36px 32px" }}
             >
               <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "#8A8A8A", marginBottom: 20 }}>Who this is for</p>
               {[
@@ -301,7 +301,7 @@ export default function Contact() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08 }}
-                style={{ background: "#FFFFFF", padding: "32px 28px" }}
+                style={{ background: "#FFFFFF", border: "1px solid rgba(20,32,46,0.14)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)", padding: "32px 28px" }}
               >
                 <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--gb-accent)", marginBottom: 16 }}>{s.step}</p>
                 <h3 style={{ fontWeight: 700, fontSize: 16, letterSpacing: "-0.02em", color: "#0A0A0A", marginBottom: 10 }}>{s.label}</h3>
@@ -412,7 +412,8 @@ export default function Contact() {
                 <div
                   style={{
                     background: "#FFFFFF",
-                    border: "1.5px solid #E5E5E0",
+                    border: "1px solid rgba(20,32,46,0.14)",
+                    boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
                     borderRadius: 20,
                     padding: "60px 40px",
                     textAlign: "center",
@@ -427,7 +428,7 @@ export default function Contact() {
                 <EcosystemOptIn context="contact" prefillEmail={submittedEmail} />
               </>
             ) : (
-              <div style={{ background: "#FFFFFF", border: "1.5px solid #E5E5E0", borderRadius: 20, padding: "40px 36px" }}>
+              <div style={{ background: "#FFFFFF", border: "1px solid rgba(20,32,46,0.14)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)", borderRadius: 20, padding: "40px 36px" }}>
                 <h3 style={{ fontWeight: 800, fontSize: 22, letterSpacing: "-0.03em", color: "#0A0A0A", marginBottom: 8 }}>{cms.formHeadline}</h3>
                 <p style={{ fontSize: 14, color: "#5F5F5F", marginBottom: 28 }}>{cms.formSubtext}</p>
                 <Form {...form}>

@@ -77,7 +77,7 @@ export default function InfluencerProfile() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            style={{ background: "#FFFFFF", border: "1px solid #E5E5E0", borderRadius: 20, overflow: "hidden", boxShadow: "0 2px 12px rgba(11,11,11,0.05)" }}
+            style={{ background: "#FFFFFF", border: "1px solid rgba(20,32,46,0.14)", borderRadius: 20, overflow: "hidden", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)" }}
           >
             {/* Photo */}
             <div style={{ position: "relative", width: "100%", aspectRatio: "1/1", maxHeight: 320, overflow: "hidden", background: inf.accentColor }}>
@@ -123,7 +123,7 @@ export default function InfluencerProfile() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15, duration: 0.5 }}
-            style={{ background: "#EFEFEA", borderRadius: 20, padding: "40px 36px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 20 }}
+            style={{ background: "#EFEFEA", borderRadius: 20, padding: "40px 36px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 20, border: "1px solid rgba(30,41,59,0.12)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)" }}
           >
             <h2 style={{ fontWeight: 800, fontSize: "clamp(22px, 4vw, 32px)", letterSpacing: "-0.04em", color: "#0A0A0A", lineHeight: 1.1 }}>
               Work With {inf.name.split(" ")[0]}

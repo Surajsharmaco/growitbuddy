@@ -19,8 +19,8 @@ function PageCard({ page }: { page: DistributionPage }) {
           background: "#FFFFFF",
           borderRadius: 20,
           overflow: "hidden",
-          boxShadow: "0 2px 12px rgba(11,11,11,0.05)",
-          border: "1px solid #E5E5E0",
+          boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
+          border: "1px solid rgba(20,32,46,0.14)",
           transition: "transform 0.2s ease, box-shadow 0.2s ease",
           display: "flex",
           flexDirection: "column",
@@ -34,11 +34,11 @@ function PageCard({ page }: { page: DistributionPage }) {
         }}
         onMouseEnter={(e) => {
           (e.currentTarget as HTMLDivElement).style.transform = "scale(1.018)";
-          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 16px 48px rgba(11,11,11,0.10)";
+          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 26px 60px -24px rgba(20,32,46,0.28), 0 10px 24px -10px rgba(20,32,46,0.12)";
         }}
         onMouseLeave={(e) => {
           (e.currentTarget as HTMLDivElement).style.transform = "scale(1)";
-          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 12px rgba(11,11,11,0.05)";
+          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)";
         }}
       >
         {/* Image band */}

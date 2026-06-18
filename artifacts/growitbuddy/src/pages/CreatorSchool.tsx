@@ -50,11 +50,11 @@ function VideoPlayer({ url }: { url: string }) {
       position: "relative",
       boxShadow: hasVideo
         ? "0 24px 60px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.08)"
-        : "0 2px 4px rgba(0,0,0,0.04), 0 24px 50px rgba(30,41,59,0.08)",
+        : "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
       background: hasVideo
         ? "#0F172A"
-        : "linear-gradient(145deg, #FFFFFF 0%, #F5F5F2 100%)",
-      border: hasVideo ? "1px solid rgba(255,255,255,0.1)" : "1px solid var(--gb-border, #E5E5E0)",
+        : "#FFFFFF",
+      border: hasVideo ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(20,32,46,0.14)",
       transform: "translateZ(0)",
     }}>
       {!hasVideo && !playing && (
@@ -85,8 +85,8 @@ function VideoPlayer({ url }: { url: string }) {
               margin: "0 auto 16px",
               boxShadow: hasVideo
                 ? "0 12px 40px rgba(0,0,0,0.4)"
-                : "0 10px 30px rgba(30,41,59,0.18)",
-              border: hasVideo ? "none" : "1px solid var(--gb-border, #E5E5E0)",
+                : "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
+              border: hasVideo ? "none" : "1px solid rgba(20,32,46,0.14)",
               transition: "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease",
             }} className={hasVideo ? "group-hover:scale-110" : ""}>
               <Play size={30} color="#1E293B" fill="#1E293B" style={{ marginLeft: 5 }} />
@@ -261,12 +261,12 @@ export default function CreatorSchool() {
           padding: 26px 24px;
           position: relative;
           transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+          box-shadow: 0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08);
         }
         .cs-step-card:hover {
           transform: translateY(-4px);
           border-color: #C8C8C0;
-          box-shadow: 0 12px 28px rgba(0,0,0,0.06);
+          box-shadow: 0 26px 60px -24px rgba(20,32,46,0.28), 0 10px 24px -10px rgba(20,32,46,0.12);
         }
         .cs-step-num {
           font-family: 'Menlo', 'Space Mono', monospace;
@@ -290,12 +290,12 @@ export default function CreatorSchool() {
           padding: 24px;
           display: flex; align-items: flex-start; justify-content: space-between; gap: 20px;
           transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+          box-shadow: 0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08);
         }
         .cs-res-card:hover {
           transform: translateY(-3px);
           border-color: #C8C8C0;
-          box-shadow: 0 12px 28px rgba(0,0,0,0.06);
+          box-shadow: 0 26px 60px -24px rgba(20,32,46,0.28), 0 10px 24px -10px rgba(20,32,46,0.12);
         }
         .cs-res-btn {
           display: inline-flex; align-items: center; gap: 8px;
@@ -315,7 +315,7 @@ export default function CreatorSchool() {
           border: 1px solid var(--tp-border);
           border-radius: 16px;
           padding: clamp(28px, 5vw, 48px);
-          box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+          box-shadow: 0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08);
           position: relative;
         }
         .cs-form-grid {

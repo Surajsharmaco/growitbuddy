@@ -735,8 +735,10 @@ export default function InsightDetail() {
                 <motion.div key={p.slug} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4, delay: i * 0.08 }}>
                   <Link href={`/blog/${p.slug}`}>
                     <div
-                      style={{ background: "#FFFFFF", border: "1.5px solid #E5E5E0", borderRadius: 18, overflow: "hidden", cursor: "pointer", transition: "transform 0.2s, box-shadow 0.2s", height: "100%", display: "flex", flexDirection: "column" }}
-                      className="hover:-translate-y-1 hover:shadow-md"
+                      style={{ background: "#FFFFFF", border: "1px solid rgba(20,32,46,0.14)", borderRadius: 18, overflow: "hidden", cursor: "pointer", transition: "transform 0.2s, box-shadow 0.2s", height: "100%", display: "flex", flexDirection: "column", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)" }}
+                      className="hover:-translate-y-1"
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 26px 60px -24px rgba(20,32,46,0.28), 0 10px 24px -10px rgba(20,32,46,0.12)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)"; }}
                     >
                       {p.featuredImage && (
                         <div style={{ height: 160, overflow: "hidden", flexShrink: 0 }}>

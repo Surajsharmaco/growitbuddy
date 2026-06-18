@@ -197,7 +197,8 @@ export default function Career() {
               gap: 8px;
               width: 100%;
               background: #FFFFFF;
-              border: 1px solid #E5E5E0;
+              border: 1px solid rgba(20,32,46,0.14);
+              box-shadow: 0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08);
               border-radius: 16px;
               padding: 8px;
             }
@@ -296,7 +297,7 @@ export default function Career() {
                   </li>
                 ))}
               </ul>
-              <div style={{ background: "#EFEFEA", borderRadius: 16, padding: "24px 28px" }}>
+              <div style={{ background: "#EFEFEA", border: "1px solid rgba(30,41,59,0.12)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)", borderRadius: 16, padding: "24px 28px" }}>
                 <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#8A8A8A", marginBottom: 12 }}>
                   {activeContent.sideTitle}
                 </p>
@@ -314,7 +315,7 @@ export default function Career() {
             {submitted ? (
               <SuccessCard headline={activeContent.success.headline} subtext={activeContent.success.subtext} type={type} email={submittedEmail} />
             ) : (
-              <div style={{ background: "#F8F8F6", border: "1.5px solid #E5E5E0", borderRadius: 20, padding: "36px 32px" }}>
+              <div style={{ background: "#FFFFFF", border: "1px solid rgba(20,32,46,0.14)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)", borderRadius: 20, padding: "36px 32px" }}>
                 <h3 style={{ fontWeight: 800, fontSize: 22, letterSpacing: "-0.03em", color: "#0A0A0A", marginBottom: 6 }}>
                   {activeContent.form.headline}
                 </h3>
@@ -363,7 +364,7 @@ function SuccessCard({ headline, subtext, type, email }: { headline: string; sub
       <motion.div
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
-        style={{ background: "#F8F8F6", border: "1.5px solid #E5E5E0", borderRadius: 20, padding: "48px 36px", textAlign: "center" }}
+        style={{ background: "#FFFFFF", border: "1px solid rgba(20,32,46,0.14)", boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)", borderRadius: 20, padding: "48px 36px", textAlign: "center" }}
       >
         <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#EFEFEA", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 26 }}>✓</div>
         <h3 style={{ fontWeight: 800, fontSize: 24, letterSpacing: "-0.03em", color: "#0A0A0A", marginBottom: 12 }}>{headline}</h3>

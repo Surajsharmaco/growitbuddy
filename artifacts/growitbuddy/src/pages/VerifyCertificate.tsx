@@ -301,7 +301,8 @@ export default function VerifyCertificate() {
                 padding: "60px 24px",
                 background: "#FFFFFF",
                 borderRadius: 20,
-                border: "1.5px solid #E5E5E0",
+                border: "1px solid rgba(20,32,46,0.14)",
+                boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
               }}
             >
               <AlertCircle size={32} style={{ color: "#7A7A85", margin: "0 auto 16px" }} />
@@ -343,7 +344,8 @@ export default function VerifyCertificate() {
                 padding: "48px 24px",
                 background: "#FFFFFF",
                 borderRadius: 20,
-                border: "1.5px solid #E5E5E0",
+                border: "1px solid rgba(20,32,46,0.14)",
+                boxShadow: "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
               }}
             >
               <AlertCircle size={28} style={{ color: "rgba(248,113,113,0.7)", margin: "0 auto 12px" }} />
