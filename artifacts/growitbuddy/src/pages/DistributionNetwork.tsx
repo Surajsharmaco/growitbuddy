@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import { ArrowRight, Search, X, SlidersHorizontal, ChevronDown, Check, Globe, Zap } from "lucide-react";
-import { distributionPages as DEFAULT_DIST_PAGES, DISTRIBUTION_NICHES, DISTRIBUTION_COUNTRIES, type DistributionPage } from "@/data/distributionPages";
+import { DISTRIBUTION_NICHES, DISTRIBUTION_COUNTRIES, type DistributionPage } from "@/data/distributionPages";
 import SEOMeta from "@/components/SEOMeta";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { usePublicContent } from "@/hooks/usePublicContent";
@@ -237,11 +237,13 @@ function ActiveTag({ label, onRemove }: { label: string; onRemove: () => void })
 /* ── Page ────────────────────────────────────────────────── */
 export default function DistributionNetwork() {
   const cms = usePublicContent<DistributionNetworkData>("distribution-network", DN_DEFAULTS);
-  const distPagesDb = usePublicContent<{ items?: DistributionPage[] }>("distribution-pages", { items: DEFAULT_DIST_PAGES });
-  // Respect an explicitly-empty list: once the admin has curated distribution
-  // pages (even down to zero), that is authoritative — never resurrect the
-  // hardcoded demo pages. Defaults apply only when the section was never set.
-  const distributionPages = Array.isArray(distPagesDb.items) ? distPagesDb.items : DEFAULT_DIST_PAGES;
+  const distPagesDb = usePublicContent<{ items?: DistributionPage[] }>("distribution-pages", { items: [] });
+  // The admin-managed list is the ONLY source of truth. Never fall back to the
+  // hardcoded demo pages: doing so resurrected deleted pages on every refresh
+  // and cold start, because the bootstrap/API fetch can be empty, slow, or
+  // asleep (Render free-tier / Neon SSR timeout). When there is no live data we
+  // render an honest empty state, not stale demo data.
+  const distributionPages = Array.isArray(distPagesDb.items) ? distPagesDb.items : [];
 
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
@@ -256,7 +258,7 @@ export default function DistributionNetwork() {
       list = list.filter((p) => p.name.toLowerCase().includes(q) || p.handle.toLowerCase().includes(q) || p.niche.toLowerCase().includes(q));
     }
     return list;
-  }, [selectedGenres, selectedCountries, searchQuery]);
+  }, [distributionPages, selectedGenres, selectedCountries, searchQuery]);
 
   const hasActiveFilters = selectedGenres.length > 0 || selectedCountries.length > 0;
   function clearAll() { setSelectedGenres([]); setSelectedCountries([]); setSearchQuery(""); }

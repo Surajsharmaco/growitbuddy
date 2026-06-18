@@ -6,14 +6,25 @@ description: Why public admin-managed list pages must respect explicitly-empty l
 # GrowitBuddy "ghost data" — empty lists must stay empty
 
 **Rule:** On public pages backed by admin-managed lists (influencers, distribution
-pages, and any future `usePublicContent` / `useLiveInfluencers`-style list), an
-explicitly-empty saved list (`{items: []}`) is authoritative and must render empty.
-Fall back to the hardcoded demo defaults (`DEFAULT_INFLUENCERS`, `DEFAULT_DIST_PAGES`)
-only when the section was **never configured** (no `items` array at all).
+pages, and any future `usePublicContent` / `useLiveInfluencers`-style list), the
+admin-managed list is the ONLY source of truth. The default passed to
+`usePublicContent` must be `{ items: [] }` — NEVER the hardcoded demo array. When
+there is no live data (empty DB row, cold/timed-out SSR, asleep API, failed refetch)
+the page renders an honest empty state, not resurrected demos.
 
+- The bug recurs per-page: each list page must be fixed independently. The influencers
+  fix did NOT cover distribution-pages — `DistributionNetwork.tsx` still defaulted to
+  `{ items: DEFAULT_DIST_PAGES }` (20 demos) and resurrected deleted pages on every
+  refresh/cold-start until its default was changed to `{ items: [] }` and the demo
+  import dropped. Grep every `usePublicContent(..., { items: DEFAULT_* })` call.
 - Test with `Array.isArray(items)`, NEVER `items?.length` / `items.length > 0` — an
   empty array is falsy via `.length`, which is exactly what resurrected the demo
   "ghost" data when the admin deleted everyone.
+- **useMemo deps gotcha:** any derived/filtered list (`const filtered = useMemo(... ,
+  [filters])`) MUST include the live data array in its deps. The live list arrives via
+  a background fetch AFTER the first paint (initial state is empty on cold-start), so
+  if the data array is missing from the deps the memo never recomputes and the grid
+  stays stuck on "No pages found" until the user touches a filter.
 - Do NOT seed demo defaults into React initial state either. `useLiveInfluencers`
   starts from the SSR bootstrap (`window.__GB_PUBLIC_CONTENT__.influencers`) when
   present, else `[]` + `loading=true`; resolve `loading=false` on BOTH fetch success
