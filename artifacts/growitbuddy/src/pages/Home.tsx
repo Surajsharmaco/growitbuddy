@@ -17,6 +17,33 @@ import { getWashCardStyle, getWashBorder, CardGrain, WashIconChip } from "@/comp
 // content stays admin-editable (the services array carries no icon field).
 const SERVICE_ICONS: LucideIcon[] = [Search, Calendar, ScanLine, Send, Bot, Box];
 
+// Per-card pastel washes for the home "Services" grid ONLY (blue / peach / blue /
+// green / lavender / peach), to match the requested reference. Kept local so the
+// shared WashCard gold+slate system used on other pages stays untouched.
+const HOME_SERVICE_WASHES: string[] = [
+  // 01 — cool blue
+  "radial-gradient(70% 60% at 22% 18%, rgba(120,150,196,0.16) 0%, rgba(120,150,196,0) 64%), radial-gradient(64% 58% at 82% 84%, rgba(138,166,206,0.12) 0%, rgba(138,166,206,0) 66%), linear-gradient(160deg, #FBFCFE 0%, #EDF2F8 100%)",
+  // 02 — warm peach
+  "radial-gradient(70% 60% at 22% 18%, rgba(232,176,128,0.18) 0%, rgba(232,176,128,0) 64%), radial-gradient(64% 58% at 84% 84%, rgba(236,168,120,0.13) 0%, rgba(236,168,120,0) 66%), linear-gradient(160deg, #FFFCF8 0%, #FBEEE0 100%)",
+  // 03 — cool blue (variation)
+  "radial-gradient(70% 60% at 20% 20%, rgba(110,142,190,0.15) 0%, rgba(110,142,190,0) 64%), radial-gradient(64% 58% at 82% 82%, rgba(132,160,202,0.12) 0%, rgba(132,160,202,0) 66%), linear-gradient(160deg, #FAFCFE 0%, #EBF1F8 100%)",
+  // 04 — soft green
+  "radial-gradient(70% 60% at 20% 80%, rgba(150,188,142,0.17) 0%, rgba(150,188,142,0) 64%), radial-gradient(64% 58% at 80% 22%, rgba(168,200,160,0.12) 0%, rgba(168,200,160,0) 66%), linear-gradient(160deg, #FBFEF9 0%, #EDF5EA 100%)",
+  // 05 — lavender
+  "radial-gradient(70% 60% at 22% 20%, rgba(168,156,206,0.16) 0%, rgba(168,156,206,0) 64%), radial-gradient(64% 58% at 82% 84%, rgba(182,172,214,0.12) 0%, rgba(182,172,214,0) 66%), linear-gradient(160deg, #FDFCFE 0%, #F1EEF8 100%)",
+  // 06 — warm peach (variation)
+  "radial-gradient(70% 60% at 22% 18%, rgba(236,172,124,0.17) 0%, rgba(236,172,124,0) 64%), radial-gradient(64% 58% at 84% 84%, rgba(240,176,128,0.12) 0%, rgba(240,176,128,0) 66%), linear-gradient(160deg, #FFFCF7 0%, #FBEFE1 100%)",
+];
+
+const HOME_SERVICE_BORDERS: string[] = [
+  "rgba(130,158,196,0.30)",
+  "rgba(230,176,130,0.32)",
+  "rgba(124,152,194,0.30)",
+  "rgba(156,190,146,0.30)",
+  "rgba(172,160,206,0.30)",
+  "rgba(234,176,128,0.32)",
+];
+
 function GrainOverlay() {
   return (
     <svg
@@ -388,6 +415,8 @@ export default function Home() {
                     padding: "30px 28px 28px",
                     display: "flex",
                     flexDirection: "column",
+                    background: HOME_SERVICE_WASHES[i % HOME_SERVICE_WASHES.length],
+                    border: `1px solid ${HOME_SERVICE_BORDERS[i % HOME_SERVICE_BORDERS.length]}`,
                   })}
                 >
                   <CardGrain />
