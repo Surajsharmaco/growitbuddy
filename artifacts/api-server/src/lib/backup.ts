@@ -89,12 +89,18 @@ export async function buildContentSnapshot() {
 
 export type ContentSnapshot = Awaited<ReturnType<typeof buildContentSnapshot>>;
 
-// Build all generated documentation files keyed by their path inside the ZIP.
-export function buildHandoffDocs(
-  meta: BackupMeta,
-  snapshot: ContentSnapshot,
-): Record<string, string> {
-  const counts = {
+type SnapshotCounts = {
+  site_content: number;
+  portfolio_items: number;
+  portfolio_shares: number;
+  client_logos: number;
+  page_variants: number;
+  media_files: number;
+  certificates: number;
+};
+
+function countsOf(snapshot: ContentSnapshot): SnapshotCounts {
+  return {
     site_content: snapshot.site_content.length,
     portfolio_items: snapshot.portfolio_items.length,
     portfolio_shares: snapshot.portfolio_shares.length,
@@ -103,6 +109,14 @@ export function buildHandoffDocs(
     media_files: snapshot.media_files.length,
     certificates: snapshot.certificates.length,
   };
+}
+
+// Build all generated documentation files keyed by their path inside the ZIP.
+export function buildHandoffDocs(
+  meta: BackupMeta,
+  snapshot: ContentSnapshot,
+): Record<string, string> {
+  const counts = countsOf(snapshot);
 
   const startHere = `# GrowitBuddy — Project Backup & AI Handoff Bundle
 
@@ -411,6 +425,157 @@ applying the Drizzle schema.
     "_AI_HANDOFF/DATABASE.md": database,
     "_AI_HANDOFF/MANIFEST.json": manifest,
   };
+}
+
+// ── Master AI prompt (single copy/paste / downloadable document) ─────────────
+// A self-contained, comprehensive prompt that explains the WHOLE project to any
+// AI, plus an embedded LIVE snapshot of the current website content. It is built
+// fresh on every request (no GitHub call) so it always reflects the latest
+// admin edits — i.e. it auto-updates whenever the website content changes.
+
+export interface PromptMeta {
+  repo: string;
+  branch: string;
+  generatedAt: string;
+}
+
+// Human/AI-readable summary of what is currently configured on the site, derived
+// live from the snapshot so it changes automatically as the CMS is edited.
+function contentSummary(snapshot: ContentSnapshot): string {
+  const lines: string[] = [];
+
+  const sections = snapshot.site_content.map((r) => r.section).sort();
+  lines.push(
+    `### Website content sections (${sections.length})`,
+    sections.length ? sections.map((s) => `- \`${s}\``).join("\n") : "- (none yet)",
+    "",
+  );
+
+  lines.push(`### Portfolio items (${snapshot.portfolio_items.length})`);
+  if (snapshot.portfolio_items.length) {
+    for (const p of [...snapshot.portfolio_items].sort((a, b) => a.sortOrder - b.sortOrder)) {
+      lines.push(`- ${p.title} — ${p.category}${p.isHidden ? " (hidden)" : ""}`);
+    }
+  } else {
+    lines.push("- (none yet)");
+  }
+  lines.push("");
+
+  lines.push(`### Client logos (${snapshot.client_logos.length})`);
+  if (snapshot.client_logos.length) {
+    for (const l of [...snapshot.client_logos].sort((a, b) => a.sortOrder - b.sortOrder)) {
+      lines.push(`- ${l.altText || `logo #${l.id}`}${l.enabled ? "" : " (disabled)"}`);
+    }
+  } else {
+    lines.push("- (none yet)");
+  }
+  lines.push("");
+
+  lines.push(`### Certificates (${snapshot.certificates.length})`);
+  if (snapshot.certificates.length) {
+    for (const c of snapshot.certificates) {
+      lines.push(`- ${c.name} — ${c.role} (${c.status})${c.isHidden ? " (hidden)" : ""}`);
+    }
+  } else {
+    lines.push("- (none yet)");
+  }
+  lines.push("");
+
+  lines.push(`### Page variants (${snapshot.page_variants.length})`);
+  if (snapshot.page_variants.length) {
+    for (const v of snapshot.page_variants) {
+      lines.push(`- ${v.label || v.slug} [/${v.slug}] from \`${v.sourceKey}\` (${v.isLive ? "LIVE" : "draft"})`);
+    }
+  } else {
+    lines.push("- (none yet)");
+  }
+  lines.push("");
+
+  lines.push(`### Media files (${snapshot.media_files.length}) — metadata only, no file bytes`);
+
+  return lines.join("\n");
+}
+
+// Build the single comprehensive "master prompt" markdown document.
+export function buildMasterPrompt(meta: PromptMeta, snapshot: ContentSnapshot): string {
+  // Reuse the exact same factual docs the ZIP bundle ships, so the two can never
+  // disagree. Only the branch is needed for these four sections.
+  const docs = buildHandoffDocs(
+    { repo: meta.repo, branch: meta.branch, sha: "", shortSha: "", commitMsg: "", commitDate: "", generatedAt: meta.generatedAt },
+    snapshot,
+  );
+  const counts = countsOf(snapshot);
+  const contentJson = JSON.stringify(snapshot, null, 2);
+
+  const intro = `# GrowitBuddy — Complete Project Handoff Prompt
+
+Generated: ${meta.generatedAt}
+Live source repo: ${meta.repo} (branch \`${meta.branch}\`)
+
+You are taking over the **GrowitBuddy** project. This single document is a complete
+handoff: it explains exactly what the project is, how it is built, how it is
+deployed, and includes a LIVE snapshot of the website's current content. Read it
+fully before doing anything, then state your understanding and ask what change is
+needed. Work strictly from the facts here — do not invent files, tables, or
+behaviour.
+
+## What GrowitBuddy is
+GrowitBuddy is a marketing + creator-network website with a full admin/CMS panel
+and a CRM. It is a **pnpm monorepo**:
+- \`artifacts/growitbuddy\` — the public website AND the admin panel (React + Vite
+  single-page app). Deployed on Vercel.
+- \`artifacts/api-server\` — the backend REST API (Express). Deployed on Render.
+- \`lib/*\` — shared libraries (database schema, OpenAPI/Zod contracts, SEO).
+- Database: PostgreSQL (Neon) accessed via Drizzle ORM.
+
+## How to get the actual source code
+This prompt describes the project; it does not contain the code itself. The full,
+up-to-date source is the committed code on GitHub: \`${meta.repo}\` (branch
+\`${meta.branch}\`) — which is exactly what is deployed live. The admin panel's
+"Backup / Migration" page can also download a ZIP containing the entire source.`;
+
+  const groundRules = `## Ground rules
+- Follow the existing code patterns and conventions; match the monorepo layout.
+- The API contract is defined in OpenAPI and code-generated — see the Architecture
+  section above and \`lib/api-spec\`.
+- Never hardcode secrets. Required secrets are listed (by name only) in the
+  Environment section above and must be provided via environment variables.
+- The live site auto-deploys from GitHub branch \`${meta.branch}\` (Vercel for the
+  frontend, Render for the API). Pushing to that branch redeploys both.
+- Access control is enforced on the server; the admin sidebar only mirrors it.
+
+After reading everything, summarise what you understand about GrowitBuddy, then ask
+what needs to be done.`;
+
+  const liveContent = `## LIVE website content (current snapshot)
+
+This is a snapshot of the real, current content of the website, taken at
+${meta.generatedAt}. It auto-updates: regenerate this prompt any time and it will
+reflect the latest admin edits. Sensitive data (secrets, CRM leads/PII, password
+hashes, internal logs, certificate emails, media binary blobs) is intentionally
+excluded.
+
+Row counts: site_content=${counts.site_content}, portfolio_items=${counts.portfolio_items}, portfolio_shares=${counts.portfolio_shares}, client_logos=${counts.client_logos}, page_variants=${counts.page_variants}, media_files=${counts.media_files}, certificates=${counts.certificates}.
+
+${contentSummary(snapshot)}
+
+### Full content snapshot (JSON)
+Use this to understand or restore the exact current content. Insert these rows into
+the matching tables (after applying the Drizzle schema) to recreate the site's content.
+
+\`\`\`json
+${contentJson}
+\`\`\``;
+
+  return [
+    intro,
+    docs["_AI_HANDOFF/ARCHITECTURE.md"],
+    docs["_AI_HANDOFF/SETUP_AND_DEPLOY.md"],
+    docs["_AI_HANDOFF/ENV_AND_CONNECTIONS.md"],
+    docs["_AI_HANDOFF/DATABASE.md"],
+    liveContent,
+    groundRules,
+  ].join("\n\n---\n\n");
 }
 
 // Safety caps for the GitHub source archive. The source is our own repo behind a

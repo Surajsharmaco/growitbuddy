@@ -5,7 +5,7 @@ import { eq, desc, count, asc, lt } from "drizzle-orm";
 import { logger } from "../lib/logger";
 import { cloudinaryConfigured, uploadToCloudinary } from "../lib/cloudinary";
 import { convertImageBuffer, type ConvertFormat } from "../lib/imageConvert";
-import { buildContentSnapshot, buildHandoffDocs, assembleBackupZip, type BackupMeta } from "../lib/backup";
+import { buildContentSnapshot, buildHandoffDocs, assembleBackupZip, buildMasterPrompt, type BackupMeta } from "../lib/backup";
 import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -1886,6 +1886,41 @@ router.get("/backup", authMiddleware, superAdminOnly, async (_req, res) => {
       } catch {
         /* noop */
       }
+    }
+  }
+});
+
+// ── Super-admin "Master AI Prompt" (copy / download) ─────────────────────────
+// Returns ONE comprehensive markdown prompt that fully explains the project to any
+// AI, with a LIVE snapshot of the current website content embedded. Unlike the ZIP
+// backup it makes NO GitHub call, so it is fast and reliable, and it is rebuilt on
+// every request — so it always reflects the latest admin edits ("auto-updates").
+router.get("/handoff-prompt", authMiddleware, superAdminOnly, async (_req, res) => {
+  const repo = process.env.GITHUB_REPO || "Surajsharmaco/growitbuddy";
+  const branch = process.env.GITHUB_BRANCH || "main";
+  try {
+    const snapshot = await buildContentSnapshot();
+    const generatedAt = new Date().toISOString();
+    const prompt = buildMasterPrompt({ repo, branch, generatedAt }, snapshot);
+    const filename = `growitbuddy-ai-prompt-${generatedAt.slice(0, 10)}.md`;
+
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    res.json({ prompt, generatedAt, filename });
+
+    try {
+      await db.insert(adminActionLogs).values({
+        action: "handoff-prompt",
+        detail: `Generated master AI prompt (${prompt.length} chars)`,
+        ok: true,
+      });
+    } catch {
+      /* audit log is non-fatal */
+    }
+    logger.info({ chars: prompt.length }, "handoff prompt generated");
+  } catch (err) {
+    logger.error({ err }, "handoff prompt generation failed");
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Could not generate the AI prompt right now. Please try again." });
     }
   }
 });
