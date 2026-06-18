@@ -19,7 +19,7 @@ export default function Insights() {
   const blogPosts = useMemo(() => {
     // Public site shows only live posts: never trashed, never drafts.
     const base: BlogPost[] = (cmsPosts ?? [])
-      .filter((p) => !p.trashed && (p.status ?? "published") === "published")
+      .filter((p) => !p.trashed && (p.status ?? "published") === "published" && !!p.slug)
       .map((p) => ({ ...p, source: "cms" as const }));
     const combined = [...base, ...wpPosts];
     combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -105,7 +105,7 @@ export default function Insights() {
               const featured = i === 0 && activeTag === "All";
               return (
                 <motion.div
-                  key={post.slug}
+                  key={post.slug || i}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}

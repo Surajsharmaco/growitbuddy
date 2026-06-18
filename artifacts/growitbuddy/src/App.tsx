@@ -12,6 +12,7 @@ import { AdminLayout, NAV_GATING } from "@/components/admin/AdminLayout";
 import { PageGate } from "@/components/PageGate";
 import DynamicPageSEO from "@/components/DynamicPageSEO";
 import { VariantResolver } from "@/components/VariantResolver";
+import { RouteErrorBoundary } from "@/components/ErrorBoundary";
 import { resolveMediaUrl } from "@/lib/api";
 
 // ── Lazy-loaded public pages ──────────────────────────────────────────────────
@@ -149,7 +150,9 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
             : true;
   return (
     <AdminLayout>
-      <Suspense fallback={<PageSpinner />}>{allowed ? children : <AccessDenied />}</Suspense>
+      <RouteErrorBoundary>
+        <Suspense fallback={<PageSpinner />}>{allowed ? children : <AccessDenied />}</Suspense>
+      </RouteErrorBoundary>
     </AdminLayout>
   );
 }
@@ -283,6 +286,7 @@ function App() {
               <>
                 <PageIntro />
                 <Layout>
+                  <RouteErrorBoundary>
                   <Suspense fallback={<PageSpinner />}>
                     <Switch>
                       <Route path="/">{() => <PageGate slug="home"><Home /></PageGate>}</Route>
@@ -338,6 +342,7 @@ function App() {
                       <Route component={NotFound} />
                     </Switch>
                   </Suspense>
+                  </RouteErrorBoundary>
                 </Layout>
               </>
             )}

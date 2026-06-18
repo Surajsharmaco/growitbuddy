@@ -17,6 +17,7 @@
 - [GrowitBuddy media URLs](growitbuddy-media-urls.md) — admin-uploaded media saved as relative `/api/media/...` 404s on split-origin prod (Vercel+Render); wrap EVERY public render with resolveMediaUrl (not video embeds).
 - [GrowitBuddy admin RBAC](growitbuddy-rbac.md) — backend authoritative; super-only ROUTES gate on role only (NOT "all" wildcard — team perms unvalidated → privesc); "all" still = content all-access; /upload auth-only.
 - [GrowitBuddy staleness verdict](growitbuddy-staleness-verified.md) — admin edits reflect immediately (Playwright-verified); staleness = Render cold-start/deploy infra, not content code; cache-clear = honest no-ops by design.
+- [GrowitBuddy dynamic SEO & error boundary](growitbuddy-dynamic-seo.md) — case-study SEO is client-side (SSR needs render.js rebuild); shared links noindex by design; NO /influencers/:slug route; global RouteErrorBoundary contains page crashes.
 - [Below-fold screenshot verify](growitbuddy-screenshot-belowfold.md) — screenshot tool can't reach past the 100vh hero + whileInView; temporarily set hero minHeight to "auto", capture [w,3000], then revert.
 - [GrowitBuddy master prompt & backup paths](growitbuddy-master-prompt.md) — ZIP=GitHub (flaky) vs /handoff-prompt=DB-live (robust, auto-updates); buildMasterPrompt REUSES buildHandoffDocs 4 docs (single-source); empty commit fields safe.
 - [GrowitBuddy bulk image convert](growitbuddy-media-bulk-convert.md) — in-place WebP/AVIF re-encode: NEVER delete old asset inline; rewrite refs across ALL media columns; id-URL regex needs `(?![0-9])` boundary.

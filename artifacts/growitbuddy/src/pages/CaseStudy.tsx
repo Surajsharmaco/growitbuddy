@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ArrowUpRight, CheckCircle2, Quote } from "lucide-react";
 
 import { API_BASE, resolveMediaUrl } from "@/lib/api";
+import SEOMeta from "@/components/SEOMeta";
 import BlockRenderer, { type Block } from "@/components/blocks/BlockRenderer";
 import BlockEditor from "@/components/blocks/BlockEditor";
 import CaseStudyInlineEditor from "@/components/CaseStudyInlineEditor";
@@ -229,6 +230,7 @@ export default function CaseStudy() {
   if (notFound || !item) {
     return (
       <div style={{ minHeight: "100vh", background: BG, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <SEOMeta title="Case study not found — GrowitBuddy" description="This case study doesn't exist or has moved." robots="noindex,follow" />
         <div style={{ textAlign: "center" }}>
           <p style={{ fontSize: 16, color: MUTED, marginBottom: 16 }}>Case study not found.</p>
           <Link href={sharePrefix} style={{ color: SLATE, fontWeight: 700, textDecoration: "underline" }}>
@@ -240,6 +242,36 @@ export default function CaseStudy() {
   }
 
   const isExcludedCategory = VIDEO_EDITING_CATS.has(item.category);
+
+  // ── SEO: title, canonical, OG + CreativeWork JSON-LD. Shared private
+  //    links (/portfolio/shared/...) are noindex; canonical always points
+  //    to the public case-study URL. ──────────────────────────────────────
+  const caseImage = item.caseStudy?.coverImageUrl || item.caseStudy?.heroImageUrl;
+  const caseCanonical = `https://growitbuddy.com/portfolio/${params?.category ?? ""}/case/${item.id}`;
+  const caseDesc = (item.caseStudy?.overview
+    || `A GrowitBuddy case study on ${item.category}: strategy, execution, and measurable growth.`)
+    .replace(/<[^>]+>/g, "").trim().slice(0, 155);
+  const caseSeo = (
+    <SEOMeta
+      title={`${item.title} — Case Study | GrowitBuddy`}
+      description={caseDesc}
+      canonical={caseCanonical}
+      ogType="article"
+      ogImage={caseImage ? resolveMediaUrl(caseImage) : undefined}
+      robots={shareSlug ? "noindex,follow" : "index,follow"}
+      schema={{
+        "@context": "https://schema.org",
+        "@type": "CreativeWork",
+        "name": item.title,
+        "headline": item.title,
+        "url": caseCanonical,
+        "about": item.category,
+        ...(caseImage ? { "image": resolveMediaUrl(caseImage) } : {}),
+        "author": { "@type": "Organization", "name": "GrowitBuddy", "url": "https://growitbuddy.com" },
+        "publisher": { "@type": "Organization", "name": "GrowitBuddy", "url": "https://growitbuddy.com" },
+      }}
+    />
+  );
 
   // ── Inline editor mode (?edit=1 + admin logged in) ─────────────────────
   // For legacy case studies we use the WYSIWYG CaseStudyInlineEditor - it
@@ -271,6 +303,7 @@ export default function CaseStudy() {
   if (Array.isArray(item.blocks) && item.blocks.length > 0) {
     return (
       <div style={{ minHeight: "100vh", background: BG, color: TEXT }}>
+        {caseSeo}
         {canEdit && <FloatingEditBtn excluded={isExcludedCategory} />}
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px" }}>
           <Link
@@ -341,6 +374,7 @@ export default function CaseStudy() {
 
   return (
     <div style={{ minHeight: "100vh", background: BG, color: TEXT, fontFamily: "'Inter', sans-serif" }}>
+      {caseSeo}
       {canEdit && <FloatingEditBtn excluded={isExcludedCategory} />}
       {/* ── Back strip ── */}
       <div style={{ borderBottom: `1px solid ${RULE}`, background: BG }}>
