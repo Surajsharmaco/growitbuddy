@@ -2,35 +2,37 @@ import type { CSSProperties, ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 
 // ── Shared "watercolor wash" card system ──────────────────────────────────
-// Single source of truth for the premium card surfaces used on the Home
-// "Who we work with" audience cards and (for site-wide cohesion) on other
-// plain feature/value/step card rows. Deliberately RESTRAINED: an ivory/cream
-// base carrying only a whisper of per-index tint (low-alpha radial blobs) so
-// cards read premium, not colorful. Faint hue-matched borders + var(--gb-grain)
-// multiply grain + frosted icon chip.
+// Single source of truth for the premium card surfaces used across Home,
+// Services, About, Resources and the talent pools. COHESIVE by design: every
+// wash is drawn from the brand's OWN two colors — a warm champagne GOLD
+// (--gb-gold) as the dominant highlight, with a soft slate/navy (--gb-authority)
+// accent on every third card for gentle rhythm. No off-brand rainbow hues. An
+// ivory/cream base carries only low-alpha radial blobs so cards read warm and
+// premium, never busy. Faint hue-matched borders + var(--gb-grain) multiply
+// grain + frosted icon chip.
 
 export const WASH_CARD_BACKGROUNDS: string[] = [
-  // faint sky blue on ivory
-  "radial-gradient(72% 62% at 20% 20%, rgba(150,178,210,0.15) 0%, rgba(150,178,210,0) 64%), radial-gradient(62% 56% at 82% 82%, rgba(168,190,214,0.10) 0%, rgba(168,190,214,0) 66%), linear-gradient(160deg, #FBFCFE 0%, #F3F6FA 100%)",
-  // faint terracotta on cream
-  "radial-gradient(72% 62% at 20% 20%, rgba(208,156,132,0.14) 0%, rgba(208,156,132,0) 64%), radial-gradient(62% 56% at 82% 82%, rgba(212,176,154,0.10) 0%, rgba(212,176,154,0) 66%), linear-gradient(160deg, #FCF8F4 0%, #F6EEE6 100%)",
-  // faint teal/sage on ivory
-  "radial-gradient(72% 62% at 22% 22%, rgba(150,188,180,0.13) 0%, rgba(150,188,180,0) 64%), radial-gradient(62% 56% at 80% 82%, rgba(180,196,206,0.10) 0%, rgba(180,196,206,0) 66%), linear-gradient(160deg, #F9FCFA 0%, #EFF5F2 100%)",
-  // faint sage/olive on ivory
-  "radial-gradient(72% 62% at 20% 22%, rgba(178,190,150,0.13) 0%, rgba(178,190,150,0) 64%), radial-gradient(62% 56% at 80% 82%, rgba(196,194,150,0.10) 0%, rgba(196,194,150,0) 66%), linear-gradient(160deg, #FBFCF4 0%, #F2F5E9 100%)",
-  // faint violet on ivory
-  "radial-gradient(72% 62% at 20% 20%, rgba(178,168,204,0.14) 0%, rgba(178,168,204,0) 64%), radial-gradient(62% 56% at 82% 82%, rgba(196,180,206,0.10) 0%, rgba(196,180,206,0) 66%), linear-gradient(160deg, #FBF9FD 0%, #F3EEF7 100%)",
-  // faint warm sand on cream
-  "radial-gradient(72% 62% at 20% 22%, rgba(212,186,148,0.15) 0%, rgba(212,186,148,0) 64%), radial-gradient(62% 56% at 82% 82%, rgba(214,190,160,0.10) 0%, rgba(214,190,160,0) 66%), linear-gradient(160deg, #FCF9F2 0%, #F4EEE1 100%)",
+  // champagne gold on ivory (highlight)
+  "radial-gradient(72% 62% at 20% 20%, rgba(194,168,120,0.17) 0%, rgba(194,168,120,0) 64%), radial-gradient(62% 56% at 82% 82%, rgba(206,182,140,0.11) 0%, rgba(206,182,140,0) 66%), linear-gradient(160deg, #FCFAF5 0%, #F5EFE1 100%)",
+  // warm sand on cream
+  "radial-gradient(72% 62% at 20% 20%, rgba(208,180,130,0.17) 0%, rgba(208,180,130,0) 64%), radial-gradient(62% 56% at 82% 82%, rgba(196,168,116,0.11) 0%, rgba(196,168,116,0) 66%), linear-gradient(160deg, #FCF9F1 0%, #F4ECD9 100%)",
+  // soft slate / navy accent on ivory
+  "radial-gradient(72% 62% at 22% 22%, rgba(96,114,146,0.12) 0%, rgba(96,114,146,0) 64%), radial-gradient(62% 56% at 80% 82%, rgba(120,138,168,0.08) 0%, rgba(120,138,168,0) 66%), linear-gradient(160deg, #FAFBFC 0%, #EDF0F4 100%)",
+  // champagne gold (lighter variation)
+  "radial-gradient(72% 62% at 20% 22%, rgba(198,174,128,0.15) 0%, rgba(198,174,128,0) 64%), radial-gradient(62% 56% at 80% 82%, rgba(212,190,150,0.10) 0%, rgba(212,190,150,0) 66%), linear-gradient(160deg, #FCFBF6 0%, #F6F0E4 100%)",
+  // warm sand (variation)
+  "radial-gradient(72% 62% at 20% 20%, rgba(204,176,128,0.16) 0%, rgba(204,176,128,0) 64%), radial-gradient(62% 56% at 82% 82%, rgba(214,188,146,0.10) 0%, rgba(214,188,146,0) 66%), linear-gradient(160deg, #FCFAF3 0%, #F5EEDE 100%)",
+  // soft slate / navy accent (variation)
+  "radial-gradient(72% 62% at 20% 20%, rgba(102,120,150,0.11) 0%, rgba(102,120,150,0) 64%), radial-gradient(62% 56% at 82% 82%, rgba(124,142,170,0.07) 0%, rgba(124,142,170,0) 66%), linear-gradient(160deg, #FAFBFD 0%, #EEF1F5 100%)",
 ];
 
 export const WASH_CARD_BORDERS: string[] = [
-  "rgba(120,150,190,0.28)",
-  "rgba(196,150,124,0.28)",
-  "rgba(140,176,168,0.26)",
-  "rgba(168,176,128,0.28)",
-  "rgba(166,150,196,0.28)",
-  "rgba(196,170,128,0.30)",
+  "rgba(196,170,124,0.34)",
+  "rgba(200,172,120,0.34)",
+  "rgba(116,136,168,0.28)",
+  "rgba(198,174,128,0.30)",
+  "rgba(204,176,128,0.32)",
+  "rgba(120,140,170,0.26)",
 ];
 
 export function getWash(i: number): string {
