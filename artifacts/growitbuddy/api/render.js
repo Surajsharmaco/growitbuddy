@@ -6398,11 +6398,38 @@ function collectBlocks(value, keyHint, out, depth) {
     return;
   }
   if (value && typeof value === "object") {
-    for (const [k, v2] of Object.entries(value)) {
+    const obj = value;
+    if (obj.trashed === true || obj.status === "draft" || obj.profileEnabled === false)
+      return;
+    for (const [k, v2] of Object.entries(obj)) {
       if (NONCONTENT_KEY.test(k)) continue;
       collectBlocks(v2, k, out, depth + 1);
     }
   }
+}
+function sanitizePublicContent(content) {
+  const out = { ...content };
+  const blog = out.blog;
+  if (blog && Array.isArray(blog.posts)) {
+    out.blog = {
+      ...blog,
+      posts: blog.posts.filter(
+        (p2) => !!p2 && p2.trashed !== true && (p2.status ?? "published") === "published"
+      )
+    };
+  }
+  for (const key of ["distribution-pages", "influencers"]) {
+    const sec = out[key];
+    if (sec && Array.isArray(sec.items)) {
+      out[key] = {
+        ...sec,
+        items: sec.items.filter(
+          (p2) => !!p2 && p2.trashed !== true && p2.profileEnabled !== false
+        )
+      };
+    }
+  }
+  return out;
 }
 function renderContentBody(content, sections, h1) {
   const blocks = [];
@@ -6516,7 +6543,8 @@ function buildHtml(template, entry, pathname, b2) {
     } catch {
     }
   }
-  const bootstrap = `<script>window.__GB_PUBLIC_CONTENT__=${safeJson(b2.content)};window.__GB_SEO__=${safeJson({
+  const publicContent = sanitizePublicContent(b2.content);
+  const bootstrap = `<script>window.__GB_PUBLIC_CONTENT__=${safeJson(publicContent)};window.__GB_SEO__=${safeJson({
     slug: entry.slug,
     path: pathname,
     data: seo,
@@ -6533,7 +6561,7 @@ function buildHtml(template, entry, pathname, b2) {
   );
   const mergedContent = {};
   for (const sec of bodySections) {
-    mergedContent[sec] = mergeForBody(CONTENT_DEFAULTS[sec], b2.content[sec]);
+    mergedContent[sec] = mergeForBody(CONTENT_DEFAULTS[sec], publicContent[sec]);
   }
   const bodyHtml = renderContentBody(mergedContent, bodySections, title);
   return injectBody(html, bodyHtml);
@@ -6637,6 +6665,8 @@ async function buildBlogSitemap() {
       const fallbackDate = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
       for (const post of posts) {
         if (!post.slug) continue;
+        if (post.trashed === true || (post.status ?? "published") !== "published")
+          continue;
         const lastmod = post.date ? new Date(post.date).toISOString().split("T")[0] : fallbackDate;
         urls.push(
           `  <url>

@@ -9,7 +9,9 @@ import { resolveMediaUrl } from "@/lib/api";
 export default function InfluencerProfile() {
   const { slug } = useParams<{ slug: string }>();
   const { influencers, loading } = useLiveInfluencers();
-  const inf = influencers.find((i) => i.slug === slug);
+  // A trashed influencer should behave as if it doesn't exist (404), never as a
+  // disabled/"unavailable" profile.
+  const inf = influencers.find((i) => i.slug === slug && !i.trashed);
   const [imgError, setImgError] = useState(false);
 
   if (!inf) {

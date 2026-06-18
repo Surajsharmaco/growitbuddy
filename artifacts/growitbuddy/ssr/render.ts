@@ -184,11 +184,61 @@ function collectBlocks(
     return;
   }
   if (value && typeof value === "object") {
-    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+    const obj = value as Record<string, unknown>;
+    // Skip trashed / draft / hidden entries entirely so soft-deleted, unpublished
+    // (status==="draft") or hidden (profileEnabled===false) items never leak into
+    // the server-rendered crawler markup (mirrors the public-site filters).
+    if (obj.trashed === true || obj.status === "draft" || obj.profileEnabled === false)
+      return;
+    for (const [k, v] of Object.entries(obj)) {
       if (NONCONTENT_KEY.test(k)) continue;
       collectBlocks(v, k, out, depth + 1);
     }
   }
+}
+
+// Strip soft-deleted (trashed), unpublished (blog status!=="published") and hidden
+// (profileEnabled===false) entries from the public content BEFORE it is both
+// bootstrapped into the page (window.__GB_PUBLIC_CONTENT__) and rendered into the
+// SEO body. Without this, the raw HTML SOURCE / no-JS view / JSON bootstrap would
+// still expose content the React app hides. Mirrors the public-site filters
+// exactly (Insights, DistributionNetwork, InfluencerExplore).
+function sanitizePublicContent(
+  content: Record<string, unknown>,
+): Record<string, unknown> {
+  const out: Record<string, unknown> = { ...content };
+
+  // Blog: only live posts (not trashed, status published).
+  const blog = out.blog as { posts?: unknown } | undefined;
+  if (blog && Array.isArray(blog.posts)) {
+    out.blog = {
+      ...blog,
+      posts: blog.posts.filter(
+        (p) =>
+          !!p &&
+          (p as { trashed?: boolean }).trashed !== true &&
+          ((p as { status?: string }).status ?? "published") === "published",
+      ),
+    };
+  }
+
+  // Distribution pages + influencers: drop trashed and hidden (profileEnabled===false).
+  for (const key of ["distribution-pages", "influencers"] as const) {
+    const sec = out[key] as { items?: unknown } | undefined;
+    if (sec && Array.isArray(sec.items)) {
+      out[key] = {
+        ...sec,
+        items: sec.items.filter(
+          (p) =>
+            !!p &&
+            (p as { trashed?: boolean }).trashed !== true &&
+            (p as { profileEnabled?: boolean }).profileEnabled !== false,
+        ),
+      };
+    }
+  }
+
+  return out;
 }
 
 // Build the visible content markup placed inside #root for crawlers/no-JS.
@@ -400,9 +450,12 @@ function buildHtml(
 
   // Bootstrap current content + resolved SEO so the SPA renders correct data
   // on first paint (no flash) and crawlers' JS render needs no network wait.
+  // Sanitize FIRST so trashed/draft/hidden items never reach the JSON bootstrap
+  // or the SEO body (the React app filters them, but the raw source would not).
+  const publicContent = sanitizePublicContent(b.content);
   const bootstrap =
     `<script>` +
-    `window.__GB_PUBLIC_CONTENT__=${safeJson(b.content)};` +
+    `window.__GB_PUBLIC_CONTENT__=${safeJson(publicContent)};` +
     `window.__GB_SEO__=${safeJson({
       slug: entry.slug,
       path: pathname,
@@ -425,7 +478,7 @@ function buildHtml(
   );
   const mergedContent: Record<string, unknown> = {};
   for (const sec of bodySections) {
-    mergedContent[sec] = mergeForBody(CONTENT_DEFAULTS[sec], b.content[sec]);
+    mergedContent[sec] = mergeForBody(CONTENT_DEFAULTS[sec], publicContent[sec]);
   }
   const bodyHtml = renderContentBody(mergedContent, bodySections, title);
   return injectBody(html, bodyHtml);
@@ -551,11 +604,14 @@ async function buildBlogSitemap(): Promise<string> {
       const sql = neon(DB_URL, { fetchOptions: { signal: ctrl.signal } });
       const rows = (await sql`
         SELECT data FROM site_content WHERE section = 'blog' LIMIT 1
-      `) as Array<{ data: { posts?: Array<{ slug?: string; date?: string }> } }>;
+      `) as Array<{ data: { posts?: Array<{ slug?: string; date?: string; trashed?: boolean; status?: string }> } }>;
       const posts = rows[0]?.data?.posts ?? [];
       const fallbackDate = new Date().toISOString().split("T")[0];
       for (const post of posts) {
         if (!post.slug) continue;
+        // Never advertise trashed or draft posts in the sitemap (mirror /blog).
+        if (post.trashed === true || (post.status ?? "published") !== "published")
+          continue;
         const lastmod = post.date
           ? new Date(post.date).toISOString().split("T")[0]
           : fallbackDate;

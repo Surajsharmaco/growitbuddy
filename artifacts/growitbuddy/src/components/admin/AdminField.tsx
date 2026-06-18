@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle, X } from "lucide-react";
 
 interface FieldProps {
   label: string;
@@ -133,6 +133,80 @@ export function SectionTitle({ children }: { children: ReactNode }) {
     <h2 className="text-[14px] font-bold text-[#0B0B0B] mb-4 pb-3 border-b border-[#0B0B0B]/8">
       {children}
     </h2>
+  );
+}
+
+/**
+ * Centered popup/modal that appears near the top of the viewport. Used for the
+ * "Add" flows so creating a new item opens a focused popup instead of scrolling
+ * a blank row to the bottom of a long list or replacing the whole page.
+ */
+export function Modal({
+  open,
+  onClose,
+  title,
+  description,
+  children,
+  footer,
+  maxWidth = "max-w-lg",
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  description?: string;
+  children: ReactNode;
+  footer?: ReactNode;
+  maxWidth?: string;
+}) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-[9998] flex items-start justify-center overflow-y-auto p-4 sm:p-6">
+      <div
+        className="fixed inset-0 bg-[#0B0B0B]/45 backdrop-blur-[2px]"
+        onClick={onClose}
+        aria-hidden
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        className={`relative z-10 w-full ${maxWidth} bg-white rounded-2xl border border-[#0B0B0B]/10 shadow-2xl my-6 sm:my-10`}
+      >
+        <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-[#0B0B0B]/8">
+          <div className="min-w-0">
+            <h2 className="text-[17px] font-black tracking-tight text-[#0B0B0B]">{title}</h2>
+            {description && <p className="text-[12px] text-[#0B0B0B]/45 mt-0.5">{description}</p>}
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="p-1.5 rounded-lg text-[#0B0B0B]/35 hover:text-[#0B0B0B] hover:bg-[#0B0B0B]/6 transition-colors shrink-0"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <div className="px-6 py-5">{children}</div>
+        {footer && (
+          <div className="flex items-center justify-end gap-2.5 px-6 py-4 border-t border-[#0B0B0B]/8 bg-[#fafafa] rounded-b-2xl">
+            {footer}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 

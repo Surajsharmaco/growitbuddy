@@ -548,8 +548,10 @@ export default function InsightDetail() {
     return () => { document.getElementById("article-styles")?.remove(); };
   }, [slug]);
 
+  // Only live posts are reachable on the public site: trashed or draft CMS posts
+  // must 404 (and never surface as "related"), exactly like the listing page.
   const allPosts: BlogPost[] = [
-    ...(cmsPosts ?? []),
+    ...(cmsPosts ?? []).filter((p) => !p.trashed && (p.status ?? "published") === "published"),
     ...wpPosts,
   ];
 

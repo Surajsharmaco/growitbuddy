@@ -15,7 +15,7 @@ import {
   CheckCircle, AlertCircle, XCircle, Lightbulb, Share2,
   Code, HelpCircle, Eye, Strikethrough, Underline, Eraser,
   ImagePlus, Table2, X as XIcon, Pilcrow,
-  Sparkles, Zap, TrendingUp, RefreshCw, Layers,
+  Sparkles, Zap, TrendingUp, RefreshCw, Layers, RotateCcw,
 } from "lucide-react";
 
 // ─────────────────────────────────────
@@ -2376,14 +2376,24 @@ function generateSchema(post: BlogPost, seo: PostSeo) {
 // POST LIST
 // ─────────────────────────────────────
 
-function PostList({ posts, onEdit, onDelete, onAdd }: {
-  posts: BlogPost[]; onEdit: (p: BlogPost) => void; onDelete: (slug: string, idx: number) => void; onAdd: () => void;
+function PostList({ posts, onEdit, onDelete, onRestore, onPermanentDelete, onAdd }: {
+  posts: BlogPost[];
+  onEdit: (p: BlogPost) => void;
+  onDelete: (slug: string, idx: number) => void;
+  onRestore: (idx: number) => void;
+  onPermanentDelete: (slug: string, idx: number) => void;
+  onAdd: () => void;
 }) {
   const [filter, setFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState<"all" | "published" | "draft">("all");
   const [search, setSearch] = useState("");
-  const allTags = ["All", ...Array.from(new Set(posts.map((p) => p.tag)))];
-  const shown = posts
+  const [view, setView] = useState<"active" | "trash">("active");
+
+  const activePosts = posts.filter((p) => !p.trashed);
+  const trashedPosts = posts.filter((p) => p.trashed);
+
+  const allTags = ["All", ...Array.from(new Set(activePosts.map((p) => p.tag)))];
+  const shown = activePosts
     .filter((p) => filter === "All" || p.tag === filter)
     .filter((p) => {
       if (statusFilter === "all") return true;
@@ -2391,15 +2401,15 @@ function PostList({ posts, onEdit, onDelete, onAdd }: {
       return s === statusFilter;
     })
     .filter((p) => !search || p.title.toLowerCase().includes(search.toLowerCase()) || p.excerpt.toLowerCase().includes(search.toLowerCase()));
-  const publishedCount = posts.filter((p) => (p.status ?? "published") === "published").length;
-  const draftCount = posts.filter((p) => (p.status ?? "published") === "draft").length;
+  const publishedCount = activePosts.filter((p) => (p.status ?? "published") === "published").length;
+  const draftCount = activePosts.filter((p) => (p.status ?? "published") === "draft").length;
 
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
         <div>
           <h1 className="text-[22px] font-black tracking-tight text-[#0B0B0B]">Blog / Insights</h1>
-          <p className="text-[13px] text-[#0B0B0B]/40 mt-0.5">{posts.length} post{posts.length !== 1 ? "s" : ""}</p>
+          <p className="text-[13px] text-[#0B0B0B]/40 mt-0.5">{activePosts.length} post{activePosts.length !== 1 ? "s" : ""}</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="relative">
@@ -2412,6 +2422,73 @@ function PostList({ posts, onEdit, onDelete, onAdd }: {
         </div>
       </div>
 
+      {/* Active / Trash tabs */}
+      <div className="flex items-center gap-1 mb-4 border-b border-[#0B0B0B]/8">
+        <button
+          onClick={() => setView("active")}
+          className={`px-4 py-2.5 text-[13px] font-semibold -mb-px border-b-2 transition-colors ${
+            view === "active" ? "border-[#0B0B0B] text-[#0B0B0B]" : "border-transparent text-[#0B0B0B]/40 hover:text-[#0B0B0B]/70"
+          }`}
+        >
+          Active ({activePosts.length})
+        </button>
+        <button
+          onClick={() => setView("trash")}
+          className={`flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-semibold -mb-px border-b-2 transition-colors ${
+            view === "trash" ? "border-[#0B0B0B] text-[#0B0B0B]" : "border-transparent text-[#0B0B0B]/40 hover:text-[#0B0B0B]/70"
+          }`}
+        >
+          <Trash2 size={13} /> Trash ({trashedPosts.length})
+        </button>
+      </div>
+
+      {view === "trash" ? (
+        <Card className="p-0 overflow-hidden">
+          <div className="divide-y divide-[#0B0B0B]/6">
+            {trashedPosts.length === 0 && (
+              <p className="text-[13px] text-[#0B0B0B]/40 text-center py-10">Trash is empty.</p>
+            )}
+            {trashedPosts.map((post, i) => {
+              const realIdx = posts.indexOf(post);
+              return (
+                <div key={post.slug + i} className="flex items-center justify-between gap-3 px-5 py-3.5">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="shrink-0 w-12 h-9 rounded-lg overflow-hidden bg-[#0B0B0B]/6 flex items-center justify-center">
+                      {post.featuredImage ? (
+                        <img src={post.featuredImage} alt={post.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-[8px] font-bold text-[#0B0B0B]/20 uppercase tracking-widest">No img</span>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-semibold text-[#0B0B0B] truncate">{post.title || "(no title)"}</p>
+                      <p className="text-[11px] text-[#0B0B0B]/40 truncate">
+                        {post.tag}
+                        {post.trashedAt ? ` · trashed ${new Date(post.trashedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : ""}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => onRestore(realIdx)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors"
+                    >
+                      <RotateCcw size={12} /> Restore
+                    </button>
+                    <button
+                      onClick={() => onPermanentDelete(post.slug, realIdx)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 transition-colors"
+                    >
+                      <Trash2 size={12} /> Delete
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      ) : (
+      <>
       {/* Status filter pills */}
       <div className="flex items-center gap-2 mb-3">
         {([
@@ -2531,6 +2608,8 @@ function PostList({ posts, onEdit, onDelete, onAdd }: {
           </tbody>
         </table>
       </Card>
+      </>
+      )}
     </div>
   );
 }
@@ -2577,8 +2656,18 @@ export default function AdminBlog() {
     }
   }
 
-  function handleDelete(slug: string, idx: number) {
-    if (!confirm("Delete this post permanently?")) return;
+  // Soft delete → move to Trash (reversible, so no confirm needed).
+  function handleDelete(_slug: string, idx: number) {
+    const now = new Date().toISOString();
+    persist(posts.map((p, i) => (i === idx ? { ...p, trashed: true, trashedAt: now } : p)));
+  }
+
+  function handleRestore(idx: number) {
+    persist(posts.map((p, i) => (i === idx ? { ...p, trashed: false, trashedAt: undefined } : p)));
+  }
+
+  function handlePermanentDelete(_slug: string, idx: number) {
+    if (!confirm("Delete this post permanently? This cannot be undone.")) return;
     persist(posts.filter((_, i) => i !== idx));
   }
 
@@ -2616,6 +2705,8 @@ export default function AdminBlog() {
         posts={posts}
         onEdit={(post) => setEditing({ post: { ...post }, isNew: false })}
         onDelete={handleDelete}
+        onRestore={handleRestore}
+        onPermanentDelete={handlePermanentDelete}
         onAdd={() =>
           setEditing({
             isNew: true,

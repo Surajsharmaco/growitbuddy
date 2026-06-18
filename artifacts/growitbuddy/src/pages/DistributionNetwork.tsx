@@ -250,7 +250,7 @@ export default function DistributionNetwork() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filtered = useMemo(() => {
-    let list = distributionPages.filter((p) => p.profileEnabled !== false);
+    let list = distributionPages.filter((p) => !p.trashed && p.profileEnabled !== false);
     if (selectedGenres.length > 0) list = list.filter((p) => selectedGenres.includes(p.niche));
     if (selectedCountries.length > 0) list = list.filter((p) => selectedCountries.includes(p.country));
     if (searchQuery.trim()) {

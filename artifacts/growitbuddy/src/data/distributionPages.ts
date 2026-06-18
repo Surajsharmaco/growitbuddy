@@ -12,6 +12,10 @@ export interface DistributionPage {
   highEngagement?: boolean;
   profileEnabled?: boolean;
   instagramUrl?: string;
+  /** Soft-delete flag: when true the page lives in Trash, hidden from the public site and the main admin list. */
+  trashed?: boolean;
+  /** ISO timestamp of when the page was moved to Trash. */
+  trashedAt?: string;
 }
 
 export const DISTRIBUTION_NICHES = [

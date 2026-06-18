@@ -107,11 +107,14 @@ sitemapRouter.get("/sitemap-blog.xml", async (_req: Request, res: Response) => {
       .where(eq(siteContent.section, "blog"))
       .limit(1);
 
-    const posts = (rows[0]?.data?.posts ?? []) as Array<{ slug?: string; date?: string }>;
+    const posts = (rows[0]?.data?.posts ?? []) as Array<{ slug?: string; date?: string; trashed?: boolean; status?: string }>;
     const fallbackDate = new Date().toISOString().split("T")[0];
 
     for (const post of posts) {
       if (!post.slug) continue;
+      // Never advertise trashed or draft posts in the sitemap (mirror /blog).
+      if (post.trashed === true || (post.status ?? "published") !== "published")
+        continue;
       const lastmod = post.date
         ? new Date(post.date).toISOString().split("T")[0]
         : fallbackDate;

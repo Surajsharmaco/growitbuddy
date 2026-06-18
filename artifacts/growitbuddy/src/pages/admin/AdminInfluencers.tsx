@@ -1,11 +1,11 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { NICHE_CATEGORIES, COUNTRIES, type Influencer } from "@/data/influencers";
-import { PageHeader, Card, Input, Textarea, SaveBar } from "@/components/admin/AdminField";
+import { PageHeader, Card, Input, Textarea, SaveBar, Modal } from "@/components/admin/AdminField";
 import { ImagePickerField } from "@/components/admin/ImagePickerField";
 import {
   Plus, Trash2, Search, X, Eye, EyeOff, ChevronDown, ChevronUp,
-  Settings2, Clock, Download, User, Globe, ArrowLeft, Check,
+  Settings2, Clock, Download, User, Globe, Check, RotateCcw,
 } from "lucide-react";
 import ExcelJS from "exceljs";
 
@@ -25,6 +25,16 @@ function formatRelativeDate(iso: string | undefined): string {
 
 function slugify(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+// Ensure a new slug is unique against every existing slug (including trashed
+// items, so a restore can never collide with a slug created in the meantime).
+function uniqueSlug(base: string, taken: string[]): string {
+  const cleaned = base || "influencer";
+  if (!taken.includes(cleaned)) return cleaned;
+  let n = 2;
+  while (taken.includes(`${cleaned}-${n}`)) n += 1;
+  return `${cleaned}-${n}`;
 }
 
 const BLANK: Influencer = {
@@ -323,52 +333,66 @@ function TagListEditor({ title, tags, onChange }: { title: string; tags: string[
   );
 }
 
-/* ── New influencer form (full-page view) ────────────────── */
-function NewInfluencerForm({
-  genres, countries, onSubmit, onCancel,
+/* ── Add influencer popup (centered modal) ───────────────── */
+function AddInfluencerModal({
+  open, genres, countries, onSubmit, onClose,
 }: {
+  open: boolean;
   genres: string[];
   countries: string[];
   onSubmit: (inf: Influencer) => void;
-  onCancel: () => void;
+  onClose: () => void;
 }) {
   const [draft, setDraft] = useState<Influencer>({ ...BLANK });
   const set = (patch: Partial<Influencer>) => setDraft((p) => ({ ...p, ...patch }));
   const canSubmit = draft.name.trim().length > 0;
 
+  // Reset the form each time the popup opens so it never carries stale input.
+  useEffect(() => {
+    if (open) setDraft({ ...BLANK });
+  }, [open]);
+
   return (
-    <div>
-      {/* Back nav */}
-      <div className="flex items-center gap-3 mb-6">
-        <button
-          onClick={onCancel}
-          className="flex items-center gap-2 text-[13px] font-semibold text-[#0B0B0B]/50 hover:text-[#0B0B0B] transition-colors"
-        >
-          <ArrowLeft size={14} /> Back to Influencers
-        </button>
-      </div>
-
-      <PageHeader title="Add Influencer" description="Fill in the details below. You can always edit everything later." />
-
-      <div className="space-y-5">
-
-        {/* Profile */}
-        <Card>
-          <SectionHead icon={<User size={13} />} label="Profile" />
-          <div className="flex gap-5 items-start">
-            <div className="shrink-0">
-              <ImagePickerField
-                label="Photo"
-                value={draft.photo}
-                onChange={(url) => set({ photo: url })}
-                shapeValue={draft.photoShape ?? "square"}
-                onShapeChange={(s) => set({ photoShape: s })}
-                size={80}
-                requireCrop
-                hint="Recommended: 400 × 400 px (square) • Face centered"
-              />
-            </div>
-            <div className="flex-1 grid grid-cols-2 gap-3">
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Add Influencer"
+      description="Enter the basics to create the profile. You can edit everything later."
+      maxWidth="max-w-2xl"
+      footer={
+        <>
+          <button
+            onClick={onClose}
+            className="px-4 py-2.5 rounded-xl border border-[#0B0B0B]/12 text-[13px] font-semibold text-[#0B0B0B]/60 hover:border-[#0B0B0B]/30 hover:text-[#0B0B0B] transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => canSubmit && onSubmit(draft)}
+            disabled={!canSubmit}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0B0B0B] text-white text-[13px] font-semibold hover:bg-[#0B0B0B]/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Check size={15} /> Add Influencer
+          </button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <div className="flex gap-4 items-start">
+          <div className="shrink-0">
+            <ImagePickerField
+              label="Photo"
+              value={draft.photo}
+              onChange={(url) => set({ photo: url })}
+              shapeValue={draft.photoShape ?? "square"}
+              onShapeChange={(s) => set({ photoShape: s })}
+              size={72}
+              requireCrop
+              hint="400 × 400 px"
+            />
+          </div>
+          <div className="flex-1 grid grid-cols-2 gap-3">
+            <div className="col-span-2">
               <Input
                 label="Full Name *"
                 value={draft.name}
@@ -382,116 +406,73 @@ function NewInfluencerForm({
                 }}
                 placeholder="Aisha Rahman"
               />
-              <Input
-                label="Username / Handle"
-                value={draft.username}
-                onChange={(e) => set({ username: e.target.value })}
-                placeholder="@aisharahman"
-              />
-              <div>
-                <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-1.5 uppercase tracking-wider">Niche / Category</label>
-                <select
-                  value={draft.niche}
-                  onChange={(e) => set({ niche: e.target.value })}
-                  className="w-full border border-[#0B0B0B]/12 rounded-xl px-3.5 py-2.5 text-[13px] text-[#0B0B0B] outline-none focus:border-[#0B0B0B]/40 bg-white"
-                >
-                  {genres.map((n) => <option key={n} value={n}>{n}</option>)}
-                </select>
-              </div>
-              <Input
-                label="Followers"
-                value={draft.followers}
-                onChange={(e) => set({ followers: e.target.value })}
-                placeholder="284K"
-              />
-              <Input
-                label="Engagement Rate"
-                value={draft.engagementRate}
-                onChange={(e) => set({ engagementRate: e.target.value })}
-                placeholder="4.8%"
-              />
-              <div className="flex gap-3">
-                <div className="flex-1">
-                  <Input
-                    label="Initials"
-                    value={draft.initials}
-                    onChange={(e) => set({ initials: e.target.value.slice(0, 3).toUpperCase() })}
-                    placeholder="AR"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-1.5 uppercase tracking-wider">Accent</label>
-                  <div className="flex items-center gap-2 border border-[#0B0B0B]/12 rounded-xl px-3 py-2.5 bg-white">
-                    <input
-                      type="color"
-                      value={draft.accentColor}
-                      onChange={(e) => set({ accentColor: e.target.value })}
-                      className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0"
-                    />
-                    <span className="text-[12px] font-mono text-[#0B0B0B]/50">{draft.accentColor}</span>
-                  </div>
-                </div>
-              </div>
             </div>
-          </div>
-          <div className="mt-3">
-            <Textarea
-              label="Short Description"
-              value={draft.description}
-              onChange={(e) => set({ description: e.target.value })}
-              placeholder="One-line bio shown on the influencer card..."
-              rows={2}
+            <Input
+              label="Username / Handle"
+              value={draft.username}
+              onChange={(e) => set({ username: e.target.value })}
+              placeholder="@aisharahman"
+            />
+            <div>
+              <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-1.5 uppercase tracking-wider">Niche / Category</label>
+              <select
+                value={draft.niche}
+                onChange={(e) => set({ niche: e.target.value })}
+                className="w-full border border-[#0B0B0B]/12 rounded-xl px-3.5 py-2.5 text-[13px] text-[#0B0B0B] outline-none focus:border-[#0B0B0B]/40 bg-white"
+              >
+                {genres.map((n) => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
+            <Input
+              label="Followers"
+              value={draft.followers}
+              onChange={(e) => set({ followers: e.target.value })}
+              placeholder="284K"
+            />
+            <Input
+              label="Engagement Rate"
+              value={draft.engagementRate}
+              onChange={(e) => set({ engagementRate: e.target.value })}
+              placeholder="4.8%"
             />
           </div>
-        </Card>
+        </div>
 
-        {/* Audience Countries */}
-        <Card>
-          <SectionHead icon={<Globe size={13} />} label="Audience Countries" />
+        <Textarea
+          label="Short Description"
+          value={draft.description}
+          onChange={(e) => set({ description: e.target.value })}
+          placeholder="One-line bio shown on the influencer card..."
+          rows={2}
+        />
+
+        <div>
+          <label className="flex items-center gap-1.5 text-[12px] font-semibold text-[#0B0B0B]/60 mb-2 uppercase tracking-wider">
+            <Globe size={12} /> Audience Countries
+          </label>
           <CountryPicker
             selected={draft.audienceCountries ?? []}
             countries={countries}
             onChange={(audienceCountries) => set({ audienceCountries })}
           />
-        </Card>
+        </div>
 
-        {/* Visibility */}
-        <Card>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[13px] font-semibold text-[#0B0B0B]">Publish to directory</p>
-              <p className="text-[12px] text-[#0B0B0B]/40">Show this profile on the public influencer directory</p>
-            </div>
-            <button
-              onClick={() => set({ profileEnabled: !draft.profileEnabled })}
-              className={`relative w-10 h-6 rounded-full transition-colors ${draft.profileEnabled ? "bg-[#0B0B0B]" : "bg-[#0B0B0B]/20"}`}
-            >
-              <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${draft.profileEnabled ? "translate-x-4" : ""}`} />
-            </button>
+        <div className="flex items-center justify-between rounded-xl border border-[#0B0B0B]/10 px-4 py-3">
+          <div>
+            <p className="text-[13px] font-semibold text-[#0B0B0B]">{draft.profileEnabled ? "Publish now (Live)" : "Save as Draft (Hidden)"}</p>
+            <p className="text-[12px] text-[#0B0B0B]/40">
+              {draft.profileEnabled ? "Visible on the public directory right away." : "Stays hidden from the public site until you switch it to Live."}
+            </p>
           </div>
-        </Card>
-
-        {/* Actions */}
-        <div className="flex items-center gap-3 pb-8">
           <button
-            onClick={() => canSubmit && onSubmit(draft)}
-            disabled={!canSubmit}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#0B0B0B] text-white text-[14px] font-semibold hover:bg-[#0B0B0B]/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            onClick={() => set({ profileEnabled: !draft.profileEnabled })}
+            className={`relative w-10 h-6 rounded-full transition-colors shrink-0 ${draft.profileEnabled ? "bg-[#0B0B0B]" : "bg-[#0B0B0B]/20"}`}
           >
-            <Check size={15} /> Add to Directory
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${draft.profileEnabled ? "translate-x-4" : ""}`} />
           </button>
-          <button
-            onClick={onCancel}
-            className="px-5 py-3 rounded-xl border border-[#0B0B0B]/12 text-[14px] font-semibold text-[#0B0B0B]/60 hover:border-[#0B0B0B]/30 hover:text-[#0B0B0B] transition-colors"
-          >
-            Cancel
-          </button>
-          {!canSubmit && (
-            <span className="text-[12px] text-[#0B0B0B]/40">Enter a name to continue</span>
-          )}
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -508,7 +489,8 @@ export default function AdminInfluencers() {
   const [nicheFilter, setNicheFilter] = useState("All");
   const [countryFilter, setCountryFilter] = useState("All");
   const [dateFilter, setDateFilter] = useState<"all" | "today" | "week" | "month" | "3months" | "6months" | "1year">("all");
-  const [showNewForm, setShowNewForm] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [view, setView] = useState<"active" | "trash">("active");
   const [listsOpen, setListsOpen] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
 
@@ -533,21 +515,41 @@ export default function AdminInfluencers() {
     setItems((p) => p.map((x, idx) => (idx === i ? { ...val, updatedAt: new Date().toISOString() } : x)));
   }
 
+  // Soft delete → move to Trash (reversible, so no confirm needed).
   function handleDelete(i: number) {
-    if (!confirm("Remove this influencer?")) return;
+    setSaved(false);
+    const now = new Date().toISOString();
+    setItems((p) => p.map((x, idx) => (idx === i ? { ...x, trashed: true, trashedAt: now, updatedAt: now } : x)));
+  }
+
+  function handleRestore(i: number) {
+    setSaved(false);
+    const now = new Date().toISOString();
+    setItems((p) => p.map((x, idx) => (idx === i ? { ...x, trashed: false, trashedAt: undefined, updatedAt: now } : x)));
+  }
+
+  function handlePermanentDelete(i: number) {
+    if (!confirm("Permanently delete this influencer? This cannot be undone.")) return;
     setSaved(false);
     setItems((p) => p.filter((_, idx) => idx !== i));
   }
 
   function addNew() {
-    setShowNewForm(true);
-    topRef.current?.scrollIntoView({ behavior: "smooth" });
+    setShowAddModal(true);
   }
 
   function handleNewSubmit(inf: Influencer) {
     setSaved(false);
-    setItems((p) => [...p, { ...inf, updatedAt: new Date().toISOString() }]);
-    setShowNewForm(false);
+    setItems((p) => {
+      const slug = uniqueSlug(inf.slug || slugify(inf.name), p.map((x) => x.slug).filter(Boolean));
+      return [{ ...inf, slug, trashed: false, updatedAt: new Date().toISOString() }, ...p];
+    });
+    setShowAddModal(false);
+    setView("active");
+    setSearch("");
+    setNicheFilter("All");
+    setCountryFilter("All");
+    setDateFilter("all");
   }
 
   async function handleSave() {
@@ -560,7 +562,10 @@ export default function AdminInfluencers() {
     }
   }
 
-  const filtered = items.filter((inf) => {
+  const activeItems = items.filter((inf) => !inf.trashed);
+  const trashedItems = items.filter((inf) => inf.trashed);
+
+  const filtered = activeItems.filter((inf) => {
     const q = search.toLowerCase();
     const matchSearch = !q || inf.name.toLowerCase().includes(q) || inf.niche.toLowerCase().includes(q) || inf.username.toLowerCase().includes(q);
     const matchNiche = nicheFilter === "All" || inf.niche === nicheFilter;
@@ -724,8 +729,9 @@ export default function AdminInfluencers() {
     URL.revokeObjectURL(url);
   }
 
-  const liveCount = items.filter((inf) => inf.profileEnabled !== false).length;
-  const hiddenCount = items.length - liveCount;
+  const liveCount = activeItems.filter((inf) => inf.profileEnabled !== false).length;
+  const hiddenCount = activeItems.length - liveCount;
+  const trashCount = trashedItems.length;
 
   if (loadState !== "ready") {
     return (
@@ -745,20 +751,85 @@ export default function AdminInfluencers() {
 
   return (
     <div ref={topRef}>
-      {showNewForm ? (
-        <NewInfluencerForm
-          genres={genres}
-          countries={countries}
-          onSubmit={handleNewSubmit}
-          onCancel={() => setShowNewForm(false)}
-        />
+      <PageHeader
+        title="Influencers"
+        description={`${activeItems.length} creator${activeItems.length !== 1 ? "s" : ""} · ${liveCount} live · ${hiddenCount} hidden`}
+      />
+
+      {/* Active / Trash tabs */}
+      <div className="flex items-center gap-2 mb-5">
+        <button
+          onClick={() => setView("active")}
+          className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-semibold border transition-all ${
+            view === "active"
+              ? "bg-[#0B0B0B] text-white border-[#0B0B0B]"
+              : "bg-white text-[#0B0B0B]/55 border-[#0B0B0B]/12 hover:border-[#0B0B0B]/30 hover:text-[#0B0B0B]"
+          }`}
+        >
+          Active
+          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${view === "active" ? "bg-white/20 text-white" : "bg-[#0B0B0B]/8 text-[#0B0B0B]/50"}`}>{activeItems.length}</span>
+        </button>
+        <button
+          onClick={() => setView("trash")}
+          className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-semibold border transition-all ${
+            view === "trash"
+              ? "bg-[#0B0B0B] text-white border-[#0B0B0B]"
+              : "bg-white text-[#0B0B0B]/55 border-[#0B0B0B]/12 hover:border-[#0B0B0B]/30 hover:text-[#0B0B0B]"
+          }`}
+        >
+          <Trash2 size={13} /> Trash
+          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${view === "trash" ? "bg-white/20 text-white" : "bg-[#0B0B0B]/8 text-[#0B0B0B]/50"}`}>{trashCount}</span>
+        </button>
+      </div>
+
+      {view === "trash" ? (
+        <>
+          <div className="space-y-3">
+            {trashedItems.length === 0 ? (
+              <Card><p className="text-[13px] text-[#0B0B0B]/40 text-center py-10">Trash is empty. Deleted influencers appear here and can be restored anytime before you permanently delete them.</p></Card>
+            ) : (
+              trashedItems.map((inf) => {
+                const realIndex = items.indexOf(inf);
+                return (
+                  <Card key={realIndex} className="p-0 overflow-hidden">
+                    <div className="flex items-center gap-3 px-5 py-3.5">
+                      {inf.photo ? (
+                        <img src={inf.photo} alt={inf.name} className="w-9 h-9 rounded-full object-cover shrink-0 grayscale opacity-60" />
+                      ) : (
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0 opacity-50" style={{ background: inf.accentColor || "#0B0B0B" }}>
+                          {inf.initials || "?"}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-semibold text-[#0B0B0B]/70 truncate">{inf.name || "Unnamed Influencer"}</p>
+                        <p className="text-[11px] text-[#0B0B0B]/40 truncate">{inf.username ? `${inf.username} · ` : ""}{inf.niche}</p>
+                        <p className="text-[10px] text-[#0B0B0B]/25 flex items-center gap-1 mt-0.5"><Clock size={9} /> Trashed {formatRelativeDate(inf.trashedAt)}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          onClick={() => handleRestore(realIndex)}
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 transition-all"
+                        >
+                          <RotateCcw size={11} /> Restore
+                        </button>
+                        <button
+                          onClick={() => handlePermanentDelete(realIndex)}
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border bg-red-50 text-red-600 border-red-200 hover:bg-red-100 transition-all"
+                        >
+                          <Trash2 size={11} /> Delete
+                        </button>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })
+            )}
+          </div>
+
+          <SaveBar onSave={handleSave} saving={saving} saved={saved} />
+        </>
       ) : (
         <>
-          <PageHeader
-            title="Influencers"
-            description={`${items.length} creator${items.length !== 1 ? "s" : ""} · ${liveCount} live · ${hiddenCount} hidden`}
-          />
-
           {/* Genre & Country list manager */}
           <Card className="mb-5 overflow-hidden p-0">
             <button
@@ -855,7 +926,7 @@ export default function AdminInfluencers() {
           <div className="mb-5">
             <div className="flex items-center gap-1.5 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
               {(["All", ...genres] as string[]).map((niche) => {
-                const count = niche === "All" ? items.length : items.filter((inf) => inf.niche === niche).length;
+                const count = niche === "All" ? activeItems.length : activeItems.filter((inf) => inf.niche === niche).length;
                 const active = nicheFilter === niche;
                 if (count === 0 && niche !== "All") return null;
                 return (
@@ -874,7 +945,7 @@ export default function AdminInfluencers() {
             </div>
             {(search || nicheFilter !== "All" || countryFilter !== "All" || dateFilter !== "all") && (
               <div className="flex items-center gap-2 mt-2">
-                <span className="text-[12px] text-[#0B0B0B]/40">Showing {filtered.length} of {items.length} influencers</span>
+                <span className="text-[12px] text-[#0B0B0B]/40">Showing {filtered.length} of {activeItems.length} influencers</span>
                 <button
                   onClick={() => { setSearch(""); setNicheFilter("All"); setCountryFilter("All"); setDateFilter("all"); }}
                   className="text-[11px] text-[#0B0B0B]/40 hover:text-[#0B0B0B] underline underline-offset-2 transition-colors"
@@ -910,6 +981,14 @@ export default function AdminInfluencers() {
           <SaveBar onSave={handleSave} saving={saving} saved={saved} />
         </>
       )}
+
+      <AddInfluencerModal
+        open={showAddModal}
+        genres={genres}
+        countries={countries}
+        onSubmit={handleNewSubmit}
+        onClose={() => setShowAddModal(false)}
+      />
     </div>
   );
 }

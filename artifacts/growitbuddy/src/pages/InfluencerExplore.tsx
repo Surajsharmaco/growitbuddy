@@ -280,7 +280,7 @@ export default function InfluencerExplore() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filtered = useMemo(() => {
-    let list = influencers.filter((inf) => inf.profileEnabled !== false);
+    let list = influencers.filter((inf) => !inf.trashed && inf.profileEnabled !== false);
     if (selectedGenres.length > 0) {
       list = list.filter((inf) => selectedGenres.includes(inf.niche));
     }

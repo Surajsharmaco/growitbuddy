@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { DISTRIBUTION_NICHES, DISTRIBUTION_COUNTRIES, type DistributionPage } from "@/data/distributionPages";
-import { PageHeader, Card, Input, SaveBar } from "@/components/admin/AdminField";
+import { PageHeader, Card, Input, SaveBar, Modal } from "@/components/admin/AdminField";
 import { ImagePickerField } from "@/components/admin/ImagePickerField";
-import { Plus, Trash2, Search, X, Eye, EyeOff, ChevronDown, ChevronUp, Settings2, Clock, Download, Zap, Copy, ExternalLink } from "lucide-react";
+import { Plus, Trash2, Search, X, Eye, EyeOff, ChevronDown, ChevronUp, Settings2, Clock, Download, Zap, Copy, ExternalLink, Check, RotateCcw } from "lucide-react";
 import * as XLSX from "xlsx";
 
 type DistPage = DistributionPage & { updatedAt?: string };
@@ -50,6 +50,16 @@ function slugify(input: string): string {
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
+}
+
+// Ensure a new slug is unique against every existing slug (including trashed
+// pages, so a restore can never collide with a slug created in the meantime).
+function uniqueSlug(base: string, taken: string[]): string {
+  const cleaned = base || "page";
+  if (!taken.includes(cleaned)) return cleaned;
+  let n = 2;
+  while (taken.includes(`${cleaned}-${n}`)) n += 1;
+  return `${cleaned}-${n}`;
 }
 
 function PageRow({
@@ -340,6 +350,169 @@ function TagListEditor({ title, tags, onChange }: { title: string; tags: string[
   );
 }
 
+/* ── Add distribution page popup (centered modal) ────────── */
+function AddDistributionModal({
+  open, niches, countries, takenSlugs, onSubmit, onClose,
+}: {
+  open: boolean;
+  niches: string[];
+  countries: string[];
+  takenSlugs: string[];
+  onSubmit: (page: DistPage) => void;
+  onClose: () => void;
+}) {
+  const [draft, setDraft] = useState<DistPage>({ ...BLANK });
+  const set = (patch: Partial<DistPage>) => setDraft((p) => ({ ...p, ...patch }));
+  const canSubmit = draft.name.trim().length > 0;
+
+  // Reset the form each time the popup opens so it never carries stale input.
+  useEffect(() => { if (open) setDraft({ ...BLANK }); }, [open]);
+
+  const slugPreview = draft.slug || slugify(draft.name) || "your-slug";
+  const slugClash = draft.slug.trim().length > 0 && takenSlugs.includes(draft.slug);
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Add Distribution Page"
+      description="Enter the basics to create the page. You can edit everything later."
+      maxWidth="max-w-2xl"
+      footer={
+        <>
+          <button
+            onClick={onClose}
+            className="px-4 py-2.5 rounded-xl border border-[#0B0B0B]/12 text-[13px] font-semibold text-[#0B0B0B]/60 hover:border-[#0B0B0B]/30 hover:text-[#0B0B0B] transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => canSubmit && onSubmit(draft)}
+            disabled={!canSubmit}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0B0B0B] text-white text-[13px] font-semibold hover:bg-[#0B0B0B]/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Check size={15} /> Add Page
+          </button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <div className="flex gap-4 items-start">
+          <div className="shrink-0">
+            <ImagePickerField
+              label="Photo"
+              value={draft.photo}
+              onChange={(url) => set({ photo: url })}
+              shape="circle"
+              size={72}
+              hint="400 × 400 px"
+            />
+          </div>
+          <div className="flex-1 grid grid-cols-2 gap-3">
+            <div className="col-span-2">
+              <Input
+                label="Page Name *"
+                value={draft.name}
+                onChange={(e) => {
+                  const name = e.target.value;
+                  setDraft((p) => ({
+                    ...p,
+                    name,
+                    initials: p.initials || name.split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase(),
+                    slug: p.slug ? p.slug : slugify(name),
+                  }));
+                }}
+                placeholder="Hustle Empire"
+              />
+            </div>
+            <Input label="Handle" value={draft.handle} onChange={(e) => set({ handle: e.target.value })} placeholder="@hustleempire" />
+            <Input label="Followers (display)" value={draft.followers} onChange={(e) => set({ followers: e.target.value })} placeholder="3.4M" />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-1.5 uppercase tracking-wider">
+            URL Slug <span className="text-[#0B0B0B]/35 font-normal normal-case tracking-normal">— /distribution/<strong className="font-semibold text-[#0B0B0B]/60">{slugPreview}</strong></span>
+          </label>
+          <div className="flex items-stretch border border-[#0B0B0B]/12 rounded-xl overflow-hidden bg-white focus-within:border-[#0B0B0B]/40">
+            <span className="px-3 py-2.5 text-[12px] text-[#0B0B0B]/35 bg-[#0B0B0B]/4 border-r border-[#0B0B0B]/8 font-mono whitespace-nowrap flex items-center">/distribution/</span>
+            <input
+              value={draft.slug}
+              onChange={(e) => set({ slug: slugify(e.target.value) })}
+              placeholder="hustle-empire"
+              className="flex-1 px-3 py-2.5 text-[13px] text-[#0B0B0B] placeholder-[#0B0B0B]/30 outline-none font-mono"
+            />
+          </div>
+          {slugClash && <p className="text-[11px] text-amber-600 font-semibold mt-1.5">This slug is taken — it'll be auto-numbered when you add the page.</p>}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-1.5 uppercase tracking-wider">Niche</label>
+            <select
+              value={draft.niche}
+              onChange={(e) => set({ niche: e.target.value })}
+              className="w-full border border-[#0B0B0B]/12 rounded-xl px-3.5 py-2.5 text-[13px] text-[#0B0B0B] outline-none focus:border-[#0B0B0B]/40 bg-white"
+            >
+              {niches.map((n) => <option key={n} value={n}>{n}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-1.5 uppercase tracking-wider">Country</label>
+            <select
+              value={draft.country}
+              onChange={(e) => set({ country: e.target.value })}
+              className="w-full border border-[#0B0B0B]/12 rounded-xl px-3.5 py-2.5 text-[13px] text-[#0B0B0B] outline-none focus:border-[#0B0B0B]/40 bg-white"
+            >
+              {countries.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <Input label="Initials (fallback avatar)" value={draft.initials} onChange={(e) => set({ initials: e.target.value.toUpperCase().slice(0, 3) })} placeholder="HE" />
+          <div>
+            <label className="block text-[12px] font-semibold text-[#0B0B0B]/60 mb-1.5 uppercase tracking-wider">Accent Color</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={draft.accentColor}
+                onChange={(e) => set({ accentColor: e.target.value })}
+                className="w-10 h-10 rounded-xl border border-[#0B0B0B]/12 cursor-pointer p-1"
+              />
+              <Input label="" value={draft.accentColor} onChange={(e) => set({ accentColor: e.target.value })} placeholder="#0B0B0B" className="flex-1" />
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => set({ highEngagement: !draft.highEngagement })}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-semibold border transition-all ${
+            draft.highEngagement
+              ? "bg-amber-50 text-amber-700 border-amber-200"
+              : "bg-[#0B0B0B]/5 text-[#0B0B0B]/40 border-[#0B0B0B]/10 hover:border-[#0B0B0B]/20"
+          }`}
+        >
+          <Zap size={13} /> {draft.highEngagement ? "High Engagement - ON" : "High Engagement - OFF"}
+        </button>
+
+        <div className="flex items-center justify-between rounded-xl border border-[#0B0B0B]/10 px-4 py-3">
+          <div>
+            <p className="text-[13px] font-semibold text-[#0B0B0B]">{draft.profileEnabled ? "Publish now (Live)" : "Save as Draft (Hidden)"}</p>
+            <p className="text-[12px] text-[#0B0B0B]/40">
+              {draft.profileEnabled ? "Visible on the public site right away." : "Stays hidden from the public site until you switch it to Live."}
+            </p>
+          </div>
+          <button
+            onClick={() => set({ profileEnabled: !draft.profileEnabled })}
+            className={`relative w-10 h-6 rounded-full transition-colors shrink-0 ${draft.profileEnabled ? "bg-[#0B0B0B]" : "bg-[#0B0B0B]/20"}`}
+          >
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${draft.profileEnabled ? "translate-x-4" : ""}`} />
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
 export default function AdminDistributionPages() {
   const { getContentResult, saveContent } = useAdmin();
   const [items, setItems] = useState<DistPage[]>([]);
@@ -353,6 +526,8 @@ export default function AdminDistributionPages() {
   const [countryFilter, setCountryFilter] = useState("All");
   const [dateFilter, setDateFilter] = useState<"all" | "today" | "week" | "month" | "3months" | "6months" | "1year">("all");
   const [newIndex, setNewIndex] = useState<number | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [view, setView] = useState<"active" | "trash">("active");
   const [listsOpen, setListsOpen] = useState(false);
 
   const load = useCallback(() => {
@@ -376,8 +551,22 @@ export default function AdminDistributionPages() {
     setItems((p) => p.map((x, idx) => (idx === i ? { ...val, updatedAt: new Date().toISOString() } : x)));
   }
 
+  // Soft delete → move to Trash (reversible, so no confirm needed).
   function handleDelete(i: number) {
-    if (!confirm("Remove this page?")) return;
+    setSaved(false);
+    const now = new Date().toISOString();
+    setItems((p) => p.map((x, idx) => (idx === i ? { ...x, trashed: true, trashedAt: now, updatedAt: now } : x)));
+    if (newIndex === i) setNewIndex(null);
+  }
+
+  function handleRestore(i: number) {
+    setSaved(false);
+    const now = new Date().toISOString();
+    setItems((p) => p.map((x, idx) => (idx === i ? { ...x, trashed: false, trashedAt: undefined, updatedAt: now } : x)));
+  }
+
+  function handlePermanentDelete(i: number) {
+    if (!confirm("Permanently delete this page? This cannot be undone.")) return;
     setSaved(false);
     setItems((p) => {
       const next = p.filter((_, idx) => idx !== i);
@@ -408,6 +597,8 @@ export default function AdminDistributionPages() {
         slug: candidate,
         name: source.name ? `${source.name} (Copy)` : "",
         profileEnabled: false, // hidden by default so the duplicate doesn't go live until you're ready
+        trashed: false,
+        trashedAt: undefined,
         updatedAt: new Date().toISOString(),
       };
       const insertAt = i + 1;
@@ -420,20 +611,26 @@ export default function AdminDistributionPages() {
       setDateFilter("all");
       return next;
     });
+    setView("active");
   }
 
-  const pendingNew = newIndex !== null && !isComplete(items[newIndex] ?? BLANK);
-
   function addNew() {
-    if (pendingNew) return;
+    setShowAddModal(true);
+  }
+
+  function handleNewSubmit(page: DistPage) {
     setSaved(false);
     setItems((p) => {
-      const idx = p.length;
-      setNewIndex(idx);
-      return [...p, { ...BLANK }];
+      const slug = uniqueSlug(page.slug || slugify(page.name), p.map((x) => x.slug).filter(Boolean));
+      return [{ ...page, slug, trashed: false, updatedAt: new Date().toISOString() }, ...p];
     });
+    setShowAddModal(false);
+    setNewIndex(0);
+    setView("active");
     setSearch("");
     setNicheFilter("All");
+    setCountryFilter("All");
+    setDateFilter("all");
   }
 
   async function handleSave() {
@@ -447,7 +644,10 @@ export default function AdminDistributionPages() {
     }
   }
 
-  const filtered = items.filter((page) => {
+  const activeItems = items.filter((p) => !p.trashed);
+  const trashedItems = items.filter((p) => p.trashed);
+
+  const filtered = activeItems.filter((page) => {
     const q = search.toLowerCase();
     const matchSearch = !q || page.name.toLowerCase().includes(q) || page.handle.toLowerCase().includes(q) || page.niche.toLowerCase().includes(q);
     const matchNiche = nicheFilter === "All" || page.niche === nicheFilter;
@@ -502,9 +702,10 @@ export default function AdminDistributionPages() {
     XLSX.writeFile(wb, `distribution-pages${suffix}.xlsx`);
   }
 
-  const liveCount = items.filter((p) => p.profileEnabled !== false).length;
-  const hiddenCount = items.length - liveCount;
-  const highEngagementCount = items.filter((p) => p.highEngagement).length;
+  const liveCount = activeItems.filter((p) => p.profileEnabled !== false).length;
+  const hiddenCount = activeItems.length - liveCount;
+  const highEngagementCount = activeItems.filter((p) => p.highEngagement).length;
+  const trashCount = trashedItems.length;
 
   if (loadState !== "ready") {
     return (
@@ -526,9 +727,31 @@ export default function AdminDistributionPages() {
     <div>
       <PageHeader
         title="Distribution Pages"
-        description={`${items.length} page${items.length !== 1 ? "s" : ""} · ${liveCount} live · ${hiddenCount} hidden · ${highEngagementCount} high engagement`}
+        description={`${activeItems.length} page${activeItems.length !== 1 ? "s" : ""} · ${liveCount} live · ${hiddenCount} hidden · ${highEngagementCount} high engagement`}
       />
 
+      {/* Active / Trash tabs */}
+      <div className="flex items-center gap-1 mb-5 border-b border-[#0B0B0B]/8">
+        <button
+          onClick={() => setView("active")}
+          className={`px-4 py-2.5 text-[13px] font-semibold -mb-px border-b-2 transition-colors ${
+            view === "active" ? "border-[#0B0B0B] text-[#0B0B0B]" : "border-transparent text-[#0B0B0B]/40 hover:text-[#0B0B0B]/70"
+          }`}
+        >
+          Active ({activeItems.length})
+        </button>
+        <button
+          onClick={() => setView("trash")}
+          className={`flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-semibold -mb-px border-b-2 transition-colors ${
+            view === "trash" ? "border-[#0B0B0B] text-[#0B0B0B]" : "border-transparent text-[#0B0B0B]/40 hover:text-[#0B0B0B]/70"
+          }`}
+        >
+          <Trash2 size={13} /> Trash ({trashCount})
+        </button>
+      </div>
+
+      {view === "active" && (
+      <>
       {/* Niche & Country list manager */}
       <Card className="mb-5 overflow-hidden p-0">
         <button
@@ -588,24 +811,12 @@ export default function AdminDistributionPages() {
           <Download size={14} /> Export Excel
         </button>
 
-        <div className="relative">
-          <button
-            onClick={addNew}
-            disabled={pendingNew}
-            className={`flex items-center gap-2 text-[13px] font-semibold px-4 py-2.5 rounded-xl transition-all ${
-              pendingNew
-                ? "bg-[#0B0B0B]/20 text-[#0B0B0B]/40 cursor-not-allowed"
-                : "bg-[#0B0B0B] text-white hover:bg-[#0B0B0B]/85 cursor-pointer"
-            }`}
-          >
-            <Plus size={15} /> Add Page
-          </button>
-          {pendingNew && (
-            <p className="absolute top-full right-0 mt-1.5 whitespace-nowrap text-[11px] text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-1.5 rounded-lg z-10">
-              Fill in the name below before adding another
-            </p>
-          )}
-        </div>
+        <button
+          onClick={addNew}
+          className="flex items-center gap-2 text-[13px] font-semibold px-4 py-2.5 rounded-xl bg-[#0B0B0B] text-white hover:bg-[#0B0B0B]/85 transition-all cursor-pointer"
+        >
+          <Plus size={15} /> Add Page
+        </button>
       </div>
 
       {/* Date filter */}
@@ -640,7 +851,7 @@ export default function AdminDistributionPages() {
       <div className="mb-5">
         <div className="flex items-center gap-1.5 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
           {(["All", ...niches] as string[]).map((niche) => {
-            const count = niche === "All" ? items.length : items.filter((p) => p.niche === niche).length;
+            const count = niche === "All" ? activeItems.length : activeItems.filter((p) => p.niche === niche).length;
             const active = nicheFilter === niche;
             if (count === 0 && niche !== "All") return null;
             return (
@@ -664,7 +875,7 @@ export default function AdminDistributionPages() {
         {(search || nicheFilter !== "All" || countryFilter !== "All" || dateFilter !== "all") && (
           <div className="flex items-center gap-2 mt-2">
             <span className="text-[12px] text-[#0B0B0B]/40">
-              Showing {filtered.length} of {items.length} pages
+              Showing {filtered.length} of {activeItems.length} pages
             </span>
             <button
               onClick={() => { setSearch(""); setNicheFilter("All"); setCountryFilter("All"); setDateFilter("all"); }}
@@ -700,8 +911,69 @@ export default function AdminDistributionPages() {
           </Card>
         )}
       </div>
+      </>
+      )}
+
+      {view === "trash" && (
+        <div className="space-y-3">
+          {trashedItems.length === 0 && (
+            <Card>
+              <p className="text-[13px] text-[#0B0B0B]/40 text-center py-10">Trash is empty.</p>
+            </Card>
+          )}
+          {trashedItems.map((page) => {
+            const realIndex = items.indexOf(page);
+            return (
+              <Card key={page.slug + realIndex} className="flex items-center justify-between gap-3 px-4 py-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  {page.photo ? (
+                    <img src={page.photo} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
+                  ) : (
+                    <div
+                      className="w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-[12px] font-bold text-white"
+                      style={{ background: page.accentColor || "#0B0B0B" }}
+                    >
+                      {page.initials || page.name.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-semibold text-[#0B0B0B] truncate">{page.name || "Untitled page"}</p>
+                    <p className="text-[11px] text-[#0B0B0B]/40 truncate">
+                      {page.handle || `/distribution/${page.slug}`}
+                      {page.trashedAt ? ` · trashed ${new Date(page.trashedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : ""}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => handleRestore(realIndex)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors"
+                  >
+                    <RotateCcw size={12} /> Restore
+                  </button>
+                  <button
+                    onClick={() => handlePermanentDelete(realIndex)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 transition-colors"
+                  >
+                    <Trash2 size={12} /> Delete
+                  </button>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       <SaveBar onSave={handleSave} saving={saving} saved={saved} />
+
+      <AddDistributionModal
+        open={showAddModal}
+        niches={niches}
+        countries={countries}
+        takenSlugs={items.map((p) => p.slug).filter(Boolean)}
+        onSubmit={handleNewSubmit}
+        onClose={() => setShowAddModal(false)}
+      />
     </div>
   );
 }

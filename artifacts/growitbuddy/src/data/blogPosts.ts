@@ -40,6 +40,10 @@ export interface BlogPost {
   seo?: Partial<PostSeo>;
   status?: "draft" | "published";
   source?: "cms" | "wordpress";
+  /** Soft-delete flag: when true the post lives in Trash, hidden from the public site and the main admin list. */
+  trashed?: boolean;
+  /** ISO timestamp of when the post was moved to Trash. */
+  trashedAt?: string;
 }
 
 export function defaultSeo(): PostSeo {

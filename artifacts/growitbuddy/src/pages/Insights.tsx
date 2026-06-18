@@ -16,7 +16,10 @@ export default function Insights() {
   const { posts: wpPosts } = useWordPressPosts();
 
   const blogPosts = useMemo(() => {
-    const base: BlogPost[] = (cmsPosts ?? []).map((p) => ({ ...p, source: "cms" as const }));
+    // Public site shows only live posts: never trashed, never drafts.
+    const base: BlogPost[] = (cmsPosts ?? [])
+      .filter((p) => !p.trashed && (p.status ?? "published") === "published")
+      .map((p) => ({ ...p, source: "cms" as const }));
     const combined = [...base, ...wpPosts];
     combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     return combined;

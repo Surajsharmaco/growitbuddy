@@ -14,3 +14,4 @@
 - [GrowitBuddy media URLs](growitbuddy-media-urls.md) — admin-uploaded media saved as relative `/api/media/...` 404s on split-origin prod (Vercel+Render); wrap EVERY public render with resolveMediaUrl (not video embeds).
 - [GrowitBuddy admin RBAC](growitbuddy-rbac.md) — backend authoritative; super-only ROUTES gate on role only (NOT "all" wildcard — team perms unvalidated → privesc); "all" still = content all-access; /upload auth-only.
 - [GrowitBuddy staleness verdict](growitbuddy-staleness-verified.md) — admin edits reflect immediately (Playwright-verified); staleness = Render cold-start/deploy infra, not content code; cache-clear = honest no-ops by design.
+- [GrowitBuddy public visibility filters](growitbuddy-public-visibility-filters.md) — trashed/draft/hidden must filter in 4 spots, not just React: SSR bootstrap, SSR SEO body (collectBlocks), + BOTH blog sitemaps (ssr + api-server). Chokepoint = sanitizePublicContent.

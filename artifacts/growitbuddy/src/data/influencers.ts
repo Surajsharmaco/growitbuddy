@@ -10,6 +10,10 @@ export interface Influencer {
   photoShape?: "circle" | "square";
   profileEnabled?: boolean;
   updatedAt?: string;
+  /** Soft-delete flag: when true the item lives in Trash, hidden from the public site and the main admin list. */
+  trashed?: boolean;
+  /** ISO timestamp of when the item was moved to Trash. */
+  trashedAt?: string;
   audienceCountries: string[];
   about: {
     creates: string;
