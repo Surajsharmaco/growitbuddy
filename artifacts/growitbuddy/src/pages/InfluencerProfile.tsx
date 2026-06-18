@@ -99,13 +99,19 @@ export default function InfluencerProfile() {
               <div style={{ position: "absolute", top: 16, left: 16, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#1E293B", background: "rgba(255,255,255,0.92)", backdropFilter: "blur(8px)", borderRadius: 100, padding: "4px 12px", border: "1px solid rgba(255,255,255,0.6)" }}>
                 {inf.niche}
               </div>
+              {/* Followers — premium highlight backdrop */}
+              {inf.followers?.trim() && (
+                <div style={{ position: "absolute", bottom: 16, left: 16, display: "inline-flex", flexDirection: "column", alignItems: "flex-start", gap: 2, background: "#FFFFFF", borderRadius: 16, padding: "11px 18px", border: "1px solid rgba(11,11,11,0.08)", boxShadow: "0 16px 36px -10px rgba(11,11,11,0.45), 0 2px 6px rgba(11,11,11,0.10)" }}>
+                  <span style={{ fontWeight: 800, fontSize: 24, color: "#0A0A0A", letterSpacing: "-0.04em", lineHeight: 1 }}>{inf.followers}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "#8A8A8A", letterSpacing: "0.12em", textTransform: "uppercase" }}>Followers</span>
+                </div>
+              )}
             </div>
 
             {/* Info */}
             <div style={{ padding: "24px 28px 28px" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4, gap: 8 }}>
+              <div style={{ marginBottom: 4 }}>
                 <p style={{ fontWeight: 800, fontSize: 22, color: "#0A0A0A", letterSpacing: "-0.03em" }}>{inf.name}</p>
-                <span style={{ fontSize: 15, fontWeight: 700, color: "#0A0A0A", whiteSpace: "nowrap", flexShrink: 0 }}>{inf.followers}</span>
               </div>
               <p style={{ fontSize: 14, fontWeight: 500, color: "#7A7A85", marginBottom: 14 }}>{inf.username}</p>
               <p style={{ fontSize: 15, color: "#5F5F5F", lineHeight: 1.7 }}>{inf.description}</p>
