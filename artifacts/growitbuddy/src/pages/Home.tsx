@@ -292,7 +292,7 @@ export default function Home() {
       </section>
 
       {/* ══ 2. STATS ══ */}
-      <section style={{ position: "relative", overflow: "hidden", borderTop: "1px solid rgba(20,32,46,0.08)", borderBottom: "1px solid rgba(20,32,46,0.08)", padding: "0 24px", backgroundColor: "#F2EAD9", backgroundImage: "radial-gradient(120% 80% at 50% -10%, rgba(194,168,120,0.22) 0%, rgba(194,168,120,0) 60%), linear-gradient(180deg, #F7F1E5 0%, #EFE6D3 100%)" }}>
+      <section style={{ position: "relative", overflow: "hidden", borderTop: "1px solid #E5E5E0", borderBottom: "1px solid #E5E5E0", padding: "0 24px", backgroundColor: "#FFFFFF" }}>
         <GrainOverlay />
         <div className="max-w-[1100px] mx-auto home-stats-grid" style={{ position: "relative", zIndex: 1 }}>
           {(hm.stats || []).map((stat, i) => (
@@ -311,11 +311,11 @@ export default function Home() {
                 alignItems: "center",
               }}
             >
-              <div style={{ width: 38, height: 3, background: "linear-gradient(90deg, #B8995F 0%, #E2D0A6 100%)", borderRadius: 3, marginBottom: 22, boxShadow: "0 1px 6px rgba(194,168,120,0.45)" }} />
-              <div style={{ fontSize: "clamp(38px, 4.6vw, 58px)", fontWeight: 800, letterSpacing: "-0.045em", color: "#14202E", lineHeight: 1, marginBottom: 12 }}>
+              <div style={{ width: 36, height: 3, background: "#C2A878", borderRadius: 3, marginBottom: 22 }} />
+              <div style={{ fontSize: "clamp(38px, 4.6vw, 58px)", fontWeight: 800, letterSpacing: "-0.045em", color: "#0A0A0A", lineHeight: 1, marginBottom: 12 }}>
                 <CountUp value={stat.value} />
               </div>
-              <div style={{ fontSize: 13, color: "#6B655B", fontWeight: 500, maxWidth: "20ch", lineHeight: 1.6, textAlign: "center", letterSpacing: "0.01em" }}>{stat.label}</div>
+              <div style={{ fontSize: 13, color: "#7A7A85", fontWeight: 500, maxWidth: "20ch", lineHeight: 1.6, textAlign: "center", letterSpacing: "0.01em" }}>{stat.label}</div>
             </m.div>
           ))}
         </div>
