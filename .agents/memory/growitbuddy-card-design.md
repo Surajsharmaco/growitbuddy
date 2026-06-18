@@ -11,14 +11,20 @@ system. Single source: `src/components/WashCard.tsx`.
 - `solidIsDark(i)` → `(i % 3) === 2` (every 3rd card dark). This is the
   "kuch dark kuch normal" rhythm the (frustrated, non-technical) owner asked for.
 - `getSolidCardStyle(dark, overrides)` owns the card SURFACE inline (bg/border/
-  shadow) — light cream `#FCFAF6` or dark navy `#16202E`. Inline style beats any
-  base CSS class, so card classes only need to handle TEXT.
+  shadow). LIGHT cards = premium lavender/periwinkle→white gradient
+  (`SOLID_LIGHT_BG`, radial glow top-left + linear to white) with a cool
+  periwinkle border `rgba(74,80,134,0.14)`; DARK cards = navy `#16202E`. (Light
+  used to be flat cream `#FCFAF6` — owner later asked for the lavender+white
+  premium combo + visible grain via a screenshot reference.) Inline style beats
+  any base CSS class, so card classes only handle TEXT.
 - `getSolidText(dark)` → palette `{title, body, strong, muted, accent}` for
   flipping text on dark cards. `WashIconChip` takes a `dark` prop (works for both
   `icon` and `label` chips). Render `{!dark && <CardGrain/>}` (grain only on light).
 
 **Why:** owner rejected ~8 prior colorful/wash designs; wanted every card solid +
-brand-consistent (navy/gold/cream), some dark + some light, on EVERY page.
+brand-consistent, some dark + some light, on EVERY page. Light surface later
+upgraded from cream → a premium lavender/periwinkle→white gradient + grain
+(owner's explicit screenshot reference); dark navy rhythm kept unchanged.
 
 ## Per-page conversion patterns (two kinds)
 

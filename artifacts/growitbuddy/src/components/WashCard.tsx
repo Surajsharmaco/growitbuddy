@@ -61,12 +61,14 @@ export function getWashCardStyle(i: number, overrides: CSSProperties = {}): CSSP
 }
 
 // ── Solid brand card system ───────────────────────────────────────────────
-// "kuch dark kuch normal": every card is a SOLID brand surface — warm ivory
-// (light) or deep navy (dark) — instead of a tinted wash. Use solidIsDark(i)
-// for an automatic rhythm (every 3rd card dark) or pass an explicit boolean.
-// getSolidText(dark) returns the matching text palette so dark cards flip to
-// light type. All colors are the brand navy/gold/cream — nothing off-brand.
-export const SOLID_LIGHT_BG = "#FCFAF6";
+// "kuch dark kuch normal": every card is a SOLID brand surface — a premium
+// lavender→white gradient (light) or deep navy (dark) — instead of a tinted
+// wash. Use solidIsDark(i) for an automatic rhythm (every 3rd card dark) or
+// pass an explicit boolean. getSolidText(dark) returns the matching text
+// palette so dark cards flip to light type. Light cards carry a soft periwinkle
+// glow fading to white + film grain for a premium, tactile feel.
+export const SOLID_LIGHT_BG =
+  "radial-gradient(78% 70% at 16% 14%, rgba(106,114,178,0.18) 0%, rgba(106,114,178,0) 56%), radial-gradient(64% 56% at 90% 94%, rgba(150,156,202,0.07) 0%, rgba(150,156,202,0) 62%), linear-gradient(150deg, #EBECF6 0%, #F4F5FB 50%, #FFFFFF 100%)";
 export const SOLID_DARK_BG = "#16202E";
 
 export function solidIsDark(i: number): boolean {
@@ -76,7 +78,7 @@ export function solidIsDark(i: number): boolean {
 export function getSolidCardStyle(dark: boolean, overrides: CSSProperties = {}): CSSProperties {
   return {
     background: dark ? SOLID_DARK_BG : SOLID_LIGHT_BG,
-    border: `1px solid ${dark ? "rgba(255,255,255,0.08)" : "rgba(20,32,46,0.10)"}`,
+    border: `1px solid ${dark ? "rgba(255,255,255,0.08)" : "rgba(74,80,134,0.14)"}`,
     borderRadius: 20,
     boxShadow: dark
       ? "0 22px 50px -32px rgba(8,14,24,0.70)"
@@ -131,7 +133,7 @@ export function CardGrain() {
         backgroundImage: "var(--gb-grain)",
         backgroundSize: "150px 150px",
         backgroundRepeat: "repeat",
-        opacity: 0.45,
+        opacity: 0.5,
         mixBlendMode: "multiply",
         pointerEvents: "none",
       }}
