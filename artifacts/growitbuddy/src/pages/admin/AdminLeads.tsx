@@ -707,7 +707,7 @@ export default function AdminLeads() {
         ) : (
           <div>
             {/* Header */}
-            <div className="hidden md:grid grid-cols-[36px_110px_1fr_1fr_100px_120px_44px] gap-0 px-4 py-3 border-b border-[#0B0B0B]/6 bg-[#FAFAFA]">
+            <div className="hidden md:grid grid-cols-[36px_150px_1fr_1fr_100px_120px_44px] gap-0 px-4 py-3 border-b border-[#0B0B0B]/6 bg-[#FAFAFA]">
               <div className="flex items-center">
                 <button onClick={toggleSelectAll} className="text-[#0B0B0B]/30 hover:text-[#0B0B0B]">
                   {allPageSelected ? <CheckSquare size={14} /> : <Square size={14} />}
@@ -725,7 +725,7 @@ export default function AdminLeads() {
                 onClick={() => setDrawer(lead)}
               >
                 {/* Desktop row */}
-                <div className="hidden md:grid grid-cols-[36px_110px_1fr_1fr_100px_120px_44px] gap-0 px-4 py-3.5 items-center">
+                <div className="hidden md:grid grid-cols-[36px_150px_1fr_1fr_100px_120px_44px] gap-0 px-4 py-3.5 items-center">
                   <div onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => setSelected((s) => { const n = new Set(s); n.has(lead.id) ? n.delete(lead.id) : n.add(lead.id); return n; })}
@@ -734,7 +734,7 @@ export default function AdminLeads() {
                       {selected.has(lead.id) ? <CheckSquare size={14} className="text-[#8B3A1A]" /> : <Square size={14} />}
                     </button>
                   </div>
-                  <div><TypeBadge type={lead.type} /></div>
+                  <div className="min-w-0 overflow-hidden pr-2"><TypeBadge type={lead.type} /></div>
                   <div className="flex items-center gap-2 min-w-0 pr-3">
                     <span className="text-[13px] text-[#0B0B0B] truncate">{lead.name || <span className="text-[#0B0B0B]/30 italic text-[12px]">No name</span>}</span>
                   </div>
