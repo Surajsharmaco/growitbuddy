@@ -72,7 +72,7 @@ function PageCard({ page }: { page: DistributionPage }) {
           {/* Followers - bottom left (highlighted pill). Hidden when no count is
               set so we never render an orphan "Followers" label with no number. */}
           {page.followers?.trim() && (
-            <div className="dn-stat-followers" style={{ position: "absolute", bottom: 14, left: 14, display: "inline-flex", alignItems: "baseline", gap: 6, background: "#FFFFFF", borderRadius: 100, padding: "7px 14px", border: "1px solid rgba(11,11,11,0.06)", boxShadow: "0 6px 18px rgba(11,11,11,0.22)" }}>
+            <div className="dn-stat-followers" style={{ position: "absolute", bottom: 14, left: 14, display: "inline-flex", alignItems: "baseline", gap: 6, background: "#FFFFFF", borderRadius: 100, padding: "7px 14px", border: "1.5px solid rgba(11,11,11,0.16)", boxShadow: "0 6px 18px rgba(11,11,11,0.22)" }}>
               <span style={{ fontWeight: 800, fontSize: 18, color: "#0A0A0A", letterSpacing: "-0.03em", lineHeight: 1 }}>{page.followers}</span>
               <span style={{ fontSize: 10, fontWeight: 700, color: "#7A7A85", letterSpacing: "0.08em", textTransform: "uppercase" }}>Followers</span>
             </div>
