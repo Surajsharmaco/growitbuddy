@@ -42,6 +42,12 @@ push, the live `/assets/index-*.js` hash changed = build succeeded = full pipeli
 manifest without re-running `pnpm install` breaks EVERY Vercel build and silently freezes prod on
 the last good deploy.
 
+**Don't declare "skipped trigger" too early:** GitHub `/statuses`, `/deployments?sha=`, and
+`/check-runs` can ALL read empty for the first ~1 min after a push even when the build is running —
+they just haven't been posted yet. Confirmed: empty at ~60s, then "success"+Production deployment at
+~2 min, and the live `/assets/index-*.js` hash changed on its own. Wait ~2-3 min and re-poll before
+resorting to an empty retrigger commit, or you'll add a needless commit to a build that was fine.
+
 **Fast diagnosis of live staleness:** capture live `/assets/index-*.js` hash before/after a push.
 - Hash changes → build succeeded, pipeline end-to-end OK.
 - Hash unchanged after a few min → push reached GitHub but the build FAILED. Check the lockfile
