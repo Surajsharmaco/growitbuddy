@@ -14,7 +14,7 @@ export interface SiteGuideData {
 
 export const SITE_GUIDE_DEFAULTS: SiteGuideData = {
   hero: {
-    badge: "Complete Site Guide · v1.5",
+    badge: "Complete Site Guide · v1.6",
     title: "Understand the entire GrowitBuddy website — in 10 minutes.",
     lede:
       "A complete, beginner-friendly walkthrough of every public page, every admin tool, the CRM, SEO controls, talent-pool system, and how lead emails work. No technical knowledge required.",
@@ -53,11 +53,12 @@ About (/about) — Founder story, team, mission.
 Contact (/contact) — Contact form — submissions land in your inbox + Admin Leads.
 Creator Network (/creators) — Sign-up form for content creators wanting to join your network.
 Career (/career) — Full-time + internship + freelancer job applications in one tabbed page.
-Influencer Directory (/influencers) — Browse all influencers. Each has a profile at /influencers/:slug.
+Influencer Directory (/influencers) — Browse every influencer in one filterable directory grid (there are no separate per-influencer profile pages).
 Distribution Network (/distribution) — Information about page-owner / distribution partnership.
 Page Owner Apply (/join/page-owner) — Application form for Instagram/social page owners.
 Authority Audit (/authority-audit) — Free audit lead-magnet tool.
 Resources (/resources) — Free resource library — unlimited eBooks, PDFs, Drive links, Notion templates, videos, toolkits and more. Featured strip, category filter, FAQ section, AI Quick-Answer block, rich JSON-LD.
+Link Hub (/links) — A link-in-bio style page listing your key links in one place. Editable from Admin → Links Page.
 Page Variants (catch-all) (/:slug) — Any published page variant lives at its own URL slug (e.g. /home-v2, /services-bold). Created from Admin → Page Variants. Used for A/B tests or campaign-specific landing pages.
 Editors Pool (Creator School) (/editors-pool) — Onboarding hub with VSL, guidelines, FAQ.
 Talent Pools (9 pages) (/designers-pool) — Each pool has its own URL: /designers-pool · /thumbnail-designers · /writers-pool · /social-media-managers · /motion-designers · /ai-creators · /ugc-creators · /meme-designers · /video-editors. Each has landing page + dedicated form.
@@ -111,7 +112,15 @@ Navbar editor (/admin/navbar) — Edit navigation menu items, links, order.
 Footer editor (/admin/footer) — Edit footer columns, links, social handles.
 Site Settings (/admin/settings) — Site-wide: logo, favicon, contact info, social links, PLUS design controls — primary + accent color pickers with preset palettes (Midnight, Forest, etc.), global font-scale slider (80%–130%), custom-cursor toggle and page-intro animation toggle, with a live theme-preview card.
 Page Visibility (/admin/page-visibility) — Hide any page from the public with one of two modes: 'Maintenance' (shows a maintenance screen) or 'Coming Soon' (shows a teaser screen). Each mode has its own editable headline + message. Hidden pages are automatically removed from sitemap.xml.
-Optimizer (/admin/optimize) — Performance toggles + one-click warm-up. Keep DB warm, cache stable public reads (60s/5min), long-cache images, clear caches, run VACUUM ANALYZE. All safe — defaults are OFF, never deletes content.`,
+Optimizer (/admin/optimize) — Performance toggles + one-click warm-up. Keep DB warm, cache stable public reads (60s/5min), long-cache images, clear caches, run VACUUM ANALYZE. All safe — defaults are OFF, never deletes content.
+Links Page (/admin/links) — Edit the public /links link-hub (link-in-bio) page.
+Creators Page Form (/admin/creators-form) — Edit the public /creators sign-up page: headings, benefits, form copy and SEO.
+Page Owner Form (/admin/page-owner-form) — Edit the public /join/page-owner application page: headings, benefits, form copy and SEO.
+Privacy Policy (/admin/privacy) — Edit the Privacy Policy legal page.
+Terms & Conditions (/admin/terms) — Edit the Terms & Conditions legal page.
+SEO Guide (/admin/seo-guide) — Edit the internal SEO playbook shown at /seo-guide.
+Site Guide (/admin/site-guide) — Edit this very guide (the page you're reading).
+Backup / Migration (/admin/backup) — Download a full ZIP backup (source code + live content + database snapshot) or generate a Master AI Prompt to rebuild/migrate the entire site elsewhere. Super-admin only.`,
     },
     {
       heading: "Page Variants — A/B test any page without breaking the live one",
