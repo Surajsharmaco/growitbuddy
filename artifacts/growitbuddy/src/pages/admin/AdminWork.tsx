@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
@@ -8,8 +8,7 @@ import { Plus, Trash2, Pencil, X, Check, Image } from "lucide-react";
 
 import { API_BASE } from "@/lib/api";
 
-import { WORK_DEFAULTS, type WorkHeroStat as HeroStat, type ClientLogo } from "@/lib/workDefaults";
-const DEFAULT_STATS = WORK_DEFAULTS.heroStats;
+import { type WorkHeroStat as HeroStat, type ClientLogo } from "@/lib/workDefaults";
 
 // ─── Logos Section ────────────────────────────────────────────────────────────
 
@@ -335,24 +334,29 @@ function LogosSection() {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function AdminWork() {
-  const { getContent, saveContent } = useAdmin();
+  const { getContentResult, saveContent } = useAdmin();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [headline, setHeadline] = useState("Proof of authority at scale.");
   const [subtext, setSubtext] = useState("Real systems. Real execution. Real outcomes.");
-  const [heroStats, setHeroStats] = useState<HeroStat[]>(DEFAULT_STATS);
-  const [loaded, setLoaded] = useState(false);
+  const [heroStats, setHeroStats] = useState<HeroStat[]>([]);
+  const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
 
-  useEffect(() => {
-    getContent("work")
-      .then((d) => {
-        if (!d) return;
-        if (d.headline) setHeadline(d.headline as string);
-        if (d.subtext) setSubtext(d.subtext as string);
-        if (d.heroStats) setHeroStats(d.heroStats as HeroStat[]);
-      })
-      .finally(() => setLoaded(true));
-  }, [getContent]);
+  const load = useCallback(() => {
+    setLoadState("loading");
+    getContentResult("work").then((res) => {
+      // Fail closed: on a load FAILURE never mount the editor, so a Save can
+      // never overwrite real data with demo defaults (deleted-ghost re-intro).
+      if (!res.ok) { setLoadState("error"); return; }
+      const d = res.data;
+      if (d?.headline) setHeadline(d.headline as string);
+      if (d?.subtext) setSubtext(d.subtext as string);
+      setHeroStats(Array.isArray(d?.heroStats) ? (d!.heroStats as HeroStat[]) : []);
+      setLoadState("ready");
+    });
+  }, [getContentResult]);
+
+  useEffect(() => { load(); }, [load]);
 
   async function handleSave() {
     setSaving(true);
@@ -369,11 +373,18 @@ export default function AdminWork() {
     setHeroStats((p) => p.map((s, si) => si === i ? { ...s, ...patch } : s));
   }
 
-  if (!loaded) {
+  if (loadState !== "ready") {
     return (
       <div>
         <PageHeader title="Work / Portfolio" description="Manage the work page hero, stats, and client logos." />
-        <div className="flex items-center justify-center py-24 text-[13px] text-[#0B0B0B]/40">Loading content…</div>
+        {loadState === "error" ? (
+          <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
+            <p className="text-[13px] text-red-600 max-w-md">Couldn't load your saved work content. To protect your live data, editing is disabled until this loads successfully.</p>
+            <button onClick={load} className="text-[12px] font-semibold bg-[#0B0B0B] text-white px-4 py-2 rounded-xl hover:bg-[#0B0B0B]/85 transition-colors">Retry</button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center py-24 text-[13px] text-[#0B0B0B]/40">Loading content…</div>
+        )}
       </div>
     );
   }

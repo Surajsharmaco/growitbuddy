@@ -26,6 +26,13 @@ interface AdminContextValue {
   teamLogin: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   getContent: (section: string) => Promise<Record<string, unknown> | null>;
+  // Like getContent, but distinguishes a genuine load FAILURE (HTTP error /
+  // network throw) from a section that is simply empty / never-configured.
+  // Editors that persist user-deletable lists MUST use this so a failed read
+  // can never be saved over real data (re-introducing deleted "ghost" items).
+  getContentResult: (
+    section: string,
+  ) => Promise<{ ok: boolean; data: Record<string, unknown> | null }>;
   saveContent: (section: string, data: Record<string, unknown>) => Promise<void>;
   authFetch: (input: RequestInfo, init?: RequestInit) => Promise<Response>;
   // When admin is editing a variant (URL contains ?variant=<slug>), this is set.
@@ -216,17 +223,31 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     [currentVariant],
   );
 
-  const getContent = useCallback(
-    async (section: string): Promise<Record<string, unknown> | null> => {
+  const getContentResult = useCallback(
+    async (
+      section: string,
+    ): Promise<{ ok: boolean; data: Record<string, unknown> | null }> => {
       const key = resolveSection(section);
-      const r = await authFetch(`${API_BASE}/admin/content/${key}`, {
-        headers: { "Content-Type": "application/json" },
-      });
-      if (!r.ok) return null;
-      const row = await r.json();
-      return row.data ?? null;
+      try {
+        const r = await authFetch(`${API_BASE}/admin/content/${key}`, {
+          headers: { "Content-Type": "application/json" },
+        });
+        if (!r.ok) return { ok: false, data: null };
+        const row = await r.json();
+        return { ok: true, data: row.data ?? null };
+      } catch {
+        return { ok: false, data: null };
+      }
     },
     [authFetch, resolveSection],
+  );
+
+  const getContent = useCallback(
+    async (section: string): Promise<Record<string, unknown> | null> => {
+      const res = await getContentResult(section);
+      return res.ok ? res.data : null;
+    },
+    [getContentResult],
   );
 
   const saveContent = useCallback(
@@ -267,6 +288,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         teamLogin,
         logout,
         getContent,
+        getContentResult,
         saveContent,
         authFetch,
         currentVariant,

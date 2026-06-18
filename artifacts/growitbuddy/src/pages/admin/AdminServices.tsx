@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
 import { Plus, Trash2, ChevronDown, ChevronUp, GripVertical } from "lucide-react";
 
 import { SERVICES_DEFAULTS, type ServiceItem as Service, type ServicesStat as Stat } from "@/lib/servicesDefaults";
-const DEFAULT_SERVICES = SERVICES_DEFAULTS.services;
 
 
 function ServiceRow({
@@ -87,8 +86,9 @@ function ServiceRow({
 }
 
 export default function AdminServices() {
-  const { getContent, saveContent } = useAdmin();
-  const [services, setServices] = useState<Service[]>(DEFAULT_SERVICES);
+  const { getContentResult, saveContent } = useAdmin();
+  const [services, setServices] = useState<Service[]>([]);
+  const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [headline, setHeadline] = useState("What we build for you");
@@ -98,18 +98,25 @@ export default function AdminServices() {
   const [heroCTA, setHeroCTA] = useState("Book a strategy call");
   const [stats, setStats] = useState<Stat[]>(SERVICES_DEFAULTS.stats);
 
-  useEffect(() => {
-    getContent("services").then((d) => {
-      if (!d) return;
-      if (d.services) setServices(d.services as Service[]);
-      if (d.headline) setHeadline(d.headline as string);
-      if (d.subtext) setSubtext(d.subtext as string);
-      if (d.heroHeadline) setHeroHeadline(d.heroHeadline as string);
-      if (d.heroSubtext) setHeroSubtext(d.heroSubtext as string);
-      if (d.heroCTA) setHeroCTA(d.heroCTA as string);
-      if (d.stats) setStats(d.stats as Stat[]);
+  const load = useCallback(() => {
+    setLoadState("loading");
+    getContentResult("services").then((res) => {
+      // Fail closed: on a load FAILURE never mount the editor, so a Save can
+      // never overwrite real data with demo defaults (deleted-ghost re-intro).
+      if (!res.ok) { setLoadState("error"); return; }
+      const d = res.data;
+      setServices(Array.isArray(d?.services) ? (d!.services as Service[]) : []);
+      if (d?.headline) setHeadline(d.headline as string);
+      if (d?.subtext) setSubtext(d.subtext as string);
+      if (d?.heroHeadline) setHeroHeadline(d.heroHeadline as string);
+      if (d?.heroSubtext) setHeroSubtext(d.heroSubtext as string);
+      if (d?.heroCTA) setHeroCTA(d.heroCTA as string);
+      if (Array.isArray(d?.stats)) setStats(d!.stats as Stat[]);
+      setLoadState("ready");
     });
-  }, [getContent]);
+  }, [getContentResult]);
+
+  useEffect(() => { load(); }, [load]);
 
   async function handleSave() {
     setSaving(true);
@@ -137,6 +144,22 @@ export default function AdminServices() {
   function addNew() {
     setSaved(false);
     setServices((p) => [...p, { id: Date.now().toString(), title: "", subtitle: "", headline: "", badge: "", description: "", features: [], cta: "", note: "" }]);
+  }
+
+  if (loadState !== "ready") {
+    return (
+      <div>
+        <PageHeader title="Services" description={loadState === "error" ? "Couldn't load saved content" : "Loading…"} />
+        {loadState === "error" ? (
+          <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
+            <p className="text-[13px] text-red-600 max-w-md">Couldn't load your saved services. To protect your live data, editing is disabled until this loads successfully.</p>
+            <button onClick={load} className="text-[12px] font-semibold bg-[#0B0B0B] text-white px-4 py-2 rounded-xl hover:bg-[#0B0B0B]/85 transition-colors">Retry</button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center py-24 text-[13px] text-[#0B0B0B]/40">Loading content…</div>
+        )}
+      </div>
+    );
   }
 
   return (

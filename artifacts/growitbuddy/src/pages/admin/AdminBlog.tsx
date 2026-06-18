@@ -1,7 +1,7 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { API_BASE, resolveMediaUrl } from "@/lib/api";
-import { blogPosts as DEFAULT_POSTS, defaultSeo, type BlogPost, type PostSeo } from "@/data/blogPosts";
+import { defaultSeo, type BlogPost, type PostSeo } from "@/data/blogPosts";
 import { ImageCropUploader } from "@/components/admin/ImageCropUploader";
 import { ImagePickerField } from "@/components/admin/ImagePickerField";
 import { Card } from "@/components/admin/AdminField";
@@ -2540,18 +2540,24 @@ function PostList({ posts, onEdit, onDelete, onAdd }: {
 // ─────────────────────────────────────
 
 export default function AdminBlog() {
-  const { getContent, saveContent } = useAdmin();
-  const [posts, setPosts] = useState<BlogPost[]>(DEFAULT_POSTS);
+  const { getContentResult, saveContent } = useAdmin();
+  const [posts, setPosts] = useState<BlogPost[]>([]);
   const [editing, setEditing] = useState<{ post: BlogPost; isNew: boolean } | null>(null);
-  const [loaded, setLoaded] = useState(false);
+  const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
 
-  useEffect(() => {
-    getContent("blog")
-      .then((d) => {
-        if (d?.posts) setPosts(d.posts as BlogPost[]);
-      })
-      .finally(() => setLoaded(true));
-  }, [getContent]);
+  const load = useCallback(() => {
+    setLoadState("loading");
+    getContentResult("blog").then((res) => {
+      // Fail closed: on a load FAILURE never mount the editor, so a Save can
+      // never overwrite real data with demo defaults (deleted-ghost re-intro).
+      if (!res.ok) { setLoadState("error"); return; }
+      const d = res.data;
+      setPosts(Array.isArray(d?.posts) ? (d!.posts as BlogPost[]) : []);
+      setLoadState("ready");
+    });
+  }, [getContentResult]);
+
+  useEffect(() => { load(); }, [load]);
 
   async function persist(updated: BlogPost[]) {
     await saveContent("blog", { posts: updated });
@@ -2576,6 +2582,21 @@ export default function AdminBlog() {
     persist(posts.filter((_, i) => i !== idx));
   }
 
+  if (loadState !== "ready") {
+    return (
+      <div className="py-24">
+        {loadState === "error" ? (
+          <div className="flex flex-col items-center justify-center gap-3 text-center">
+            <p className="text-[13px] text-red-600 max-w-md">Couldn't load your saved blog posts. To protect your live data, editing is disabled until this loads successfully.</p>
+            <button onClick={load} className="text-[12px] font-semibold bg-[#0B0B0B] text-white px-4 py-2 rounded-xl hover:bg-[#0B0B0B]/85 transition-colors">Retry</button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center text-[13px] text-[#0B0B0B]/40">Loading content…</div>
+        )}
+      </div>
+    );
+  }
+
   if (editing) {
     return (
       <PostEditor
@@ -2585,12 +2606,6 @@ export default function AdminBlog() {
         onSave={handleSave}
         allPosts={posts}
       />
-    );
-  }
-
-  if (!loaded) {
-    return (
-      <div className="flex items-center justify-center py-24 text-[13px] text-[#0B0B0B]/40">Loading content…</div>
     );
   }
 

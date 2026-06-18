@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAdmin } from "@/context/AdminContext";
-import { distributionPages as DEFAULT_PAGES, DISTRIBUTION_NICHES, DISTRIBUTION_COUNTRIES, type DistributionPage } from "@/data/distributionPages";
+import { DISTRIBUTION_NICHES, DISTRIBUTION_COUNTRIES, type DistributionPage } from "@/data/distributionPages";
 import { PageHeader, Card, Input, SaveBar } from "@/components/admin/AdminField";
 import { ImagePickerField } from "@/components/admin/ImagePickerField";
 import { Plus, Trash2, Search, X, Eye, EyeOff, ChevronDown, ChevronUp, Settings2, Clock, Download, Zap, Copy, ExternalLink } from "lucide-react";
@@ -341,13 +341,13 @@ function TagListEditor({ title, tags, onChange }: { title: string; tags: string[
 }
 
 export default function AdminDistributionPages() {
-  const { getContent, saveContent } = useAdmin();
-  const [items, setItems] = useState<DistPage[]>(DEFAULT_PAGES.map((p) => ({ ...p })));
+  const { getContentResult, saveContent } = useAdmin();
+  const [items, setItems] = useState<DistPage[]>([]);
   const [niches, setNiches] = useState<string[]>([...DISTRIBUTION_NICHES]);
   const [countries, setCountries] = useState<string[]>([...DISTRIBUTION_COUNTRIES]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+  const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
   const [search, setSearch] = useState("");
   const [nicheFilter, setNicheFilter] = useState("All");
   const [countryFilter, setCountryFilter] = useState("All");
@@ -355,16 +355,21 @@ export default function AdminDistributionPages() {
   const [newIndex, setNewIndex] = useState<number | null>(null);
   const [listsOpen, setListsOpen] = useState(false);
 
-  useEffect(() => {
-    getContent("distribution-pages")
-      .then((d) => {
-        if (!d) return;
-        if (d.items) setItems(d.items as DistPage[]);
-        if (d.niches) setNiches(d.niches as string[]);
-        if (d.countries) setCountries(d.countries as string[]);
-      })
-      .finally(() => setLoaded(true));
-  }, [getContent]);
+  const load = useCallback(() => {
+    setLoadState("loading");
+    getContentResult("distribution-pages").then((res) => {
+      // Fail closed: on a load FAILURE never mount the editor, so a Save can
+      // never overwrite real data with demo defaults (deleted-ghost re-intro).
+      if (!res.ok) { setLoadState("error"); return; }
+      const d = res.data;
+      setItems(Array.isArray(d?.items) ? (d!.items as DistPage[]) : []);
+      if (Array.isArray(d?.niches)) setNiches(d!.niches as string[]);
+      if (Array.isArray(d?.countries)) setCountries(d!.countries as string[]);
+      setLoadState("ready");
+    });
+  }, [getContentResult]);
+
+  useEffect(() => { load(); }, [load]);
 
   function handleChange(i: number, val: DistPage) {
     setSaved(false);
@@ -501,11 +506,18 @@ export default function AdminDistributionPages() {
   const hiddenCount = items.length - liveCount;
   const highEngagementCount = items.filter((p) => p.highEngagement).length;
 
-  if (!loaded) {
+  if (loadState !== "ready") {
     return (
       <div>
-        <PageHeader title="Distribution Pages" description="Loading…" />
-        <div className="flex items-center justify-center py-24 text-[13px] text-[#0B0B0B]/40">Loading content…</div>
+        <PageHeader title="Distribution Pages" description={loadState === "error" ? "Couldn't load saved content" : "Loading…"} />
+        {loadState === "error" ? (
+          <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
+            <p className="text-[13px] text-red-600 max-w-md">Couldn't load your saved distribution pages. To protect your live data, editing is disabled until this loads successfully.</p>
+            <button onClick={load} className="text-[12px] font-semibold bg-[#0B0B0B] text-white px-4 py-2 rounded-xl hover:bg-[#0B0B0B]/85 transition-colors">Retry</button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center py-24 text-[13px] text-[#0B0B0B]/40">Loading content…</div>
+        )}
       </div>
     );
   }
