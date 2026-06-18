@@ -1,5 +1,4 @@
 uploads = []
-outputs = []
 
 [[generated]]
 id = "H99wb9DwJE0R-I0z1BHTi"
@@ -42,3 +41,9 @@ id = "lc_ucnPB98vMjLpTsqmTg"
 uri = "file://attached_assets/generated_images/svc-content-creation.png"
 type = "image"
 title = "svc-content-creation"
+
+[[outputs]]
+id = "QS1SytFa8IbYD4Cp7QU8T"
+uri = "file://GENERAL_FEATURES_PROMPT.md"
+type = "text"
+title = "General Features — Master Export Prompt"
