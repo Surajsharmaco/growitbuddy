@@ -6,3 +6,39 @@ id = "H99wb9DwJE0R-I0z1BHTi"
 uri = "file://artifacts/growitbuddy-mobile/assets/images/icon.png"
 type = "image"
 title = "generated_image"
+
+[[generated]]
+id = "NwhcOtszcv31GDHaJNicO"
+uri = "file://attached_assets/generated_images/svc-distribution-growth.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "65kNisxGV0mfM0MX_hHu6"
+uri = "file://attached_assets/generated_images/svc-personal-branding.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "odPMa92HQNifp5KeujLHQ"
+uri = "file://attached_assets/generated_images/svc-web-funnel.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "xzD4osow8Z6wkcQJOvWZN"
+uri = "file://attached_assets/generated_images/svc-ai-automation.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "lBT_PH2O0XLnNrfDLXMWb"
+uri = "file://attached_assets/generated_images/svc-digital-products.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "lc_ucnPB98vMjLpTsqmTg"
+uri = "file://attached_assets/generated_images/svc-content-creation.png"
+type = "image"
+title = "generated_image"

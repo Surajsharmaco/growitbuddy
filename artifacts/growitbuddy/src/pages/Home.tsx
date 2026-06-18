@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { m } from "framer-motion";
 import { API_BASE } from "@/lib/api";
-import { ArrowRight, Bot, Box, Building2, Calendar, Check, ChevronRight, Cloud, GraduationCap, Rocket, ScanLine, Search, Send, ShoppingBag, Sparkles, Star, X } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { ArrowRight, Building2, Cloud, GraduationCap, Rocket, ShoppingBag, Sparkles, Star } from "lucide-react";
 import { Link } from "wouter";
 import { FadeUp } from "@/components/effects/TextReveal";
 import CountUp from "@/components/effects/CountUp";
@@ -13,12 +12,24 @@ import DotGrid from "@/components/effects/DotGrid";
 import { HOME_DEFAULTS as DEFAULTS, type HomeData } from "@/lib/homeDefaults";
 import { getWashCardStyle, getWashBorder, CardGrain, WashIconChip } from "@/components/WashCard";
 
-// Icons for the "Everything you need" services grid, mapped by card order so the
-// content stays admin-editable (the services array carries no icon field).
-const SERVICE_ICONS: LucideIcon[] = [Search, Calendar, ScanLine, Send, Bot, Box];
+// High-quality product-style images for the "Everything you need" services grid,
+// mapped by card order so the content stays admin-editable (the services array
+// carries no image field). Same cohesive premium 3D style across all 6 for symmetry.
+import imgContentCreation from "@assets/generated_images/svc-content-creation.webp";
+import imgPersonalBranding from "@assets/generated_images/svc-personal-branding.webp";
+import imgDistributionGrowth from "@assets/generated_images/svc-distribution-growth.webp";
+import imgWebFunnel from "@assets/generated_images/svc-web-funnel.webp";
+import imgAiAutomation from "@assets/generated_images/svc-ai-automation.webp";
+import imgDigitalProducts from "@assets/generated_images/svc-digital-products.webp";
 
-// Services cards are intentionally monochrome line-art (Apple-style) — no per-card
-// colour. A faint oversized icon watermark gives each card an illustrative feel.
+const SERVICE_IMAGES: string[] = [
+  imgContentCreation,
+  imgPersonalBranding,
+  imgDistributionGrowth,
+  imgWebFunnel,
+  imgAiAutomation,
+  imgDigitalProducts,
+];
 
 function GrainOverlay() {
   return (
@@ -379,7 +390,7 @@ export default function Home() {
 
           <div className="home-system-grid">
             {(hm.services || []).map((s, i) => {
-              const Icon = SERVICE_ICONS[i % SERVICE_ICONS.length];
+              const img = SERVICE_IMAGES[i % SERVICE_IMAGES.length];
               return (
                 <m.div
                   key={i}
@@ -391,41 +402,49 @@ export default function Home() {
                     position: "relative",
                     overflow: "hidden",
                     borderRadius: 24,
-                    background: "linear-gradient(180deg, #FFFFFF 0%, #FAFAFB 100%)",
-                    border: "1px solid rgba(15,23,42,0.05)",
+                    background: "#FFFFFF",
+                    border: "1px solid rgba(15,23,42,0.06)",
                     boxShadow: "0 30px 60px -38px rgba(15,23,42,0.20), 0 8px 22px -16px rgba(15,23,42,0.05)",
-                    padding: "34px 30px 30px",
                     display: "flex",
                     flexDirection: "column",
                   }}
                 >
-                  {/* Clean, soft line-art icon */}
-                  <div style={{ marginBottom: 24, color: "#2A2E35" }}>
-                    <Icon size={38} strokeWidth={1.5} aria-hidden="true" focusable="false" />
+                  {/* High-quality product-style image */}
+                  <div style={{ width: "100%", aspectRatio: "4 / 3", overflow: "hidden", background: "#F5F3EE" }}>
+                    <img
+                      src={img}
+                      alt={`${s.title} illustration`}
+                      loading="lazy"
+                      decoding="async"
+                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                    />
                   </div>
-                  {/* Card number, then the title beneath it */}
-                  <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: "#A2A7AE", marginBottom: 10 }}>
-                    {s.num}
-                  </div>
-                  <h3 style={{ fontWeight: 700, fontSize: 19, letterSpacing: "-0.02em", color: "#1A1C20", margin: 0, marginBottom: 12 }}>
-                    {s.title}
-                  </h3>
-                  <p style={{ fontSize: 14, color: "#6A6F77", lineHeight: "1.75", flex: 1, margin: 0 }}>{s.desc}</p>
-                  <div style={{ marginTop: 22 }}>
-                    <a
-                      href={s.href}
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 5,
-                        fontSize: 14,
-                        fontWeight: 600,
-                        textDecoration: "none",
-                        color: "#1A1C20",
-                      }}
-                    >
-                      Explore Service <span aria-hidden="true" style={{ fontSize: 15 }}>→</span>
-                    </a>
+                  {/* Text block beneath the image */}
+                  <div style={{ padding: "26px 28px 28px", display: "flex", flexDirection: "column", flex: 1 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", color: "#C2A878", marginBottom: 10 }}>
+                      {s.num}
+                    </div>
+                    <h3 style={{ fontWeight: 700, fontSize: 20, letterSpacing: "-0.02em", color: "#1A1C20", margin: 0, marginBottom: 12 }}>
+                      {s.title}
+                    </h3>
+                    <p style={{ fontSize: 14, color: "#6A6F77", lineHeight: "1.75", flex: 1, margin: 0 }}>{s.desc}</p>
+                    <div style={{ marginTop: 22 }}>
+                      <a
+                        href={s.href}
+                        aria-label={`Explore ${s.title} service`}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 5,
+                          fontSize: 14,
+                          fontWeight: 600,
+                          textDecoration: "none",
+                          color: "#1A1C20",
+                        }}
+                      >
+                        Explore Service <span aria-hidden="true" style={{ fontSize: 15 }}>→</span>
+                      </a>
+                    </div>
                   </div>
                 </m.div>
               );
