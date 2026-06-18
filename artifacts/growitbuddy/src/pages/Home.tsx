@@ -409,8 +409,47 @@ export default function Home() {
                     flexDirection: "column",
                   }}
                 >
-                  {/* High-quality product-style image */}
-                  <div style={{ width: "100%", aspectRatio: "4 / 3", overflow: "hidden", background: "#F5F3EE" }}>
+                  {/* Name + description on top (Apple product-grid style) */}
+                  <div style={{ padding: "28px 28px 20px", display: "flex", flexDirection: "column" }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", color: "#C2A878", marginBottom: 10 }}>
+                      {s.num}
+                    </div>
+                    <h3 style={{ fontWeight: 700, fontSize: 21, letterSpacing: "-0.02em", color: "#1A1C20", margin: 0, marginBottom: 10 }}>
+                      {s.title}
+                    </h3>
+                    <p
+                      style={{
+                        fontSize: 14,
+                        color: "#6A6F77",
+                        lineHeight: "1.6",
+                        margin: 0,
+                        marginBottom: 16,
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                      } as React.CSSProperties}
+                    >
+                      {s.desc}
+                    </p>
+                    <a
+                      href={s.href}
+                      aria-label={`Explore ${s.title} service`}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 5,
+                        fontSize: 14,
+                        fontWeight: 600,
+                        textDecoration: "none",
+                        color: "#1A1C20",
+                      }}
+                    >
+                      Explore Service <span aria-hidden="true" style={{ fontSize: 15 }}>→</span>
+                    </a>
+                  </div>
+                  {/* Product image sits at the bottom */}
+                  <div style={{ flex: 1, minHeight: 210, width: "100%", overflow: "hidden", background: "#F1ECE3" }}>
                     <img
                       src={img}
                       alt={`${s.title} illustration`}
@@ -418,33 +457,6 @@ export default function Home() {
                       decoding="async"
                       style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                     />
-                  </div>
-                  {/* Text block beneath the image */}
-                  <div style={{ padding: "26px 28px 28px", display: "flex", flexDirection: "column", flex: 1 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", color: "#C2A878", marginBottom: 10 }}>
-                      {s.num}
-                    </div>
-                    <h3 style={{ fontWeight: 700, fontSize: 20, letterSpacing: "-0.02em", color: "#1A1C20", margin: 0, marginBottom: 12 }}>
-                      {s.title}
-                    </h3>
-                    <p style={{ fontSize: 14, color: "#6A6F77", lineHeight: "1.75", flex: 1, margin: 0 }}>{s.desc}</p>
-                    <div style={{ marginTop: 22 }}>
-                      <a
-                        href={s.href}
-                        aria-label={`Explore ${s.title} service`}
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 5,
-                          fontSize: 14,
-                          fontWeight: 600,
-                          textDecoration: "none",
-                          color: "#1A1C20",
-                        }}
-                      >
-                        Explore Service <span aria-hidden="true" style={{ fontSize: 15 }}>→</span>
-                      </a>
-                    </div>
                   </div>
                 </m.div>
               );
