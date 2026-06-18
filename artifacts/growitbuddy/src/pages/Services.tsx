@@ -465,7 +465,7 @@ export default function Services() {
                   id={`service-${s.id}`}
                   style={{ scrollMarginTop: 80, ...getSolidCardStyle(dark, { borderRadius: 22 }) }}
                 >
-                  {!dark && <CardGrain />}
+                  <CardGrain dark={dark} />
                   <WashIconChip index={i} icon={Icon} iconSize={26} size={50} dark={dark} style={{ marginBottom: 22 }} />
                   <div className="svc-bento-sub">{s.subtitle}</div>
                   <h3 className="svc-bento-title">{s.title}</h3>

@@ -11,20 +11,23 @@ system. Single source: `src/components/WashCard.tsx`.
 - `solidIsDark(i)` → `(i % 3) === 2` (every 3rd card dark). This is the
   "kuch dark kuch normal" rhythm the (frustrated, non-technical) owner asked for.
 - `getSolidCardStyle(dark, overrides)` owns the card SURFACE inline (bg/border/
-  shadow). LIGHT cards = premium lavender/periwinkle→white gradient
-  (`SOLID_LIGHT_BG`, radial glow top-left + linear to white) with a cool
-  periwinkle border `rgba(74,80,134,0.14)`; DARK cards = navy `#16202E`. (Light
-  used to be flat cream `#FCFAF6` — owner later asked for the lavender+white
-  premium combo + visible grain via a screenshot reference.) Inline style beats
-  any base CSS class, so card classes only handle TEXT.
+  shadow). LIGHT cards = flat warm cream `#FCFAF6` + neutral border
+  `rgba(20,32,46,0.10)`; DARK cards = navy `#16202E`. NO colored gradient — the
+  owner explicitly rejected a lavender/periwinkle gradient (they called the tint
+  "green"); keep light surfaces flat + neutral. Inline style beats any base CSS
+  class, so card classes only handle TEXT.
 - `getSolidText(dark)` → palette `{title, body, strong, muted, accent}` for
   flipping text on dark cards. `WashIconChip` takes a `dark` prop (works for both
-  `icon` and `label` chips). Render `{!dark && <CardGrain/>}` (grain only on light).
+  `icon` and `label` chips). `CardGrain` takes an optional `dark` prop and is
+  rendered on BOTH surfaces as `<CardGrain dark={dark} />` — mixBlendMode
+  `multiply` on light, `normal` on dark (so the bright grain shows as visible
+  texture on navy, matching the "The Problem" cards). Opacity 0.5 both.
 
 **Why:** owner rejected ~8 prior colorful/wash designs; wanted every card solid +
-brand-consistent, some dark + some light, on EVERY page. Light surface later
-upgraded from cream → a premium lavender/periwinkle→white gradient + grain
-(owner's explicit screenshot reference); dark navy rhythm kept unchanged.
+brand-consistent, some dark + some light, on EVERY page. A lavender/periwinkle
+gradient on light cards was tried and rejected (owner called the tint "green" and
+wanted it removed). Final spec: flat cream light + navy dark, and the SAME film
+grain on BOTH surfaces (owner loves the "The Problem" textured dark cards).
 
 ## Per-page conversion patterns (two kinds)
 

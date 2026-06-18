@@ -565,7 +565,7 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
                 const P = getSolidText(dark);
                 return (
                 <motion.div key={i} {...FI(0.1 + i * 0.08)} className={`tp-step-card${dark ? " is-dark" : ""}`} style={getSolidCardStyle(dark, { borderRadius: 14 })}>
-                  {!dark && <CardGrain />}
+                  <CardGrain dark={dark} />
                   <div className="tp-step-num" style={{ position: "relative" }}>{step.number}</div>
                   <h3 style={{ position: "relative", fontSize: 17, fontWeight: 800, color: P.title, marginBottom: 10, letterSpacing: "-0.01em" }}>
                     {step.title}
@@ -600,7 +600,7 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
                 const P = getSolidText(dark);
                 return (
                   <motion.div key={r.id} {...FI(0.08 + i * 0.08)} className={`tp-res-card${dark ? " is-dark" : ""}`} style={getSolidCardStyle(dark, { borderRadius: 14 })}>
-                    {!dark && <CardGrain />}
+                    <CardGrain dark={dark} />
                     <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
                       <h3 style={{ fontSize: 16, fontWeight: 800, color: P.title, marginBottom: 6, letterSpacing: "-0.01em" }}>
                         {r.title}

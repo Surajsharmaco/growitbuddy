@@ -469,7 +469,7 @@ export default function Home() {
                 transition={{ delay: i * 0.08, duration: 0.5 }}
                 style={getSolidCardStyle(dark, { padding: "32px 28px" })}
               >
-                {!dark && <CardGrain />}
+                <CardGrain dark={dark} />
                 <p style={{ position: "relative", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: P.muted, marginBottom: 20 }}>{p.category}</p>
                 <div style={{ position: "relative", fontSize: "clamp(36px, 4vw, 52px)", fontWeight: 800, letterSpacing: "-0.04em", color: P.title, lineHeight: 1, marginBottom: 4 }}>
                   <CountUp value={p.metric} />
@@ -513,7 +513,7 @@ export default function Home() {
                 transition={{ delay: i * 0.1, duration: 0.5 }}
                 style={getSolidCardStyle(dark, { padding: "40px 36px" })}
               >
-                {!dark && <CardGrain />}
+                <CardGrain dark={dark} />
                 <p style={{ position: "relative", fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: P.accent, marginBottom: 20 }}>{card.tag}</p>
                 <h3 style={{ position: "relative", fontWeight: 800, fontSize: "clamp(22px, 3vw, 30px)", letterSpacing: "-0.03em", lineHeight: "1.15", color: P.title, marginBottom: 16 }}>{card.title}</h3>
                 <p style={{ position: "relative", fontSize: 15, color: P.body, lineHeight: "1.75", marginBottom: 32 }}>{card.desc}</p>
@@ -599,7 +599,7 @@ export default function Home() {
                   gap: 0,
                 })}
               >
-                {!dark && <CardGrain />}
+                <CardGrain dark={dark} />
                 <WashIconChip index={i} icon={Icon} dark={dark} />
                 <h3 style={{ position: "relative", fontWeight: 800, fontSize: 23, letterSpacing: "-0.02em", color: P.title, marginTop: "auto", marginBottom: 10 }}>
                   {card.title}
@@ -638,7 +638,7 @@ export default function Home() {
                 transition={{ delay: i * 0.08, duration: 0.5 }}
                 style={getSolidCardStyle(dark, { padding: "28px" })}
               >
-                {!dark && <CardGrain />}
+                <CardGrain dark={dark} />
                 <div style={{ position: "relative", display: "flex", gap: 2, marginBottom: 16 }}>
                   {[...Array(5)].map((_, j) => <Star key={j} className="w-4 h-4" style={{ color: "#C2A878", fill: "#C2A878" }} />)}
                 </div>

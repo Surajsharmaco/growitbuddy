@@ -342,7 +342,7 @@ export default function About() {
                   transition={{ delay: i * 0.08 }}
                   style={getSolidCardStyle(dark, { padding: "32px 30px" })}
                 >
-                  {!dark && <CardGrain />}
+                  <CardGrain dark={dark} />
                   <WashIconChip index={i} label={String(i + 1).padStart(2, "0")} dark={dark} style={{ marginBottom: 22 }} />
                   <h3 style={{ position: "relative", fontSize: 21, fontWeight: 800, letterSpacing: "-0.03em", color: P.title, marginBottom: 10 }}>{v.title}</h3>
                   <p style={{ position: "relative", fontSize: 14.5, color: P.body, lineHeight: "1.7", fontWeight: 500 }}>{v.description}</p>
