@@ -226,6 +226,11 @@ frontend website, a backend API, and shared libraries.
 - SEO: on Vercel, all requests are routed through a serverless function
   (\`api/render.js\`, see \`vercel.json\` rewrites) that injects per-page meta tags
   (title, description, Open Graph, JSON-LD) into the HTML before serving the SPA.
+  It reads the live Neon database DIRECTLY (the same \`site_content\` table the
+  admin writes to) to resolve admin SEO overrides and bootstrap current content,
+  so it REQUIRES the DB connection string in Vercel's env (\`NEON_DATABASE_URL\` or
+  \`DATABASE_URL\`). Without it the function still serves the site but falls back to
+  the \`@workspace/seo\` registry defaults — admin SEO/content are NOT server-rendered.
 
 ## How the admin panel works
 - Auth is a signed HMAC token (no third-party auth service). A "super admin" logs
@@ -301,7 +306,10 @@ following environment variables yourself. Names and purpose only:
 
 ## Database
 - \`DATABASE_URL\` (and/or \`NEON_DATABASE_URL\`) — PostgreSQL connection string
-  (Neon in production). Required.
+  (Neon in production). Required. Needed in TWO places in production: the API
+  (Render) AND the frontend's SSR/SEO serverless function (Vercel). If it is
+  missing on Vercel, the SSR function falls back to registry-default meta and an
+  empty content bootstrap (admin SEO titles/content are not server-rendered).
 
 ## Admin / security
 - \`ADMIN_PASSWORD\` — the super-admin login password; also used as the secret that
@@ -342,13 +350,14 @@ The schema is the source of truth and lives in \`SOURCE_CODE/lib/db/src/schema/\
 
 ## Tables
 - \`site_content\` — all editable website content, keyed by section (the CMS).
+  The creator/influencer network, distribution network, and talent-pool listings
+  are sections inside this table — there is NO separate influencers/network table.
 - \`leads\` — CRM submissions from public forms (contact, applications, etc.).
 - \`team_members\` — admin team accounts with permissions and password hashes.
 - \`certificates\` — issued certificates (publicly verifiable by id).
 - \`portfolio_items\` — portfolio / case-study entries.
 - \`portfolio_shares\` — shareable filtered portfolio links.
 - \`client_logos\` — client logo strip.
-- \`influencers\` / network tables — creator-network data.
 - \`page_variants\` — alternate versions of pages (A/B / audience variants).
 - \`media_files\` — uploaded media metadata (and base64 blob when Cloudinary is off).
 - \`revoked_tokens\` — invalidated admin session tokens.
