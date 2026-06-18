@@ -10,16 +10,9 @@ import { resolveMediaUrl } from "@/lib/api";
 import { DISTRIBUTION_NETWORK_DEFAULTS as DN_DEFAULTS, type DistributionNetworkData, type DistNetAdvItem as AdvItem, type DistNetStep as DistStep } from "@/lib/distributionNetworkDefaults";
 
 /* ── Card ────────────────────────────────────────────────── */
-function PageCard({ page, i }: { page: DistributionPage; i: number }) {
+function PageCard({ page }: { page: DistributionPage }) {
   const [imgError, setImgError] = useState(false);
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 10 }}
-      transition={{ delay: i * 0.03, duration: 0.35 }}
-    >
       <div
         style={{
           background: "#FFFFFF",
@@ -55,15 +48,13 @@ function PageCard({ page, i }: { page: DistributionPage; i: number }) {
               src={resolveMediaUrl(page.photo)}
               alt={page.name}
               onError={() => setImgError(true)}
-              style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block", opacity: 0.85 }}
+              style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block" }}
             />
           ) : (
             <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#0A0A0A", fontWeight: 800, fontSize: 40, letterSpacing: "-0.02em" }}>
               {page.initials}
             </div>
           )}
-          {/* Gradient overlay */}
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(11,11,11,0.55) 0%, transparent 60%)" }} />
 
           {/* Niche badge */}
           <div className="dn-badge dn-badge-niche" style={{ position: "absolute", top: 14, left: 14, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#1E293B", background: "rgba(255,255,255,0.92)", backdropFilter: "blur(8px)", borderRadius: 100, padding: "4px 12px", border: "1px solid rgba(255,255,255,0.6)", maxWidth: "55%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -78,15 +69,15 @@ function PageCard({ page, i }: { page: DistributionPage; i: number }) {
             </div>
           )}
 
-          {/* Followers - bottom left */}
-          <div className="dn-stat-followers" style={{ position: "absolute", bottom: 14, left: 14 }}>
-            <p style={{ fontWeight: 800, fontSize: 22, color: "#0A0A0A", letterSpacing: "-0.04em", lineHeight: 1 }}>{page.followers}</p>
-            <p style={{ fontSize: 10, fontWeight: 600, color: "#5F5F5F", letterSpacing: "0.08em", textTransform: "uppercase", marginTop: 2 }}>Followers</p>
+          {/* Followers - bottom left (highlighted pill) */}
+          <div className="dn-stat-followers" style={{ position: "absolute", bottom: 14, left: 14, display: "inline-flex", alignItems: "baseline", gap: 6, background: "#FFFFFF", borderRadius: 100, padding: "7px 14px", border: "1px solid rgba(11,11,11,0.06)", boxShadow: "0 6px 18px rgba(11,11,11,0.22)" }}>
+            <span style={{ fontWeight: 800, fontSize: 18, color: "#0A0A0A", letterSpacing: "-0.03em", lineHeight: 1 }}>{page.followers}</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: "#7A7A85", letterSpacing: "0.08em", textTransform: "uppercase" }}>Followers</span>
           </div>
 
-          {/* Country - bottom right */}
-          <div className="dn-stat-country" style={{ position: "absolute", bottom: 14, right: 14, maxWidth: "45%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            <p style={{ fontSize: 11, fontWeight: 600, color: "#8A8A8A", letterSpacing: "0.04em" }}>{page.country}</p>
+          {/* Country - bottom right (pill) */}
+          <div className="dn-stat-country" style={{ position: "absolute", bottom: 14, right: 14, maxWidth: "45%", background: "rgba(255,255,255,0.92)", backdropFilter: "blur(8px)", borderRadius: 100, padding: "5px 12px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "#1E293B", letterSpacing: "0.04em" }}>{page.country}</span>
           </div>
         </div>
 
@@ -101,7 +92,6 @@ function PageCard({ page, i }: { page: DistributionPage; i: number }) {
           </div>
         </div>
       </div>
-    </motion.div>
   );
 }
 
@@ -348,11 +338,11 @@ export default function DistributionNetwork() {
           .dn-badge-niche { top: 10px !important; left: 10px !important; max-width: 50% !important; }
           .dn-badge-hot { top: 10px !important; right: 10px !important; gap: 3px !important; padding: 3px 7px !important; }
           .dn-hot-text { display: none; }
-          .dn-stat-followers { bottom: 10px !important; left: 12px !important; }
-          .dn-stat-followers > p:first-child { font-size: 18px !important; }
-          .dn-stat-followers > p:last-child { font-size: 9px !important; }
+          .dn-stat-followers { bottom: 10px !important; left: 12px !important; padding: 5px 11px !important; }
+          .dn-stat-followers > span:first-child { font-size: 15px !important; }
+          .dn-stat-followers > span:last-child { font-size: 9px !important; }
           .dn-stat-country { bottom: 10px !important; right: 12px !important; max-width: 40% !important; }
-          .dn-stat-country > p { font-size: 10px !important; }
+          .dn-stat-country > span { font-size: 10px !important; }
         }
       `}</style>
 
@@ -449,11 +439,9 @@ export default function DistributionNetwork() {
 
           {/* Grid */}
           {filtered.length > 0 ? (
-            <motion.div layout className="dist-grid">
-              <AnimatePresence mode="popLayout">
-                {filtered.map((page, i) => <PageCard key={page.slug} page={page} i={i} />)}
-              </AnimatePresence>
-            </motion.div>
+            <div className="dist-grid">
+              {filtered.map((page) => <PageCard key={page.slug} page={page} />)}
+            </div>
           ) : (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ textAlign: "center", padding: "80px 24px" }}>
               <p style={{ fontWeight: 800, fontSize: 20, color: "#0A0A0A", letterSpacing: "-0.03em", marginBottom: 10 }}>No pages found</p>
