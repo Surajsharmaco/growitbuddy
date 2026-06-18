@@ -12,6 +12,7 @@ import { DISTRIBUTION_NETWORK_DEFAULTS as DN_DEFAULTS, type DistributionNetworkD
 /* ── Card ────────────────────────────────────────────────── */
 function PageCard({ page }: { page: DistributionPage }) {
   const [imgError, setImgError] = useState(false);
+  const instagramUrl = page.instagramUrl?.trim();
   return (
       <div
         style={{
@@ -24,12 +25,11 @@ function PageCard({ page }: { page: DistributionPage }) {
           display: "flex",
           flexDirection: "column",
           height: "100%",
-          cursor: page.instagramUrl ? "pointer" : "default",
+          cursor: instagramUrl ? "pointer" : "default",
         }}
         onClick={() => {
-          const raw = page.instagramUrl?.trim();
-          if (!raw) return;
-          const href = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+          if (!instagramUrl) return;
+          const href = /^https?:\/\//i.test(instagramUrl) ? instagramUrl : `https://${instagramUrl}`;
           window.open(href, "_blank", "noopener,noreferrer");
         }}
         onMouseEnter={(e) => {
@@ -69,11 +69,14 @@ function PageCard({ page }: { page: DistributionPage }) {
             </div>
           )}
 
-          {/* Followers - bottom left (highlighted pill) */}
-          <div className="dn-stat-followers" style={{ position: "absolute", bottom: 14, left: 14, display: "inline-flex", alignItems: "baseline", gap: 6, background: "#FFFFFF", borderRadius: 100, padding: "7px 14px", border: "1px solid rgba(11,11,11,0.06)", boxShadow: "0 6px 18px rgba(11,11,11,0.22)" }}>
-            <span style={{ fontWeight: 800, fontSize: 18, color: "#0A0A0A", letterSpacing: "-0.03em", lineHeight: 1 }}>{page.followers}</span>
-            <span style={{ fontSize: 10, fontWeight: 700, color: "#7A7A85", letterSpacing: "0.08em", textTransform: "uppercase" }}>Followers</span>
-          </div>
+          {/* Followers - bottom left (highlighted pill). Hidden when no count is
+              set so we never render an orphan "Followers" label with no number. */}
+          {page.followers?.trim() && (
+            <div className="dn-stat-followers" style={{ position: "absolute", bottom: 14, left: 14, display: "inline-flex", alignItems: "baseline", gap: 6, background: "#FFFFFF", borderRadius: 100, padding: "7px 14px", border: "1px solid rgba(11,11,11,0.06)", boxShadow: "0 6px 18px rgba(11,11,11,0.22)" }}>
+              <span style={{ fontWeight: 800, fontSize: 18, color: "#0A0A0A", letterSpacing: "-0.03em", lineHeight: 1 }}>{page.followers}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: "#7A7A85", letterSpacing: "0.08em", textTransform: "uppercase" }}>Followers</span>
+            </div>
+          )}
 
           {/* Country - bottom right (pill) */}
           <div className="dn-stat-country" style={{ position: "absolute", bottom: 14, right: 14, maxWidth: "45%", background: "rgba(255,255,255,0.92)", backdropFilter: "blur(8px)", borderRadius: 100, padding: "5px 12px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -87,9 +90,13 @@ function PageCard({ page }: { page: DistributionPage }) {
             <p style={{ fontWeight: 800, fontSize: 16, color: "#0A0A0A", letterSpacing: "-0.03em", lineHeight: 1.2 }}>{page.name}</p>
             <p style={{ fontSize: 13, fontWeight: 500, color: "#7A7A85", marginTop: 3 }}>{page.handle}</p>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#0A0A0A", whiteSpace: "nowrap", flexShrink: 0 }}>
-            View Page <ArrowRight style={{ width: 12, height: 12 }} />
-          </div>
+          {/* Only show the "View Page" CTA when there is an actual profile link to
+              open — otherwise it is a dead button that does nothing on click. */}
+          {instagramUrl && (
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#0A0A0A", whiteSpace: "nowrap", flexShrink: 0 }}>
+              View Page <ArrowRight style={{ width: 12, height: 12 }} />
+            </div>
+          )}
         </div>
       </div>
   );
@@ -440,7 +447,7 @@ export default function DistributionNetwork() {
           {/* Grid */}
           {filtered.length > 0 ? (
             <div className="dist-grid">
-              {filtered.map((page) => <PageCard key={page.slug} page={page} />)}
+              {filtered.map((page, i) => <PageCard key={page.slug || page.handle || page.name || i} page={page} />)}
             </div>
           ) : (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ textAlign: "center", padding: "80px 24px" }}>
