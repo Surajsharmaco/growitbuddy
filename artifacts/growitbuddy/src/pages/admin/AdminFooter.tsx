@@ -58,6 +58,7 @@ export default function AdminFooter() {
             <Input label="LinkedIn URL" value={data.linkedin} onChange={(e) => set("linkedin", e.target.value)} />
             <Input label="Twitter / X URL" value={data.twitter} onChange={(e) => set("twitter", e.target.value)} />
             <Input label="Instagram URL" value={data.instagram} onChange={(e) => set("instagram", e.target.value)} />
+            <Input label="YouTube URL" value={data.youtube} onChange={(e) => set("youtube", e.target.value)} />
             <Input label="Legal / Copyright Text" value={data.legalText} onChange={(e) => set("legalText", e.target.value)} className="col-span-2" />
           </div>
         </Card>

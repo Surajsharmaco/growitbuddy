@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import { NAVBAR_DEFAULTS, type NavbarData } from "@/lib/navbarDefaults";
+import { SocialLinks } from "./SocialLinks";
 
 type NavDropdownItem = { href: string; label: string; subtitle: string };
 type NavLink =
@@ -260,6 +261,10 @@ export function Navbar() {
           </nav>
 
           <div className="hidden lg:flex items-center gap-2 flex-shrink-0">
+            <div className="hidden xl:flex items-center gap-3 mr-1">
+              <SocialLinks variant="light" size={17} gap={14} />
+              <span aria-hidden style={{ width: 1, height: 18, background: "rgba(10,10,10,0.10)" }} />
+            </div>
             <button
               onClick={() => goContact("form")}
               className="inline-flex items-center gap-1.5 rounded-full px-5 py-2 text-[15px] font-semibold cursor-pointer transition-all"
@@ -601,6 +606,7 @@ export function Navbar() {
                   <p style={{ fontSize: 12, color: "#8A8A8A", margin: 0, marginTop: 4 }}>
                     © {new Date().getFullYear()} GrowitBuddy
                   </p>
+                  <SocialLinks variant="light" size={20} gap={18} className="mt-3" />
                 </div>
               </m.div>
             </div>

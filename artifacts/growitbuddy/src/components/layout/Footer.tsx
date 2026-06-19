@@ -1,17 +1,10 @@
 import { Link } from "wouter";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import { FOOTER_DEFAULTS as DEFAULTS, type FooterData } from "@/lib/footerDefaults";
-
-const socialLinks = [
-  { key: "linkedin" as const, label: "LinkedIn" },
-  { key: "twitter" as const, label: "Twitter" },
-  { key: "instagram" as const, label: "Instagram" },
-];
+import { SocialLinks } from "./SocialLinks";
 
 export function Footer() {
   const data = usePublicContent<FooterData>("footer", DEFAULTS);
-
-  const activeSocials = socialLinks.filter((s) => data[s.key]);
 
   return (
     <footer
@@ -92,28 +85,6 @@ export function Footer() {
             >
               {data.email}
             </a>
-            {activeSocials.length > 0 && (
-              <div style={{ display: "flex", gap: 14, marginTop: 14 }}>
-                {activeSocials.map((s) => (
-                  <a
-                    key={s.key}
-                    href={data[s.key]}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: "rgba(255,255,255,0.4)",
-                      textDecoration: "none",
-                    }}
-                    className="hover:text-white transition-colors"
-                  >
-                    {s.label}
-                  </a>
-                ))}
-              </div>
-            )}
           </div>
 
           {data.columns.map((col, ci) => (
@@ -182,22 +153,25 @@ export function Footer() {
           >
             &copy; {data.legalText}
           </p>
-          <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
-            <Link href="/verify">
-              <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "none", transition: "color 0.15s", cursor: "pointer" }} className="hover:!text-white/60">
-                Verify Certificate
-              </span>
-            </Link>
-            <Link href="/privacy">
-              <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "none", transition: "color 0.15s", cursor: "pointer" }} className="hover:!text-white/60">
-                Privacy
-              </span>
-            </Link>
-            <Link href="/terms">
-              <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "none", transition: "color 0.15s", cursor: "pointer" }} className="hover:!text-white/60">
-                Terms
-              </span>
-            </Link>
+          <div style={{ display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
+            <SocialLinks variant="dark" size={18} gap={16} />
+            <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
+              <Link href="/verify">
+                <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "none", transition: "color 0.15s", cursor: "pointer" }} className="hover:!text-white/60">
+                  Verify Certificate
+                </span>
+              </Link>
+              <Link href="/privacy">
+                <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "none", transition: "color 0.15s", cursor: "pointer" }} className="hover:!text-white/60">
+                  Privacy
+                </span>
+              </Link>
+              <Link href="/terms">
+                <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "none", transition: "color 0.15s", cursor: "pointer" }} className="hover:!text-white/60">
+                  Terms
+                </span>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

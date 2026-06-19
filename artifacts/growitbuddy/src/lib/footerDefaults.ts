@@ -7,6 +7,7 @@ export interface FooterData {
   linkedin: string;
   twitter: string;
   instagram: string;
+  youtube: string;
   columns: FooterColumn[];
   legalText: string;
 }
@@ -14,9 +15,10 @@ export interface FooterData {
 export const FOOTER_DEFAULTS: FooterData = {
   tagline: "Authority, content, and distribution systems for founders, creators, and modern brands.",
   email: "cs.growitbuddy@gmail.com",
-  linkedin: "",
-  twitter: "",
-  instagram: "",
+  linkedin: "https://www.linkedin.com/company/growitbuddy",
+  twitter: "https://x.com/growitbuddy",
+  instagram: "https://instagram.com/growitbuddy",
+  youtube: "https://youtube.com/@growitbuddy",
   columns: [
     {
       title: "Services",

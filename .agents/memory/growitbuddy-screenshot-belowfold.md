@@ -24,3 +24,16 @@ For a section many blocks down (e.g. Home §7 "BUILT FOR" is the 7th `<section>`
 - **Revert every temporary style change afterward** — restore original padding and remove the fixed positioning.
 
 **Why:** `position:fixed` decouples the section from document flow so its scroll position no longer matters; this reliably frames any section regardless of how deep it is, and is cleaner than hiding 5+ sections individually.
+
+## Capturing the shared FOOTER (two stacked vh spacers)
+
+The footer is the worst case because TWO `vh`-scaled spacers push it below any single top-anchored capture (raising the viewport height also raises the spacers):
+1. `components/layout/Layout.tsx` outer div `min-h-[100dvh]` + `<main className="flex-1">` — pins the footer to the bottom of the viewport.
+2. The page rendered inside ALSO has its own `minHeight: "100vh"` (most public pages do).
+
+**Workaround:** temporarily set BOTH to collapse, then capture a short page so the footer rises into frame:
+- Layout outer: `min-h-[100dvh]` → `min-h-0`.
+- The target page's root `minHeight: "100vh"` → `"auto"` (e.g. `/verify` = `pages/Verify.tsx`).
+- Screenshot a content-light page (`/verify`) at `[1440, ~1200]` desktop / `[402, ~1500]` mobile.
+- **Revert both** afterward.
+
