@@ -22,8 +22,12 @@ const WP_SITE = "https://blog.growitbuddy.com";
 // slug -> resolved URL (or null when no image was found), with TTL.
 const CACHE = new Map<string, { url: string | null; expiresAt: number }>();
 const CACHE_MAX = 1000;
-const TTL_HIT = 6 * 60 * 60 * 1000; // 6h once an image is found
-const TTL_MISS = 30 * 60 * 1000; // 30m for misses, so newly-added images show up soon
+// Keep these short: editors add/replace a post's featured image in WordPress and
+// expect the public site to reflect it almost immediately. A long hit-TTL would
+// pin a CHANGED image to its old URL for hours, which reads as "my new image
+// won't show". Re-scraping a handful of posts is cheap, so favour freshness.
+const TTL_HIT = 30 * 60 * 1000; // 30m once an image is found (a changed image propagates within 30m)
+const TTL_MISS = 3 * 60 * 1000; // 3m for misses, so a just-added image appears within minutes
 
 function cacheSet(slug: string, url: string | null, expiresAt: number) {
   if (CACHE.size >= CACHE_MAX) {
@@ -80,7 +84,15 @@ async function resolveOne(slug: string): Promise<string | null> {
   let url: string | null = null;
   try {
     const r = await fetch(`${WP_SITE}/${encodeURIComponent(slug)}/`, {
-      headers: { "User-Agent": "growitbuddy-featured-image/1.0" },
+      // Use a real browser UA + Accept header. Some hosts/WAFs silently serve a
+      // challenge or 403 to unknown bot agents coming from datacenter IPs (e.g.
+      // the production server), which would make the scrape find no image even
+      // though the page renders one fine for visitors.
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      },
       signal: AbortSignal.timeout(8000),
     });
     // fetch follows redirects by default; only trust the body if it never left
@@ -135,7 +147,10 @@ wpRouter.get("/featured-images", async (req: Request, res: Response) => {
     }
   }
 
-  res.setHeader("Cache-Control", "public, max-age=1800, stale-while-revalidate=3600");
+  // Keep the HTTP cache window in step with the short in-memory TTLs above,
+  // otherwise a browser/CDN could pin a stale `null` (no image) for far longer
+  // than the server would, which is exactly the "my new image won't show" bug.
+  res.setHeader("Cache-Control", "public, max-age=180, stale-while-revalidate=300");
   res.json({ images });
 });
 
