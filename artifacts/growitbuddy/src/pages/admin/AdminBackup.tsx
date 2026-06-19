@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { API_BASE } from "@/lib/api";
 import {
@@ -13,10 +13,112 @@ import {
   Check,
   RefreshCw,
   FileText,
+  Newspaper,
+  Images,
 } from "lucide-react";
 
 type ZipStatus = "idle" | "loading" | "done" | "error";
 type PromptStatus = "loading" | "ready" | "error";
+
+function StatusMsg({ status, error, doneText }: { status: ZipStatus; error: string | null; doneText: string }) {
+  if (status === "done") {
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          marginTop: 14,
+          padding: "10px 14px",
+          background: "rgba(16,185,129,0.08)",
+          border: "1px solid rgba(16,185,129,0.25)",
+          borderRadius: 10,
+          color: "#047857",
+          fontSize: 13.5,
+          fontWeight: 600,
+        }}
+      >
+        <CheckCircle2 size={17} /> {doneText}
+      </div>
+    );
+  }
+  if (status === "error") {
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 8,
+          marginTop: 14,
+          padding: "10px 14px",
+          background: "rgba(220,38,38,0.07)",
+          border: "1px solid rgba(220,38,38,0.25)",
+          borderRadius: 10,
+          color: "#b91c1c",
+          fontSize: 13.5,
+          fontWeight: 600,
+        }}
+      >
+        <AlertTriangle size={17} style={{ flexShrink: 0, marginTop: 1 }} />
+        <span>{error ?? "Kuch galat ho gaya. Thodi der baad dobara try karo."}</span>
+      </div>
+    );
+  }
+  return null;
+}
+
+function DownloadCard({
+  icon,
+  title,
+  desc,
+  buttonLabel,
+  loadingLabel,
+  doneText,
+  status,
+  error,
+  onClick,
+}: {
+  icon: ReactNode;
+  title: string;
+  desc: ReactNode;
+  buttonLabel: string;
+  loadingLabel: string;
+  doneText: string;
+  status: ZipStatus;
+  error: string | null;
+  onClick: () => void;
+}) {
+  return (
+    <div style={{ background: "#fff", border: "1px solid #ECECE7", borderRadius: 16, padding: 22, marginTop: 20 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+        {icon}
+        <h2 style={{ fontSize: 15, fontWeight: 800, color: "#0B0B0B", margin: 0 }}>{title}</h2>
+      </div>
+      <p style={{ fontSize: 13, color: "rgba(11,11,11,0.55)", lineHeight: 1.55, margin: "0 0 14px" }}>{desc}</p>
+      <button
+        onClick={onClick}
+        disabled={status === "loading"}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 9,
+          background: status === "loading" ? "#475569" : "#1E293B",
+          color: "#fff",
+          border: "none",
+          borderRadius: 12,
+          padding: "11px 18px",
+          fontSize: 14,
+          fontWeight: 700,
+          cursor: status === "loading" ? "default" : "pointer",
+        }}
+      >
+        {status === "loading" ? <Loader2 size={16} className="gb-spin" /> : <DownloadCloud size={16} />}
+        {status === "loading" ? loadingLabel : buttonLabel}
+      </button>
+      <StatusMsg status={status} error={error} doneText={doneText} />
+    </div>
+  );
+}
 
 const INCLUDED = [
   "Poora source code (saari files - website + admin + API + libraries)",
@@ -46,6 +148,53 @@ export default function AdminBackup() {
   // ── ZIP backup ──
   const [zipStatus, setZipStatus] = useState<ZipStatus>("idle");
   const [zipError, setZipError] = useState<string | null>(null);
+
+  // ── Blog backup ──
+  const [blogStatus, setBlogStatus] = useState<ZipStatus>("idle");
+  const [blogError, setBlogError] = useState<string | null>(null);
+
+  // ── Content + photos backup ──
+  const [contentStatus, setContentStatus] = useState<ZipStatus>("idle");
+  const [contentError, setContentError] = useState<string | null>(null);
+
+  const downloadArchive = useCallback(
+    async (
+      endpoint: string,
+      filePrefix: string,
+      setStatus: (s: ZipStatus) => void,
+      setErr: (s: string | null) => void,
+    ) => {
+      setStatus("loading");
+      setErr(null);
+      try {
+        const res = await authFetch(`${API_BASE}${endpoint}`);
+        if (!res.ok) {
+          let msg = `Backup failed (${res.status})`;
+          try {
+            const j = (await res.json()) as { error?: string };
+            msg = j.error ?? msg;
+          } catch {
+            /* not JSON */
+          }
+          throw new Error(msg);
+        }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${filePrefix}-${new Date().toISOString().slice(0, 10)}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        setStatus("done");
+      } catch (e) {
+        setErr((e as Error).message);
+        setStatus("error");
+      }
+    },
+    [authFetch],
+  );
 
   const loadPrompt = useCallback(async () => {
     setPromptStatus("loading");
@@ -380,6 +529,47 @@ export default function AdminBackup() {
           )}
         </div>
       </div>
+
+      {/* ── Blog backup (blogs live on external WordPress, not in any other backup) ── */}
+      <DownloadCard
+        icon={<Newspaper size={17} color="#1E293B" />}
+        title="Saare blogs ka backup (ZIP)"
+        desc={
+          <>
+            Aapke <strong>saare blog posts</strong> — poora content + saari images ke saath — ek ZIP mein.
+            Har post apne alag folder mein aata hai (padhne layak HTML + images + details). Isse aap in
+            blogs ko <strong>kisi bhi doosri website ya CMS</strong> par dobara use kar sakte ho, aur agar
+            blog kabhi band bhi ho jaye to bhi sab kuch safe rahega. Images download hoti hain, isliye
+            banne mein thoda time lag sakta hai.
+          </>
+        }
+        buttonLabel="Download blogs ZIP"
+        loadingLabel="Blogs ka backup ban raha hai..."
+        doneText="Blogs ZIP download ho gaya! File aapke downloads folder mein hai."
+        status={blogStatus}
+        error={blogError}
+        onClick={() => void downloadArchive("/admin/blog-backup", "growitbuddy-blogs", setBlogStatus, setBlogError)}
+      />
+
+      {/* ── Site content + photos archive (content snapshot + real image files) ── */}
+      <DownloadCard
+        icon={<Images size={17} color="#1E293B" />}
+        title="Site content + photos ka backup (ZIP)"
+        desc={
+          <>
+            Website ka saara editable content (<strong>pages, portfolio / case studies, logos,
+            certificates</strong>) + saari <strong>uploaded photos</strong> asli files ke roop mein, ek
+            manifest ke saath jisse photos kahin aur dobara jod sakte ho. Taaki content aur photos kabhi
+            waste na hon aur kahin bhi reuse ho sakein. (Ye GitHub par depend nahi karta.)
+          </>
+        }
+        buttonLabel="Download content + photos ZIP"
+        loadingLabel="Content + photos ka backup ban raha hai..."
+        doneText="Content + photos ZIP download ho gaya! File aapke downloads folder mein hai."
+        status={contentStatus}
+        error={contentError}
+        onClick={() => void downloadArchive("/admin/content-backup", "growitbuddy-content-photos", setContentStatus, setContentError)}
+      />
 
       {/* ── Full source ZIP backup (secondary) ── */}
       <div

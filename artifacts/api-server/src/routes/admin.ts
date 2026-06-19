@@ -6,6 +6,8 @@ import { logger } from "../lib/logger";
 import { cloudinaryConfigured, uploadToCloudinary } from "../lib/cloudinary";
 import { convertImageBuffer, type ConvertFormat } from "../lib/imageConvert";
 import { buildContentSnapshot, buildHandoffDocs, assembleBackupZip, buildMasterPrompt, type BackupMeta } from "../lib/backup";
+import { buildBlogExport } from "../lib/blogExport";
+import { buildContentArchive } from "../lib/contentArchive";
 import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -1921,6 +1923,83 @@ router.get("/handoff-prompt", authMiddleware, superAdminOnly, async (_req, res) 
     logger.error({ err }, "handoff prompt generation failed");
     if (!res.headersSent) {
       res.status(500).json({ error: "Could not generate the AI prompt right now. Please try again." });
+    }
+  }
+});
+
+// ── Super-admin "Blog backup" ────────────────────────────────────────────────
+// Blogs live on an external WordPress site, so they are NOT in any source/CMS
+// backup. This fetches every published post with all its images and packs a
+// fully self-contained, portable ZIP (see lib/blogExport.ts). Reliable: no
+// GitHub call. Can take a while when there are many image-heavy posts.
+router.get("/blog-backup", authMiddleware, superAdminOnly, async (_req, res) => {
+  try {
+    const result = await buildBlogExport();
+    if (result.postCount === 0) {
+      res.status(502).json({ error: "Koi blog post nahi mila — WordPress se connect nahi ho paaya. Thodi der baad try karo." });
+      return;
+    }
+    const filename = `growitbuddy-blogs-${result.generatedAt.slice(0, 10)}.zip`;
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    res.send(result.zip);
+
+    try {
+      await db.insert(adminActionLogs).values({
+        action: "blog-backup",
+        detail: `Exported ${result.postCount} blog posts, ${result.imageCount} images${result.skippedImages ? ` (skipped ${result.skippedImages})` : ""}`,
+        ok: true,
+      });
+    } catch {
+      /* audit log is non-fatal */
+    }
+    logger.info(
+      { posts: result.postCount, images: result.imageCount, bytes: result.zip.length, skipped: result.skippedImages },
+      "blog backup generated",
+    );
+  } catch (err) {
+    logger.error({ err }, "blog backup generation failed");
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Blog backup ban nahi paaya. Thodi der baad dobara try karo." });
+    } else {
+      try { res.end(); } catch { /* noop */ }
+    }
+  }
+});
+
+// ── Super-admin "Site content + photos" archive ──────────────────────────────
+// The full source backup keeps content text but not the image bytes; this bundles
+// the content snapshot together with every uploaded photo as a real file plus a
+// relinking manifest (see lib/contentArchive.ts). No GitHub call.
+router.get("/content-backup", authMiddleware, superAdminOnly, async (_req, res) => {
+  try {
+    const result = await buildContentArchive();
+    const filename = `growitbuddy-content-photos-${result.generatedAt.slice(0, 10)}.zip`;
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    res.send(result.zip);
+
+    try {
+      await db.insert(adminActionLogs).values({
+        action: "content-backup",
+        detail: `Exported content snapshot + ${result.mediaCount} media files${result.skippedMedia ? ` (skipped ${result.skippedMedia})` : ""}`,
+        ok: true,
+      });
+    } catch {
+      /* audit log is non-fatal */
+    }
+    logger.info(
+      { media: result.mediaCount, bytes: result.zip.length, skipped: result.skippedMedia },
+      "content archive generated",
+    );
+  } catch (err) {
+    logger.error({ err }, "content archive generation failed");
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Content backup ban nahi paaya. Thodi der baad dobara try karo." });
+    } else {
+      try { res.end(); } catch { /* noop */ }
     }
   }
 });
