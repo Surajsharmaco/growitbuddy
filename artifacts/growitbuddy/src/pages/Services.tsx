@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import BlueprintLines from "@/components/effects/BlueprintLines";
 import { ArrowRight, Check, BadgeCheck, Video, Rocket, LayoutTemplate, Cpu, ShoppingBag } from "lucide-react";
 import { getSolidCardStyle, solidIsDark, CardGrain, WashIconChip } from "@/components/WashCard";
 import { Link } from "wouter";
@@ -291,7 +290,6 @@ export default function Services() {
 
       {/* ── Hero ── */}
       <section className="svc-hero-section gb-hero-grid-white" style={{ position: "relative", paddingTop: 120, paddingBottom: 96, paddingLeft: 24, paddingRight: 24, backgroundColor: "#FFFFFF", borderBottom: "1px solid #E5E5E0" }}>
-        <BlueprintLines />
         <div className="max-w-[1100px] mx-auto svc-hero-grid">
           {/* Left */}
           <div>

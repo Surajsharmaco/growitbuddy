@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import BlueprintLines from "@/components/effects/BlueprintLines";
 import { ArrowRight, Check } from "lucide-react";
 import { CardGrain } from "@/components/WashCard";
 import { Link } from "wouter";
@@ -32,7 +31,6 @@ export default function Framework() {
 
       {/* Hero */}
       <section className="gb-hero-grid" style={{ position: "relative", paddingTop: 140, paddingBottom: 96, paddingLeft: 24, paddingRight: 24, borderBottom: "1px solid #E5E5E0", overflow: "hidden" }}>
-        <BlueprintLines />
         <div className="max-w-[1100px] mx-auto" style={{ position: "relative" }}>
           <span style={{
             display: "inline-flex", alignItems: "center", gap: 8,

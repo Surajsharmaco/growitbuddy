@@ -6,7 +6,6 @@ import {
   ArrowUpRight, BadgeCheck, Play, type LucideIcon,
 } from "lucide-react";
 import SEOMeta from "@/components/SEOMeta";
-import BlueprintLines from "@/components/effects/BlueprintLines";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import { resolveMediaUrl } from "@/lib/api";
 import {
@@ -694,7 +693,6 @@ export default function Links() {
         }}
       />
       <GrainOverlay />
-      <BlueprintLines maxWidth={620} hatch midCrosses />
 
       {/* Content */}
       <div style={{ position: "relative", zIndex: 1, maxWidth: 540, margin: "0 auto", padding: "72px 22px 64px", display: "flex", flexDirection: "column", alignItems: "center" }}>
