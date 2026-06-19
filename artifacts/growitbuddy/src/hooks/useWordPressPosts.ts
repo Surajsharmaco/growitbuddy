@@ -45,7 +45,7 @@ interface WPPost {
   modified?: string;
   title: { rendered: string };
   excerpt: { rendered: string };
-  content: { rendered: string };
+  content?: { rendered: string };
   featured_media: number;
   categories: number[];
   _embedded?: {
@@ -77,7 +77,7 @@ export function wpPostToBlogPost(wp: WPPost): BlogPost {
 
   // Skip any leading media/layout blocks (figure, gallery, cover, etc.) and start from
   // the first heading or paragraph that has real text content.
-  let cleanContent = wp.content.rendered.trim();
+  let cleanContent = (wp.content?.rendered ?? "").trim();
 
   // Find position of first real text block: heading or paragraph with non-whitespace text
   const firstTextBlock = /<(h[1-6]\b|p\b)[^>]*>\s*\S/i.exec(cleanContent);
@@ -98,7 +98,7 @@ export function wpPostToBlogPost(wp: WPPost): BlogPost {
     modifiedIsoDate: wp.modified ?? wp.date,
     tag,
     featuredImage,
-    readTime: estimateReadTime(wp.content.rendered),
+    readTime: estimateReadTime(wp.content?.rendered ?? ""),
     source: "wordpress" as const,
   };
 }
@@ -106,12 +106,19 @@ export function wpPostToBlogPost(wp: WPPost): BlogPost {
 export function useWordPressPosts() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [imagesResolving, setImagesResolving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetch(`${WP_API}/posts?_embed=1&per_page=100&status=publish`)
+    // The list view only needs title/excerpt/date/tag/image, so we drop the
+    // heavy `content` field via `_fields` - it can be ~70% of the payload and
+    // is never rendered in the list (the detail page fetches full content
+    // separately). This keeps the blog fast on mobile. `_embed` still resolves
+    // category terms; featured media stays locked, so images are backfilled below.
+    const listFields = "id,slug,date,modified,title,excerpt,featured_media,categories,_links";
+    fetch(`${WP_API}/posts?_embed=1&per_page=100&status=publish&_fields=${listFields}`)
       .then((r) => r.json())
       .then((data: WPPost[]) => {
         if (!cancelled && Array.isArray(data)) {
@@ -120,16 +127,19 @@ export function useWordPressPosts() {
           // Backfill featured images the REST API hides behind its locked media endpoint.
           const missing = mapped.filter((p) => !p.featuredImage).map((p) => p.slug.replace(/^wp-/, ""));
           if (missing.length) {
-            resolveWpFeaturedImages(missing).then((imgs) => {
-              if (cancelled) return;
-              setPosts((prev) =>
-                prev.map((p) => {
-                  if (p.featuredImage) return p;
-                  const url = imgs[p.slug.replace(/^wp-/, "")];
-                  return url ? { ...p, featuredImage: url } : p;
-                }),
-              );
-            });
+            setImagesResolving(true);
+            resolveWpFeaturedImages(missing)
+              .then((imgs) => {
+                if (cancelled) return;
+                setPosts((prev) =>
+                  prev.map((p) => {
+                    if (p.featuredImage) return p;
+                    const url = imgs[p.slug.replace(/^wp-/, "")];
+                    return url ? { ...p, featuredImage: url } : p;
+                  }),
+                );
+              })
+              .finally(() => { if (!cancelled) setImagesResolving(false); });
           }
         }
       })
@@ -140,7 +150,7 @@ export function useWordPressPosts() {
     return () => { cancelled = true; };
   }, []);
 
-  return { posts, loading, error };
+  return { posts, loading, imagesResolving, error };
 }
 
 export async function fetchWpPostBySlug(slug: string): Promise<BlogPost | null> {

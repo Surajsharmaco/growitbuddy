@@ -14,7 +14,7 @@ export default function Insights() {
   // empty the page shows an honest empty state - we never fall back to the
   // bundled seed posts, because that resurrected deleted posts on every refresh.
   const { posts: cmsPosts } = usePublicContent<{ posts: BlogPost[] }>("blog", { posts: [] });
-  const { posts: wpPosts } = useWordPressPosts();
+  const { posts: wpPosts, loading: wpLoading, imagesResolving } = useWordPressPosts();
 
   const blogPosts = useMemo(() => {
     // Public site shows only live posts: never trashed, never drafts.
@@ -46,6 +46,15 @@ export default function Insights() {
           "publisher": { "@id": "https://growitbuddy.com/#organization" }
         } as Record<string, unknown>}
       />
+
+      <style>{`
+        @keyframes gb-blog-shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        .gb-blog-shimmer {
+          background: linear-gradient(90deg, #ececea 25%, #f5f5f3 37%, #ececea 63%);
+          background-size: 200% 100%;
+          animation: gb-blog-shimmer 1.4s ease-in-out infinite;
+        }
+      `}</style>
 
       {/* Hero - tightened vertical rhythm */}
       <section style={{ paddingTop: "clamp(56px, 11vw, 88px)", paddingBottom: "clamp(28px, 6vw, 48px)", paddingLeft: 18, paddingRight: 18, borderBottom: "1px solid #E5E5E0" }}>
@@ -100,6 +109,7 @@ export default function Insights() {
           </div>
 
           {/* Grid - single column on mobile, multi-column on tablet/desktop */}
+          {filtered.length > 0 && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 300px), 1fr))", gap: 14 }}>
             {filtered.map((post, i) => {
               const featured = i === 0 && activeTag === "All";
@@ -129,15 +139,20 @@ export default function Insights() {
                       onMouseEnter={featured ? undefined : (e) => { e.currentTarget.style.boxShadow = "0 26px 60px -24px rgba(20,32,46,0.28), 0 10px 24px -10px rgba(20,32,46,0.12)"; }}
                       onMouseLeave={featured ? undefined : (e) => { e.currentTarget.style.boxShadow = "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)"; }}
                     >
-                      {post.featuredImage && (
+                      {(post.featuredImage || (post.source === "wordpress" && imagesResolving)) && (
                         <div style={{ aspectRatio: "16/10", overflow: "hidden", flexShrink: 0, background: "#e8e8e6" }}>
-                          <img
-                            src={resolveMediaUrl(post.featuredImage)}
-                            alt={post.title}
-                            loading={i < 3 ? "eager" : "lazy"}
-                            decoding="async"
-                            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                          />
+                          {post.featuredImage ? (
+                            <img
+                              src={resolveMediaUrl(post.featuredImage)}
+                              alt={post.title}
+                              loading={i < 3 ? "eager" : "lazy"}
+                              decoding="async"
+                              onLoad={(e) => { e.currentTarget.style.opacity = "1"; }}
+                              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", opacity: 0, transition: "opacity 0.45s ease" }}
+                            />
+                          ) : (
+                            <div className="gb-blog-shimmer" style={{ width: "100%", height: "100%" }} />
+                          )}
                         </div>
                       )}
                       <div style={{ padding: "28px 28px 28px", flex: 1, display: "flex", flexDirection: "column" }}>
@@ -176,8 +191,19 @@ export default function Insights() {
               );
             })}
           </div>
+          )}
 
-          {filtered.length === 0 && (
+          {/* Skeletons while posts are still loading - prevents the "No posts
+              yet" flash before the WordPress fetch resolves on mobile. */}
+          {filtered.length === 0 && wpLoading && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 300px), 1fr))", gap: 14 }}>
+              {Array.from({ length: 3 }).map((_, idx) => (
+                <SkeletonCard key={idx} />
+              ))}
+            </div>
+          )}
+
+          {filtered.length === 0 && !wpLoading && (
             <div style={{ textAlign: "center", padding: "64px 0", color: "rgba(11,11,11,0.45)" }}>
               <p style={{ fontSize: 16, fontWeight: 600, color: "#0A0A0A", marginBottom: 6 }}>No posts yet</p>
               <p style={{ fontSize: 14 }}>New articles will appear here once published.</p>
@@ -185,6 +211,33 @@ export default function Insights() {
           )}
         </div>
       </section>
+    </div>
+  );
+}
+
+function SkeletonCard() {
+  return (
+    <div
+      style={{
+        background: "#FFFFFF",
+        border: "1px solid rgba(20,32,46,0.14)",
+        boxShadow: "0 18px 44px -22px rgba(20,32,46,0.16)",
+        borderRadius: 20,
+        overflow: "hidden",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <div className="gb-blog-shimmer" style={{ aspectRatio: "16/10" }} />
+      <div style={{ padding: 28 }}>
+        <div className="gb-blog-shimmer" style={{ width: 72, height: 24, borderRadius: 100, marginBottom: 22 }} />
+        <div className="gb-blog-shimmer" style={{ width: "92%", height: 20, borderRadius: 6, marginBottom: 10 }} />
+        <div className="gb-blog-shimmer" style={{ width: "64%", height: 20, borderRadius: 6, marginBottom: 22 }} />
+        <div className="gb-blog-shimmer" style={{ width: "100%", height: 13, borderRadius: 6, marginBottom: 8 }} />
+        <div className="gb-blog-shimmer" style={{ width: "100%", height: 13, borderRadius: 6, marginBottom: 8 }} />
+        <div className="gb-blog-shimmer" style={{ width: "80%", height: 13, borderRadius: 6 }} />
+      </div>
     </div>
   );
 }
