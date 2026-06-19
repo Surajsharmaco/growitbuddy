@@ -6,7 +6,7 @@ import { ImageCropUploader } from "@/components/admin/ImageCropUploader";
 import { ImageUrlField } from "@/components/admin/ImageUrlField";
 import { Plus, Trash2, Pencil, X, Check, Image } from "lucide-react";
 
-import { API_BASE } from "@/lib/api";
+import { API_BASE, resolveMediaUrl } from "@/lib/api";
 
 import { type WorkHeroStat as HeroStat, type ClientLogo } from "@/lib/workDefaults";
 
@@ -50,10 +50,10 @@ function LogoCard({
         transition: "border-color 0.15s",
       }}
     >
-      {/* Logo preview */}
+      {/* Logo preview — mirrors the public Work grid cell exactly (white, contain, 44px) */}
       <div
         style={{
-          background: "#F8F8F6",
+          background: "#FFFFFF",
           height: 80,
           display: "flex",
           alignItems: "center",
@@ -64,10 +64,10 @@ function LogoCard({
       >
         {!imgError ? (
           <img
-            src={logo.imageUrl}
+            src={resolveMediaUrl(logo.imageUrl)}
             alt={logo.altText || "Logo"}
             onError={() => setImgError(true)}
-            style={{ maxWidth: "100%", maxHeight: 44, objectFit: "contain" }}
+            style={{ maxWidth: "80%", maxHeight: 44, objectFit: "contain" }}
           />
         ) : (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
@@ -224,7 +224,10 @@ function AddLogoPanel({ onAdd }: { onAdd: (logo: ClientLogo) => void }) {
         value={form.imageUrl}
         onChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))}
         placeholder="https://cdn.simpleicons.org/stripe/635BFF - or upload / pick from library"
-        previewHeight={52}
+        previewHeight={64}
+        objectFit="contain"
+        skipCrop
+        hint="The whole logo is shown - never cropped. Exactly what appears on the Work page. Use a transparent PNG/SVG."
       />
 
       <input

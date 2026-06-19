@@ -13,6 +13,10 @@ interface Props {
   hint?: string;
   previewHeight?: number;
   cropAspect?: AspectKey;
+  /** Skip the crop step and upload the original file as-is (logos: never crop). */
+  skipCrop?: boolean;
+  /** How the preview fits its box. "contain" mirrors logo grids (whole image, no crop). */
+  objectFit?: "cover" | "contain";
 }
 
 export function ImageUrlField({
@@ -23,6 +27,8 @@ export function ImageUrlField({
   hint,
   previewHeight = 80,
   cropAspect = "free",
+  skipCrop = false,
+  objectFit = "cover",
 }: Props) {
   const { authFetch } = useAdmin();
   const uid = useId();
@@ -39,6 +45,10 @@ export function ImageUrlField({
       return;
     }
     setUploadError(null);
+    if (skipCrop) {
+      void uploadBlob(file, file.name);
+      return;
+    }
     setPendingFile(file);
   }
 
@@ -143,7 +153,20 @@ export function ImageUrlField({
         )}
       </div>
 
-      {value && (
+      {value && (objectFit === "contain" ? (
+        // Mirror the public Work logo cell exactly: white, centered, 80% × 44px, contain (never cropped).
+        <div
+          className="mt-2 rounded-lg overflow-hidden border border-[#0B0B0B]/10 bg-white flex items-center justify-center"
+          style={{ height: previewHeight }}
+        >
+          <img
+            src={resolveMediaUrl(value)}
+            alt={label ?? "preview"}
+            style={{ maxWidth: "80%", maxHeight: 44, objectFit: "contain" }}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+          />
+        </div>
+      ) : (
         <div
           className="mt-2 rounded-lg overflow-hidden border border-[#0B0B0B]/10 bg-[#0B0B0B]/5"
           style={{ height: previewHeight }}
@@ -155,7 +178,7 @@ export function ImageUrlField({
             onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
           />
         </div>
-      )}
+      ))}
 
       {uploadError && <p className="text-[11px] text-red-600">{uploadError}</p>}
       {hint && !uploadError && (

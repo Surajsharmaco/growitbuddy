@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { Card, PageHeader, SectionTitle } from "@/components/admin/AdminField";
 import { ImageUrlField } from "@/components/admin/ImageUrlField";
-import { CropModal } from "@/components/admin/CropModal";
 import { Plus, Trash2, Edit2, X, Save, Upload, Image } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -44,13 +43,16 @@ function LogoForm({
   const [preview, setPreview] = useState<string>(initial?.imageUrl ?? "");
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   function handleFile(f: File) {
     if (!f.type.startsWith("image/")) { setErr("Please select an image file."); return; }
     setErr("");
-    setPendingFile(f);
+    // Logos are never cropped — store the original so the file matches exactly
+    // what shows on the Work page (whole logo, no cut).
+    setFile(f);
+    setPreview(URL.createObjectURL(f));
+    setForm((p) => ({ ...p, imageUrl: "" }));
   }
 
   async function handleSubmit() {
@@ -91,23 +93,6 @@ function LogoForm({
 
   return (
     <div style={{ padding: "24px", background: "#F8F8F6", borderRadius: 12, border: "1.5px solid #E5E5E0" }}>
-      {pendingFile && (
-        <CropModal
-          file={pendingFile}
-          defaultAspect="3:1"
-          title="Crop logo"
-          hint="Recommended: 240 × 80 px (3:1) • PNG with transparent background"
-          onComplete={(blob) => {
-            const fname = pendingFile.name.replace(/\.[^.]+$/, "") + ".png";
-            const cropped = new File([blob], fname, { type: blob.type || "image/png" });
-            setFile(cropped);
-            setPreview(URL.createObjectURL(cropped));
-            setForm((p) => ({ ...p, imageUrl: "" }));
-            setPendingFile(null);
-          }}
-          onCancel={() => setPendingFile(null)}
-        />
-      )}
       <div style={{ display: "flex", gap: 20 }}>
         {/* Image preview / upload zone */}
         <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", gap: 4 }}>
@@ -117,7 +102,7 @@ function LogoForm({
             title="Recommended: 240 × 80 px • PNG with transparent background"
           >
             {preview ? (
-              <img src={preview} alt="preview" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+              <img src={preview} alt="preview" style={{ maxWidth: "80%", maxHeight: 44, objectFit: "contain" }} />
             ) : (
               <>
                 <Upload size={18} style={{ color: "#8A8A8A", marginBottom: 2 }} />
@@ -142,8 +127,10 @@ function LogoForm({
             value={form.imageUrl}
             onChange={(url) => { setForm((p) => ({ ...p, imageUrl: url })); setPreview(url); setFile(null); }}
             placeholder="https://example.com/logo.png"
-            previewHeight={60}
-            hint="Recommended: 240 × 80 px • PNG with transparent background • Logos display at ~44px tall on the Work page"
+            previewHeight={64}
+            objectFit="contain"
+            skipCrop
+            hint="The whole logo is shown - never cropped. Exactly what appears on the Work page (~44px tall). Use a transparent PNG/SVG."
           />
           <div style={{ display: "flex", gap: 10 }}>
             <div style={{ flex: 2 }}>
@@ -336,7 +323,7 @@ export default function AdminLogos() {
                         <img
                           src={resolveMediaUrl(logo.imageUrl)}
                           alt={logo.altText || "Logo"}
-                          style={{ maxWidth: "100%", maxHeight: 40, objectFit: "contain" }}
+                          style={{ maxWidth: "80%", maxHeight: 44, objectFit: "contain" }}
                         />
                         {!logo.enabled && (
                           <span style={{ position: "absolute", top: 6, right: 6, fontSize: 9, fontWeight: 700, background: "#F0F0F0", color: "#8A8A8A", borderRadius: 4, padding: "2px 5px", letterSpacing: "0.05em" }}>
