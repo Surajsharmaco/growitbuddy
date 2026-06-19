@@ -600,8 +600,8 @@ export function Navbar() {
                   <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase", color: "#8A8A8A", margin: 0 }}>
                     Get in touch
                   </p>
-                  <a href="mailto:hello@growitbuddy.com" style={{ fontSize: 16, fontWeight: 600, color: "#0A0A0A", textDecoration: "none", letterSpacing: "-0.01em" }}>
-                    hello@growitbuddy.com
+                  <a href="mailto:cs.growitbuddy@gmail.com" style={{ fontSize: 16, fontWeight: 600, color: "#0A0A0A", textDecoration: "none", letterSpacing: "-0.01em" }}>
+                    cs.growitbuddy@gmail.com
                   </a>
                   <p style={{ fontSize: 12, color: "#8A8A8A", margin: 0, marginTop: 4 }}>
                     © {new Date().getFullYear()} GrowitBuddy

@@ -30,7 +30,7 @@ export const BRAND = {
   name: "GrowitBuddy",
   url: SITE_URL,
   logo: `${SITE_URL}/logo-dark.png`,
-  email: "hello@growitbuddy.com",
+  email: "cs.growitbuddy@gmail.com",
   twitter: "@growitbuddy",
   description:
     "GrowitBuddy builds positioning, production, distribution, and inbound demand systems for founders and creators.",

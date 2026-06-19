@@ -263,7 +263,7 @@ export const LINKS_DEFAULTS: LinksData = {
         { id: "s1", platform: "instagram", url: "https://instagram.com/growitbuddy" },
         { id: "s2", platform: "youtube", url: "https://youtube.com/@growitbuddy" },
         { id: "s3", platform: "x", url: "https://x.com/growitbuddy" },
-        { id: "s4", platform: "email", url: "hello@growitbuddy.com" },
+        { id: "s4", platform: "email", url: "cs.growitbuddy@gmail.com" },
       ],
     },
     {
