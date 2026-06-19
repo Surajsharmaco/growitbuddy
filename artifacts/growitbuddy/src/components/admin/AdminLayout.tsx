@@ -114,7 +114,14 @@ interface VariantNavRow { id: number; slug: string; sourceKey: string; label: st
 export function AdminLayout({ children }: { children: ReactNode }) {
   const { logout, hasPermission, isSuperAdmin, role, authFetch } = useAdmin();
   const [location] = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
+  // Default to the collapsed (icon-only) sidebar on small screens so the main
+  // content area stays usable on phones/tablets. On a 400px viewport the
+  // expanded 224px sidebar would leave ~128px of content — effectively unusable.
+  // Desktop (>=768px) keeps the expanded sidebar exactly as before. Admin can
+  // still toggle either way with the chevron button.
+  const [collapsed, setCollapsed] = useState(
+    () => typeof window !== "undefined" && window.innerWidth < 768,
+  );
 
   // ── Published Variants in the sidebar ────────────────────────────────────
   // Fetch live variants and render them as a dedicated nav group so admin can

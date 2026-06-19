@@ -228,13 +228,16 @@ export default function AdminLogos() {
 
   async function deleteLogo(id: number) {
     try {
-      await fetch(`${API_BASE}/admin/logos/${id}`, {
+      const res = await fetch(`${API_BASE}/admin/logos/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (!res.ok) throw new Error(`Delete failed (${res.status})`);
       setLogos((prev) => prev.filter((l) => l.id !== id));
       setDeleteConfirm(null);
-    } catch { /* ignore */ }
+    } catch {
+      alert("Couldn't delete the logo. Please try again.");
+    }
   }
 
   return (

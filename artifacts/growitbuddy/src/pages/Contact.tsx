@@ -226,7 +226,7 @@ export default function Contact() {
       {/* Who this is for */}
       <section style={{ padding: "80px 24px", background: "#F8F8F6", borderTop: "1px solid #E5E5E0", borderBottom: "1px solid #E5E5E0" }}>
         <div className="max-w-[1100px] mx-auto">
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: 24 }}>
             <motion.div
               initial={{ opacity: 0, y: 14 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -393,7 +393,7 @@ export default function Contact() {
           {/* Info */}
           <div>
             <div style={{ borderTop: "1px solid #E5E5E0", display: "flex", flexDirection: "column" }}>
-              {(cms.contactInfo || []).map((item) => (
+              {(cms.contactInfo || []).filter(Boolean).map((item) => (
                 <div key={item.label} style={{ padding: "20px 0", borderBottom: "1px solid #E5E5E0" }}>
                   <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#7A7A85", marginBottom: 6 }}>{item.label}</p>
                   {item.href

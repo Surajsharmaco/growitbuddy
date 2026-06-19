@@ -329,7 +329,7 @@ export default function About() {
               <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#8A8A8A" }}>Values</p>
               <h2 style={{ fontWeight: 800, fontSize: "clamp(22px, 4vw, 52px)", letterSpacing: "-0.04em", lineHeight: 1.05, color: "#0A0A0A", maxWidth: "14ch" }}>How we operate.</h2>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 24 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 300px), 1fr))", gap: 24 }}>
               {(data.values || []).map((v, i) => {
                 const dark = solidIsDark(i);
                 const P = getSolidText(dark);

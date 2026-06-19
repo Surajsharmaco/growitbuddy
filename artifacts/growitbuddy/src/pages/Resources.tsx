@@ -121,7 +121,7 @@ export default function Resources() {
           isAccessibleForFree: !it.isGated,
           keywords: it.keywords || undefined,
           about: it.aiSummary || undefined,
-          image: it.coverImage || undefined,
+          image: it.coverImage ? resolveMediaUrl(it.coverImage) : undefined,
           genre: it.tag || undefined,
         },
       };
@@ -259,7 +259,7 @@ export default function Resources() {
               <h2 style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.18em", textTransform: "uppercase", color: "#0A0A0A", margin: 0 }}>Featured</h2>
               <span style={{ fontSize: 11, color: "#7A7A85" }}>{featured.length} pick{featured.length === 1 ? "" : "s"}</span>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: 16 }}>
               {featured.map((item, i) => (
                 <FeaturedCard key={i} item={item} index={i} unlocked={unlocked} onLockedClick={openGate} />
               ))}
@@ -314,7 +314,7 @@ export default function Resources() {
               </span>
             </div>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 18 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 300px), 1fr))", gap: 18 }}>
               {filtered.map((item, i) => {
                 const slug = slugForItem(item, items.indexOf(item));
                 return (

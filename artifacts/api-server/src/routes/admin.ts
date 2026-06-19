@@ -392,7 +392,7 @@ router.post("/team", authMiddleware, superAdminOnly, async (req, res) => {
 });
 
 router.put("/team/:id", authMiddleware, superAdminOnly, async (req, res) => {
-  const id = parseInt(String(req.params.id));
+  const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const { name, permissions, isActive, password } = req.body;
   try {
@@ -417,7 +417,7 @@ router.put("/team/:id", authMiddleware, superAdminOnly, async (req, res) => {
 });
 
 router.delete("/team/:id", authMiddleware, superAdminOnly, async (req, res) => {
-  const id = parseInt(String(req.params.id));
+  const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   await db.delete(teamMembers).where(eq(teamMembers.id, id));
   logger.info({ id }, "Team member deleted");
@@ -482,7 +482,7 @@ router.post("/variants", authMiddleware, superAdminOnly, async (req, res) => {
 // Slug rename is atomic via a SQL transaction so site_content and
 // page_variants can't diverge if either step fails.
 router.put("/variants/:id", authMiddleware, superAdminOnly, async (req, res) => {
-  const id = parseInt(String(req.params.id));
+  const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const { slug, label, isLive } = req.body ?? {};
   const existing = await db.select().from(pageVariants).where(eq(pageVariants.id, id));
@@ -527,7 +527,7 @@ router.put("/variants/:id", authMiddleware, superAdminOnly, async (req, res) => 
 
 // Admin: delete variant + its content row.
 router.delete("/variants/:id", authMiddleware, superAdminOnly, async (req, res) => {
-  const id = parseInt(String(req.params.id));
+  const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const existing = await db.select().from(pageVariants).where(eq(pageVariants.id, id));
   if (existing.length === 0) { res.json({ success: true }); return; }
@@ -625,7 +625,7 @@ router.get("/leads/stats", authMiddleware, requirePermission("leads"), async (_r
 });
 
 router.patch("/leads/:id", authMiddleware, requirePermission("leads"), async (req, res) => {
-  const id = parseInt(String(req.params.id));
+  const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const { status, notes } = req.body as { status?: string; notes?: string };
   const patch: Record<string, unknown> = {};
@@ -638,7 +638,7 @@ router.patch("/leads/:id", authMiddleware, requirePermission("leads"), async (re
 });
 
 router.delete("/leads/:id", authMiddleware, requirePermission("leads"), async (req, res) => {
-  const id = parseInt(String(req.params.id));
+  const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   await db.delete(leads).where(eq(leads.id, id));
   res.json({ success: true });
@@ -679,7 +679,7 @@ router.get("/media", authMiddleware, async (_req, res) => {
 });
 
 router.delete("/media/:filename", authMiddleware, requirePermission("media"), async (req, res) => {
-  const id = parseInt(String(req.params.filename));
+  const id = parseInt(String(req.params.filename), 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   try {
     await db.delete(mediaFiles).where(eq(mediaFiles.id, id));
@@ -749,9 +749,16 @@ async function rewriteMediaReferences(reps: MediaReplacement[]): Promise<number>
     const before = JSON.stringify(row.data);
     const after = applyMediaReplacements(before, reps);
     if (after !== before) {
+      let parsed: Record<string, unknown>;
+      try {
+        parsed = JSON.parse(after) as Record<string, unknown>;
+      } catch (err) {
+        logger.error({ err, section: row.section }, "Media rewrite produced invalid JSON for siteContent; skipping row");
+        continue;
+      }
       await db
         .update(siteContent)
-        .set({ data: JSON.parse(after) as Record<string, unknown>, updatedAt: new Date() })
+        .set({ data: parsed, updatedAt: new Date() })
         .where(eq(siteContent.section, row.section));
       changed++;
     }
@@ -776,12 +783,24 @@ async function rewriteMediaReferences(reps: MediaReplacement[]): Promise<number>
     if (row.caseStudy) {
       const before = JSON.stringify(row.caseStudy);
       const after = applyMediaReplacements(before, reps);
-      if (after !== before) patch.caseStudy = JSON.parse(after) as (typeof portfolioItems.$inferSelect)["caseStudy"];
+      if (after !== before) {
+        try {
+          patch.caseStudy = JSON.parse(after) as (typeof portfolioItems.$inferSelect)["caseStudy"];
+        } catch (err) {
+          logger.error({ err, id: row.id }, "Media rewrite produced invalid JSON for portfolio caseStudy; skipping field");
+        }
+      }
     }
     if (row.blocks) {
       const before = JSON.stringify(row.blocks);
       const after = applyMediaReplacements(before, reps);
-      if (after !== before) patch.blocks = JSON.parse(after) as (typeof portfolioItems.$inferSelect)["blocks"];
+      if (after !== before) {
+        try {
+          patch.blocks = JSON.parse(after) as (typeof portfolioItems.$inferSelect)["blocks"];
+        } catch (err) {
+          logger.error({ err, id: row.id }, "Media rewrite produced invalid JSON for portfolio blocks; skipping field");
+        }
+      }
     }
     if (Object.keys(patch).length) {
       patch.updatedAt = new Date();
@@ -963,7 +982,7 @@ router.post("/certificates", authMiddleware, requirePermission("certificates"), 
 });
 
 router.put("/certificates/:id", authMiddleware, requirePermission("certificates"), async (req, res) => {
-  const id = parseInt(String(req.params.id));
+  const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const { name, email, role, issueDate, status, remark } = req.body;
   // remark: undefined = leave existing value, "" / null = clear, string = set
@@ -982,7 +1001,7 @@ router.put("/certificates/:id", authMiddleware, requirePermission("certificates"
 });
 
 router.delete("/certificates/:id", authMiddleware, requirePermission("certificates"), async (req, res) => {
-  const id = parseInt(String(req.params.id));
+  const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   await db.delete(certificates).where(eq(certificates.id, id));
   logger.info({ id }, "Certificate deleted");
@@ -1403,7 +1422,7 @@ router.post("/portfolio", authMiddleware, superAdminOnly, async (req, res) => {
 });
 
 router.put("/portfolio/:id", authMiddleware, superAdminOnly, async (req, res) => {
-  const id = parseInt(String(req.params.id));
+  const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const { title, category, youtubeUrl, description, sortOrder, caseStudy, customThumbnailUrl, blocks } = req.body;
   try {
@@ -1440,7 +1459,7 @@ router.put("/portfolio/:id", authMiddleware, superAdminOnly, async (req, res) =>
 });
 
 router.delete("/portfolio/:id", authMiddleware, superAdminOnly, async (req, res) => {
-  const id = parseInt(String(req.params.id));
+  const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   try {
     await db.delete(portfolioItems).where(eq(portfolioItems.id, id));
@@ -1528,7 +1547,7 @@ router.post("/portfolio/shares", authMiddleware, superAdminOnly, async (req, res
   let slug = String(req.body.slug ?? "").trim().toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/^-+|-+$/g, "");
   const hiddenCategories: string[] = Array.isArray(req.body.hiddenCategories) ? req.body.hiddenCategories.map(String) : [];
   const hiddenItemIds: number[] = Array.isArray(req.body.hiddenItemIds)
-    ? req.body.hiddenItemIds.map((n: unknown) => parseInt(String(n))).filter((n: number) => !isNaN(n))
+    ? req.body.hiddenItemIds.map((n: unknown) => parseInt(String(n), 10)).filter((n: number) => !isNaN(n))
     : [];
 
   // Generate unique slug if missing or taken.
@@ -1549,14 +1568,14 @@ router.post("/portfolio/shares", authMiddleware, superAdminOnly, async (req, res
 });
 
 router.put("/portfolio/shares/:id", authMiddleware, superAdminOnly, async (req, res) => {
-  const id = parseInt(String(req.params.id));
+  const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   try {
     const update: Record<string, unknown> = { updatedAt: new Date() };
     if (req.body.title !== undefined) update.title = String(req.body.title);
     if (Array.isArray(req.body.hiddenCategories)) update.hiddenCategories = req.body.hiddenCategories.map(String);
     if (Array.isArray(req.body.hiddenItemIds)) {
-      update.hiddenItemIds = req.body.hiddenItemIds.map((n: unknown) => parseInt(String(n))).filter((n: number) => !isNaN(n));
+      update.hiddenItemIds = req.body.hiddenItemIds.map((n: unknown) => parseInt(String(n), 10)).filter((n: number) => !isNaN(n));
     }
     const rows = await db.update(portfolioShares).set(update).where(eq(portfolioShares.id, id)).returning();
     if (rows.length === 0) { res.status(404).json({ error: "Share not found" }); return; }
@@ -1568,7 +1587,7 @@ router.put("/portfolio/shares/:id", authMiddleware, superAdminOnly, async (req, 
 });
 
 router.delete("/portfolio/shares/:id", authMiddleware, superAdminOnly, async (req, res) => {
-  const id = parseInt(String(req.params.id));
+  const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   try {
     await db.delete(portfolioShares).where(eq(portfolioShares.id, id));
@@ -1620,7 +1639,7 @@ router.post("/logos", authMiddleware, requirePermission("media"), upload.single(
     return;
   }
   const altText = (req.body.altText as string) || "";
-  const sortOrder = parseInt(req.body.sortOrder as string) || 0;
+  const sortOrder = parseInt(req.body.sortOrder as string, 10) || 0;
   const link = (req.body.link as string) || "";
   const enabled = req.body.enabled === "false" ? false : true;
   try {
@@ -1634,7 +1653,7 @@ router.post("/logos", authMiddleware, requirePermission("media"), upload.single(
 });
 
 router.put("/logos/:id", authMiddleware, requirePermission("media"), upload.single("image"), async (req, res) => {
-  const id = parseInt(String(req.params.id));
+  const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   try {
     const update: Record<string, unknown> = {};
@@ -1643,7 +1662,7 @@ router.put("/logos/:id", authMiddleware, requirePermission("media"), upload.sing
       update.imageUrl = url;
     } else if (req.body.imageUrl !== undefined) update.imageUrl = req.body.imageUrl;
     if (req.body.altText !== undefined) update.altText = req.body.altText;
-    if (req.body.sortOrder !== undefined) update.sortOrder = parseInt(req.body.sortOrder) || 0;
+    if (req.body.sortOrder !== undefined) update.sortOrder = parseInt(req.body.sortOrder, 10) || 0;
     if (req.body.link !== undefined) update.link = req.body.link;
     if (req.body.enabled !== undefined) update.enabled = req.body.enabled === "false" ? false : true;
     const rows = await db.update(clientLogos).set(update).where(eq(clientLogos.id, id)).returning();
@@ -1657,7 +1676,7 @@ router.put("/logos/:id", authMiddleware, requirePermission("media"), upload.sing
 });
 
 router.delete("/logos/:id", authMiddleware, requirePermission("media"), async (req, res) => {
-  const id = parseInt(String(req.params.id));
+  const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   try {
     await db.delete(clientLogos).where(eq(clientLogos.id, id));
