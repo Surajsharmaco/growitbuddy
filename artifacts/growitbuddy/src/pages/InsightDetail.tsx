@@ -118,6 +118,114 @@ const ARTICLE_CSS = `
 .article-body td { padding: 12px 14px; border: 1px solid rgba(11,11,11,0.1); color: rgba(11,11,11,0.78); }
 .article-body tr:nth-child(even) td { background: rgba(11,11,11,0.02); }
 
+/* ── WordPress-authored Table of Contents ──
+   When a TOC is added on the WordPress side (native Gutenberg block or a TOC
+   plugin), it renders raw inside the article HTML. Without these rules it
+   inherits the plain bullet-list styling and looks broken. Style it as a clean
+   card so it matches the site's own "On this page" box. */
+.article-body .wp-block-table-of-contents,
+.article-body .ez-toc-container,
+.article-body #ez-toc-container,
+.article-body .lwptoc,
+.article-body .toc_container,
+.article-body .kb-table-of-content-nav,
+.article-body .ub_table-of-contents,
+.article-body .rank-math-toc,
+.article-body .wp-block-rank-math-toc-block {
+  background: #F8F8F6;
+  border: 1px solid #EFEFEA;
+  border-radius: 14px;
+  padding: 18px 22px;
+  margin: 0 0 28px;
+}
+/* TOC heading / title */
+.article-body .ez-toc-title,
+.article-body .lwptoc_title,
+.article-body .toc_title,
+.article-body .kb-table-of-contents-title,
+.article-body .rank-math-toc > h2,
+.article-body .rank-math-toc > h3,
+.article-body .wp-block-table-of-contents > h2,
+.article-body .wp-block-table-of-contents > h3 {
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #7A7A85 !important;
+  margin: 0 0 12px !important;
+  padding: 0 !important;
+  border: none !important;
+}
+/* TOC lists - strip default bullets / indentation, even vertical rhythm */
+.article-body .wp-block-table-of-contents ol,
+.article-body .wp-block-table-of-contents ul,
+.article-body .ez-toc-list,
+.article-body .lwptoc_items,
+.article-body .toc_list,
+.article-body .kb-table-of-content-list,
+.article-body .ub_table-of-contents-list,
+.article-body .rank-math-toc ul {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.article-body .wp-block-table-of-contents li,
+.article-body .ez-toc-list li,
+.article-body .lwptoc_item,
+.article-body .toc_list li,
+.article-body .kb-table-of-content-list li,
+.article-body .ub_table-of-contents-list li,
+.article-body .rank-math-toc li {
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 14px;
+  line-height: 1.45;
+}
+/* Nested sub-items get a subtle indent */
+.article-body .wp-block-table-of-contents ol ol,
+.article-body .wp-block-table-of-contents ul ul,
+.article-body .ez-toc-list ul,
+.article-body .toc_list .toc_list {
+  padding-left: 16px !important;
+  margin-top: 9px !important;
+}
+/* Hide non-functional plugin toggle / expand controls (their JS + CSS aren't
+   loaded on our site, so they'd otherwise show as orphaned icons). */
+.article-body .ez-toc-title-toggle,
+.article-body .ez-toc-js-icon-con,
+.article-body .ez-toc-toggle,
+.article-body .lwptoc_toggle,
+.article-body .kb-toc-toggle { display: none !important; }
+/* TOC links - dark, no underline, brand-coloured hover (overrides body links) */
+.article-body .wp-block-table-of-contents a,
+.article-body .ez-toc-container a,
+.article-body #ez-toc-container a,
+.article-body .ez-toc-link,
+.article-body .lwptoc a,
+.article-body .toc_container a,
+.article-body .kb-table-of-content-nav a,
+.article-body .ub_table-of-contents a,
+.article-body .rank-math-toc a {
+  color: #1E293B !important;
+  text-decoration: none !important;
+  font-weight: 500;
+}
+.article-body .wp-block-table-of-contents a:hover,
+.article-body .ez-toc-container a:hover,
+.article-body #ez-toc-container a:hover,
+.article-body .ez-toc-link:hover,
+.article-body .lwptoc a:hover,
+.article-body .toc_container a:hover,
+.article-body .kb-table-of-content-nav a:hover,
+.article-body .ub_table-of-contents a:hover,
+.article-body .rank-math-toc a:hover {
+  color: #8B3A1A !important;
+  text-decoration: underline !important;
+}
+
 /* ── Pullquote ── */
 .article-body .wp-block-pullquote { border-top: 3px solid #C2A878; border-bottom: 3px solid #C2A878; padding: 32px 0; margin: 40px 0; text-align: center; }
 .article-body .wp-block-pullquote blockquote { border: none; background: none; padding: 0; margin: 0; }
@@ -196,13 +304,24 @@ const ARTICLE_CSS = `
   .article-tldr p:last-child { font-size: 14px !important; line-height: 1.55 !important; }
   .article-toc { padding: 14px 16px !important; margin-bottom: 28px !important; }
   .article-toc li { font-size: 13px !important; }
+  /* WordPress-authored TOC: same compact treatment on phones */
+  .article-body .wp-block-table-of-contents,
+  .article-body .ez-toc-container,
+  .article-body .lwptoc,
+  .article-body .toc_container,
+  .article-body .kb-table-of-content-nav,
+  .article-body .ub_table-of-contents,
+  .article-body .rank-math-toc { padding: 14px 16px !important; margin-bottom: 24px !important; }
+  .article-body .wp-block-table-of-contents li,
+  .article-body .ez-toc-list li,
+  .article-body .lwptoc_item,
+  .article-body .toc_list li { font-size: 13px !important; }
 }
 
 /* ── Hero image on phones: edge-to-edge & taller for more impact ── */
 @media (max-width: 640px) {
   .gb-hero-img { padding: 0 !important; }
   .gb-hero-img > div { border-radius: 0 !important; box-shadow: none !important; }
-  .gb-hero-img img { aspect-ratio: 4/3 !important; }
 }
 
 /* ── Reserve bottom space so sticky share bar doesn't cover content ── */
@@ -359,6 +478,31 @@ function enhanceWpHtml(html: string): string {
       const hasLoading = /\bloading\s*=/.test(attrs);
       return hasLoading ? `<iframe${attrs}>` : `<iframe${attrs} loading="lazy">`;
     });
+}
+
+/** WP TOC plugins (Easy TOC etc.) emit absolute, self-referential anchor links
+ *  like href="https://blog.growitbuddy.com/<slug>/#Section". On our SPA those
+ *  would navigate away to the WordPress origin instead of smooth-scrolling the
+ *  current page. Rewrite same-origin (blog domain) links down to a bare
+ *  "#fragment" — but ONLY when that fragment matches an element id that actually
+ *  exists in this document. That keeps it scoped to true in-page anchors: a link
+ *  to a *different* post's section (whose id isn't on this page) is left as a
+ *  real navigation, and external deep links (e.g. a Wikipedia #section) are
+ *  untouched because they aren't on the blog domain. */
+function rewriteSelfAnchors(html: string): string {
+  const ids = new Set<string>();
+  const idRe = /\sid\s*=\s*"([^"]+)"/gi;
+  let m: RegExpExecArray | null;
+  while ((m = idRe.exec(html)) !== null) ids.add(m[1]);
+  if (ids.size === 0) return html;
+  const hasId = (frag: string) => {
+    if (ids.has(frag)) return true;
+    try { return ids.has(decodeURIComponent(frag)); } catch { return false; }
+  };
+  return html.replace(
+    /href\s*=\s*"https?:\/\/(?:www\.)?blog\.growitbuddy\.com\/[^"]*?#([^"]+)"/gi,
+    (full, frag: string) => (hasId(frag) ? `href="#${frag}"` : full),
+  );
 }
 
 /** Detect whether the WP-authored HTML already contains its own Table of Contents,
@@ -565,7 +709,7 @@ export default function InsightDetail() {
   const toc = useMemo(() => (post && !wpHasToc) ? extractToc(post.content) : [], [post, wpHasToc]);
   const enhancedContent = useMemo(() => {
     if (!post) return "";
-    return isHtml(post.content) ? addHeadingIds(enhanceWpHtml(post.content)) : post.content;
+    return isHtml(post.content) ? addHeadingIds(enhanceWpHtml(rewriteSelfAnchors(post.content))) : post.content;
   }, [post]);
   const shareUrl = post ? `${SITE}/blog/${post.slug}` : SITE;
 
@@ -664,12 +808,10 @@ export default function InsightDetail() {
               <img
                 src={resolveMediaUrl(post.featuredImage)}
                 alt={post.title}
-                width={1600}
-                height={900}
                 loading="eager"
                 fetchPriority="high"
                 decoding="async"
-                style={{ width: "100%", height: "auto", display: "block", aspectRatio: "16/9", objectFit: "cover" }}
+                style={{ width: "100%", height: "auto", display: "block" }}
               />
             </motion.div>
           </div>
