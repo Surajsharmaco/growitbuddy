@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { randomBytes, createHmac, timingSafeEqual, scrypt, randomUUID } from "crypto";
 import { db, pool, siteContent, leads, certificates, teamMembers, portfolioItems, portfolioShares, clientLogos, revokedTokens as revokedTokensTable, adminActionLogs, mediaFiles, pageVariants } from "@workspace/db";
-import { eq, desc, count, asc, lt } from "drizzle-orm";
+import { eq, desc, count, asc, lt, inArray } from "drizzle-orm";
 import { logger } from "../lib/logger";
 import { cloudinaryConfigured, uploadToCloudinary } from "../lib/cloudinary";
 import { convertImageBuffer, type ConvertFormat } from "../lib/imageConvert";
@@ -432,12 +432,17 @@ function isSafeSlug(s: string) { return /^[a-z0-9][a-z0-9-]{0,79}$/.test(s); }
 // Public: list LIVE variants only (slug -> sourceKey resolver for frontend router).
 router.get("/public/variants", async (_req, res) => {
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
   try {
     const rows = await db.select({
       slug: pageVariants.slug, sourceKey: pageVariants.sourceKey, label: pageVariants.label,
     }).from(pageVariants).where(eq(pageVariants.isLive, true));
     res.json(rows);
-  } catch { res.json([]); }
+  } catch (err) {
+    logger.error({ err }, "Public variant read failed");
+    res.status(503).json({ error: "Public variants are temporarily unavailable" });
+  }
 });
 
 // Admin: list ALL variants (including hidden — admin needs these for editing).
@@ -551,8 +556,50 @@ router.get("/public/content/:section", async (req, res) => {
     const rows = await db.select().from(siteContent).where(eq(siteContent.section, section));
     if (rows.length === 0) { res.json({ section, data: null }); return; }
     res.json(rows[0]);
-  } catch {
-    res.json({ section, data: null });
+  } catch (err) {
+    logger.error({ err, section }, "Public content read failed");
+    res.status(503).json({ error: "Public content is temporarily unavailable" });
+  }
+});
+
+router.get("/public/content-bulk", async (req, res) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  const rawSections = req.query.sections;
+  if (typeof rawSections !== "string" || !rawSections.trim()) {
+    res.status(400).json({ error: "sections query parameter is required" });
+    return;
+  }
+
+  const requested = rawSections.split(",").map((section) => section.trim());
+  if (
+    requested.length > 50 ||
+    requested.some((section) => !section || section.length > 100)
+  ) {
+    res.status(400).json({ error: "sections must contain at most 50 keys of 1–100 characters" });
+    return;
+  }
+
+  const sections = Array.from(new Set(requested));
+  const data: Record<string, object | null> = Object.fromEntries(
+    sections.map((section) => [section, null]),
+  );
+  try {
+    const rows = await db
+      .select({ section: siteContent.section, data: siteContent.data })
+      .from(siteContent)
+      .where(inArray(siteContent.section, sections));
+    for (const row of rows) {
+      data[row.section] =
+        row.data !== null && typeof row.data === "object" && !Array.isArray(row.data)
+          ? (row.data as object)
+          : null;
+    }
+    res.status(200).json({ data });
+  } catch (err) {
+    logger.error({ err, sections }, "Public bulk content read failed");
+    res.status(503).json({ error: "Public content is temporarily unavailable" });
   }
 });
 
