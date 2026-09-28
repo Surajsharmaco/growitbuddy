@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import {
   Plus, Trash2, Star, ArrowUp, ArrowDown, ExternalLink, Eye, EyeOff,
   Link2, Share2, Video, Type as TextIcon, Image as ImageIcon, Minus,
@@ -260,14 +260,23 @@ function SectionCard({ section, index, total, onMove, onToggle, onRemove, childr
 }
 
 export default function AdminLinks() {
-  const { getContent, saveContent } = useAdmin();
+  const { getContentResult, saveContent } = useAdmin();
   const [data, setData] = useState<LinksData>(() => migrateLinksData(LINKS_DEFAULTS));
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
+  const [saveError, setSaveError] = useState("");
 
-  useEffect(() => {
-    getContent("links").then((d) => setData(migrateLinksData(d ?? {})));
-  }, [getContent]);
+  const load = useCallback(async () => {
+    setLoadState("loading");
+    try {
+      const result = await getContentResult("links");
+      if (!result.ok) { setLoadState("error"); return; }
+      setData(migrateLinksData(result.data ?? {}));
+      setLoadState("ready");
+    } catch { setLoadState("error"); }
+  }, [getContentResult]);
+  useEffect(() => { load(); }, [load]);
 
   function patch(p: Partial<LinksData>) {
     setSaved(false);
@@ -279,6 +288,7 @@ export default function AdminLinks() {
 
   async function handleSave() {
     setSaving(true);
+    setSaveError("");
     try {
       const payload: LinksData = {
         schemaVersion: 2,
@@ -293,10 +303,14 @@ export default function AdminLinks() {
       };
       await saveContent("links", payload as unknown as Record<string, unknown>);
       setSaved(true);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Failed to save links content.");
     } finally {
       setSaving(false);
     }
   }
+
+  if (loadState !== "ready") return <div><PageHeader title="Links Page" description={loadState === "error" ? "Couldn't load saved content" : "Loading…"} />{loadState === "error" ? <div className="flex flex-col items-center gap-3 py-24 text-center"><p className="text-[13px] text-red-600">Couldn't load saved links content. Editing is disabled to protect your live data.</p><button onClick={load} className="text-[12px] font-semibold bg-[#0B0B0B] text-white px-4 py-2 rounded-xl">Retry</button></div> : <div className="py-24 text-center text-[13px] text-[#0B0B0B]/40">Loading content…</div>}</div>;
 
   return (
     <div>
@@ -384,6 +398,7 @@ export default function AdminLinks() {
         </Card>
       </div>
 
+      {saveError && <p role="alert" className="text-[13px] text-red-600 mt-3">{saveError}</p>}
       <SaveBar onSave={handleSave} saving={saving} saved={saved} />
     </div>
   );

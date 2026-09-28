@@ -58,19 +58,23 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void 
 }
 
 export default function AdminSettings() {
-  const { getContent, saveContent } = useAdmin();
+  const { getContentResult, saveContent } = useAdmin();
   const [data, setData] = useState<Settings>(DEFAULTS);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+  const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
+  const [saveError, setSaveError] = useState("");
 
-  useEffect(() => {
-    getContent("settings")
-      .then((d) => {
-        if (d) setData({ ...DEFAULTS, ...(d as Partial<Settings>) });
-      })
-      .finally(() => setLoaded(true));
-  }, [getContent]);
+  const load = useCallback(async () => {
+    setLoadState("loading");
+    try {
+      const result = await getContentResult("settings");
+      if (!result.ok) { setLoadState("error"); return; }
+      if (result.data) setData({ ...DEFAULTS, ...(result.data as Partial<Settings>) });
+      setLoadState("ready");
+    } catch { setLoadState("error"); }
+  }, [getContentResult]);
+  useEffect(() => { load(); }, [load]);
 
   const set = useCallback(<K extends keyof Settings>(key: K, val: Settings[K]) => {
     setSaved(false);
@@ -79,22 +83,18 @@ export default function AdminSettings() {
 
   async function handleSave() {
     setSaving(true);
+    setSaveError("");
     try {
       await saveContent("settings", data as unknown as Record<string, unknown>);
       setSaved(true);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Failed to save settings.");
     } finally {
       setSaving(false);
     }
   }
 
-  if (!loaded) {
-    return (
-      <div>
-        <PageHeader title="Site Settings" description="Global configuration, branding, and design for the entire website." />
-        <div className="flex items-center justify-center py-24 text-[13px] text-[#0B0B0B]/40">Loading content…</div>
-      </div>
-    );
-  }
+  if (loadState !== "ready") return <div><PageHeader title="Site Settings" description={loadState === "error" ? "Couldn't load saved content" : "Loading…"} />{loadState === "error" ? <div className="flex flex-col items-center gap-3 py-24 text-center"><p className="text-[13px] text-red-600">Couldn't load saved settings. Editing is disabled to protect your live data.</p><button onClick={load} className="text-[12px] font-semibold bg-[#0B0B0B] text-white px-4 py-2 rounded-xl">Retry</button></div> : <div className="py-24 text-center text-[13px] text-[#0B0B0B]/40">Loading content…</div>}</div>;
 
   return (
     <div>
@@ -285,6 +285,7 @@ export default function AdminSettings() {
         </Card>
       </div>
 
+      {saveError && <p role="alert" className="text-[13px] text-red-600 mt-3">{saveError}</p>}
       <SaveBar onSave={handleSave} saving={saving} saved={saved} />
     </div>
   );

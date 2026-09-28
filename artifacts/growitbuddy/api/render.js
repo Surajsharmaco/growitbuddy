@@ -6318,6 +6318,64 @@ var CONTENT_DEFAULTS = {
   "page-owner-form": PAGE_OWNER_FORM_DEFAULTS
 };
 
+// artifacts/growitbuddy/src/lib/publicContentSections.ts
+var SHARED_CONTENT_SECTIONS = [
+  "navbar",
+  "footer",
+  "settings",
+  "page_visibility"
+];
+var CONTENT_SECTION_BY_SLUG = {
+  insights: ["blog"],
+  career: ["fulltime", "internship", "freelancers"],
+  distribution: ["distribution-network", "distribution-pages"],
+  influencers: ["influencer-explore"],
+  join: ["joinnetwork"],
+  creators: ["creators-form"],
+  "join-page-owner": ["page-owner-form"],
+  "designers-pool": ["pool-designers"],
+  "thumbnail-designers": ["pool-thumbnail-designers"],
+  "writers-pool": ["pool-writers"],
+  "social-media-managers": ["pool-social-managers"],
+  "motion-designers": ["pool-motion-designers"],
+  "ai-creators": ["pool-ai-creators"],
+  "ugc-creators": ["pool-ugc-creators"],
+  "meme-designers": ["pool-meme-designers"],
+  "video-editors": ["pool-editors"]
+};
+function sectionsForSlug(slug) {
+  return Array.from(
+    /* @__PURE__ */ new Set([slug, ...CONTENT_SECTION_BY_SLUG[slug] ?? [], ...SHARED_CONTENT_SECTIONS])
+  );
+}
+
+// artifacts/growitbuddy/src/lib/variantSources.ts
+var VARIANT_SOURCES = [
+  { key: "home", label: "Home Page", basePath: "/", adminPath: "/admin/home" },
+  { key: "about", label: "About", basePath: "/about", adminPath: "/admin/about" },
+  { key: "services", label: "Services", basePath: "/services", adminPath: "/admin/services" },
+  { key: "framework", label: "Framework", basePath: "/framework", adminPath: "/admin/framework" },
+  { key: "work", label: "Work", basePath: "/work", adminPath: "/admin/work" },
+  { key: "blog", label: "Blog / Insights", basePath: "/blog", adminPath: "/admin/blog" },
+  { key: "resources", label: "Resources", basePath: "/resources", adminPath: "/admin/resources" },
+  { key: "contact", label: "Contact", basePath: "/contact", adminPath: "/admin/contact" },
+  { key: "creators", label: "Creators", basePath: "/creators", adminPath: "/admin/creators" },
+  { key: "joinnetwork", label: "Join Network", basePath: "/join", adminPath: "/admin/join-network" },
+  { key: "career", label: "Careers Page", basePath: "/career", adminPath: "/admin/career" },
+  { key: "authority-audit", label: "Authority Audit", basePath: "/authority-audit", adminPath: "/admin/authority-audit" },
+  { key: "distribution-network", label: "Distribution Network", basePath: "/distribution", adminPath: "/admin/distribution-network" },
+  { key: "creator-school", label: "Editors Pool", basePath: "/editors-pool", adminPath: "/admin/editors-pool" },
+  { key: "pool-designers", label: "Designers Pool", basePath: "/designers-pool", adminPath: "/admin/pool-designers" },
+  { key: "pool-thumbnail-designers", label: "Thumbnail Designers Pool", basePath: "/thumbnail-designers", adminPath: "/admin/pool-thumbnail-designers" },
+  { key: "pool-writers", label: "Writers Pool", basePath: "/writers-pool", adminPath: "/admin/pool-writers" },
+  { key: "pool-social-managers", label: "Social Media Managers Pool", basePath: "/social-media-managers", adminPath: "/admin/pool-social-managers" },
+  { key: "pool-motion-designers", label: "Motion Designers Pool", basePath: "/motion-designers", adminPath: "/admin/pool-motion-designers" },
+  { key: "pool-ai-creators", label: "AI Creators Pool", basePath: "/ai-creators", adminPath: "/admin/pool-ai-creators" },
+  { key: "pool-ugc-creators", label: "UGC Creators Pool", basePath: "/ugc-creators", adminPath: "/admin/pool-ugc-creators" },
+  { key: "pool-meme-designers", label: "Meme Designers Pool", basePath: "/meme-designers", adminPath: "/admin/pool-meme-designers" },
+  { key: "pool-editors", label: "Video Editors Pool", basePath: "/video-editors", adminPath: "/admin/pool-editors" }
+];
+
 // artifacts/growitbuddy/ssr/render.ts
 var DB_URL = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL || "";
 var SITE = SITE_URL;
@@ -6325,23 +6383,8 @@ var SITE_NAME = "GrowitBuddy";
 var DEFAULT_IMAGE = `${SITE}/opengraph.jpg`;
 var TWITTER_HANDLE = "@growitbuddy";
 var WP_API = "https://blog.growitbuddy.com/wp-json/wp/v2";
-var EXTRA_CONTENT_SECTIONS = {
-  insights: ["blog"],
-  // /blog (Insights.tsx)
-  career: ["fulltime", "internship", "freelancers"],
-  // /career (Career.tsx)
-  distribution: ["distribution-network", "distribution-pages"],
-  // /distribution
-  influencers: ["influencer-explore"],
-  // /influencers (InfluencerExplore.tsx)
-  join: ["joinnetwork"],
-  // /join (JoinNetwork.tsx)
-  creators: ["creators-form"],
-  // /creators (NetworkApplyForm type="influencer")
-  "join-page-owner": ["page-owner-form"]
-  // /join/page-owner (NetworkApplyForm type="page")
-};
 var DATA_TIMEOUT_MS = 2500;
+var PUBLIC_API_TIMEOUT_MS = 2e4;
 function escAttr(s) {
   return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
@@ -6478,11 +6521,39 @@ function injectBody(html, bodyHtml) {
   const re = /<div id="root"[^>]*>\s*<\/div>/i;
   return re.test(html) ? html.replace(re, `<div id="root"><div data-ssr-seo style="${SEO_HIDE}">${bodyHtml}</div></div>`) : html;
 }
-var EMPTY_BUNDLE = { seo: {}, globalIndexable: true, content: {}, live: false };
-async function loadData(slug, sections) {
-  if (!DB_URL) return EMPTY_BUNDLE;
+function buildBundle(slug, sections, bySection) {
   const seoKey = `seo:${slug}`;
-  const keys = Array.from(/* @__PURE__ */ new Set([seoKey, "seo-global", ...sections]));
+  const seoData = bySection.get(seoKey);
+  const seo = seoData && typeof seoData === "object" ? seoData : {};
+  const globalData = bySection.get("seo-global");
+  const content = {};
+  for (const section of sections) content[section] = bySection.get(section) ?? null;
+  return {
+    seo,
+    globalIndexable: !(globalData && globalData.siteIndexable === false),
+    content,
+    contentSections: sections
+  };
+}
+async function loadFromPublicApi(slug, keys, contentSections) {
+  const apiBase = process.env.VITE_API_URL?.replace(/\/+$/, "");
+  if (!apiBase) throw new Error("VITE_API_URL is not configured for SSR content");
+  const response = await fetch(
+    `${apiBase}/admin/public/content-bulk?sections=${encodeURIComponent(keys.join(","))}`,
+    { cache: "no-store", signal: AbortSignal.timeout(PUBLIC_API_TIMEOUT_MS) }
+  );
+  if (!response.ok) throw new Error(`Public content API returned HTTP ${response.status}`);
+  const payload = await response.json();
+  const responseData = payload.data;
+  if (!responseData || keys.some((key) => !Object.prototype.hasOwnProperty.call(responseData, key))) {
+    throw new Error("Public content API returned an incomplete section response");
+  }
+  return buildBundle(slug, contentSections, new Map(Object.entries(responseData)));
+}
+async function loadData(slug, sections) {
+  const contentSections = Array.from(new Set(sections));
+  const keys = Array.from(/* @__PURE__ */ new Set([`seo:${slug}`, "seo-global", ...contentSections]));
+  if (!DB_URL) return loadFromPublicApi(slug, keys, contentSections);
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
   try {
@@ -6490,24 +6561,20 @@ async function loadData(slug, sections) {
     const rows = await sql`
       SELECT section, data FROM site_content WHERE section = ANY(${keys})
     `;
-    const bySection = new Map(rows.map((r) => [r.section, r.data]));
-    const seoData = bySection.get(seoKey);
-    const seo = seoData && typeof seoData === "object" ? seoData : {};
-    const globalData = bySection.get("seo-global");
-    const globalIndexable = !(globalData && globalData.siteIndexable === false);
-    const content = {};
-    for (const s of sections) {
-      const d2 = bySection.get(s);
-      if (d2 && typeof d2 === "object") content[s] = d2;
+    return buildBundle(slug, contentSections, new Map(rows.map((row) => [row.section, row.data])));
+  } catch (dbError) {
+    try {
+      return await loadFromPublicApi(slug, keys, contentSections);
+    } catch (apiError) {
+      throw new Error("Neither direct database nor public content API is available", {
+        cause: apiError ?? dbError
+      });
     }
-    return { seo, globalIndexable, content, live: true };
-  } catch {
-    return EMPTY_BUNDLE;
   } finally {
     clearTimeout(timer);
   }
 }
-function buildHtml(template, entry, pathname, b2) {
+function buildHtml(template, entry, pathname, b2, options = {}) {
   const seo = b2.seo;
   const title = seo.title ?? entry.defaults.title;
   const description = seo.description ?? entry.defaults.description;
@@ -6544,8 +6611,8 @@ function buildHtml(template, entry, pathname, b2) {
     }
   }
   const publicContent = sanitizePublicContent(b2.content);
-  const bootstrap = `<script>window.__GB_PUBLIC_CONTENT__=${safeJson(publicContent)};window.__GB_SEO__=${safeJson({
-    slug: entry.slug,
+  const bootstrap = `<script>window.__GB_PUBLIC_CONTENT__=${safeJson(publicContent)};window.__GB_CONTENT_SECTIONS__=${safeJson(b2.contentSections)};window.__GB_SEO__=${safeJson({
+    slug: options.seoSlug ?? entry.slug,
     path: pathname,
     data: seo,
     globalIndexable: b2.globalIndexable
@@ -6556,12 +6623,14 @@ function buildHtml(template, entry, pathname, b2) {
     ${schemaScript}
   </head>`
   );
-  const bodySections = Array.from(
-    /* @__PURE__ */ new Set([entry.slug, ...EXTRA_CONTENT_SECTIONS[entry.slug] || []])
-  );
+  const shared = new Set(SHARED_CONTENT_SECTIONS);
+  const bodySections = options.bodySections ?? sectionsForSlug(entry.slug).filter((section) => !shared.has(section));
   const mergedContent = {};
   for (const sec of bodySections) {
-    mergedContent[sec] = mergeForBody(CONTENT_DEFAULTS[sec], publicContent[sec]);
+    mergedContent[sec] = mergeForBody(
+      CONTENT_DEFAULTS[options.bodyDefaultsKey ?? sec],
+      publicContent[sec]
+    );
   }
   const bodyHtml = renderContentBody(mergedContent, bodySections, title);
   return injectBody(html, bodyHtml);
@@ -6571,6 +6640,18 @@ function sendHtml(res, html, cacheControl, status = 200) {
   res.setHeader("content-type", "text/html; charset=utf-8");
   res.setHeader("cache-control", cacheControl);
   res.end(html);
+}
+function sendContentFailure(res, template) {
+  let shell = template.replace(
+    /<div id="root"[^>]*>[\s\S]*?<\/div>/i,
+    '<div id="root"></div>'
+  );
+  shell = setTitle(shell, "GrowitBuddy");
+  shell = shell.replace(/<meta\s+name=["']description["'][^>]*>/i, "");
+  shell = shell.replace(/<link\s+rel=["']canonical["'][^>]*>/i, "");
+  shell = setMeta(shell, "name", "robots", "noindex,nofollow");
+  res.setHeader("x-robots-tag", "noindex, nofollow");
+  sendHtml(res, shell, "no-store", 503);
 }
 function sendXml(res, xml, cacheControl) {
   res.statusCode = 200;
@@ -6718,23 +6799,43 @@ function isSafeSlug(s) {
 function isKnownNonRegistryRoute(pathname) {
   return pathname === "/portfolio" || pathname.startsWith("/portfolio/") || pathname === "/admin" || pathname.startsWith("/admin/");
 }
-var variantCache = null;
-var VARIANT_TTL_MS = 3e4;
-async function getLiveVariantSlugs() {
-  if (variantCache && Date.now() - variantCache.at < VARIANT_TTL_MS) return variantCache.slugs;
-  if (!DB_URL) return variantCache?.slugs ?? null;
+async function getVariantFromPublicApi(slug) {
+  const apiBase = process.env.VITE_API_URL?.replace(/\/+$/, "");
+  if (!apiBase) throw new Error("VITE_API_URL is not configured for variant resolution");
+  const response = await fetch(`${apiBase}/admin/public/variants`, {
+    cache: "no-store",
+    signal: AbortSignal.timeout(PUBLIC_API_TIMEOUT_MS)
+  });
+  if (!response.ok) throw new Error(`Public variants API returned HTTP ${response.status}`);
+  const rows = await response.json();
+  if (!Array.isArray(rows)) throw new Error("Public variants API returned an invalid response");
+  if (rows.some(
+    (row) => !row || typeof row !== "object" || typeof row.slug !== "string" || typeof row.sourceKey !== "string" || typeof row.label !== "string"
+  )) {
+    throw new Error("Public variants API returned malformed variant records");
+  }
+  return rows.find((row) => row.slug === slug) ?? null;
+}
+async function resolveLiveVariant(slug) {
+  if (!DB_URL) return getVariantFromPublicApi(slug);
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
   try {
     const sql = cs(DB_URL, { fetchOptions: { signal: ctrl.signal } });
     const rows = await sql`
-      SELECT slug FROM page_variants WHERE is_live = true
+      SELECT slug, source_key AS "sourceKey", label
+      FROM page_variants
+      WHERE slug = ${slug} AND is_live = true
+      LIMIT 1
     `;
-    const slugs = new Set(rows.map((r) => r.slug));
-    variantCache = { slugs, at: Date.now() };
-    return slugs;
+    const variant = rows[0];
+    if (!variant) return null;
+    if (typeof variant.slug !== "string" || typeof variant.sourceKey !== "string" || typeof variant.label !== "string") {
+      throw new Error("Database returned malformed variant metadata");
+    }
+    return variant;
   } catch {
-    return variantCache?.slugs ?? null;
+    return getVariantFromPublicApi(slug);
   } finally {
     clearTimeout(timer);
   }
@@ -6742,7 +6843,7 @@ async function getLiveVariantSlugs() {
 function send404(res, template) {
   const html = setMeta(template, "name", "robots", "noindex,follow");
   res.setHeader("x-robots-tag", "noindex, follow");
-  sendHtml(res, html, "public, max-age=30, s-maxage=30, stale-while-revalidate=120", 404);
+  sendHtml(res, html, "no-store", 404);
 }
 async function handler(req, res) {
   const template = TEMPLATE;
@@ -6792,35 +6893,40 @@ async function handler(req, res) {
       }
       const segments = pathname.split("/").filter(Boolean);
       if (segments.length === 1 && isSafeSlug(segments[0])) {
-        const live = await getLiveVariantSlugs();
-        if (live && !live.has(segments[0])) {
+        const slug = segments[0];
+        const variant = await resolveLiveVariant(slug);
+        if (!variant) {
           send404(res, template);
           return;
         }
-        sendHtml(res, template, "public, s-maxage=30, stale-while-revalidate=300");
+        const source = VARIANT_SOURCES.find((item) => item.key === variant.sourceKey);
+        const sourceEntry = source ? findEntryByPath(source.basePath) : void 0;
+        if (!source || !sourceEntry) {
+          throw new Error(`No SSR source page registered for variant source "${variant.sourceKey}"`);
+        }
+        const variantSection = `${variant.sourceKey}__v__${variant.slug}`;
+        const contentSections = [
+          variantSection,
+          ...SHARED_CONTENT_SECTIONS
+        ];
+        const bundle2 = await loadData(variant.slug, contentSections);
+        const html2 = buildHtml(template, sourceEntry, pathname, bundle2, {
+          seoSlug: variant.slug,
+          bodySections: [variantSection],
+          bodyDefaultsKey: variant.sourceKey
+        });
+        sendHtml(res, html2, "no-store");
         return;
       }
       send404(res, template);
       return;
     }
-    const sections = Array.from(
-      /* @__PURE__ */ new Set([
-        entry.slug,
-        ...EXTRA_CONTENT_SECTIONS[entry.slug] || [],
-        "navbar",
-        "footer",
-        "settings"
-      ])
-    );
+    const sections = sectionsForSlug(entry.slug);
     const bundle = await loadData(entry.slug, sections);
     const html = buildHtml(template, entry, pathname, bundle);
-    sendHtml(
-      res,
-      html,
-      bundle.live ? "public, s-maxage=60, stale-while-revalidate=86400" : "public, s-maxage=10, stale-while-revalidate=30"
-    );
+    sendHtml(res, html, "no-store");
   } catch {
-    sendHtml(res, template, "no-store");
+    sendContentFailure(res, template);
   }
 }
 export {

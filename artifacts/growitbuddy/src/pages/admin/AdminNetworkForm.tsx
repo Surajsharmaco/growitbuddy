@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
@@ -13,22 +13,24 @@ interface Props {
 }
 
 export default function AdminNetworkForm({ contentKey, slug, title, description }: Props) {
-  const { getContent, saveContent } = useAdmin();
+  const { getContentResult, saveContent } = useAdmin();
   const DEFAULTS = contentKey === "creators-form" ? CREATORS_FORM_DEFAULTS : PAGE_OWNER_FORM_DEFAULTS;
   const [data, setData] = useState<NetworkFormContent>(DEFAULTS);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+  const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
+  const [saveError, setSaveError] = useState("");
 
-  useEffect(() => {
-    setLoaded(false);
-    getContent(contentKey)
-      .then((d) => {
-        setData(d ? { ...DEFAULTS, ...(d as Partial<NetworkFormContent>) } : DEFAULTS);
-      })
-      .finally(() => setLoaded(true));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getContent, contentKey]);
+  const load = useCallback(async () => {
+    setLoadState("loading");
+    try {
+      const result = await getContentResult(contentKey);
+      if (!result.ok) { setLoadState("error"); return; }
+      setData(result.data ? { ...DEFAULTS, ...(result.data as Partial<NetworkFormContent>) } : DEFAULTS);
+      setLoadState("ready");
+    } catch { setLoadState("error"); }
+  }, [getContentResult, contentKey, DEFAULTS]);
+  useEffect(() => { load(); }, [load]);
 
   function set<K extends keyof NetworkFormContent>(key: K, val: NetworkFormContent[K]) {
     setSaved(false);
@@ -43,22 +45,18 @@ export default function AdminNetworkForm({ contentKey, slug, title, description 
 
   async function handleSave() {
     setSaving(true);
+    setSaveError("");
     try {
       await saveContent(contentKey, data as unknown as Record<string, unknown>);
       setSaved(true);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Failed to save network form content.");
     } finally {
       setSaving(false);
     }
   }
 
-  if (!loaded) {
-    return (
-      <div>
-        <PageHeader title={title} description={description} />
-        <div className="flex items-center justify-center py-24 text-[13px] text-[#0B0B0B]/40">Loading content…</div>
-      </div>
-    );
-  }
+  if (loadState !== "ready") return <div><PageHeader title={title} description={loadState === "error" ? "Couldn't load saved content" : description} />{loadState === "error" ? <div className="flex flex-col items-center gap-3 py-24 text-center"><p className="text-[13px] text-red-600">Couldn't load saved {title.toLowerCase()} content. Editing is disabled to protect your live data.</p><button onClick={load} className="text-[12px] font-semibold bg-[#0B0B0B] text-white px-4 py-2 rounded-xl">Retry</button></div> : <div className="py-24 text-center text-[13px] text-[#0B0B0B]/40">Loading content…</div>}</div>;
 
   const ListEditor = ({ label, field }: { label: string; field: "benefits" | "calloutItems" }) => (
     <div className="space-y-2">
@@ -124,6 +122,7 @@ export default function AdminNetworkForm({ contentKey, slug, title, description 
       </div>
 
       <PageVisibilityCard slug={slug} />
+      {saveError && <p role="alert" className="text-[13px] text-red-600 mt-3">{saveError}</p>}
       <SaveBar onSave={handleSave} saving={saving} saved={saved} />
     </div>
   );

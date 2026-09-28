@@ -53,26 +53,61 @@ interface Props {
 }
 
 export default function AdminTalentPool({ poolKey, label, description, pageUrl }: Props) {
-  const { getContent, saveContent } = useAdmin();
+  const { getContentResult, saveContent } = useAdmin();
   const [data, setData] = useState<PoolData>(EMPTY);
+  const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
+  const [loadedRead, setLoadedRead] = useState<{ poolKey: string; getContentResult: typeof getContentResult } | null>(null);
+  const [loadError, setLoadError] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   useEffect(() => {
-    getContent(poolKey).then(d => {
-      if (d) setData({ ...EMPTY, ...(d as Partial<PoolData>) });
+    let cancelled = false;
+    setLoadState("loading");
+    setLoadError("");
+    setSaved(false);
+    setSaveError("");
+    getContentResult(poolKey).then(result => {
+      if (cancelled) return;
+      if (!result.ok) {
+        setLoadState("error");
+        setLoadError("Unable to load this talent pool. Your existing content has not been changed.");
+        return;
+      }
+      setData({ ...EMPTY, ...((result.data ?? {}) as Partial<PoolData>) });
+      setLoadedRead({ poolKey, getContentResult });
+      setLoadState("ready");
+    }).catch(() => {
+      if (cancelled) return;
+      setLoadState("error");
+      setLoadError("Unable to load this talent pool. Your existing content has not been changed.");
     });
-  }, [getContent, poolKey]);
+    return () => { cancelled = true; };
+  }, [getContentResult, poolKey, retryCount]);
 
   function set<K extends keyof PoolData>(key: K, val: PoolData[K]) {
     setSaved(false);
+    setSaveError("");
     setData(p => ({ ...p, [key]: val }));
   }
 
+  const readReady = loadState === "ready"
+    && loadedRead?.poolKey === poolKey
+    && loadedRead.getContentResult === getContentResult;
+
   async function save() {
+    if (!readReady) return;
     setSaving(true);
-    try { await saveContent(poolKey, data as unknown as Record<string, unknown>); setSaved(true); }
-    catch { setSaved(false); }
+    setSaveError("");
+    try {
+      await saveContent(poolKey, data as unknown as Record<string, unknown>);
+      setSaved(true);
+    } catch (error) {
+      setSaved(false);
+      setSaveError(error instanceof Error ? error.message : "Unable to save this talent pool. Please try again.");
+    }
     finally { setSaving(false); }
   }
 
@@ -91,6 +126,23 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
         }
       />
 
+      {loadState === "loading" || (loadState === "ready" && !readReady) ? (
+        <Card>
+          <p className="text-[14px] text-[#0B0B0B]/60">Loading talent pool content…</p>
+        </Card>
+      ) : loadState === "error" ? (
+        <Card>
+          <p role="alert" className="text-[14px] text-red-700">{loadError}</p>
+          <button
+            type="button"
+            onClick={() => setRetryCount(count => count + 1)}
+            className="mt-4 rounded-xl bg-[#0B0B0B] px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-[#0B0B0B]/85"
+          >
+            Retry loading
+          </button>
+        </Card>
+      ) : readReady ? (
+        <>
       {/* ── HERO ── */}
       <Card className="mb-4">
         <SectionTitle>Hero</SectionTitle>
@@ -282,7 +334,10 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
       </Card>
 
       <PageVisibilityCard slug={poolKey} />
+      {saveError && <p role="alert" className="mt-4 text-[13px] text-red-700">{saveError}</p>}
       <SaveBar onSave={save} saving={saving} saved={saved} />
+        </>
+      ) : null}
     </div>
   );
 }

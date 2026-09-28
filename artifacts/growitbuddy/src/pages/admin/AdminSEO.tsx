@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, Textarea, Field, SaveBar } from "@/components/admin/AdminField";
 import { ImageUrlField } from "@/components/admin/ImageUrlField";
@@ -138,33 +138,48 @@ interface GlobalSEO { siteIndexable?: boolean }
 
 // ─── Main component ────────────────────────────────────────────────
 export default function AdminSEO() {
-  const { getContent, saveContent, isSuperAdmin } = useAdmin();
+  const { getContentResult, saveContent, isSuperAdmin } = useAdmin();
   const [selectedSlug, setSelectedSlug] = useState<string>(PAGE_REGISTRY[0].slug);
   const [filter, setFilter] = useState("");
   const [seoBySlug, setSeoBySlug] = useState<Record<string, PageSEOData>>({});
   const [loadingSlug, setLoadingSlug] = useState<string | null>(null);
+  const [failedSlug, setFailedSlug] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   // ─── Global master switch ────────────────────────────────────────
   const [siteIndexable, setSiteIndexable] = useState<boolean>(true);
   const [globalLoaded, setGlobalLoaded] = useState(false);
+  const [globalLoadError, setGlobalLoadError] = useState(false);
   const [globalSaving, setGlobalSaving] = useState(false);
   const [globalSaved, setGlobalSaved] = useState(false);
 
+  const loadGlobal = useCallback(async () => {
+    setGlobalLoaded(false);
+    setGlobalLoadError(false);
+    try {
+      const result = await getContentResult(GLOBAL_SECTION);
+      if (!result.ok) {
+        setGlobalLoadError(true);
+        return;
+      }
+      const data = (result.data as GlobalSEO | null) ?? {};
+      setSiteIndexable(data.siteIndexable !== false);
+    } catch {
+      setGlobalLoadError(true);
+    } finally {
+      setGlobalLoaded(true);
+    }
+  }, [getContentResult]);
+
   useEffect(() => {
-    if (!isSuperAdmin) return;
-    getContent(GLOBAL_SECTION)
-      .then((d) => {
-        const data = (d as GlobalSEO | null) ?? {};
-        setSiteIndexable(data.siteIndexable !== false);
-      })
-      .catch(() => setSiteIndexable(true))
-      .finally(() => setGlobalLoaded(true));
-  }, [isSuperAdmin, getContent]);
+    if (isSuperAdmin) loadGlobal();
+  }, [isSuperAdmin, loadGlobal]);
 
   async function toggleSiteIndexable(next: boolean) {
+    if (!globalLoaded || globalLoadError) return;
     if (!next) {
       const ok = confirm(
         "Turn OFF indexing for the ENTIRE website?\n\n" +
@@ -194,25 +209,45 @@ export default function AdminSEO() {
 
   // Load selected slug's SEO data on demand
   useEffect(() => {
-    if (seoBySlug[selectedSlug] !== undefined) return;
+    if (seoBySlug[selectedSlug] !== undefined || failedSlug === selectedSlug) return;
+    let active = true;
     setLoadingSlug(selectedSlug);
-    getContent(seoSectionKey(selectedSlug))
-      .then((d) => setSeoBySlug((p) => ({ ...p, [selectedSlug]: (d as PageSEOData) ?? {} })))
-      .catch(() => setSeoBySlug((p) => ({ ...p, [selectedSlug]: {} })))
-      .finally(() => setLoadingSlug(null));
-  }, [selectedSlug, getContent, seoBySlug]);
+    getContentResult(seoSectionKey(selectedSlug))
+      .then((result) => {
+        if (!active) return;
+        if (!result.ok) {
+          setFailedSlug(selectedSlug);
+          return;
+        }
+        setSeoBySlug((p) => ({ ...p, [selectedSlug]: (result.data as PageSEOData | null) ?? {} }));
+        setFailedSlug(null);
+      })
+      .catch(() => {
+        if (active) setFailedSlug(selectedSlug);
+      })
+      .finally(() => {
+        if (active) setLoadingSlug((slug) => slug === selectedSlug ? null : slug);
+      });
+    return () => { active = false; };
+  }, [selectedSlug, getContentResult, seoBySlug, failedSlug]);
 
   function update<K extends keyof PageSEOData>(key: K, val: PageSEOData[K]) {
+    if (failedSlug === selectedSlug || seoBySlug[selectedSlug] === undefined) return;
     setDirty(true); setSaved(false);
     setSeoBySlug((p) => ({ ...p, [selectedSlug]: { ...(p[selectedSlug] ?? {}), [key]: val } }));
   }
 
   async function save() {
+    if (!globalLoaded || globalLoadError || loadingSlug === selectedSlug || failedSlug === selectedSlug || seoBySlug[selectedSlug] === undefined) return;
     setSaving(true);
+    setSaveError("");
     try {
       await saveContent(seoSectionKey(selectedSlug), seo as unknown as Record<string, unknown>);
       setSaved(true); setDirty(false);
-    } catch { setSaved(false); }
+    } catch (error) {
+      setSaved(false);
+      setSaveError(error instanceof Error ? error.message : "Failed to save SEO settings.");
+    }
     finally { setSaving(false); }
   }
 
@@ -255,6 +290,24 @@ export default function AdminSEO() {
             <div className="text-[13px] text-[#0B0B0B]/50 mt-1">SEO controls are available to super admins only.</div>
           </div>
         </Card>
+      </div>
+    );
+  }
+
+  if (!globalLoaded || globalLoadError) {
+    return (
+      <div>
+        <PageHeader title="SEO Control" description={globalLoadError ? "Couldn't load saved global SEO settings" : "Loading global SEO settings…"} />
+        <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
+          {globalLoadError ? (
+            <>
+              <p className="text-[13px] text-red-600 max-w-md">Couldn't load saved global SEO settings. Editing is disabled to protect your indexing configuration.</p>
+              <button onClick={loadGlobal} className="text-[12px] font-semibold bg-[#0B0B0B] text-white px-4 py-2 rounded-xl">Retry</button>
+            </>
+          ) : (
+            <p className="text-[13px] text-[#0B0B0B]/40">Loading content…</p>
+          )}
+        </div>
       </div>
     );
   }
@@ -383,7 +436,19 @@ export default function AdminSEO() {
             </div>
           </Card>
 
-          {loadingSlug === selectedSlug ? (
+          {failedSlug === selectedSlug ? (
+            <Card>
+              <div className="flex flex-col items-center gap-3 py-8 text-center">
+                <p className="text-[13px] text-red-600 max-w-md">Couldn't load saved SEO settings for {entry.label}. Editing is disabled until this page's saved settings load successfully.</p>
+                <button
+                  onClick={() => setFailedSlug(null)}
+                  className="text-[12px] font-semibold bg-[#0B0B0B] text-white px-4 py-2 rounded-xl"
+                >
+                  Retry
+                </button>
+              </div>
+            </Card>
+          ) : loadingSlug === selectedSlug || seoBySlug[selectedSlug] === undefined ? (
             <Card><div className="text-[13px] text-[#0B0B0B]/40 py-8 text-center">Loading…</div></Card>
           ) : (
             <>
@@ -533,9 +598,10 @@ export default function AdminSEO() {
                 </div>
               </Card>
 
+              {saveError && <p role="alert" className="text-[13px] text-red-600">{saveError}</p>}
               <SaveBar onSave={save} saving={saving} saved={saved} />
               <div className="flex justify-end pt-1">
-                <button onClick={save} disabled={saving || !dirty}
+                <button onClick={save} disabled={saving || !dirty || failedSlug === selectedSlug || seoBySlug[selectedSlug] === undefined}
                   className="px-5 py-2.5 rounded-xl bg-[#0B0B0B] text-white text-[13px] font-semibold disabled:opacity-30 inline-flex items-center gap-2">
                   <Check size={14}/>{saving ? "Saving…" : "Save SEO"}
                 </button>

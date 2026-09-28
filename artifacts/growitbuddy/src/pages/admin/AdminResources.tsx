@@ -4,7 +4,7 @@
 // signals that get baked into the page's JSON-LD CollectionPage + ItemList
 // + FAQPage graph automatically (see Resources.tsx).
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar, Field } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
@@ -37,15 +37,21 @@ const TYPE_OPTIONS: { value: ResourceType; label: string; icon: ReactNode }[] = 
 ];
 
 export default function AdminResources() {
-  const { getContent, saveContent } = useAdmin();
+  const { getContentResult, saveContent } = useAdmin();
   const [data, setData] = useState<ResourcesData>(DEFAULTS);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
+  const [saveError, setSaveError] = useState("");
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
-  useEffect(() => {
-    getContent("resources").then((d) => {
+  const load = useCallback(async () => {
+    setLoadState("loading");
+    try {
+      const result = await getContentResult("resources");
+      if (!result.ok) { setLoadState("error"); return; }
+      const d = result.data;
       if (d) {
         // Merge stored data over defaults so older rows without new fields
         // still load without losing data; arrays must be replaced, not merged.
@@ -58,8 +64,10 @@ export default function AdminResources() {
           faqs: Array.isArray(stored.faqs) ? stored.faqs : DEFAULTS.faqs,
         });
       }
-    });
-  }, [getContent]);
+      setLoadState("ready");
+    } catch { setLoadState("error"); }
+  }, [getContentResult]);
+  useEffect(() => { load(); }, [load]);
 
   function set<K extends keyof ResourcesData>(key: K, val: ResourcesData[K]) {
     setSaved(false);
@@ -137,10 +145,18 @@ export default function AdminResources() {
 
   async function handleSave() {
     setSaving(true);
-    await saveContent("resources", data as unknown as Record<string, unknown>);
-    setSaving(false);
-    setSaved(true);
+    setSaveError("");
+    try {
+      await saveContent("resources", data as unknown as Record<string, unknown>);
+      setSaved(true);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Failed to save resources content.");
+    } finally {
+      setSaving(false);
+    }
   }
+
+  if (loadState !== "ready") return <div><PageHeader title="Resources Page" description={loadState === "error" ? "Couldn't load saved content" : "Loading…"} />{loadState === "error" ? <div className="flex flex-col items-center gap-3 py-24 text-center"><p className="text-[13px] text-red-600">Couldn't load saved resources content. Editing is disabled to protect your live data.</p><button onClick={load} className="text-[12px] font-semibold bg-[#0B0B0B] text-white px-4 py-2 rounded-xl">Retry</button></div> : <div className="py-24 text-center text-[13px] text-[#0B0B0B]/40">Loading content…</div>}</div>;
 
   return (
     <div>
@@ -422,6 +438,7 @@ export default function AdminResources() {
       </Card>
 
       <PageVisibilityCard slug="resources" />
+      {saveError && <p role="alert" className="text-[13px] text-red-600 mt-3">{saveError}</p>}
       <SaveBar saving={saving} saved={saved} onSave={handleSave} />
     </div>
   );

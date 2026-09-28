@@ -1,20 +1,27 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, SaveBar } from "@/components/admin/AdminField";
 import { Plus, Trash2 } from "lucide-react";
 import { FOOTER_DEFAULTS as DEFAULTS, type FooterData, type FooterColumn, type FooterLink } from "@/lib/footerDefaults";
 
 export default function AdminFooter() {
-  const { getContent, saveContent } = useAdmin();
+  const { getContentResult, saveContent } = useAdmin();
   const [data, setData] = useState<FooterData>(DEFAULTS);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
+  const [saveError, setSaveError] = useState("");
 
-  useEffect(() => {
-    getContent("footer").then((d) => {
-      if (d) setData({ ...DEFAULTS, ...(d as Partial<FooterData>) });
-    });
-  }, [getContent]);
+  const load = useCallback(async () => {
+    setLoadState("loading");
+    try {
+      const result = await getContentResult("footer");
+      if (!result.ok) { setLoadState("error"); return; }
+      setData({ ...DEFAULTS, ...(result.data as Partial<FooterData> | null) });
+      setLoadState("ready");
+    } catch { setLoadState("error"); }
+  }, [getContentResult]);
+  useEffect(() => { load(); }, [load]);
 
   function set<K extends keyof FooterData>(key: K, val: FooterData[K]) {
     setSaved(false);
@@ -23,9 +30,12 @@ export default function AdminFooter() {
 
   async function handleSave() {
     setSaving(true);
+    setSaveError("");
     try {
       await saveContent("footer", data as unknown as Record<string, unknown>);
       setSaved(true);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Failed to save footer content.");
     } finally {
       setSaving(false);
     }
@@ -44,6 +54,8 @@ export default function AdminFooter() {
     cols[ci] = { ...cols[ci], links };
     set("columns", cols);
   }
+
+  if (loadState !== "ready") return <div><PageHeader title="Footer" description={loadState === "error" ? "Couldn't load saved content" : "Loading…"} />{loadState === "error" ? <div className="flex flex-col items-center gap-3 py-24 text-center"><p className="text-[13px] text-red-600">Couldn't load saved footer content. Editing is disabled to protect your live data.</p><button onClick={load} className="text-[12px] font-semibold bg-[#0B0B0B] text-white px-4 py-2 rounded-xl">Retry</button></div> : <div className="py-24 text-center text-[13px] text-[#0B0B0B]/40">Loading content…</div>}</div>;
 
   return (
     <div>
@@ -120,6 +132,7 @@ export default function AdminFooter() {
         </button>
       </div>
 
+      {saveError && <p role="alert" className="text-[13px] text-red-600 mt-3">{saveError}</p>}
       <SaveBar onSave={handleSave} saving={saving} saved={saved} />
     </div>
   );

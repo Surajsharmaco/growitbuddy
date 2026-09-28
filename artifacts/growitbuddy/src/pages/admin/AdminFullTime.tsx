@@ -204,16 +204,23 @@ function ApplicationsPanel({ type, title }: { type: string; title: string }) {
 import { FULLTIME_DEFAULTS as DEFAULTS, type FullTimePageData as FullTimeData } from "@/lib/fulltimeDefaults";
 
 export default function AdminFullTime() {
-  const { getContent, saveContent } = useAdmin();
+  const { getContentResult, saveContent } = useAdmin();
   const [data, setData] = useState<FullTimeData>(DEFAULTS);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
+  const [saveError, setSaveError] = useState("");
 
-  useEffect(() => {
-    getContent("fulltime").then((d) => {
-      if (d) setData({ ...DEFAULTS, ...(d as Partial<FullTimeData>) });
-    });
-  }, [getContent]);
+  const load = useCallback(async () => {
+    setLoadState("loading");
+    try {
+      const result = await getContentResult("fulltime");
+      if (!result.ok) { setLoadState("error"); return; }
+      if (result.data) setData({ ...DEFAULTS, ...(result.data as Partial<FullTimeData>) });
+      setLoadState("ready");
+    } catch { setLoadState("error"); }
+  }, [getContentResult]);
+  useEffect(() => { load(); }, [load]);
 
   function set<K extends keyof FullTimeData>(key: K, val: FullTimeData[K]) {
     setSaved(false);
@@ -239,13 +246,18 @@ export default function AdminFullTime() {
 
   async function handleSave() {
     setSaving(true);
+    setSaveError("");
     try {
       await saveContent("fulltime", data as unknown as Record<string, unknown>);
       setSaved(true);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Failed to save full-time career content.");
     } finally {
       setSaving(false);
     }
   }
+
+  if (loadState !== "ready") return <div><PageHeader title="Full-Time Careers Page" description={loadState === "error" ? "Couldn't load saved content" : "Edit hero, perks, open roles, and form text."} />{loadState === "error" ? <div className="flex flex-col items-center gap-3 py-24 text-center"><p className="text-[13px] text-red-600">Couldn't load saved full-time career content. Editing is disabled to protect your live data.</p><button onClick={load} className="text-[12px] font-semibold bg-[#0B0B0B] text-white px-4 py-2 rounded-xl">Retry</button></div> : <div className="py-24 text-center text-[13px] text-[#0B0B0B]/40">Loading content…</div>}</div>;
 
   return (
     <div>
@@ -323,6 +335,7 @@ export default function AdminFullTime() {
       </div>
 
       <PageVisibilityCard slug="full-time" />
+      {saveError && <p role="alert" className="text-[13px] text-red-600 mt-3">{saveError}</p>}
       <SaveBar onSave={handleSave} saving={saving} saved={saved} />
     </div>
   );

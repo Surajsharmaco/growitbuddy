@@ -15,21 +15,16 @@
  *      and the resolved SEO into window.__GB_SEO__, so the SPA's first paint
  *      (and Googlebot's JS render) use current data with NO network wait.
  *
- * It reads live data by querying the Neon Postgres database DIRECTLY (the same
- * `site_content` table the admin API writes to), with a hard timeout and a total
- * fallback to @workspace/seo registry defaults + the plain shell. Reading the DB
- * directly is deliberate: the Render API is on a free tier that cold-starts for
- * 30-60s, so depending on it for first render meant a sleeping API could serve a
- * crawler the default meta. Neon's serverless HTTP driver has no cold start, so
- * the SSR head/content always reflect current admin values. It NEVER throws to
- * the client — every path returns HTTP 200 with valid HTML, so a DB outage can
- * never take the site down (it just falls back to registry defaults).
+ * It reads live data from the same site_content table written by the admin API,
+ * either through a direct Neon connection or the public bulk Render API. Dynamic
+ * HTML is never cached. If neither authoritative source is available, it returns
+ * a no-store 503 shell with noindex so the client can retry instead of displaying
+ * baked defaults as though they were fresh.
  *
  * @workspace/seo is the single source of truth for the page list + defaults.
  *
- * REQUIRES the Vercel env var NEON_DATABASE_URL (server-side, NOT VITE_-prefixed)
- * set to the same Neon connection string the API uses. Without it, loadData
- * returns registry defaults (no live admin content) but the site still works.
+ * Vercel can use VITE_API_URL (the Render API base ending in /api) without a
+ * database credential. NEON_DATABASE_URL / DATABASE_URL enables direct DB reads.
  */
 
 import {
@@ -47,9 +42,14 @@ import { neon } from "@neondatabase/serverless";
 // the string straight into this function — no runtime fs reads, no includeFiles.
 import { TEMPLATE } from "./_template.js";
 import { CONTENT_DEFAULTS } from "./contentDefaults";
+import {
+  sectionsForSlug,
+  SHARED_CONTENT_SECTIONS,
+} from "../src/lib/publicContentSections";
+import { VARIANT_SOURCES } from "../src/lib/variantSources";
 
-// Server-side only. Same precedence as the API (lib/db): prefer the dedicated
-// Neon URL, fall back to a generic DATABASE_URL if that is what Vercel holds.
+// Server-side only. Prefer a dedicated Neon URL; the public API is used when
+// direct database access is unavailable.
 const DB_URL = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL || "";
 
 const SITE = SITE_URL; // https://growitbuddy.com
@@ -58,26 +58,12 @@ const DEFAULT_IMAGE = `${SITE}/opengraph.jpg`;
 const TWITTER_HANDLE = "@growitbuddy";
 const WP_API = "https://blog.growitbuddy.com/wp-json/wp/v2";
 
-// Most pages read their admin content from a section whose key === the registry
-// slug, so loadData(entry.slug) already bootstraps them. These pages, however,
-// read content from section key(s) that DIFFER from the slug (verified against
-// every usePublicContent() call site in src/). Without bootstrapping these keys
-// the page first-paints defaults and then swaps to live content (the "flash").
-// Keep this in lockstep with the usePublicContent() keys used by each page.
-const EXTRA_CONTENT_SECTIONS: Record<string, string[]> = {
-  insights: ["blog"], // /blog (Insights.tsx)
-  career: ["fulltime", "internship", "freelancers"], // /career (Career.tsx)
-  distribution: ["distribution-network", "distribution-pages"], // /distribution
-  influencers: ["influencer-explore"], // /influencers (InfluencerExplore.tsx)
-  join: ["joinnetwork"], // /join (JoinNetwork.tsx)
-  creators: ["creators-form"], // /creators (NetworkApplyForm type="influencer")
-  "join-page-owner": ["page-owner-form"], // /join/page-owner (NetworkApplyForm type="page")
-};
-
-// Hard cap on how long we wait for the DB before falling back to defaults.
-// Neon's HTTP driver is fast (no cold start), but we still bail rather than make
-// a crawler wait if the DB is briefly unreachable; the CDN holds good HTML.
+// Bound both database and Render API waits. Dynamic responses are never cached,
+// so a timeout must fail visibly rather than serving stale/default content.
 const DATA_TIMEOUT_MS = 2500;
+// Render's free tier can need several seconds to wake after inactivity. Keep
+// API requests bounded, but don't turn ordinary cold starts into stale shells.
+const PUBLIC_API_TIMEOUT_MS = 20_000;
 
 /* ───────────────────────── escaping helpers ───────────────────────── */
 function escAttr(s: unknown): string {
@@ -331,21 +317,61 @@ interface Bundle {
   seo: PageSEOData;
   globalIndexable: boolean;
   content: Record<string, unknown>;
-  live: boolean;
+  contentSections: string[];
 }
 
-const EMPTY_BUNDLE: Bundle = { seo: {}, globalIndexable: true, content: {}, live: false };
-
-// Read all needed rows from Neon in ONE round-trip. The admin API writes content
-// to `site_content` (section TEXT primary key, data JSONB): per-page SEO under
-// `seo:<slug>`, the global indexable flag under `seo-global`, and each page's
-// content under its section key. We query the very same table directly, so a
-// sleeping Render API can never make a crawler see stale/default meta.
-async function loadData(slug: string, sections: string[]): Promise<Bundle> {
-  if (!DB_URL) return EMPTY_BUNDLE;
-
+function buildBundle(
+  slug: string,
+  sections: string[],
+  bySection: Map<string, unknown>,
+): Bundle {
   const seoKey = `seo:${slug}`;
-  const keys = Array.from(new Set([seoKey, "seo-global", ...sections]));
+  const seoData = bySection.get(seoKey);
+  const seo: PageSEOData =
+    seoData && typeof seoData === "object" ? (seoData as PageSEOData) : {};
+  const globalData = bySection.get("seo-global") as
+    | { siteIndexable?: boolean }
+    | undefined;
+  const content: Record<string, unknown> = {};
+  for (const section of sections) content[section] = bySection.get(section) ?? null;
+  return {
+    seo,
+    globalIndexable: !(globalData && globalData.siteIndexable === false),
+    content,
+    contentSections: sections,
+  };
+}
+
+async function loadFromPublicApi(
+  slug: string,
+  keys: string[],
+  contentSections: string[],
+): Promise<Bundle> {
+  const apiBase = process.env.VITE_API_URL?.replace(/\/+$/, "");
+  if (!apiBase) throw new Error("VITE_API_URL is not configured for SSR content");
+  const response = await fetch(
+    `${apiBase}/admin/public/content-bulk?sections=${encodeURIComponent(keys.join(","))}`,
+    { cache: "no-store", signal: AbortSignal.timeout(PUBLIC_API_TIMEOUT_MS) },
+  );
+  if (!response.ok) throw new Error(`Public content API returned HTTP ${response.status}`);
+  const payload = (await response.json()) as { data?: Record<string, unknown> };
+  const responseData = payload.data;
+  if (
+    !responseData ||
+    keys.some((key) => !Object.prototype.hasOwnProperty.call(responseData, key))
+  ) {
+    throw new Error("Public content API returned an incomplete section response");
+  }
+  return buildBundle(slug, contentSections, new Map(Object.entries(responseData)));
+}
+
+// Query all SEO + page content rows together when a DB URL is available. Vercel
+// currently only has VITE_API_URL, so the same authoritative values are fetched
+// from the public Render API in one bulk request there (and as a DB-error fallback).
+async function loadData(slug: string, sections: string[]): Promise<Bundle> {
+  const contentSections = Array.from(new Set(sections));
+  const keys = Array.from(new Set([`seo:${slug}`, "seo-global", ...contentSections]));
+  if (!DB_URL) return loadFromPublicApi(slug, keys, contentSections);
 
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
@@ -354,30 +380,15 @@ async function loadData(slug: string, sections: string[]): Promise<Bundle> {
     const rows = (await sql`
       SELECT section, data FROM site_content WHERE section = ANY(${keys})
     `) as Array<{ section: string; data: unknown }>;
-
-    const bySection = new Map(rows.map((r) => [r.section, r.data]));
-
-    const seoData = bySection.get(seoKey);
-    const seo: PageSEOData =
-      seoData && typeof seoData === "object" ? (seoData as PageSEOData) : {};
-
-    const globalData = bySection.get("seo-global") as
-      | { siteIndexable?: boolean }
-      | undefined;
-    const globalIndexable = !(globalData && globalData.siteIndexable === false);
-
-    const content: Record<string, unknown> = {};
-    for (const s of sections) {
-      const d = bySection.get(s);
-      if (d && typeof d === "object") content[s] = d;
+    return buildBundle(slug, contentSections, new Map(rows.map((row) => [row.section, row.data])));
+  } catch (dbError) {
+    try {
+      return await loadFromPublicApi(slug, keys, contentSections);
+    } catch (apiError) {
+      throw new Error("Neither direct database nor public content API is available", {
+        cause: apiError ?? dbError,
+      });
     }
-
-    // A successful query is authoritative current data — even if a given page has
-    // no admin overrides (0 rows), registry defaults ARE the correct answer here,
-    // so cache it hard. Only a DB failure/timeout yields live:false (short cache).
-    return { seo, globalIndexable, content, live: true };
-  } catch {
-    return EMPTY_BUNDLE;
   } finally {
     clearTimeout(timer);
   }
@@ -389,6 +400,11 @@ function buildHtml(
   entry: PageRegistryEntry,
   pathname: string,
   b: Bundle,
+  options: {
+    seoSlug?: string;
+    bodySections?: string[];
+    bodyDefaultsKey?: string;
+  } = {},
 ): string {
   const seo = b.seo;
   const title = seo.title ?? entry.defaults.title;
@@ -456,8 +472,9 @@ function buildHtml(
   const bootstrap =
     `<script>` +
     `window.__GB_PUBLIC_CONTENT__=${safeJson(publicContent)};` +
+    `window.__GB_CONTENT_SECTIONS__=${safeJson(b.contentSections)};` +
     `window.__GB_SEO__=${safeJson({
-      slug: entry.slug,
+      slug: options.seoSlug ?? entry.slug,
       path: pathname,
       data: seo,
       globalIndexable: b.globalIndexable,
@@ -473,12 +490,16 @@ function buildHtml(
   // shows real, route-specific text for crawlers. createRoot() replaces it on
   // the client. Only the page's OWN section(s) — not the shared navbar/footer —
   // so each route's body is genuinely distinct.
-  const bodySections = Array.from(
-    new Set([entry.slug, ...(EXTRA_CONTENT_SECTIONS[entry.slug] || [])]),
-  );
+  const shared = new Set<string>(SHARED_CONTENT_SECTIONS);
+  const bodySections =
+    options.bodySections ??
+    sectionsForSlug(entry.slug).filter((section) => !shared.has(section));
   const mergedContent: Record<string, unknown> = {};
   for (const sec of bodySections) {
-    mergedContent[sec] = mergeForBody(CONTENT_DEFAULTS[sec], publicContent[sec]);
+    mergedContent[sec] = mergeForBody(
+      CONTENT_DEFAULTS[options.bodyDefaultsKey ?? sec],
+      publicContent[sec],
+    );
   }
   const bodyHtml = renderContentBody(mergedContent, bodySections, title);
   return injectBody(html, bodyHtml);
@@ -489,6 +510,19 @@ function sendHtml(res: any, html: string, cacheControl: string, status = 200): v
   res.setHeader("content-type", "text/html; charset=utf-8");
   res.setHeader("cache-control", cacheControl);
   res.end(html);
+}
+
+function sendContentFailure(res: any, template: string): void {
+  let shell = template.replace(
+    /<div id="root"[^>]*>[\s\S]*?<\/div>/i,
+    '<div id="root"></div>',
+  );
+  shell = setTitle(shell, "GrowitBuddy");
+  shell = shell.replace(/<meta\s+name=["']description["'][^>]*>/i, "");
+  shell = shell.replace(/<link\s+rel=["']canonical["'][^>]*>/i, "");
+  shell = setMeta(shell, "name", "robots", "noindex,nofollow");
+  res.setHeader("x-robots-tag", "noindex, nofollow");
+  sendHtml(res, shell, "no-store", 503);
 }
 
 function sendXml(res: any, xml: string, cacheControl: string): void {
@@ -692,43 +726,75 @@ function isKnownNonRegistryRoute(pathname: string): boolean {
   );
 }
 
-/* ───────────────────── live page-variant slug cache ────────────────────────
- * /:slug is a catch-all the SPA resolves to a live Page Variant (DB) or a
- * NotFound. To tell a real variant from a typo at the HTTP layer, read the live
- * variant slugs from Neon. Cache them per warm instance (short TTL) so a burst
- * of bogus URLs can't hammer the DB. FAILS OPEN: on any error return the
- * last-known set, or null when nothing is known — callers must NOT 404 on null. */
-let variantCache: { slugs: Set<string>; at: number } | null = null;
-const VARIANT_TTL_MS = 30_000;
+/* ───────────────────── live page-variant resolution ─────────────────────── */
+interface LiveVariant {
+  slug: string;
+  sourceKey: string;
+  label: string;
+}
 
-async function getLiveVariantSlugs(): Promise<Set<string> | null> {
-  if (variantCache && Date.now() - variantCache.at < VARIANT_TTL_MS) return variantCache.slugs;
-  if (!DB_URL) return variantCache?.slugs ?? null;
+async function getVariantFromPublicApi(slug: string): Promise<LiveVariant | null> {
+  const apiBase = process.env.VITE_API_URL?.replace(/\/+$/, "");
+  if (!apiBase) throw new Error("VITE_API_URL is not configured for variant resolution");
+  const response = await fetch(`${apiBase}/admin/public/variants`, {
+    cache: "no-store",
+    signal: AbortSignal.timeout(PUBLIC_API_TIMEOUT_MS),
+  });
+  if (!response.ok) throw new Error(`Public variants API returned HTTP ${response.status}`);
+  const rows = (await response.json()) as unknown;
+  if (!Array.isArray(rows)) throw new Error("Public variants API returned an invalid response");
+  if (
+    rows.some(
+      (row) =>
+        !row ||
+        typeof row !== "object" ||
+        typeof (row as LiveVariant).slug !== "string" ||
+        typeof (row as LiveVariant).sourceKey !== "string" ||
+        typeof (row as LiveVariant).label !== "string",
+    )
+  ) {
+    throw new Error("Public variants API returned malformed variant records");
+  }
+  return (rows as LiveVariant[]).find((row) => row.slug === slug) ?? null;
+}
+
+// Null means the authoritative source confirmed this slug is not a live variant.
+// A DB/API error throws so callers return a 503 rather than a misleading 404 shell.
+async function resolveLiveVariant(slug: string): Promise<LiveVariant | null> {
+  if (!DB_URL) return getVariantFromPublicApi(slug);
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
   try {
     const sql = neon(DB_URL, { fetchOptions: { signal: ctrl.signal } });
     const rows = (await sql`
-      SELECT slug FROM page_variants WHERE is_live = true
-    `) as Array<{ slug: string }>;
-    const slugs = new Set(rows.map((r) => r.slug));
-    variantCache = { slugs, at: Date.now() };
-    return slugs;
+      SELECT slug, source_key AS "sourceKey", label
+      FROM page_variants
+      WHERE slug = ${slug} AND is_live = true
+      LIMIT 1
+    `) as LiveVariant[];
+    const variant = rows[0];
+    if (!variant) return null;
+    if (
+      typeof variant.slug !== "string" ||
+      typeof variant.sourceKey !== "string" ||
+      typeof variant.label !== "string"
+    ) {
+      throw new Error("Database returned malformed variant metadata");
+    }
+    return variant;
   } catch {
-    return variantCache?.slugs ?? null; // fail open — never 404 on a DB hiccup
+    return getVariantFromPublicApi(slug);
   } finally {
     clearTimeout(timer);
   }
 }
 
-// Genuine not-found: HTTP 404 + noindex (header + meta) so Google drops the URL
-// rather than logging a soft 404, while still serving the styled SPA shell so a
-// human sees the branded not-found page. Short cache so a later-created page
-// (e.g. a new variant) recovers quickly.
+// Authoritative miss: HTTP 404 + noindex (header + meta), without caching so a
+// newly created live variant is discoverable on the next request.
 function send404(res: any, template: string): void {
   const html = setMeta(template, "name", "robots", "noindex,follow");
   res.setHeader("x-robots-tag", "noindex, follow");
-  sendHtml(res, html, "public, max-age=30, s-maxage=30, stale-while-revalidate=120", 404);
+  sendHtml(res, html, "no-store", 404);
 }
 
 /* ──────────────────────────── handler ─────────────────────────────── */
@@ -803,18 +869,34 @@ export default async function handler(req: any, res: any): Promise<void> {
         sendHtml(res, shell, "public, s-maxage=30, stale-while-revalidate=300");
         return;
       }
-      // A single-segment /:slug may be a live Page Variant. Only 404 when we can
-      // PROVE it isn't one (DB reachable AND slug absent). Any uncertainty
-      // (no DB / query error → null) falls through to a 200 shell (fail open),
-      // so a transient DB issue can never 404 a real page.
+      // A single-segment /:slug may be a live Page Variant. The resolver
+      // distinguishes an authoritative miss from a database/API failure.
       const segments = pathname.split("/").filter(Boolean);
       if (segments.length === 1 && isSafeSlug(segments[0])) {
-        const live = await getLiveVariantSlugs();
-        if (live && !live.has(segments[0])) {
+        const slug = segments[0];
+        const variant = await resolveLiveVariant(slug);
+        if (!variant) {
           send404(res, template);
           return;
         }
-        sendHtml(res, template, "public, s-maxage=30, stale-while-revalidate=300");
+
+        const source = VARIANT_SOURCES.find((item) => item.key === variant.sourceKey);
+        const sourceEntry = source ? findEntryByPath(source.basePath) : undefined;
+        if (!source || !sourceEntry) {
+          throw new Error(`No SSR source page registered for variant source "${variant.sourceKey}"`);
+        }
+        const variantSection = `${variant.sourceKey}__v__${variant.slug}`;
+        const contentSections = [
+          variantSection,
+          ...SHARED_CONTENT_SECTIONS,
+        ];
+        const bundle = await loadData(variant.slug, contentSections);
+        const html = buildHtml(template, sourceEntry, pathname, bundle, {
+          seoSlug: variant.slug,
+          bodySections: [variantSection],
+          bodyDefaultsKey: variant.sourceKey,
+        });
+        sendHtml(res, html, "no-store");
         return;
       }
       // Anything else (unknown multi-segment path, malformed slug) matches no SPA
@@ -823,32 +905,13 @@ export default async function handler(req: any, res: any): Promise<void> {
       return;
     }
 
-    // Bootstrap the page's own content section(s) plus shared globals. Most
-    // pages key content by slug; some use different keys (EXTRA_CONTENT_SECTIONS).
-    const sections = Array.from(
-      new Set([
-        entry.slug,
-        ...(EXTRA_CONTENT_SECTIONS[entry.slug] || []),
-        "navbar",
-        "footer",
-        "settings",
-      ]),
-    );
+    // Query this route's live sections plus shared chrome and visibility policy.
+    const sections = sectionsForSlug(entry.slug);
     const bundle = await loadData(entry.slug, sections);
     const html = buildHtml(template, entry, pathname, bundle);
 
-    // Cache good (live) HTML hard at the edge with long stale-while-revalidate
-    // so cold Render starts never reach a crawler twice. Cache fallback HTML
-    // only briefly so admin values get picked up quickly once the API warms.
-    sendHtml(
-      res,
-      html,
-      bundle.live
-        ? "public, s-maxage=60, stale-while-revalidate=86400"
-        : "public, s-maxage=10, stale-while-revalidate=30",
-    );
+    sendHtml(res, html, "no-store");
   } catch {
-    // Last resort: serve the plain shell (still a working SPA), never a 500.
-    sendHtml(res, template, "no-store");
+    sendContentFailure(res, template);
   }
 }

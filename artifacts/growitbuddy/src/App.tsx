@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect } from "react";
 import { LazyMotion, domAnimation } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
 import { Switch, Route, Router as WouterRouter, Redirect, useLocation } from "wouter";
-import { prefetchSections, usePublicContent } from "@/hooks/usePublicContent";
+import { usePublicContent } from "@/hooks/usePublicContent";
 import { prefetchInfluencers } from "@/hooks/useLiveInfluencers";
 import Home from "@/pages/Home";
 import PageIntro from "@/components/effects/PageIntro";
@@ -15,6 +15,8 @@ import { prefetchAllSEO } from "@/lib/seoCache";
 import { VariantResolver } from "@/components/VariantResolver";
 import { RouteErrorBoundary } from "@/components/ErrorBoundary";
 import { resolveMediaUrl } from "@/lib/api";
+import { ContentFreshnessGate } from "@/components/ContentFreshnessGate";
+import { sectionsForSlug } from "@/lib/publicContentSections";
 
 // ── Lazy-loaded public pages ──────────────────────────────────────────────────
 // Home stays eager (it's the LCP page). Everything else loads on demand.
@@ -218,17 +220,6 @@ function AdminRoutes() {
   );
 }
 
-const ALL_SECTIONS = [
-  "home", "about", "contact", "framework", "services", "work",
-  "resources", "joinnetwork", "freelancers", "fulltime", "internship",
-  "influencer-explore", "authority-audit", "distribution-network",
-  "distribution-pages", "links", "blog", "creator-school", "settings",
-  "pool-designers", "pool-thumbnail-designers", "pool-writers",
-  "pool-social-managers", "pool-motion-designers", "pool-ai-creators",
-  "pool-ugc-creators", "pool-meme-designers", "pool-editors", "page_visibility",
-  "privacy", "terms", "seo-guide", "site-guide", "creators-form", "page-owner-form",
-];
-
 function FaviconInjector() {
   const settings = usePublicContent("settings", { faviconUrl: "" });
   useEffect(() => {
@@ -244,17 +235,44 @@ function FaviconInjector() {
   return null;
 }
 
+function PublicContentGate({ children }: { children: React.ReactNode }) {
+  const [location] = useLocation();
+  const path = location.split("?")[0].replace(/\/+$/, "") || "/";
+  const routeSlugs: Record<string, string> = {
+    "/": "home",
+    "/blog": "insights",
+    "/insights": "insights",
+    "/join/page-owner": "join-page-owner",
+    "/distribution": "distribution",
+    "/guide": "site-guide",
+    "/editors-pool": "creator-school",
+    "/designers-pool": "pool-designers",
+    "/thumbnail-designers": "pool-thumbnail-designers",
+    "/writers-pool": "pool-writers",
+    "/social-media-managers": "pool-social-managers",
+    "/motion-designers": "pool-motion-designers",
+    "/ai-creators": "pool-ai-creators",
+    "/ugc-creators": "pool-ugc-creators",
+    "/meme-designers": "pool-meme-designers",
+    "/video-editors": "pool-editors",
+    "/seo-guide": "seo-guide",
+    "/links": "links",
+  };
+  const slug = routeSlugs[path] ?? (path.startsWith("/blog/") ? "insights" : path.slice(1).split("/")[0]);
+  return <ContentFreshnessGate slug={path} sections={sectionsForSlug(slug)}>{children}</ContentFreshnessGate>;
+}
+
 function App() {
   useEffect(() => {
     // Use requestIdleCallback so prefetch doesn't compete with critical
     // resources on the first paint (preserves LCP) while still kicking off
     // much sooner than the previous 1500ms timeout. Mounted hooks also do
-    // their own refresh-on-mount, so even if a section isn't pre-warmed by
-    // the time a page renders, the hook will pull fresh data right away.
+    // the route gate fetches only the current page's content sections in one
+    // bulk request, so no all-sections prefetch is needed.
     const ric = (window as unknown as {
       requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
     }).requestIdleCallback;
-    const run = () => { prefetchSections(ALL_SECTIONS); prefetchInfluencers(); prefetchAllSEO(); };
+    const run = () => { prefetchInfluencers(); prefetchAllSEO(); };
     let handle: number | NodeJS.Timeout;
     if (ric) handle = ric(run, { timeout: 800 });
     else handle = setTimeout(run, 300);
@@ -277,13 +295,14 @@ function App() {
           <Route path="/admin" component={AdminRoutes} />
 
           {/* Internal SEO guide - standalone (no layout chrome), permanently noindex via the page itself */}
-          <Route path="/seo-guide">{() => <Suspense fallback={<PageSpinner />}><PageGate slug="seo-guide"><SEOGuide /></PageGate></Suspense>}</Route>
+          <Route path="/seo-guide">{() => <ContentFreshnessGate slug="seo-guide"><Suspense fallback={<PageSpinner />}><PageGate slug="seo-guide"><SEOGuide /></PageGate></Suspense></ContentFreshnessGate>}</Route>
 
           {/* Bio link page - standalone (no site navbar/footer chrome) */}
-          <Route path="/links">{() => <Suspense fallback={<PageSpinner />}><PageGate slug="links"><Links /></PageGate></Suspense>}</Route>
+          <Route path="/links">{() => <ContentFreshnessGate slug="links"><Suspense fallback={<PageSpinner />}><PageGate slug="links"><Links /></PageGate></Suspense></ContentFreshnessGate>}</Route>
 
           <Route>
             {() => (
+              <PublicContentGate>
               <>
                 <PageIntro />
                 <Layout>
@@ -346,6 +365,7 @@ function App() {
                   </RouteErrorBoundary>
                 </Layout>
               </>
+              </PublicContentGate>
             )}
           </Route>
         </Switch>

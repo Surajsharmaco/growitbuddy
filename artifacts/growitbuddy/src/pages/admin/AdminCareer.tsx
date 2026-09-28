@@ -148,15 +148,36 @@ function ApplicationsPanel({ type }: { type: Tab }) {
 }
 
 // ── Tab Editors ──────────────────────────────────────────────────────────────
+function LoadStateNotice({ label, state, onRetry }: { label: string; state: "loading" | "error" | "ready"; onRetry: () => void }) {
+  if (state === "error") {
+    return (
+      <div className="flex flex-col items-center gap-3 py-24 text-center">
+        <p className="text-[13px] text-red-600">Couldn't load saved {label}. Editing is disabled to protect your live data.</p>
+        <button onClick={onRetry} className="text-[12px] font-semibold bg-[#0B0B0B] text-white px-4 py-2 rounded-xl">Retry</button>
+      </div>
+    );
+  }
+  return <div className="py-24 text-center text-[13px] text-[#0B0B0B]/40">Loading content…</div>;
+}
+
 function FullTimeEditor() {
-  const { getContent, saveContent } = useAdmin();
+  const { getContentResult, saveContent } = useAdmin();
   const [data, setData] = useState<FullTimeData>(FT_DEFAULTS);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
+  const [saveError, setSaveError] = useState("");
 
-  useEffect(() => {
-    getContent("fulltime").then((d) => { if (d) setData({ ...FT_DEFAULTS, ...(d as Partial<FullTimeData>) }); });
-  }, [getContent]);
+  const load = useCallback(async () => {
+    setLoadState("loading");
+    try {
+      const result = await getContentResult("fulltime");
+      if (!result.ok) { setLoadState("error"); return; }
+      if (result.data) setData({ ...FT_DEFAULTS, ...(result.data as Partial<FullTimeData>) });
+      setLoadState("ready");
+    } catch { setLoadState("error"); }
+  }, [getContentResult]);
+  useEffect(() => { load(); }, [load]);
 
   function set<K extends keyof FullTimeData>(key: K, val: FullTimeData[K]) { setSaved(false); setData((p) => ({ ...p, [key]: val })); }
   function setListItem(key: "perks" | "roles", i: number, val: string) { setSaved(false); const next = [...data[key]]; next[i] = val; setData((p) => ({ ...p, [key]: next })); }
@@ -165,9 +186,13 @@ function FullTimeEditor() {
 
   async function handleSave() {
     setSaving(true);
+    setSaveError("");
     try { await saveContent("fulltime", data as unknown as Record<string, unknown>); setSaved(true); }
+    catch (error) { setSaveError(error instanceof Error ? error.message : "Failed to save full-time career content."); }
     finally { setSaving(false); }
   }
+
+  if (loadState !== "ready") return <LoadStateNotice label="full-time career content" state={loadState} onRetry={load} />;
 
   return (
     <>
@@ -191,20 +216,30 @@ function FullTimeEditor() {
           onRemove={(i) => removeListItem("roles", i)} placeholder="Role title..." addLabel="Add Role" />
         <FormTextCard data={data} set={set as any} />
       </div>
+      {saveError && <p role="alert" className="text-[13px] text-red-600 mt-3">{saveError}</p>}
       <SaveBar onSave={handleSave} saving={saving} saved={saved} />
     </>
   );
 }
 
 function InternshipEditor() {
-  const { getContent, saveContent } = useAdmin();
+  const { getContentResult, saveContent } = useAdmin();
   const [data, setData] = useState<InternshipData>(IN_DEFAULTS);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
+  const [saveError, setSaveError] = useState("");
 
-  useEffect(() => {
-    getContent("internship").then((d) => { if (d) setData({ ...IN_DEFAULTS, ...(d as Partial<InternshipData>) }); });
-  }, [getContent]);
+  const load = useCallback(async () => {
+    setLoadState("loading");
+    try {
+      const result = await getContentResult("internship");
+      if (!result.ok) { setLoadState("error"); return; }
+      if (result.data) setData({ ...IN_DEFAULTS, ...(result.data as Partial<InternshipData>) });
+      setLoadState("ready");
+    } catch { setLoadState("error"); }
+  }, [getContentResult]);
+  useEffect(() => { load(); }, [load]);
 
   function set<K extends keyof InternshipData>(key: K, val: InternshipData[K]) { setSaved(false); setData((p) => ({ ...p, [key]: val })); }
   function setListItem(key: "perks" | "idealFor", i: number, val: string) { setSaved(false); const next = [...data[key]]; next[i] = val; setData((p) => ({ ...p, [key]: next })); }
@@ -213,9 +248,13 @@ function InternshipEditor() {
 
   async function handleSave() {
     setSaving(true);
+    setSaveError("");
     try { await saveContent("internship", data as unknown as Record<string, unknown>); setSaved(true); }
+    catch (error) { setSaveError(error instanceof Error ? error.message : "Failed to save internship content."); }
     finally { setSaving(false); }
   }
+
+  if (loadState !== "ready") return <LoadStateNotice label="internship content" state={loadState} onRetry={load} />;
 
   return (
     <>
@@ -239,20 +278,30 @@ function InternshipEditor() {
           onRemove={(i) => removeListItem("idealFor", i)} placeholder="Item..." addLabel="Add Item" />
         <FormTextCard data={data} set={set as any} />
       </div>
+      {saveError && <p role="alert" className="text-[13px] text-red-600 mt-3">{saveError}</p>}
       <SaveBar onSave={handleSave} saving={saving} saved={saved} />
     </>
   );
 }
 
 function FreelancerEditor() {
-  const { getContent, saveContent } = useAdmin();
+  const { getContentResult, saveContent } = useAdmin();
   const [data, setData] = useState<FreelancersData>(FL_DEFAULTS);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
+  const [saveError, setSaveError] = useState("");
 
-  useEffect(() => {
-    getContent("freelancers").then((d) => { if (d) setData({ ...FL_DEFAULTS, ...(d as Partial<FreelancersData>) }); });
-  }, [getContent]);
+  const load = useCallback(async () => {
+    setLoadState("loading");
+    try {
+      const result = await getContentResult("freelancers");
+      if (!result.ok) { setLoadState("error"); return; }
+      if (result.data) setData({ ...FL_DEFAULTS, ...(result.data as Partial<FreelancersData>) });
+      setLoadState("ready");
+    } catch { setLoadState("error"); }
+  }, [getContentResult]);
+  useEffect(() => { load(); }, [load]);
 
   function set<K extends keyof FreelancersData>(key: K, val: FreelancersData[K]) { setSaved(false); setData((p) => ({ ...p, [key]: val })); }
   function setListItem(key: "perks" | "notForEveryone", i: number, val: string) { setSaved(false); const next = [...data[key]]; next[i] = val; setData((p) => ({ ...p, [key]: next })); }
@@ -261,9 +310,13 @@ function FreelancerEditor() {
 
   async function handleSave() {
     setSaving(true);
+    setSaveError("");
     try { await saveContent("freelancers", data as unknown as Record<string, unknown>); setSaved(true); }
+    catch (error) { setSaveError(error instanceof Error ? error.message : "Failed to save freelancer career content."); }
     finally { setSaving(false); }
   }
+
+  if (loadState !== "ready") return <LoadStateNotice label="talent network career content" state={loadState} onRetry={load} />;
 
   return (
     <>
@@ -287,6 +340,7 @@ function FreelancerEditor() {
           onRemove={(i) => removeListItem("notForEveryone", i)} placeholder="Item..." addLabel="Add Item" />
         <FormTextCard data={data} set={set as any} />
       </div>
+      {saveError && <p role="alert" className="text-[13px] text-red-600 mt-3">{saveError}</p>}
       <SaveBar onSave={handleSave} saving={saving} saved={saved} />
     </>
   );

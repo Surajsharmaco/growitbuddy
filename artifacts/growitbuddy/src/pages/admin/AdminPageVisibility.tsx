@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card } from "@/components/admin/AdminField";
 import { Eye, EyeOff, Wrench, Clock, ExternalLink, Save } from "lucide-react";
@@ -48,16 +48,23 @@ const PAGES: { slug: string; label: string; url: string }[] = [
 ];
 
 export default function AdminPageVisibility() {
-  const { getContent, saveContent } = useAdmin();
+  const { getContentResult, saveContent } = useAdmin();
   const [data, setData] = useState<Record<string, PageVisConfig>>({});
   const [saving, setSaving] = useState<string | null>(null);
   const [savedSlug, setSavedSlug] = useState<string | null>(null);
+  const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
+  const [saveError, setSaveError] = useState("");
 
-  useEffect(() => {
-    getContent("page_visibility").then((d) => {
-      if (d) setData(d as Record<string, PageVisConfig>);
-    });
-  }, [getContent]);
+  const load = useCallback(async () => {
+    setLoadState("loading");
+    try {
+      const result = await getContentResult("page_visibility");
+      if (!result.ok) { setLoadState("error"); return; }
+      setData((result.data as Record<string, PageVisConfig> | null) ?? {});
+      setLoadState("ready");
+    } catch { setLoadState("error"); }
+  }, [getContentResult]);
+  useEffect(() => { load(); }, [load]);
 
   function getConfig(slug: string): PageVisConfig {
     return { ...DEFAULT_CONFIG, ...(data[slug] ?? {}) };
@@ -70,12 +77,15 @@ export default function AdminPageVisibility() {
   async function saveSlug(slug: string) {
     setSaving(slug);
     setSavedSlug(null);
+    setSaveError("");
     try {
       const updated = { ...data, [slug]: getConfig(slug) };
       await saveContent("page_visibility", updated as unknown as Record<string, unknown>);
       setData(updated);
       setSavedSlug(slug);
       setTimeout(() => setSavedSlug((s) => (s === slug ? null : s)), 2500);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Failed to save page visibility settings.");
     } finally {
       setSaving(null);
     }
@@ -83,12 +93,15 @@ export default function AdminPageVisibility() {
 
   const hiddenCount = PAGES.filter((p) => getConfig(p.slug).hidden).length;
 
+  if (loadState !== "ready") return <div><PageHeader title="Page Visibility" description={loadState === "error" ? "Couldn't load saved visibility settings" : "Loading…"} />{loadState === "error" ? <div className="flex flex-col items-center gap-3 py-24 text-center"><p className="text-[13px] text-red-600">Couldn't load saved page visibility settings. Editing is disabled to protect your live data.</p><button onClick={load} className="text-[12px] font-semibold bg-[#0B0B0B] text-white px-4 py-2 rounded-xl">Retry</button></div> : <div className="py-24 text-center text-[13px] text-[#0B0B0B]/40">Loading content…</div>}</div>;
+
   return (
     <div>
       <PageHeader
         title="Page Visibility"
         description="Control which pages are publicly visible. Hidden pages show a maintenance or coming-soon screen to visitors."
       />
+      {saveError && <p role="alert" className="mb-4 text-[13px] text-red-600">{saveError}</p>}
 
       {hiddenCount > 0 && (
         <div className="mb-5 flex items-center gap-2.5 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl">

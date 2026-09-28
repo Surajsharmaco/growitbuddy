@@ -6,6 +6,15 @@ import { API_BASE } from "@/lib/api";
 import { variantContentKey } from "@/lib/variantSources";
 const TOKEN_KEY = "gb_admin_token";
 
+function getRequestedVariantSlug(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return new URLSearchParams(window.location.search).get("variant");
+  } catch {
+    return null;
+  }
+}
+
 export type { AdminRole };
 
 export interface AdminVariantInfo {
@@ -192,54 +201,136 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   // existing admin forms (AdminHome, AdminAbout, etc.) edit variant content
   // without any per-page changes.
   const [location] = useLocation();
-  const [currentVariant, setCurrentVariant] = useState<AdminVariantInfo | null>(null);
+  const [, refreshVariantQuery] = useState(0);
   useEffect(() => {
-    // Pull ?variant= from window.location (wouter doesn't track query string).
-    let slug: string | null = null;
-    try {
-      slug = new URLSearchParams(window.location.search).get("variant");
-    } catch { /* no-op */ }
-    if (!slug || !isAuthenticated) { setCurrentVariant(null); return; }
-    let cancelled = false;
-    // Use the auth-protected admin list so HIDDEN variants are also resolved
-    // - otherwise edits to a draft variant would silently overwrite the base
-    // page's content. The public list filters out non-live variants.
-    authFetch(`${API_BASE}/admin/variants`)
-      .then((r) => (r.ok ? r.json() : []))
-      .then((rows: Array<{ slug: string; sourceKey: string; label: string }>) => {
-        if (cancelled) return;
-        const match = rows.find((v) => v.slug === slug);
-        setCurrentVariant(match ? { slug: match.slug, sourceKey: match.sourceKey, label: match.label } : null);
-      })
-      .catch(() => { if (!cancelled) setCurrentVariant(null); });
-    return () => { cancelled = true; };
-  }, [location, isAuthenticated, authFetch]);
+    const onLocationChange = () => refreshVariantQuery((revision) => revision + 1);
+    window.addEventListener("popstate", onLocationChange);
+    window.addEventListener("hashchange", onLocationChange);
+    return () => {
+      window.removeEventListener("popstate", onLocationChange);
+      window.removeEventListener("hashchange", onLocationChange);
+    };
+  }, []);
+  const requestedVariantSlug = getRequestedVariantSlug();
+  const requestedVariantSlugRef = useRef(requestedVariantSlug);
+  requestedVariantSlugRef.current = requestedVariantSlug;
+  const [variantResolution, setVariantResolution] = useState<{
+    slug: string | null;
+    status: "none" | "pending" | "resolved" | "failed";
+    variant: AdminVariantInfo | null;
+  }>({ slug: null, status: "none", variant: null });
+  const variantResolutionRef = useRef(variantResolution);
+  variantResolutionRef.current = variantResolution;
+  const variantLookupsRef = useRef(new Map<string, Promise<AdminVariantInfo | null>>());
 
-  const resolveSection = useCallback(
-    (section: string) =>
-      currentVariant && currentVariant.sourceKey === section
-        ? variantContentKey(currentVariant.sourceKey, currentVariant.slug)
+  const loadRequestedVariant = useCallback((slug: string): Promise<AdminVariantInfo | null> => {
+    const pending = variantLookupsRef.current.get(slug);
+    if (pending) return pending;
+
+    setVariantResolution({ slug, status: "pending", variant: null });
+    const lookup = (async () => {
+      try {
+        // Use the auth-protected admin list so hidden variants are also resolved.
+        const r = await authFetch(`${API_BASE}/admin/variants`);
+        if (!r.ok) throw new Error(`Variant lookup failed (${r.status})`);
+        const rows = await r.json() as Array<{ slug: string; sourceKey: string; label: string }>;
+        if (!Array.isArray(rows)) throw new Error("Variant lookup returned invalid data");
+        const match = rows.find((variant) => variant.slug === slug);
+        if (match && (typeof match.sourceKey !== "string" || !match.sourceKey)) {
+          throw new Error("Variant lookup returned invalid variant data");
+        }
+        const variant = match
+          ? { slug: match.slug, sourceKey: match.sourceKey, label: match.label }
+          : null;
+        if (requestedVariantSlugRef.current === slug) {
+          setVariantResolution({ slug, status: variant ? "resolved" : "failed", variant });
+        }
+        return variant;
+      } catch {
+        if (requestedVariantSlugRef.current === slug) {
+          setVariantResolution({ slug, status: "failed", variant: null });
+        }
+        return null;
+      } finally {
+        variantLookupsRef.current.delete(slug);
+      }
+    })();
+    variantLookupsRef.current.set(slug, lookup);
+    return lookup;
+  }, [authFetch]);
+
+  const currentVariant = requestedVariantSlug
+    && variantResolution.slug === requestedVariantSlug
+    && variantResolution.status === "resolved"
+    ? variantResolution.variant
+    : null;
+
+  useEffect(() => {
+    const slug = requestedVariantSlug;
+    if (!slug) {
+      setVariantResolution({ slug: null, status: "none", variant: null });
+      return;
+    }
+    if (
+      variantResolutionRef.current.slug === slug
+      && variantResolutionRef.current.status === "resolved"
+    ) return;
+    void loadRequestedVariant(slug);
+  }, [location, isAuthenticated, requestedVariantSlug, loadRequestedVariant]);
+
+  const resolveSectionForAccess = useCallback(async (section: string) => {
+    const requestedSlug = getRequestedVariantSlug();
+    requestedVariantSlugRef.current = requestedSlug;
+    if (!requestedSlug) return { key: section, requestedSlug: null };
+
+    const resolution = variantResolutionRef.current;
+    let variant = resolution.slug === requestedSlug && resolution.status === "resolved"
+      ? resolution.variant
+      : null;
+    if (!variant) variant = await loadRequestedVariant(requestedSlug);
+    if (!variant || requestedVariantSlugRef.current !== requestedSlug) return null;
+
+    return {
+      key: variant.sourceKey === section
+        ? variantContentKey(variant.sourceKey, variant.slug)
         : section,
-    [currentVariant],
-  );
+      requestedSlug,
+    };
+  }, [loadRequestedVariant]);
+
+  // Keep section-level read failures so an older editor using getContent
+  // cannot turn a failed read into a save of its empty defaults.
+  const contentReadSequenceRef = useRef(new Map<string, number>());
+  const failedContentReadsRef = useRef(new Set<string>());
 
   const getContentResult = useCallback(
     async (
       section: string,
     ): Promise<{ ok: boolean; data: Record<string, unknown> | null }> => {
-      const key = resolveSection(section);
+      const resolved = await resolveSectionForAccess(section);
+      if (!resolved || resolved.requestedSlug !== requestedVariantSlugRef.current) {
+        return { ok: false, data: null };
+      }
+      const key = resolved.key;
+      const sequence = (contentReadSequenceRef.current.get(key) ?? 0) + 1;
+      contentReadSequenceRef.current.set(key, sequence);
       try {
         const r = await authFetch(`${API_BASE}/admin/content/${key}`, {
           headers: { "Content-Type": "application/json" },
         });
-        if (!r.ok) return { ok: false, data: null };
+        if (!r.ok) {
+          if (contentReadSequenceRef.current.get(key) === sequence) failedContentReadsRef.current.add(key);
+          return { ok: false, data: null };
+        }
         const row = await r.json();
+        if (contentReadSequenceRef.current.get(key) === sequence) failedContentReadsRef.current.delete(key);
         return { ok: true, data: row.data ?? null };
       } catch {
+        if (contentReadSequenceRef.current.get(key) === sequence) failedContentReadsRef.current.add(key);
         return { ok: false, data: null };
       }
     },
-    [authFetch, resolveSection],
+    [authFetch, requestedVariantSlug, resolveSectionForAccess],
   );
 
   const getContent = useCallback(
@@ -252,7 +343,14 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const saveContent = useCallback(
     async (section: string, data: Record<string, unknown>) => {
-      const key = resolveSection(section);
+      const resolved = await resolveSectionForAccess(section);
+      if (!resolved || resolved.requestedSlug !== requestedVariantSlugRef.current) {
+        throw new Error("Cannot save because the requested variant could not be resolved. Reload the variant and try again.");
+      }
+      const key = resolved.key;
+      if (failedContentReadsRef.current.has(key)) {
+        throw new Error("Cannot save this section because its latest content read failed. Reload the section and try again.");
+      }
       const r = await authFetch(`${API_BASE}/admin/content/${key}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -271,7 +369,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         localStorage.setItem("gb-content-updated", `${key}|${Date.now()}`);
       } catch { /* localStorage may be unavailable */ }
     },
-    [authFetch, resolveSection],
+    [authFetch, requestedVariantSlug, resolveSectionForAccess],
   );
 
   return (

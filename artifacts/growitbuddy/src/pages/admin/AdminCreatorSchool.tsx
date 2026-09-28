@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
@@ -7,16 +7,23 @@ import { Plus, Trash2 } from "lucide-react";
 import { CREATOR_SCHOOL_DEFAULTS as DEFAULTS, type CreatorSchoolData as PageData } from "@/lib/creatorSchoolDefaults";
 
 export default function AdminCreatorSchool() {
-  const { getContent, saveContent } = useAdmin();
+  const { getContentResult, saveContent } = useAdmin();
   const [data, setData] = useState<PageData>(DEFAULTS);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
+  const [saveError, setSaveError] = useState("");
 
-  useEffect(() => {
-    getContent("creator-school").then(d => {
-      if (d) setData({ ...DEFAULTS, ...(d as Partial<PageData>) });
-    });
-  }, [getContent]);
+  const load = useCallback(async () => {
+    setLoadState("loading");
+    try {
+      const result = await getContentResult("creator-school");
+      if (!result.ok) { setLoadState("error"); return; }
+      if (result.data) setData({ ...DEFAULTS, ...(result.data as Partial<PageData>) });
+      setLoadState("ready");
+    } catch { setLoadState("error"); }
+  }, [getContentResult]);
+  useEffect(() => { load(); }, [load]);
 
   function set<K extends keyof PageData>(key: K, val: PageData[K]) {
     setSaved(false); setData(p => ({ ...p, [key]: val }));
@@ -24,10 +31,13 @@ export default function AdminCreatorSchool() {
 
   async function save() {
     setSaving(true);
+    setSaveError("");
     try { await saveContent("creator-school", data as unknown as Record<string, unknown>); setSaved(true); }
-    catch { setSaved(false); }
+    catch (error) { setSaved(false); setSaveError(error instanceof Error ? error.message : "Failed to save creator school content."); }
     finally { setSaving(false); }
   }
+
+  if (loadState !== "ready") return <div className="max-w-3xl"><PageHeader title="Editors Pool" description={loadState === "error" ? "Couldn't load saved content" : "Manage the /editors-pool talent onboarding page."} />{loadState === "error" ? <div className="flex flex-col items-center gap-3 py-24 text-center"><p className="text-[13px] text-red-600">Couldn't load saved editors pool content. Editing is disabled to protect your live data.</p><button onClick={load} className="text-[12px] font-semibold bg-[#0B0B0B] text-white px-4 py-2 rounded-xl">Retry</button></div> : <div className="py-24 text-center text-[13px] text-[#0B0B0B]/40">Loading content…</div>}</div>;
 
   return (
     <div className="max-w-3xl">
@@ -147,6 +157,7 @@ export default function AdminCreatorSchool() {
       </Card>
 
       <PageVisibilityCard slug="creator-school" />
+      {saveError && <p role="alert" className="text-[13px] text-red-600 mt-3">{saveError}</p>}
       <SaveBar onSave={save} saving={saving} saved={saved} />
     </div>
   );

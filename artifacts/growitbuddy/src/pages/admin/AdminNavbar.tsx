@@ -1,19 +1,26 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, SaveBar } from "@/components/admin/AdminField";
 import { NAVBAR_DEFAULTS as DEFAULTS, type NavbarData } from "@/lib/navbarDefaults";
 
 export default function AdminNavbar() {
-  const { getContent, saveContent } = useAdmin();
+  const { getContentResult, saveContent } = useAdmin();
   const [data, setData] = useState<NavbarData>(DEFAULTS);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
+  const [saveError, setSaveError] = useState("");
 
-  useEffect(() => {
-    getContent("navbar").then((d) => {
-      if (d) setData({ ...DEFAULTS, ...(d as Partial<NavbarData>) });
-    });
-  }, [getContent]);
+  const load = useCallback(async () => {
+    setLoadState("loading");
+    try {
+      const result = await getContentResult("navbar");
+      if (!result.ok) { setLoadState("error"); return; }
+      setData({ ...DEFAULTS, ...(result.data as Partial<NavbarData> | null) });
+      setLoadState("ready");
+    } catch { setLoadState("error"); }
+  }, [getContentResult]);
+  useEffect(() => { load(); }, [load]);
 
   function set<K extends keyof NavbarData>(key: K, val: NavbarData[K]) {
     setSaved(false);
@@ -22,13 +29,18 @@ export default function AdminNavbar() {
 
   async function handleSave() {
     setSaving(true);
+    setSaveError("");
     try {
       await saveContent("navbar", data as unknown as Record<string, unknown>);
       setSaved(true);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Failed to save navbar content.");
     } finally {
       setSaving(false);
     }
   }
+
+  if (loadState !== "ready") return <div><PageHeader title="Navbar" description={loadState === "error" ? "Couldn't load saved content" : "Loading…"} />{loadState === "error" ? <div className="flex flex-col items-center gap-3 py-24 text-center"><p className="text-[13px] text-red-600">Couldn't load saved navbar content. Editing is disabled to protect your live data.</p><button onClick={load} className="text-[12px] font-semibold bg-[#0B0B0B] text-white px-4 py-2 rounded-xl">Retry</button></div> : <div className="py-24 text-center text-[13px] text-[#0B0B0B]/40">Loading content…</div>}</div>;
 
   return (
     <div>
@@ -49,6 +61,7 @@ export default function AdminNavbar() {
         </Card>
       </div>
 
+      {saveError && <p role="alert" className="text-[13px] text-red-600 mt-3">{saveError}</p>}
       <SaveBar onSave={handleSave} saving={saving} saved={saved} />
     </div>
   );

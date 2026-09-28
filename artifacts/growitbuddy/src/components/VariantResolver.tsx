@@ -7,6 +7,9 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { useRoute } from "wouter";
 import { API_BASE } from "@/lib/api";
 import { VariantProvider } from "@/context/VariantContext";
+import { ContentFreshnessGate } from "@/components/ContentFreshnessGate";
+import { sectionsForSlug } from "@/lib/publicContentSections";
+import { variantContentKey } from "@/lib/variantSources";
 
 const NotFound = lazy(() => import("@/pages/not-found"));
 
@@ -49,16 +52,19 @@ function fetchVariants(): Promise<VariantRow[]> {
   if (cachedVariants) return Promise.resolve(cachedVariants);
   if (inFlight) return inFlight;
   inFlight = fetch(`${API_BASE}/admin/public/variants`, { cache: "no-store" })
-    .then((r) => (r.ok ? r.json() : []))
+    .then((r) => {
+      if (!r.ok) throw new Error(`Variant service returned HTTP ${r.status}`);
+      return r.json();
+    })
     .then((rows: VariantRow[]) => { cachedVariants = rows; inFlight = null; return rows; })
-    .catch(() => { inFlight = null; return []; });
+    .catch((error) => { inFlight = null; throw error; });
   return inFlight;
 }
 
 export function VariantResolver() {
   const [match, params] = useRoute<{ slug: string }>("/:slug");
   const slug = match ? params?.slug ?? "" : "";
-  const [state, setState] = useState<{ status: "loading" | "ready" | "miss"; variant?: VariantRow }>(
+  const [state, setState] = useState<{ status: "loading" | "ready" | "miss" | "error"; variant?: VariantRow; message?: string }>(
     cachedVariants
       ? (() => {
           const v = cachedVariants.find((x) => x.slug === slug);
@@ -74,11 +80,18 @@ export function VariantResolver() {
       if (cancelled) return;
       const v = rows.find((x) => x.slug === slug);
       setState(v ? { status: "ready", variant: v } : { status: "miss" });
+    }).catch((error) => {
+      if (!cancelled) {
+        setState({
+          status: "error",
+          message: error instanceof Error ? error.message : "Unable to resolve this page.",
+        });
+      }
     });
     return () => { cancelled = true; };
   }, [slug]);
 
-  if (state.status === "loading") {
+  if (state.status === "loading" || (state.status === "ready" && state.variant?.slug !== slug)) {
     return (
       <div style={{ minHeight: "50vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{
@@ -91,18 +104,48 @@ export function VariantResolver() {
     );
   }
 
+  if (state.status === "error") {
+    return (
+      <div role="alert" className="min-h-[50vh] flex flex-col items-center justify-center gap-3 px-6 text-center">
+        <h1 className="text-lg font-semibold text-[#1E293B]">Unable to load this page</h1>
+        <p className="text-sm text-[#5F5F5F]">{state.message}</p>
+        <button type="button" onClick={() => {
+          cachedVariants = null;
+          inFlight = null;
+          setState({ status: "loading" });
+          fetchVariants().then((rows) => {
+            const v = rows.find((x) => x.slug === slug);
+            setState(v ? { status: "ready", variant: v } : { status: "miss" });
+          }).catch((error) => setState({
+            status: "error",
+            message: error instanceof Error ? error.message : "Unable to resolve this page.",
+          }));
+        }} className="rounded-md bg-[#1E293B] px-4 py-2 text-sm font-semibold text-white">
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   if (state.status === "miss" || !state.variant) {
     return <Suspense fallback={null}><NotFound /></Suspense>;
   }
 
   const Cmp = SOURCE_COMPONENTS[state.variant.sourceKey];
   if (!Cmp) return <Suspense fallback={null}><NotFound /></Suspense>;
+  const variantSections = sectionsForSlug(state.variant.sourceKey).map((section) =>
+    section === state.variant!.sourceKey
+      ? variantContentKey(state.variant!.sourceKey, state.variant!.slug)
+      : section,
+  );
 
   return (
     <VariantProvider value={{ slug: state.variant.slug, sourceKey: state.variant.sourceKey, label: state.variant.label }}>
-      <Suspense fallback={null}>
-        <Cmp />
-      </Suspense>
+      <ContentFreshnessGate slug={state.variant.slug} sections={variantSections}>
+        <Suspense fallback={null}>
+          <Cmp />
+        </Suspense>
+      </ContentFreshnessGate>
     </VariantProvider>
   );
 }

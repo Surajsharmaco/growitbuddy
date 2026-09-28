@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
@@ -8,19 +8,23 @@ import { Plus, Trash2 } from "lucide-react";
 import { ABOUT_DEFAULTS as DEFAULTS, type AboutData } from "@/lib/aboutDefaults";
 
 export default function AdminAbout() {
-  const { getContent, saveContent } = useAdmin();
+  const { getContentResult, saveContent } = useAdmin();
   const [data, setData] = useState<AboutData>(DEFAULTS);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+  const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
+  const [saveError, setSaveError] = useState("");
 
-  useEffect(() => {
-    getContent("about")
-      .then((d) => {
-        if (d) setData({ ...DEFAULTS, ...(d as Partial<AboutData>) });
-      })
-      .finally(() => setLoaded(true));
-  }, [getContent]);
+  const load = useCallback(async () => {
+    setLoadState("loading");
+    try {
+      const result = await getContentResult("about");
+      if (!result.ok) { setLoadState("error"); return; }
+      if (result.data) setData({ ...DEFAULTS, ...(result.data as Partial<AboutData>) });
+      setLoadState("ready");
+    } catch { setLoadState("error"); }
+  }, [getContentResult]);
+  useEffect(() => { load(); }, [load]);
 
   function set<K extends keyof AboutData>(key: K, val: AboutData[K]) {
     setSaved(false);
@@ -29,22 +33,18 @@ export default function AdminAbout() {
 
   async function handleSave() {
     setSaving(true);
+    setSaveError("");
     try {
       await saveContent("about", data as unknown as Record<string, unknown>);
       setSaved(true);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Failed to save about content.");
     } finally {
       setSaving(false);
     }
   }
 
-  if (!loaded) {
-    return (
-      <div>
-        <PageHeader title="About Page" description="Edit the founder section, mission, team, and values." />
-        <div className="flex items-center justify-center py-24 text-[13px] text-[#0B0B0B]/40">Loading content…</div>
-      </div>
-    );
-  }
+  if (loadState !== "ready") return <div><PageHeader title="About Page" description={loadState === "error" ? "Couldn't load saved content" : "Edit the founder section, mission, team, and values."} />{loadState === "error" ? <div className="flex flex-col items-center gap-3 py-24 text-center"><p className="text-[13px] text-red-600">Couldn't load saved about content. Editing is disabled to protect your live data.</p><button onClick={load} className="text-[12px] font-semibold bg-[#0B0B0B] text-white px-4 py-2 rounded-xl">Retry</button></div> : <div className="py-24 text-center text-[13px] text-[#0B0B0B]/40">Loading content…</div>}</div>;
 
   return (
     <div>
@@ -130,6 +130,7 @@ export default function AdminAbout() {
       </div>
 
       <PageVisibilityCard slug="about" />
+      {saveError && <p role="alert" className="text-[13px] text-red-600 mt-3">{saveError}</p>}
       <SaveBar onSave={handleSave} saving={saving} saved={saved} />
     </div>
   );
