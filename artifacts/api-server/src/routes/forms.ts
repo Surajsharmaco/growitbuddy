@@ -561,7 +561,7 @@ const POOL_SPECIFIC_LEGACY_FIELDS: Record<string, Array<Omit<TalentPoolField, "e
 function legacyPoolFields(poolType: string): TalentPoolField[] {
   const common: TalentPoolField[] = [
     { key: "name", label: "Full Name", placeholder: "Your full name", type: "text", required: true, enabled: true },
-    { key: "email", label: "Email Address", placeholder: "you@example.com", type: "email", required: true, enabled: true },
+    { key: "email", label: "Email Address", placeholder: "you@example.com", type: "email", required: false, enabled: true },
     { key: "contact", label: "Contact (WhatsApp / Telegram)", placeholder: "@handle or number", type: "text", required: true, enabled: true },
     { key: "notes", label: "Additional Notes", placeholder: "Anything specific you'd like us to know about your work or availability...", type: "textarea", required: false, enabled: true },
   ];
@@ -613,21 +613,28 @@ function readPoolFormFields(content: Record<string, unknown> | null, poolType: s
       throw new Error("Saved talent pool form settings are invalid.");
     }
     seen.add(key);
-    return { key, label: label.trim(), placeholder, type: type as TalentPoolFieldType, required, enabled };
+    return {
+      key,
+      label: label.trim(),
+      placeholder,
+      type: type as TalentPoolFieldType,
+      required: key === "name" ? true : key === "email" ? false : required,
+      enabled,
+    };
   });
 
   for (const key of ["name", "email"] as const) {
     const existing = fields.find(field => field.key === key);
     if (existing) {
       existing.enabled = true;
-      existing.required = true;
+      existing.required = key === "name";
     } else {
       fields.unshift({
         key,
         label: key === "name" ? "Full Name" : "Email Address",
         placeholder: key === "name" ? "Your full name" : "you@example.com",
         type: key === "name" ? "text" : "email",
-        required: true,
+        required: key === "name",
         enabled: true,
       });
     }
@@ -742,9 +749,9 @@ router.post("/talent-pool", formLimit, async (req, res) => {
   }
 
   const name = submittedValues.get("name");
-  const email = submittedValues.get("email");
-  if (!name || !email) {
-    res.status(400).json({ error: "name and email are required" });
+  const email = submittedValues.get("email") ?? "";
+  if (!name) {
+    res.status(400).json({ error: "name is required", field: "name" });
     return;
   }
   const ts = nowIST();
@@ -769,7 +776,7 @@ router.post("/talent-pool", formLimit, async (req, res) => {
     || `Talent pool application for ${poolLabel}`;
   const leadData: Record<string, unknown> = {
     name,
-    email,
+    email: email || null,
     contact: submittedValues.get("contact") ?? null,
     ...extraFields,
     message,
