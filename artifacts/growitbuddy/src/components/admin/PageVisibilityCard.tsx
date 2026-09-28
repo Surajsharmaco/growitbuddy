@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { Eye, EyeOff, Wrench, Clock, Save } from "lucide-react";
 import { Card, SectionTitle, Input, Textarea } from "./AdminField";
@@ -18,20 +18,44 @@ const DEFAULT_CONFIG: PageVisConfig = {
 };
 
 export function PageVisibilityCard({ slug }: { slug: string }) {
-  const { getContent, saveContent } = useAdmin();
+  const { getContentResult, saveContent } = useAdmin();
   const [allData, setAllData] = useState<Record<string, PageVisConfig>>({});
   const [config, setConfig] = useState<PageVisConfig>(DEFAULT_CONFIG);
+  const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
+  const [loadedSlug, setLoadedSlug] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const requestId = useRef(0);
+
+  const load = useCallback(async () => {
+    const currentRequest = ++requestId.current;
+    setLoadState("loading");
+    setLoadedSlug(null);
+    setSaveError("");
+    try {
+      const result = await getContentResult("page_visibility");
+      if (currentRequest !== requestId.current) return;
+      if (!result.ok) {
+        setLoadState("error");
+        return;
+      }
+      // A successful empty result is authoritative: start with an empty map,
+      // while still allowing the admin to deliberately save this page's defaults.
+      const data = (result.data as Record<string, PageVisConfig> | null) ?? {};
+      setAllData(data);
+      setConfig({ ...DEFAULT_CONFIG, ...(data[slug] ?? {}) });
+      setLoadedSlug(slug);
+      setLoadState("ready");
+    } catch {
+      if (currentRequest === requestId.current) setLoadState("error");
+    }
+  }, [getContentResult, slug]);
 
   useEffect(() => {
-    getContent("page_visibility").then((d) => {
-      const data = (d as Record<string, PageVisConfig> | null) ?? {};
-      setAllData(data);
-      const existing = data[slug];
-      if (existing) setConfig({ ...DEFAULT_CONFIG, ...existing });
-    });
-  }, [getContent, slug]);
+    load();
+    return () => { requestId.current += 1; };
+  }, [load]);
 
   function set<K extends keyof PageVisConfig>(key: K, val: PageVisConfig[K]) {
     setSaved(false);
@@ -39,15 +63,36 @@ export function PageVisibilityCard({ slug }: { slug: string }) {
   }
 
   async function handleSave() {
+    if (loadState !== "ready" || loadedSlug !== slug) return;
     setSaving(true);
+    setSaveError("");
     try {
       const updated = { ...allData, [slug]: config };
       await saveContent("page_visibility", updated as unknown as Record<string, unknown>);
       setAllData(updated);
       setSaved(true);
+    } catch (error) {
+      setSaved(false);
+      setSaveError(error instanceof Error ? error.message : "Failed to save page visibility settings.");
     } finally {
       setSaving(false);
     }
+  }
+
+  if (loadState !== "ready" || loadedSlug !== slug) {
+    return (
+      <Card className="border-l-4 border-l-[var(--gb-accent)]">
+        <SectionTitle>Page Visibility</SectionTitle>
+        {loadState === "error" && loadedSlug === null ? (
+          <div className="flex flex-col items-center gap-3 py-6 text-center">
+            <p role="alert" className="text-[13px] text-red-600">Couldn't load saved page visibility settings. Editing and saving are disabled to protect the full visibility map.</p>
+            <button onClick={load} className="text-[12px] font-semibold bg-[#0B0B0B] text-white px-4 py-2 rounded-xl">Retry</button>
+          </div>
+        ) : (
+          <div className="py-6 text-center text-[13px] text-[#0B0B0B]/40">Loading visibility settings…</div>
+        )}
+      </Card>
+    );
   }
 
   return (
@@ -149,13 +194,14 @@ export function PageVisibilityCard({ slug }: { slug: string }) {
           </span>
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || loadState !== "ready" || loadedSlug !== slug}
             className="flex items-center gap-1.5 bg-[#0B0B0B] text-white text-[13px] font-semibold px-4 py-2 rounded-xl hover:bg-[#0B0B0B]/85 transition-colors disabled:opacity-40"
           >
             <Save size={13} />
             {saving ? "Saving…" : "Save visibility"}
           </button>
         </div>
+        {saveError && <p role="alert" className="text-[12px] text-red-600">{saveError}</p>}
       </div>
     </Card>
   );

@@ -8,8 +8,9 @@ import { useRoute } from "wouter";
 import { API_BASE } from "@/lib/api";
 import { VariantProvider } from "@/context/VariantContext";
 import { ContentFreshnessGate } from "@/components/ContentFreshnessGate";
-import { sectionsForSlug } from "@/lib/publicContentSections";
-import { variantContentKey } from "@/lib/variantSources";
+import { SHARED_CONTENT_SECTIONS } from "@/lib/publicContentSections";
+import { isBootstrapContentAuthoritative, observeBootstrapRoute } from "@/hooks/usePublicContent";
+import { VARIANT_SOURCES, variantContentKey } from "@/lib/variantSources";
 
 const NotFound = lazy(() => import("@/pages/not-found"));
 
@@ -61,11 +62,29 @@ function fetchVariants(): Promise<VariantRow[]> {
   return inFlight;
 }
 
+function bootstrappedVariant(slug: string): VariantRow | undefined {
+  if (!slug || !observeBootstrapRoute()) return undefined;
+  const bootSections = typeof window === "undefined"
+    ? []
+    : (window as Window & { __GB_CONTENT_SECTIONS__?: string[] }).__GB_CONTENT_SECTIONS__ ?? [];
+  const source = VARIANT_SOURCES.find((candidate) => {
+    const namespacedSection = variantContentKey(candidate.key, slug);
+    return bootSections.includes(namespacedSection) &&
+      isBootstrapContentAuthoritative([namespacedSection, ...SHARED_CONTENT_SECTIONS]);
+  });
+  return source
+    ? { slug, sourceKey: source.key, label: source.label }
+    : undefined;
+}
+
 export function VariantResolver() {
   const [match, params] = useRoute<{ slug: string }>("/:slug");
   const slug = match ? params?.slug ?? "" : "";
+  const bootVariant = bootstrappedVariant(slug);
   const [state, setState] = useState<{ status: "loading" | "ready" | "miss" | "error"; variant?: VariantRow; message?: string }>(
-    cachedVariants
+    bootVariant
+      ? { status: "ready", variant: bootVariant }
+      : cachedVariants
       ? (() => {
           const v = cachedVariants.find((x) => x.slug === slug);
           return v ? { status: "ready", variant: v } : { status: "miss" };
@@ -75,6 +94,11 @@ export function VariantResolver() {
 
   useEffect(() => {
     if (!slug) { setState({ status: "miss" }); return; }
+    const bootVariant = bootstrappedVariant(slug);
+    if (bootVariant) {
+      setState({ status: "ready", variant: bootVariant });
+      return;
+    }
     let cancelled = false;
     fetchVariants().then((rows) => {
       if (cancelled) return;
@@ -133,11 +157,10 @@ export function VariantResolver() {
 
   const Cmp = SOURCE_COMPONENTS[state.variant.sourceKey];
   if (!Cmp) return <Suspense fallback={null}><NotFound /></Suspense>;
-  const variantSections = sectionsForSlug(state.variant.sourceKey).map((section) =>
-    section === state.variant!.sourceKey
-      ? variantContentKey(state.variant!.sourceKey, state.variant!.slug)
-      : section,
-  );
+  const variantSections = [
+    variantContentKey(state.variant.sourceKey, state.variant.slug),
+    ...SHARED_CONTENT_SECTIONS,
+  ];
 
   return (
     <VariantProvider value={{ slug: state.variant.slug, sourceKey: state.variant.sourceKey, label: state.variant.label }}>

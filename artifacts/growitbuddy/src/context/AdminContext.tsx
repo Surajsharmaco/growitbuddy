@@ -290,10 +290,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     if (!variant) variant = await loadRequestedVariant(requestedSlug);
     if (!variant || requestedVariantSlugRef.current !== requestedSlug) return null;
 
+    // Do not fall back for unrelated/shared sections either: callers may pass
+    // base-page identifiers (including page_visibility) that are not variant-scoped.
+    if (variant.sourceKey !== section) return null;
+
     return {
-      key: variant.sourceKey === section
-        ? variantContentKey(variant.sourceKey, variant.slug)
-        : section,
+      key: variantContentKey(variant.sourceKey, variant.slug),
       requestedSlug,
     };
   }, [loadRequestedVariant]);

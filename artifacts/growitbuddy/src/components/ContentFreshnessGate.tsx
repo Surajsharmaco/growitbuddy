@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { SHARED_CONTENT_SECTIONS, sectionsForSlug } from "@/lib/publicContentSections";
 import {
-  consumeBootstrapContent,
   ensurePublicContent,
   isBootstrapContentAuthoritative,
 } from "@/hooks/usePublicContent";
@@ -56,7 +55,7 @@ export function ContentFreshnessGate({ slug, children, sections }: ContentFreshn
 
   useEffect(() => {
     // Only the SSR-injected rows are trusted for the first visible render.
-    if (state.slug === slug && state.status === "ready" && consumeBootstrapContent(required)) return;
+    if (state.slug === slug && state.status === "ready" && isBootstrapContentAuthoritative(required)) return;
     void refresh(true);
   // required is represented by a stable content key in the dependency list.
   // eslint-disable-next-line react-hooks/exhaustive-deps

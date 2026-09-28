@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect } from "react";
 import { LazyMotion, domAnimation } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
 import { Switch, Route, Router as WouterRouter, Redirect, useLocation } from "wouter";
-import { usePublicContent } from "@/hooks/usePublicContent";
+import { observeBootstrapRoute, usePublicContent } from "@/hooks/usePublicContent";
 import { prefetchInfluencers } from "@/hooks/useLiveInfluencers";
 import Home from "@/pages/Home";
 import PageIntro from "@/components/effects/PageIntro";
@@ -16,7 +16,7 @@ import { VariantResolver } from "@/components/VariantResolver";
 import { RouteErrorBoundary } from "@/components/ErrorBoundary";
 import { resolveMediaUrl } from "@/lib/api";
 import { ContentFreshnessGate } from "@/components/ContentFreshnessGate";
-import { sectionsForSlug } from "@/lib/publicContentSections";
+import { sectionsForSlug, SHARED_CONTENT_SECTIONS } from "@/lib/publicContentSections";
 
 // ── Lazy-loaded public pages ──────────────────────────────────────────────────
 // Home stays eager (it's the LCP page). Everything else loads on demand.
@@ -240,11 +240,29 @@ function PublicContentGate({ children }: { children: React.ReactNode }) {
   const path = location.split("?")[0].replace(/\/+$/, "") || "/";
   const routeSlugs: Record<string, string> = {
     "/": "home",
+    "/services": "services",
+    "/work": "work",
+    "/framework": "framework",
     "/blog": "insights",
     "/insights": "insights",
+    "/influencers": "influencers",
     "/join/page-owner": "join-page-owner",
+    "/join": "join",
     "/distribution": "distribution",
     "/guide": "site-guide",
+    "/resources": "resources",
+    "/about": "about",
+    "/contact": "contact",
+    "/verify": "verify",
+    "/privacy": "privacy",
+    "/terms": "terms",
+    "/career": "career",
+    "/freelancers": "career",
+    "/full-time": "career",
+    "/internship": "career",
+    "/creators": "creators",
+    "/authority-audit": "authority-audit",
+    "/portfolio": "portfolio",
     "/editors-pool": "creator-school",
     "/designers-pool": "pool-designers",
     "/thumbnail-designers": "pool-thumbnail-designers",
@@ -258,8 +276,17 @@ function PublicContentGate({ children }: { children: React.ReactNode }) {
     "/seo-guide": "seo-guide",
     "/links": "links",
   };
-  const slug = routeSlugs[path] ?? (path.startsWith("/blog/") ? "insights" : path.slice(1).split("/")[0]);
-  return <ContentFreshnessGate slug={path} sections={sectionsForSlug(slug)}>{children}</ContentFreshnessGate>;
+  const slug = routeSlugs[path]
+    ?? (path.startsWith("/blog/") ? "insights" : path.startsWith("/portfolio/") ? "portfolio" : undefined);
+  const sections = slug ? sectionsForSlug(slug) : [...SHARED_CONTENT_SECTIONS];
+  return <ContentFreshnessGate slug={path} sections={sections}>{children}</ContentFreshnessGate>;
+}
+
+function BootstrapRouteTracker() {
+  const [location] = useLocation();
+  void location;
+  observeBootstrapRoute();
+  return null;
 }
 
 function App() {
@@ -287,6 +314,7 @@ function App() {
     <LazyMotion features={domAnimation}>
       <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
       <AdminProvider>
+        <BootstrapRouteTracker />
         <FaviconInjector />
         <DynamicPageSEO />
         <ScrollToTop />

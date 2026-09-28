@@ -9,8 +9,24 @@ const cache = new Map<string, ContentRow>();
 const authoritative = new Set<string>();
 const versions = new Map<string, number>();
 const inFlight = new Map<string, Promise<void>>();
+const latestRequestBySection = new Map<string, Promise<void>>();
+const committedVersionBySection = new Map<string, number>();
 const listeners = new Set<() => void>();
-let bootstrapConsumed = false;
+let initialBootstrapPath: string | null = null;
+let bootstrapRouteChanged = false;
+
+/**
+ * SSR rows may be trusted only while the browser remains on its initial URL.
+ * Keeping this route-scoped (rather than globally consuming bootstrap on the
+ * first gate) allows nested shell/variant gates to share the same SSR snapshot.
+ */
+export function observeBootstrapRoute(): boolean {
+  if (typeof window === "undefined") return false;
+  const path = window.location.pathname;
+  if (initialBootstrapPath === null) initialBootstrapPath = path;
+  else if (path !== initialBootstrapPath) bootstrapRouteChanged = true;
+  return !bootstrapRouteChanged && path === initialBootstrapPath;
+}
 
 function publish() {
   listeners.forEach((listener) => listener());
@@ -48,20 +64,13 @@ export function isPublicContentAuthoritative(section: string): boolean {
 }
 
 export function isBootstrapContentAuthoritative(sections: string[]): boolean {
-  if (bootstrapConsumed) return false;
+  if (!observeBootstrapRoute()) return false;
   return sections.every((section) => {
     const bootSections = typeof window === "undefined"
       ? []
       : (window as Window & { __GB_CONTENT_SECTIONS__?: string[] }).__GB_CONTENT_SECTIONS__ ?? [];
     return bootSections.includes(section) && authoritative.has(section);
   });
-}
-
-/** Trust the SSR snapshot for the initial route only, never on a later remount. */
-export function consumeBootstrapContent(sections: string[]): boolean {
-  if (!isBootstrapContentAuthoritative(sections)) return false;
-  bootstrapConsumed = true;
-  return true;
 }
 
 export function subscribePublicContent(listener: () => void): () => void {
@@ -108,13 +117,37 @@ export function ensurePublicContent(sections: string[], force = false): Promise<
         if (versions.get(section) !== requestVersions.get(section)) return;
         cache.set(section, result.data![section] as ContentRow);
         authoritative.add(section);
+        committedVersionBySection.set(section, requestVersions.get(section)!);
       });
       publish();
+
+      // If a newer overlapping bulk request started while this request was in
+      // flight, this response cannot make its gate ready by itself. Join the
+      // newest section requests and only settle once they have committed (or
+      // surface their failure), so an older gate cannot reveal stale shared UI.
+      const superseded = wanted.filter(
+        (section) => versions.get(section) !== requestVersions.get(section),
+      );
+      if (superseded.length) {
+        const newest = [...new Set(
+          superseded
+            .map((section) => latestRequestBySection.get(section))
+            .filter((pending): pending is Promise<void> => !!pending && pending !== request),
+        )];
+        await Promise.all(newest);
+        const unresolved = superseded.filter(
+          (section) => committedVersionBySection.get(section) !== versions.get(section),
+        );
+        if (unresolved.length) {
+          throw new Error("A newer public content refresh did not complete successfully.");
+        }
+      }
     })
     .finally(() => {
       if (inFlight.get(requestKey) === request) inFlight.delete(requestKey);
     });
   inFlight.set(requestKey, request);
+  wanted.forEach((section) => latestRequestBySection.set(section, request));
   return request;
 }
 
