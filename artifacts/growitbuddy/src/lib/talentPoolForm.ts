@@ -11,7 +11,7 @@ export interface PoolFormField {
 
 const BASE_FIELDS: PoolFormField[] = [
   { key: "name", label: "Full Name", placeholder: "Your full name", type: "text", required: true, enabled: true },
-  { key: "email", label: "Email Address", placeholder: "you@example.com", type: "email", required: true, enabled: true },
+  { key: "email", label: "Email Address", placeholder: "you@example.com", type: "email", required: false, enabled: true },
   { key: "contact", label: "Contact (WhatsApp / Telegram)", placeholder: "@handle or number", type: "text", required: true, enabled: true },
   {
     key: "notes",
@@ -144,9 +144,11 @@ export function getPoolFormFields(poolKey: string, raw?: unknown): PoolFormField
       label: candidate.label.trim(),
       placeholder: candidate.placeholder,
       type,
-      required: key === "name" || key === "email"
+      required: key === "name"
         ? true
-        : candidate.required,
+        : key === "email"
+          ? false
+          : candidate.required,
       enabled: key === "name" || key === "email"
         ? true
         : candidate.enabled,
@@ -154,11 +156,11 @@ export function getPoolFormFields(poolKey: string, raw?: unknown): PoolFormField
     seen.add(key);
   }
 
-  const missingMandatory = ["name", "email"]
+  const missingIdentityFields = ["name", "email"]
     .filter(key => !seen.has(key))
     .map(key => defaultsByKey.get(key))
     .filter((field): field is PoolFormField => !!field);
-  fields.unshift(...missingMandatory);
+  fields.unshift(...missingIdentityFields);
 
   return fields;
 }

@@ -146,7 +146,7 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
     try {
       const safeFormFields = fields.map(field => {
         if (field.key === "name") return { ...field, type: "text" as const, enabled: true, required: true };
-        if (field.key === "email") return { ...field, type: "email" as const, enabled: true, required: true };
+        if (field.key === "email") return { ...field, type: "email" as const, enabled: true, required: false };
         return field;
       });
       await saveContent(poolKey, { ...data, formFields: safeFormFields } as unknown as Record<string, unknown>);
@@ -165,7 +165,7 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
       if (fieldIndex !== index) return field;
       const updated = { ...field, ...patch };
       if (updated.key === "name") return { ...updated, type: "text" as const, enabled: true, required: true };
-      if (updated.key === "email") return { ...updated, type: "email" as const, enabled: true, required: true };
+      if (updated.key === "email") return { ...updated, type: "email" as const, enabled: true, required: false };
       return updated;
     });
     set("formFields", next);
@@ -436,13 +436,15 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
               <p className="mt-1 text-[12px] leading-5 text-[#0B0B0B]/55">
                 Edit labels and placeholders, choose the input type, hide built-in fields, or add custom questions.
                 Required fields show a red “Must” badge on the public form and block submission until completed.
-                Name and email stay required so applications can be processed.
+                Name stays required. Email is always optional and will not block a submission.
               </p>
             </div>
 
             <div className="space-y-3">
               {(data.formFields ?? []).map((field, index) => {
-                const fixed = field.key === "name" || field.key === "email";
+                const fixed = field.key === "name";
+                const fixedType = fixed || field.key === "email";
+                const fixedVisibility = fixedType;
                 const custom = field.key.startsWith("custom_");
                 return (
                   <div key={`${field.key}-${index}`} className="rounded-xl border border-[#0B0B0B]/10 p-3 sm:p-4">
@@ -455,6 +457,7 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
                           {field.label.trim() || "Untitled field"}
                         </span>
                         {fixed && <span className="rounded-full bg-[#0B0B0B]/5 px-2 py-1 text-[10px] font-semibold text-[#0B0B0B]/50">Always required</span>}
+                        {field.key === "email" && <span className="rounded-full bg-[#0B0B0B]/5 px-2 py-1 text-[10px] font-semibold text-[#0B0B0B]/50">Always optional</span>}
                       </div>
                       <div className="flex shrink-0 items-center gap-1">
                         <button
@@ -511,7 +514,7 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
                         <span className="mb-1.5 block text-[12px] font-semibold uppercase tracking-wider text-[#0B0B0B]/60">Input Type</span>
                         <select
                           value={field.type}
-                          disabled={fixed}
+                          disabled={fixedType}
                           onChange={e => updateFormField(index, { type: e.target.value as PoolFormField["type"] })}
                           aria-label={`Input type for ${field.label || "field"}`}
                           className="w-full rounded-xl border border-[#0B0B0B]/12 bg-white px-3.5 py-2.5 text-[14px] text-[#0B0B0B] outline-none focus:border-[#0B0B0B]/40 disabled:cursor-not-allowed disabled:bg-[#0B0B0B]/5 disabled:text-[#0B0B0B]/45"
@@ -525,11 +528,11 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
                     </div>
 
                     <div className="mt-3 flex flex-col gap-3 border-t border-[#0B0B0B]/6 pt-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-                      <label className={`inline-flex min-h-10 items-center gap-2 text-[12px] font-semibold ${fixed ? "text-[#0B0B0B]/45" : "text-[#0B0B0B]/70"}`}>
+                      <label className={`inline-flex min-h-10 items-center gap-2 text-[12px] font-semibold ${fixedVisibility ? "text-[#0B0B0B]/45" : "text-[#0B0B0B]/70"}`}>
                         <input
                           type="checkbox"
                           checked={field.enabled}
-                          disabled={fixed}
+                          disabled={fixedVisibility}
                           onChange={e => updateFormField(index, { enabled: e.target.checked, ...(e.target.checked ? {} : { required: false }) })}
                           className="h-4 w-4 accent-[#1E293B] disabled:cursor-not-allowed"
                         />
@@ -539,13 +542,14 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
                         <input
                           type="checkbox"
                           checked={field.required}
-                          disabled={fixed || !field.enabled}
+                          disabled={fixed || field.key === "email" || !field.enabled}
                           onChange={e => updateFormField(index, { required: e.target.checked })}
                           className="h-4 w-4 accent-red-600 disabled:cursor-not-allowed"
                         />
                         <AlertCircle size={15} aria-hidden="true" className={field.required ? "text-red-600" : "text-[#0B0B0B]/30"} />
                         Must
                         {fixed && <span className="font-medium text-[#0B0B0B]/40">(always required)</span>}
+                        {field.key === "email" && <span className="font-medium text-[#0B0B0B]/40">(always optional)</span>}
                       </label>
                       {!fixed && !field.enabled && (
                         <span className="text-[11px] text-[#0B0B0B]/45">Hidden fields are not required.</span>
