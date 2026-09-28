@@ -5522,7 +5522,7 @@ var HOME_DEFAULTS = {
   testimonials: [
     {
       quote: "Honestly, I was skeptical at first \u2014 I'd worked with two agencies before and both just recycled my old posts. The GrowitBuddy team actually sat with me for two hours figuring out what I wanted to be known for. Three months in, I'm getting cold DMs from people I used to look up to. That's the part nobody warned me would feel weird.",
-      name: "Rohan Mehta",
+      name: "Rishabh Mehta",
       role: "Founder, Aarna Consumer Labs",
       initials: "RM"
     },
