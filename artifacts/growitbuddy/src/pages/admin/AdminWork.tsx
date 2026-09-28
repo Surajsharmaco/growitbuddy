@@ -7,6 +7,7 @@ import { ImageUrlField } from "@/components/admin/ImageUrlField";
 import { Plus, Trash2, Pencil, X, Check, Image } from "lucide-react";
 
 import { API_BASE, resolveMediaUrl } from "@/lib/api";
+import { BulkSelectionBar, CollectionSelectionCheckbox } from "@/components/admin/BulkSelectionBar";
 
 import { type WorkHeroStat as HeroStat, type ClientLogo } from "@/lib/workDefaults";
 
@@ -22,10 +23,14 @@ function LogoCard({
   logo,
   onDelete,
   onSave,
+  selected,
+  onSelect,
 }: {
   logo: ClientLogo;
   onDelete: (id: number) => void;
   onSave: (id: number, data: { altText: string; sortOrder: number; imageUrl?: string }) => Promise<void>;
+  selected: boolean;
+  onSelect: (checked: boolean) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [altText, setAltText] = useState(logo.altText);
@@ -62,6 +67,9 @@ function LogoCard({
           position: "relative",
         }}
       >
+        <div style={{ position: "absolute", top: 8, right: 8, zIndex: 1 }}>
+          <CollectionSelectionCheckbox checked={selected} label={`Select ${logo.altText || "logo"}`} onChange={onSelect} />
+        </div>
         {!imgError ? (
           <img
             src={resolveMediaUrl(logo.imageUrl)}
@@ -266,6 +274,7 @@ function LogosSection() {
   const { authFetch } = useAdmin();
   const [logos, setLogos] = useState<ClientLogo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   useEffect(() => {
     authFetch(`${API_BASE}/admin/logos`)
@@ -278,6 +287,17 @@ function LogosSection() {
   async function handleDelete(id: number) {
     await authFetch(`${API_BASE}/admin/logos/${id}`, { method: "DELETE" });
     setLogos((p) => p.filter((l) => l.id !== id));
+    setSelectedIds((prev) => prev.filter((selectedId) => selectedId !== id));
+  }
+
+  async function removeSelected() {
+    const ids = logos.filter((logo) => selectedIds.includes(logo.id)).map((logo) => logo.id);
+    if (!ids.length || !confirm(`Remove ${ids.length} selected logo${ids.length === 1 ? "" : "s"}?`)) return;
+    const results = await Promise.all(ids.map((id) => authFetch(`${API_BASE}/admin/logos/${id}`, { method: "DELETE" })));
+    const failed = results.filter((r) => !r.ok).length;
+    setLogos((prev) => prev.filter((logo) => !ids.includes(logo.id) || results[ids.indexOf(logo.id)]?.ok === false));
+    setSelectedIds((prev) => prev.filter((id) => !ids.includes(id)));
+    if (failed) alert(`${ids.length - failed} logo${ids.length - failed === 1 ? "" : "s"} removed; ${failed} failed. Please try again.`);
   }
 
   async function handleSave(id: number, data: { altText: string; sortOrder: number }) {
@@ -300,6 +320,14 @@ function LogosSection() {
       <p className="text-[12px] text-[#0B0B0B]/40 mb-4">
         Logos shown in the "Our Clients" grid on the Work page. Add by URL (e.g. Simple Icons CDN) or upload a file.
       </p>
+      <BulkSelectionBar
+        selectedCount={selectedIds.length}
+        visibleCount={logos.length}
+        onSelectAllVisible={() => setSelectedIds(logos.map((logo) => logo.id))}
+        onUnselectAll={() => setSelectedIds([])}
+        onRemoveSelected={removeSelected}
+        itemLabel="logos"
+      />
 
       {loading ? (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 10 }}>
@@ -318,6 +346,8 @@ function LogosSection() {
                 logo={logo}
                 onDelete={handleDelete}
                 onSave={handleSave}
+                selected={selectedIds.includes(logo.id)}
+                onSelect={(checked) => setSelectedIds((prev) => checked ? [...new Set([...prev, logo.id])] : prev.filter((id) => id !== logo.id))}
               />
             ))}
           <AddLogoPanel onAdd={(logo) => setLogos((p) => [...p, logo])} />

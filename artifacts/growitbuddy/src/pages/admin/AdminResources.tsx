@@ -9,6 +9,7 @@ import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar, Field } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
 import { ImageUrlField } from "@/components/admin/ImageUrlField";
+import { BulkSelectionBar, CollectionSelectionCheckbox } from "@/components/admin/BulkSelectionBar";
 import {
   Plus, Trash2, ChevronUp, ChevronDown, Copy as CopyIcon, ChevronRight,
   Star, Eye, EyeOff, Sparkles, FileText, FileType, BookOpen, Video, Database,
@@ -45,6 +46,8 @@ export default function AdminResources() {
   const [saveError, setSaveError] = useState("");
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
+  const [selectedFaqs, setSelectedFaqs] = useState<Set<number>>(new Set());
 
   const load = useCallback(async () => {
     setLoadState("loading");
@@ -98,12 +101,14 @@ export default function AdminResources() {
     if (!confirm(`Delete "${data.items[i]?.title || "this resource"}"?`)) return;
     setSaved(false);
     set("items", data.items.filter((_, idx) => idx !== i));
+    setSelectedItems(new Set());
   }
   function duplicateItem(i: number) {
     setSaved(false);
     const copy = { ...data.items[i], title: `${data.items[i].title} (Copy)`, slug: undefined, isFeatured: false };
     const next = [...data.items.slice(0, i + 1), copy, ...data.items.slice(i + 1)];
     set("items", next);
+    setSelectedItems(new Set());
   }
   function moveItem(i: number, dir: -1 | 1) {
     const j = i + dir;
@@ -112,6 +117,7 @@ export default function AdminResources() {
     const next = [...data.items];
     [next[i], next[j]] = [next[j], next[i]];
     set("items", next);
+    setSelectedItems(new Set());
   }
   function toggleExpand(i: number) {
     setExpanded((prev) => {
@@ -130,7 +136,17 @@ export default function AdminResources() {
     set("faqs", next);
   }
   function addFaq() { setSaved(false); set("faqs", [...faqs, { q: "New question?", a: "Answer that resolves the visitor's concern in 1-2 sentences." }]); }
-  function removeFaq(i: number) { setSaved(false); set("faqs", faqs.filter((_, idx) => idx !== i)); }
+  function removeFaq(i: number) { setSaved(false); set("faqs", faqs.filter((_, idx) => idx !== i)); setSelectedFaqs(new Set()); }
+  function removeSelectedItems() {
+    if (!selectedItems.size || !confirm(`Remove ${selectedItems.size} selected resources?`)) return;
+    set("items", data.items.filter((_, i) => !selectedItems.has(i)));
+    setSelectedItems(new Set());
+  }
+  function removeSelectedFaqs() {
+    if (!selectedFaqs.size || !confirm(`Remove ${selectedFaqs.size} selected FAQs?`)) return;
+    set("faqs", faqs.filter((_, i) => !selectedFaqs.has(i)));
+    setSelectedFaqs(new Set());
+  }
 
   // ── Categories helper (free-text comma list) ───────────────────────────────
   const categoriesText = (data.categories || []).join(", ");
@@ -222,6 +238,7 @@ export default function AdminResources() {
         )}
 
         <div className="space-y-2">
+          <BulkSelectionBar selectedCount={selectedItems.size} visibleCount={data.items.length} onSelectAllVisible={() => setSelectedItems(new Set(data.items.map((_, i) => i)))} onUnselectAll={() => setSelectedItems(new Set())} onRemoveSelected={removeSelectedItems} itemLabel="resources" />
           {data.items.map((item, i) => {
             const isExpanded = expanded.has(i);
             const typeMeta = TYPE_OPTIONS.find((t) => t.value === item.type);
@@ -233,6 +250,7 @@ export default function AdminResources() {
               >
                 {/* Row header - always visible */}
                 <div className="flex items-center gap-2 p-3">
+                  <CollectionSelectionCheckbox checked={selectedItems.has(i)} label={`Select resource ${item.title || i + 1}`} onChange={(checked) => setSelectedItems((s) => { const n = new Set(s); checked ? n.add(i) : n.delete(i); return n; })} />
                   <button
                     type="button"
                     onClick={() => toggleExpand(i)}
@@ -357,10 +375,12 @@ export default function AdminResources() {
           </button>
         </div>
         <div className="space-y-3">
+          <BulkSelectionBar selectedCount={selectedFaqs.size} visibleCount={faqs.length} onSelectAllVisible={() => setSelectedFaqs(new Set(faqs.map((_, i) => i)))} onUnselectAll={() => setSelectedFaqs(new Set())} onRemoveSelected={removeSelectedFaqs} itemLabel="FAQs" />
           {faqs.length === 0 && <p className="text-[13px] text-[#0B0B0B]/40 italic">No FAQs yet. Add one above.</p>}
           {faqs.map((f, i) => (
             <div key={i} className="border rounded-xl p-3 bg-white" style={{ borderColor: "#E5E5E0" }}>
               <div className="flex items-start gap-2">
+                  <CollectionSelectionCheckbox checked={selectedFaqs.has(i)} label={`Select FAQ ${i + 1}`} onChange={(checked) => setSelectedFaqs((s) => { const n = new Set(s); checked ? n.add(i) : n.delete(i); return n; })} />
                 <div className="flex-1 space-y-2">
                   <Input label={`Question ${i + 1}`} value={f.q} onChange={(e) => setFaq(i, { q: e.target.value })} />
                   <Textarea label="Answer" value={f.a} onChange={(e) => setFaq(i, { a: e.target.value })} />

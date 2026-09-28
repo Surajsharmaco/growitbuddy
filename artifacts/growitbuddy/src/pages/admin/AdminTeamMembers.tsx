@@ -4,6 +4,7 @@ import { ALL_PERMISSIONS } from "@/context/adminPermissions";
 import { UserPlus, Trash2, Edit2, Check, X, Eye, EyeOff, Shield, Users, ChevronDown, ChevronUp } from "lucide-react";
 
 import { API_BASE } from "@/lib/api";
+import { BulkSelectionBar, CollectionSelectionCheckbox } from "@/components/admin/BulkSelectionBar";
 
 interface TeamMember {
   id: number;
@@ -172,6 +173,7 @@ export default function AdminTeamMembers() {
   const [showPw, setShowPw] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -269,8 +271,19 @@ export default function AdminTeamMembers() {
     const r = await authFetch(`${API_BASE}/admin/team/${id}`, { method: "DELETE" });
     if (r.ok) {
       setDeleteId(null);
+      setSelectedIds((prev) => prev.filter((selectedId) => selectedId !== id));
       await load();
     }
+  }
+
+  async function removeSelected() {
+    const ids = members.filter((member) => selectedIds.includes(member.id)).map((member) => member.id);
+    if (!ids.length || !confirm(`Delete ${ids.length} selected team member${ids.length === 1 ? "" : "s"}? This permanently removes their access.`)) return;
+    const results = await Promise.all(ids.map((id) => authFetch(`${API_BASE}/admin/team/${id}`, { method: "DELETE" })));
+    const failed = results.filter((r) => !r.ok).length;
+    setSelectedIds((prev) => prev.filter((id) => !ids.includes(id)));
+    await load();
+    if (failed) alert(`${ids.length - failed} member${ids.length - failed === 1 ? "" : "s"} deleted; ${failed} failed. Please try again.`);
   }
 
   async function toggleActive(m: TeamMember) {
@@ -456,6 +469,14 @@ export default function AdminTeamMembers() {
         </div>
       ) : (
         <div className="space-y-2">
+          <BulkSelectionBar
+            selectedCount={selectedIds.length}
+            visibleCount={members.length}
+            onSelectAllVisible={() => setSelectedIds(members.map((member) => member.id))}
+            onUnselectAll={() => setSelectedIds([])}
+            onRemoveSelected={removeSelected}
+            itemLabel="members"
+          />
           {members.map((m) => {
             const expanded = expandedId === m.id;
             return (
@@ -464,6 +485,7 @@ export default function AdminTeamMembers() {
                 className="bg-white rounded-2xl border border-black/5 overflow-hidden"
               >
                 <div className="flex items-center gap-4 px-5 py-4">
+                  <CollectionSelectionCheckbox checked={selectedIds.includes(m.id)} label={`Select ${m.name}`} onChange={(checked) => setSelectedIds((prev) => checked ? [...new Set([...prev, m.id])] : prev.filter((id) => id !== m.id))} />
                   <div className="w-9 h-9 rounded-full bg-[#0B0B0B] flex items-center justify-center text-white text-[13px] font-black flex-shrink-0">
                     {m.name.charAt(0).toUpperCase()}
                   </div>

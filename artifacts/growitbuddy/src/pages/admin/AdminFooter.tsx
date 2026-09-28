@@ -3,6 +3,7 @@ import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, SaveBar } from "@/components/admin/AdminField";
 import { Plus, Trash2 } from "lucide-react";
 import { FOOTER_DEFAULTS as DEFAULTS, type FooterData, type FooterColumn, type FooterLink } from "@/lib/footerDefaults";
+import { BulkSelectionBar, CollectionSelectionCheckbox } from "@/components/admin/BulkSelectionBar";
 
 export default function AdminFooter() {
   const { getContentResult, saveContent } = useAdmin();
@@ -11,6 +12,8 @@ export default function AdminFooter() {
   const [saved, setSaved] = useState(false);
   const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
   const [saveError, setSaveError] = useState("");
+  const [selectedColumns, setSelectedColumns] = useState<Set<number>>(new Set());
+  const [selectedLinks, setSelectedLinks] = useState<Record<number, Set<number>>>({});
 
   const load = useCallback(async () => {
     setLoadState("loading");
@@ -55,6 +58,19 @@ export default function AdminFooter() {
     set("columns", cols);
   }
 
+  function removeSelectedColumns() {
+    if (!selectedColumns.size || !confirm(`Remove ${selectedColumns.size} selected column${selectedColumns.size === 1 ? "" : "s"}?`)) return;
+    set("columns", data.columns.filter((_, i) => !selectedColumns.has(i)));
+    setSelectedColumns(new Set());
+    setSelectedLinks({});
+  }
+
+  function removeColumn(ci: number) {
+    set("columns", data.columns.filter((_, i) => i !== ci));
+    setSelectedColumns(new Set());
+    setSelectedLinks({});
+  }
+
   if (loadState !== "ready") return <div><PageHeader title="Footer" description={loadState === "error" ? "Couldn't load saved content" : "Loading…"} />{loadState === "error" ? <div className="flex flex-col items-center gap-3 py-24 text-center"><p className="text-[13px] text-red-600">Couldn't load saved footer content. Editing is disabled to protect your live data.</p><button onClick={load} className="text-[12px] font-semibold bg-[#0B0B0B] text-white px-4 py-2 rounded-xl">Retry</button></div> : <div className="py-24 text-center text-[13px] text-[#0B0B0B]/40">Loading content…</div>}</div>;
 
   return (
@@ -75,24 +91,33 @@ export default function AdminFooter() {
           </div>
         </Card>
 
-        {data.columns.map((col, ci) => (
+        <BulkSelectionBar selectedCount={selectedColumns.size} visibleCount={data.columns.length} onSelectAllVisible={() => setSelectedColumns(new Set(data.columns.map((_, i) => i)))} onUnselectAll={() => setSelectedColumns(new Set())} onRemoveSelected={removeSelectedColumns} itemLabel="columns" />
+        {data.columns.map((col, ci) => {
+          const columnSelected = selectedLinks[ci] || new Set<number>();
+          const removeSelectedLinks = () => {
+            if (!columnSelected.size || !confirm(`Remove ${columnSelected.size} selected link${columnSelected.size === 1 ? "" : "s"}?`)) return;
+            updateColumn(ci, { links: col.links.filter((_, i) => !columnSelected.has(i)) });
+            setSelectedLinks((prev) => ({ ...prev, [ci]: new Set() }));
+          };
+          return (
           <Card key={ci}>
             <div className="flex items-center justify-between mb-4">
-              <Input
-                value={col.title}
-                onChange={(e) => updateColumn(ci, { title: e.target.value })}
-                className="text-[14px] font-bold max-w-[180px]"
-              />
+              <div className="flex items-center gap-2">
+                <CollectionSelectionCheckbox checked={selectedColumns.has(ci)} label={`Select column ${col.title || "untitled"}`} onChange={(checked) => setSelectedColumns((prev) => { const next = new Set(prev); checked ? next.add(ci) : next.delete(ci); return next; })} />
+                <Input value={col.title} onChange={(e) => updateColumn(ci, { title: e.target.value })} className="text-[14px] font-bold max-w-[180px]" />
+              </div>
               <button
-                onClick={() => set("columns", data.columns.filter((_, i) => i !== ci))}
+                onClick={() => removeColumn(ci)}
                 className="text-[12px] text-red-400 hover:text-red-600 transition-colors"
               >
                 Remove column
               </button>
             </div>
+            <BulkSelectionBar selectedCount={columnSelected.size} visibleCount={col.links.length} onSelectAllVisible={() => setSelectedLinks((prev) => ({ ...prev, [ci]: new Set(col.links.map((_, i) => i)) }))} onUnselectAll={() => setSelectedLinks((prev) => ({ ...prev, [ci]: new Set() }))} onRemoveSelected={removeSelectedLinks} itemLabel="links" />
             <div className="space-y-2">
               {col.links.map((link, li) => (
                 <div key={li} className="flex gap-2 items-center">
+                  <CollectionSelectionCheckbox checked={columnSelected.has(li)} label={`Select link ${link.label || "untitled"}`} onChange={(checked) => setSelectedLinks((prev) => { const next = { ...prev }; const current = new Set(prev[ci] || []); checked ? current.add(li) : current.delete(li); next[ci] = current; return next; })} />
                   <Input
                     value={link.label}
                     onChange={(e) => updateLink(ci, li, { label: e.target.value })}
@@ -107,6 +132,7 @@ export default function AdminFooter() {
                     onClick={() => {
                       const links = col.links.filter((_, i) => i !== li);
                       updateColumn(ci, { links });
+                      setSelectedLinks((prev) => ({ ...prev, [ci]: new Set() }));
                     }}
                     className="p-1.5 text-[#0B0B0B]/25 hover:text-red-500 shrink-0"
                   >
@@ -122,7 +148,8 @@ export default function AdminFooter() {
               </button>
             </div>
           </Card>
-        ))}
+          );
+        })}
 
         <button
           onClick={() => set("columns", [...data.columns, { title: "New Column", links: [] }])}

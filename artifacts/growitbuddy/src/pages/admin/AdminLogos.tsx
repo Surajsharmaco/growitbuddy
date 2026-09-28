@@ -6,6 +6,7 @@ import { Plus, Trash2, Edit2, X, Save, Upload, Image } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { API_BASE, resolveMediaUrl } from "@/lib/api";
+import { BulkSelectionBar, CollectionSelectionCheckbox } from "@/components/admin/BulkSelectionBar";
 
 interface ClientLogo {
   id: number;
@@ -212,6 +213,7 @@ export default function AdminLogos() {
   const [showAdd, setShowAdd] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   async function fetchLogos() {
     try {
@@ -234,10 +236,21 @@ export default function AdminLogos() {
       });
       if (!res.ok) throw new Error(`Delete failed (${res.status})`);
       setLogos((prev) => prev.filter((l) => l.id !== id));
+      setSelectedIds((prev) => prev.filter((selectedId) => selectedId !== id));
       setDeleteConfirm(null);
     } catch {
       alert("Couldn't delete the logo. Please try again.");
     }
+  }
+
+  async function removeSelected() {
+    const ids = logos.filter((logo) => selectedIds.includes(logo.id)).map((logo) => logo.id);
+    if (!ids.length || !confirm(`Remove ${ids.length} selected logo${ids.length === 1 ? "" : "s"}?`)) return;
+    const results = await Promise.all(ids.map((id) => fetch(`${API_BASE}/admin/logos/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } })));
+    const failed = results.filter((r) => !r.ok).length;
+    setLogos((prev) => prev.filter((logo) => !ids.includes(logo.id) || results[ids.indexOf(logo.id)]?.ok === false));
+    setSelectedIds((prev) => prev.filter((id) => !ids.includes(id)));
+    if (failed) alert(`${ids.length - failed} logo${ids.length - failed === 1 ? "" : "s"} removed; ${failed} failed. Please try again.`);
   }
 
   return (
@@ -290,6 +303,14 @@ export default function AdminLogos() {
       ) : (
         <Card>
           <SectionTitle>{logos.length} logo{logos.length !== 1 ? "s" : ""} - target 24</SectionTitle>
+          <BulkSelectionBar
+            selectedCount={selectedIds.length}
+            visibleCount={logos.length}
+            onSelectAllVisible={() => setSelectedIds(logos.map((logo) => logo.id))}
+            onUnselectAll={() => setSelectedIds([])}
+            onRemoveSelected={removeSelected}
+            itemLabel="logos"
+          />
           <div
             style={{
               display: "grid",
@@ -306,8 +327,11 @@ export default function AdminLogos() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  style={{ border: "1.5px solid #E5E5E0", borderRadius: 10, overflow: "hidden", background: "#FAFAFA" }}
+                  style={{ border: "1.5px solid #E5E5E0", borderRadius: 10, overflow: "hidden", background: "#FAFAFA", position: "relative" }}
                 >
+                  <div style={{ position: "absolute", top: 8, left: 8, zIndex: 1 }}>
+                    <CollectionSelectionCheckbox checked={selectedIds.includes(logo.id)} label={`Select ${logo.altText || "logo"}`} onChange={(checked) => setSelectedIds((prev) => checked ? [...new Set([...prev, logo.id])] : prev.filter((id) => id !== logo.id))} />
+                  </div>
                   {editId === logo.id ? (
                     <div style={{ padding: 10 }}>
                       <LogoForm

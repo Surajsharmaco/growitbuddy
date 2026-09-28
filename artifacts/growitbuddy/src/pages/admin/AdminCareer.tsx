@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
+import { BulkSelectionBar, CollectionSelectionCheckbox } from "@/components/admin/BulkSelectionBar";
 import { Plus, Trash2, Download, RefreshCw, ChevronDown, ChevronUp, Search, X, Calendar, Briefcase, GraduationCap, UserPlus } from "lucide-react";
 import * as XLSX from "xlsx";
 
@@ -352,16 +353,28 @@ function ListCard({ title, headingLabel, headingValue, onHeadingChange, items, o
   items: string[]; onItemChange: (i: number, v: string) => void; onAdd: () => void; onRemove: (i: number) => void;
   placeholder: string; addLabel: string;
 }) {
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  function removeOne(index: number) {
+    onRemove(index);
+    setSelected((previous) => new Set([...previous].filter((selectedIndex) => selectedIndex !== index).map((selectedIndex) => selectedIndex > index ? selectedIndex - 1 : selectedIndex)));
+  }
+  function removeSelected() {
+    if (!selected.size || !confirm(`Remove ${selected.size} selected ${title.toLowerCase()}?`)) return;
+    [...selected].sort((a, b) => b - a).forEach((i) => onRemove(i));
+    setSelected(new Set());
+  }
   return (
     <Card>
       <SectionTitle>{title}</SectionTitle>
       <Input label={headingLabel} value={headingValue} onChange={(e) => onHeadingChange(e.target.value)} className="mb-3" />
       <div className="space-y-2">
+        <BulkSelectionBar selectedCount={selected.size} visibleCount={items.length} onSelectAllVisible={() => setSelected(new Set(items.map((_, i) => i)))} onUnselectAll={() => setSelected(new Set())} onRemoveSelected={removeSelected} itemLabel="items" />
         {items.map((item, i) => (
           <div key={i} className="flex gap-2 items-center">
+            <CollectionSelectionCheckbox checked={selected.has(i)} label={`Select ${title} item ${i + 1}`} onChange={(checked) => setSelected((s) => { const n = new Set(s); checked ? n.add(i) : n.delete(i); return n; })} />
             <input className="flex-1 text-[13px] border border-[#0B0B0B]/12 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0B0B0B]/20 bg-white"
               value={item} onChange={(e) => onItemChange(i, e.target.value)} placeholder={placeholder} />
-            <button onClick={() => onRemove(i)} className="p-1.5 text-[#0B0B0B]/25 hover:text-red-500 shrink-0"><Trash2 size={13} /></button>
+            <button onClick={() => removeOne(i)} className="p-1.5 text-[#0B0B0B]/25 hover:text-red-500 shrink-0"><Trash2 size={13} /></button>
           </div>
         ))}
         <button onClick={onAdd} className="flex items-center gap-1.5 text-[12px] font-semibold text-[#0B0B0B]/50 hover:text-[#0B0B0B] transition-colors">

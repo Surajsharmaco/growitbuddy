@@ -3,6 +3,7 @@ import { useAdmin } from "@/context/AdminContext";
 import { NICHE_CATEGORIES, COUNTRIES, type Influencer } from "@/data/influencers";
 import { PageHeader, Card, Input, Textarea, SaveBar, Modal, PositionControl } from "@/components/admin/AdminField";
 import { ImagePickerField } from "@/components/admin/ImagePickerField";
+import { BulkSelectionBar, CollectionSelectionCheckbox } from "@/components/admin/BulkSelectionBar";
 import {
   Plus, Trash2, Search, X, Eye, EyeOff, ChevronDown, ChevronUp,
   Settings2, Clock, Download, User, Globe, Check, RotateCcw,
@@ -110,6 +111,7 @@ function SectionHead({ icon, label }: { icon: React.ReactNode; label: string }) 
 function InfluencerRow({
   inf, index, genres, countries, onChange, onDelete,
   position, total, reorderDisabled, onMoveUp, onMoveDown, onSetPosition, defaultOpen = false,
+  selected, onSelect,
 }: {
   inf: Influencer; index: number; genres: string[]; countries: string[];
   onChange: (i: number, val: Influencer) => void;
@@ -121,6 +123,8 @@ function InfluencerRow({
   onMoveDown: () => void;
   onSetPosition: (pos: number) => void;
   defaultOpen?: boolean;
+  selected: boolean;
+  onSelect: (checked: boolean) => void;
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const set = (patch: Partial<Influencer>) => onChange(index, { ...inf, ...patch });
@@ -130,6 +134,7 @@ function InfluencerRow({
     <Card className="p-0 overflow-hidden">
       {/* Row header */}
       <div className="flex items-center gap-2 pr-3">
+        <CollectionSelectionCheckbox checked={selected} label={`Select ${inf.name || "influencer"}`} onChange={onSelect} />
         {/* Order control - type the position this creator takes on the public page (1 = first) */}
         <PositionControl
           position={position}
@@ -501,6 +506,7 @@ export default function AdminInfluencers() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [view, setView] = useState<"active" | "trash">("active");
   const [listsOpen, setListsOpen] = useState(false);
+  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
   const topRef = useRef<HTMLDivElement>(null);
 
   const load = useCallback(() => {
@@ -643,6 +649,27 @@ export default function AdminInfluencers() {
     }
     return matchSearch && matchNiche && matchCountry && matchDate;
   });
+
+  const selectionKey = (inf: Influencer) => `${inf.slug}:${items.indexOf(inf)}`;
+  useEffect(() => {
+    const visibleKeys = new Set(view === "active" ? filtered.map(selectionKey) : []);
+    setSelectedKeys((previous) => {
+      const next = new Set([...previous].filter((key) => visibleKeys.has(key)));
+      return next.size === previous.size ? previous : next;
+    });
+  }, [items, view, search, nicheFilter, countryFilter, dateFilter]);
+
+  function removeSelected() {
+    const selected = filtered.filter((inf) => selectedKeys.has(selectionKey(inf)));
+    if (!selected.length || !confirm(`Move ${selected.length} selected influencer${selected.length === 1 ? "" : "s"} to Trash?`)) return;
+    const selectedSet = new Set(selected);
+    const now = new Date().toISOString();
+    setSaved(false);
+    setItems((previous) => previous.map((inf) => selectedSet.has(inf)
+      ? { ...inf, trashed: true, trashedAt: now, updatedAt: now }
+      : inf));
+    setSelectedKeys(new Set());
+  }
 
   // Reorder is only meaningful against the full active list, so it's paused
   // while any search/filter narrows the view (keeps 1st/2nd/3rd unambiguous).
@@ -1024,6 +1051,14 @@ export default function AdminInfluencers() {
           </div>
 
           {/* List */}
+          <BulkSelectionBar
+            selectedCount={selectedKeys.size}
+            visibleCount={filtered.length}
+            onSelectAllVisible={() => setSelectedKeys(new Set(filtered.map(selectionKey)))}
+            onUnselectAll={() => setSelectedKeys(new Set())}
+            onRemoveSelected={removeSelected}
+            itemLabel="influencers"
+          />
           <div className="space-y-3">
             {filtered.map((inf) => {
               const realIndex = items.indexOf(inf);
@@ -1044,6 +1079,13 @@ export default function AdminInfluencers() {
                   onMoveDown={() => moveItem(realIndex, 1)}
                   onSetPosition={(n) => moveToPosition(realIndex, n)}
                   defaultOpen={false}
+                  selected={selectedKeys.has(selectionKey(inf))}
+                  onSelect={(checked) => setSelectedKeys((previous) => {
+                    const next = new Set(previous);
+                    const key = selectionKey(inf);
+                    if (checked) next.add(key); else next.delete(key);
+                    return next;
+                  })}
                 />
               );
             })}

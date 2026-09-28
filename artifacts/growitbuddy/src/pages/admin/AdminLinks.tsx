@@ -14,6 +14,7 @@ import {
   type TextSection, type ImageSection, type SpacerSection,
 } from "@/lib/linksDefaults";
 import { sourceLabel } from "@/lib/videoEmbed";
+import { BulkSelectionBar, CollectionSelectionCheckbox } from "@/components/admin/BulkSelectionBar";
 
 const SECTION_ICONS: Record<SectionType, typeof Link2> = {
   links: Link2,
@@ -53,7 +54,14 @@ function move<T>(arr: T[], index: number, dir: -1 | 1): T[] {
 // ── Per-type editors ──────────────────────────────────────────────────
 function LinksSectionEditor({ section, onChange }: { section: LinksSection; onChange: (s: LinksSection) => void }) {
   const items = section.items || [];
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const setItems = (next: typeof items) => onChange({ ...section, items: next });
+  const visibleSelected = items.filter((item) => selected.has(item.id));
+  const removeSelected = () => {
+    if (!visibleSelected.length || !confirm(`Remove ${visibleSelected.length} selected link${visibleSelected.length === 1 ? "" : "s"}?`)) return;
+    setItems(items.filter((item) => !selected.has(item.id)));
+    setSelected(new Set());
+  };
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -67,10 +75,12 @@ function LinksSectionEditor({ section, onChange }: { section: LinksSection; onCh
       </div>
 
       {items.length === 0 && <p className="text-[13px] text-[#0B0B0B]/40">No links yet. Add your first one.</p>}
+      <BulkSelectionBar selectedCount={visibleSelected.length} visibleCount={items.length} onSelectAllVisible={() => setSelected(new Set(items.map((item) => item.id)))} onUnselectAll={() => setSelected(new Set())} onRemoveSelected={removeSelected} itemLabel="links" />
       <div className="flex flex-col gap-3">
         {items.map((l, i) => (
           <div key={l.id} className={`rounded-2xl border p-4 ${l.featured ? "border-[#0B0B0B]/30 bg-[#0B0B0B]/[0.03]" : "border-[#0B0B0B]/10"}`}>
             <div className="flex items-start gap-3">
+              <CollectionSelectionCheckbox checked={selected.has(l.id)} label={`Select link ${l.label || "untitled"}`} onChange={(checked) => setSelected((prev) => { const next = new Set(prev); checked ? next.add(l.id) : next.delete(l.id); return next; })} />
               <ItemControls
                 isFirst={i === 0}
                 isLast={i === items.length - 1}
@@ -133,13 +143,22 @@ function LinksSectionEditor({ section, onChange }: { section: LinksSection; onCh
 
 function SocialsSectionEditor({ section, onChange }: { section: SocialsSection; onChange: (s: SocialsSection) => void }) {
   const socials = section.socials || [];
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const setSocials = (next: typeof socials) => onChange({ ...section, socials: next });
+  const visibleSelected = socials.filter((item) => selected.has(item.id));
+  const removeSelected = () => {
+    if (!visibleSelected.length || !confirm(`Remove ${visibleSelected.length} selected social link${visibleSelected.length === 1 ? "" : "s"}?`)) return;
+    setSocials(socials.filter((item) => !selected.has(item.id)));
+    setSelected(new Set());
+  };
   return (
     <div className="flex flex-col gap-3">
       <Input label="Section heading (optional)" value={section.title || ""} onChange={(e) => onChange({ ...section, title: e.target.value })} placeholder="e.g. Follow us" />
       {socials.length === 0 && <p className="text-[13px] text-[#0B0B0B]/40">No social icons yet.</p>}
+      <BulkSelectionBar selectedCount={visibleSelected.length} visibleCount={socials.length} onSelectAllVisible={() => setSelected(new Set(socials.map((item) => item.id)))} onUnselectAll={() => setSelected(new Set())} onRemoveSelected={removeSelected} itemLabel="social links" />
       {socials.map((s, i) => (
         <div key={s.id} className="flex items-center gap-2.5">
+          <CollectionSelectionCheckbox checked={selected.has(s.id)} label={`Select social link ${s.platform}`} onChange={(checked) => setSelected((prev) => { const next = new Set(prev); checked ? next.add(s.id) : next.delete(s.id); return next; })} />
           <select value={s.platform} onChange={(e) => setSocials(socials.map((x) => x.id === s.id ? { ...x, platform: e.target.value } : x))} className="w-40 shrink-0 border border-[#0B0B0B]/12 rounded-xl px-3 py-2.5 text-[13px] text-[#0B0B0B] outline-none focus:border-[#0B0B0B]/40 bg-white">
             {SOCIAL_PLATFORMS.map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
           </select>
@@ -233,8 +252,9 @@ function SectionEditor({ section, onChange }: { section: LinkSection; onChange: 
 }
 
 // ── Section card wrapper (header controls) ────────────────────────────
-function SectionCard({ section, index, total, onMove, onToggle, onRemove, children }: {
+function SectionCard({ section, index, total, selected, onSelect, onMove, onToggle, onRemove, children }: {
   section: LinkSection; index: number; total: number;
+  selected: boolean; onSelect: (checked: boolean) => void;
   onMove: (dir: -1 | 1) => void; onToggle: () => void; onRemove: () => void; children: ReactNode;
 }) {
   const Icon = SECTION_ICONS[section.type];
@@ -242,6 +262,7 @@ function SectionCard({ section, index, total, onMove, onToggle, onRemove, childr
   return (
     <Card className={hidden ? "opacity-60" : ""}>
       <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#0B0B0B]/8">
+        <CollectionSelectionCheckbox checked={selected} label={`Select ${SECTION_LABELS[section.type]} section`} onChange={onSelect} />
         <Icon size={16} className="text-[#0B0B0B]/45" />
         <h2 className="text-[14px] font-bold text-[#0B0B0B]">{SECTION_LABELS[section.type]}</h2>
         {hidden && <span className="text-[10px] font-bold uppercase tracking-wider text-[#0B0B0B]/35 bg-[#0B0B0B]/5 px-2 py-0.5 rounded-full">Hidden</span>}
@@ -266,6 +287,7 @@ export default function AdminLinks() {
   const [saved, setSaved] = useState(false);
   const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
   const [saveError, setSaveError] = useState("");
+  const [selectedSections, setSelectedSections] = useState<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     setLoadState("loading");
@@ -284,6 +306,12 @@ export default function AdminLinks() {
   }
   function setSections(next: LinkSection[]) {
     patch({ sections: next });
+  }
+  const selectedSectionItems = data.sections.filter((section) => selectedSections.has(section.id));
+  function removeSelectedSections() {
+    if (!selectedSectionItems.length || !confirm(`Remove ${selectedSectionItems.length} selected section${selectedSectionItems.length === 1 ? "" : "s"}?`)) return;
+    setSections(data.sections.filter((section) => !selectedSections.has(section.id)));
+    setSelectedSections(new Set());
   }
 
   async function handleSave() {
@@ -357,12 +385,15 @@ export default function AdminLinks() {
         </Card>
 
         {/* Sections */}
+        <BulkSelectionBar selectedCount={selectedSectionItems.length} visibleCount={data.sections.length} onSelectAllVisible={() => setSelectedSections(new Set(data.sections.map((section) => section.id)))} onUnselectAll={() => setSelectedSections(new Set())} onRemoveSelected={removeSelectedSections} itemLabel="sections" />
         {data.sections.map((section, i) => (
           <SectionCard
             key={section.id}
             section={section}
             index={i}
             total={data.sections.length}
+            selected={selectedSections.has(section.id)}
+            onSelect={(checked) => setSelectedSections((prev) => { const next = new Set(prev); checked ? next.add(section.id) : next.delete(section.id); return next; })}
             onMove={(dir) => setSections(move(data.sections, i, dir))}
             onToggle={() => setSections(data.sections.map((s) => s.id === section.id ? { ...s, enabled: s.enabled === false } : s))}
             onRemove={() => setSections(data.sections.filter((s) => s.id !== section.id))}

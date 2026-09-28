@@ -3,6 +3,7 @@ import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
 import { Plus, Trash2, ChevronDown, ChevronUp, GripVertical } from "lucide-react";
+import { BulkSelectionBar, CollectionSelectionCheckbox } from "@/components/admin/BulkSelectionBar";
 
 import { SERVICES_DEFAULTS, type ServiceItem as Service, type ServicesStat as Stat } from "@/lib/servicesDefaults";
 
@@ -12,11 +13,15 @@ function ServiceRow({
   index,
   onChange,
   onDelete,
+  selected,
+  onSelect,
 }: {
   service: Service;
   index: number;
   onChange: (i: number, val: Service) => void;
   onDelete: (i: number) => void;
+  selected: boolean;
+  onSelect: (checked: boolean) => void;
 }) {
   const [open, setOpen] = useState(false);
   const set = (patch: Partial<Service>) => onChange(index, { ...service, ...patch });
@@ -24,6 +29,7 @@ function ServiceRow({
   return (
     <Card className="p-0 overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-3.5">
+        <CollectionSelectionCheckbox checked={selected} label={`Select service ${service.title || index + 1}`} onChange={onSelect} />
         <GripVertical size={14} className="text-[#0B0B0B]/20 shrink-0 cursor-grab" />
         <button
           onClick={() => setOpen((p) => !p)}
@@ -97,6 +103,8 @@ export default function AdminServices() {
   const [heroSubtext, setHeroSubtext] = useState("We don't just create content. We build the content marketing infrastructure that turns your expertise into recognition, trust, and consistent inbound opportunities.");
   const [heroCTA, setHeroCTA] = useState("Book a strategy call");
   const [stats, setStats] = useState<Stat[]>(SERVICES_DEFAULTS.stats);
+  const [selectedServices, setSelectedServices] = useState<Set<number>>(new Set());
+  const [selectedStats, setSelectedStats] = useState<Set<number>>(new Set());
 
   const load = useCallback(() => {
     setLoadState("loading");
@@ -139,6 +147,19 @@ export default function AdminServices() {
     if (!confirm("Remove this service?")) return;
     setSaved(false);
     setServices((p) => p.filter((_, idx) => idx !== i));
+    setSelectedServices(new Set());
+  }
+  function removeSelectedServices() {
+    if (!selectedServices.size || !confirm(`Remove ${selectedServices.size} selected services?`)) return;
+    setServices((p) => p.filter((_, i) => !selectedServices.has(i)));
+    setSelectedServices(new Set());
+    mark();
+  }
+  function removeSelectedStats() {
+    if (!selectedStats.size || !confirm(`Remove ${selectedStats.size} selected stats?`)) return;
+    setStats((p) => p.filter((_, i) => !selectedStats.has(i)));
+    setSelectedStats(new Set());
+    mark();
   }
 
   function addNew() {
@@ -178,11 +199,13 @@ export default function AdminServices() {
       <Card className="mb-5">
         <SectionTitle>Stats Strip (dark bar below hero)</SectionTitle>
         <div className="space-y-2">
+          <BulkSelectionBar selectedCount={selectedStats.size} visibleCount={stats.length} onSelectAllVisible={() => setSelectedStats(new Set(stats.map((_, i) => i)))} onUnselectAll={() => setSelectedStats(new Set())} onRemoveSelected={removeSelectedStats} itemLabel="stats" />
           {stats.map((stat, i) => (
             <div key={i} className="flex gap-2 items-center">
+              <CollectionSelectionCheckbox checked={selectedStats.has(i)} label={`Select stat ${i + 1}`} onChange={(checked) => setSelectedStats((s) => { const n = new Set(s); checked ? n.add(i) : n.delete(i); return n; })} />
               <Input value={stat.num} onChange={(e) => { const s = [...stats]; s[i] = { ...stat, num: e.target.value }; setStats(s); mark(); }} placeholder="700M+" />
               <Input value={stat.label} onChange={(e) => { const s = [...stats]; s[i] = { ...stat, label: e.target.value }; setStats(s); mark(); }} placeholder="Views Generated" />
-              <button onClick={() => { setStats(stats.filter((_, si) => si !== i)); mark(); }} className="p-1.5 text-[#0B0B0B]/25 hover:text-red-500 shrink-0"><Trash2 size={13} /></button>
+              <button onClick={() => { setStats(stats.filter((_, si) => si !== i)); setSelectedStats(new Set()); mark(); }} className="p-1.5 text-[#0B0B0B]/25 hover:text-red-500 shrink-0"><Trash2 size={13} /></button>
             </div>
           ))}
           <button onClick={() => { setStats([...stats, { num: "", label: "" }]); mark(); }} className="flex items-center gap-1.5 text-[12px] font-semibold text-[#0B0B0B]/50 hover:text-[#0B0B0B] transition-colors">
@@ -209,8 +232,9 @@ export default function AdminServices() {
       </div>
 
       <div className="space-y-3">
+        <BulkSelectionBar selectedCount={selectedServices.size} visibleCount={services.length} onSelectAllVisible={() => setSelectedServices(new Set(services.map((_, i) => i)))} onUnselectAll={() => setSelectedServices(new Set())} onRemoveSelected={removeSelectedServices} itemLabel="services" />
         {services.map((s, i) => (
-          <ServiceRow key={s.id + i} service={s} index={i} onChange={handleChange} onDelete={handleDelete} />
+          <ServiceRow key={s.id + i} service={s} index={i} onChange={handleChange} onDelete={handleDelete} selected={selectedServices.has(i)} onSelect={(checked) => setSelectedServices((set) => { const n = new Set(set); checked ? n.add(i) : n.delete(i); return n; })} />
         ))}
       </div>
 

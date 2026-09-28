@@ -6,6 +6,7 @@ import { Plus, Edit2, Trash2, X, Save, ExternalLink, Play, ChevronDown, ChevronU
 import { motion, AnimatePresence } from "framer-motion";
 
 import { API_BASE } from "@/lib/api";
+import { BulkSelectionBar, CollectionSelectionCheckbox } from "@/components/admin/BulkSelectionBar";
 import { getEmbedUrl as toEmbedUrl, getThumbnail, sourceLabel, detectAspectRatio, parseVideo } from "@/lib/videoEmbed";
 
 interface CaseStudyData {
@@ -122,12 +123,51 @@ function ItemForm({
   const detectedSource = sourceLabel(form.youtubeUrl);
 
   const [csOpen, setCsOpen] = useState(false);
+  const [selectedNested, setSelectedNested] = useState<Record<string, number[]>>({});
 
   function set(key: keyof FormState, value: string | number) {
     setForm((f) => ({ ...f, [key]: value }));
   }
   function setCs<K extends keyof CaseStudyData>(key: K, value: CaseStudyData[K]) {
     setForm((f) => ({ ...f, caseStudy: { ...f.caseStudy, [key]: value } }));
+  }
+  function removeNested(key: "galleryImages" | "metrics" | "stack" | "approachBullets") {
+    const selected = selectedNested[key] ?? [];
+    if (!selected.length || !confirm(`Remove ${selected.length} selected ${key}?`)) return;
+    const current = (form.caseStudy[key] ?? []) as unknown[];
+    setCs(key, current.filter((_, index) => !selected.includes(index)) as CaseStudyData[typeof key]);
+    setSelectedNested((prev) => ({ ...prev, [key]: [] }));
+  }
+  function nestedControls(key: "galleryImages" | "metrics" | "stack" | "approachBullets", count: number) {
+    const selected = selectedNested[key] ?? [];
+    return (
+      <div style={{ marginTop: 8 }}>
+        <BulkSelectionBar
+          selectedCount={selected.length}
+          visibleCount={count}
+          onSelectAllVisible={() => setSelectedNested((prev) => ({ ...prev, [key]: Array.from({ length: count }, (_, index) => index) }))}
+          onUnselectAll={() => setSelectedNested((prev) => ({ ...prev, [key]: [] }))}
+          onRemoveSelected={() => removeNested(key)}
+          itemLabel={key}
+        />
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          {Array.from({ length: count }, (_, index) => (
+            <label key={index} className="inline-flex items-center gap-1.5 text-[11px] text-[#0B0B0B]/60">
+              <CollectionSelectionCheckbox
+                checked={selected.includes(index)}
+                label={`Select ${key} ${index + 1}`}
+                onChange={(checked) => setSelectedNested((prev) => {
+                  const next = new Set(prev[key] ?? []);
+                  checked ? next.add(index) : next.delete(index);
+                  return { ...prev, [key]: [...next] };
+                })}
+              />
+              {key} {index + 1}
+            </label>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   const inputStyle: React.CSSProperties = {
@@ -404,6 +444,7 @@ function ItemForm({
                   />
                 ))}
               </div>
+              {nestedControls("galleryImages", 3)}
             </div>
 
             {/* Overview / Challenge */}
@@ -442,8 +483,12 @@ function ItemForm({
                 style={{ ...inputStyle, minHeight: 90, resize: "vertical", fontFamily: "inherit" }}
                 placeholder={"Discovery sprint and audit\nStrategic framework\nProduction handover"}
                 value={(form.caseStudy.approachBullets ?? []).join("\n")}
-                onChange={(e) => setCs("approachBullets", e.target.value.split("\n"))}
+                onChange={(e) => {
+                  setCs("approachBullets", e.target.value.split("\n"));
+                  setSelectedNested((prev) => ({ ...prev, approachBullets: [] }));
+                }}
               />
+              {nestedControls("approachBullets", form.caseStudy.approachBullets?.length ?? 0)}
             </div>
 
             {/* Solution */}
@@ -491,6 +536,7 @@ function ItemForm({
                   );
                 })}
               </div>
+              {nestedControls("metrics", form.caseStudy.metrics?.length ?? 4)}
             </div>
 
             {/* Stack */}
@@ -502,6 +548,7 @@ function ItemForm({
                 value={(form.caseStudy.stack ?? []).join(", ")}
                 onChange={(e) => setCs("stack", e.target.value.split(",").map((s) => s.trim()).filter(Boolean))}
               />
+              {nestedControls("stack", form.caseStudy.stack?.length ?? 0)}
             </div>
 
             {/* Testimonial */}
@@ -576,6 +623,7 @@ export default function AdminPortfolio() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<number | null>(null);
   const [activeCategory, setActiveCategory] = useState("All");
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   async function loadItems() {
     setLoading(true);
@@ -641,9 +689,20 @@ export default function AdminPortfolio() {
     try {
       await authFetch(`${API_BASE}/admin/portfolio/${id}`, { method: "DELETE" });
       setItems((prev) => prev.filter((i) => i.id !== id));
+      setSelectedIds((prev) => prev.filter((selectedId) => selectedId !== id));
     } finally {
       setDeleting(null);
     }
+  }
+
+  async function handleRemoveSelected() {
+    const ids = filtered.filter((item) => selectedIds.includes(item.id)).map((item) => item.id);
+    if (!ids.length || !confirm(`Delete ${ids.length} selected portfolio item${ids.length === 1 ? "" : "s"}?`)) return;
+    const results = await Promise.all(ids.map((id) => authFetch(`${API_BASE}/admin/portfolio/${id}`, { method: "DELETE" })));
+    const failed = results.filter((r) => !r.ok).length;
+    setItems((prev) => prev.filter((item) => !ids.includes(item.id) || results[ids.indexOf(item.id)]?.ok === false));
+    setSelectedIds((prev) => prev.filter((id) => !ids.includes(id)));
+    if (failed) alert(`${ids.length - failed} item${ids.length - failed === 1 ? "" : "s"} removed; ${failed} failed. Please try again.`);
   }
 
   const allCategories = ["All", ...CATEGORIES];
@@ -729,7 +788,7 @@ export default function AdminPortfolio() {
         {allCategories.map((cat) => (
           <button
             key={cat}
-            onClick={() => setActiveCategory(cat)}
+            onClick={() => { setActiveCategory(cat); setSelectedIds([]); }}
             style={{
               padding: "6px 14px", borderRadius: 100, fontSize: 12, fontWeight: 600,
               border: "1.5px solid",
@@ -746,6 +805,14 @@ export default function AdminPortfolio() {
           {filtered.length} item{filtered.length !== 1 ? "s" : ""}
         </span>
       </div>
+      <BulkSelectionBar
+        selectedCount={filtered.filter((item) => selectedIds.includes(item.id)).length}
+        visibleCount={filtered.length}
+        onSelectAllVisible={() => setSelectedIds((prev) => [...new Set([...prev, ...filtered.map((item) => item.id)])])}
+        onUnselectAll={() => setSelectedIds([])}
+        onRemoveSelected={handleRemoveSelected}
+        itemLabel="items"
+      />
 
       {/* Item List */}
       {loading ? (
@@ -767,6 +834,10 @@ export default function AdminPortfolio() {
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.2 }}
               >
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                  <CollectionSelectionCheckbox checked={selectedIds.includes(item.id)} label={`Select ${item.title}`} onChange={(checked) => setSelectedIds((prev) => checked ? [...new Set([...prev, item.id])] : prev.filter((id) => id !== item.id))} />
+                  <span style={{ fontSize: 11, color: "#8A8A8A" }}>Select item</span>
+                </div>
                 {editId === item.id ? (
                   <Card>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>

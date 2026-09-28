@@ -3,6 +3,7 @@ import { useAdmin } from "@/context/AdminContext";
 import { DISTRIBUTION_NICHES, DISTRIBUTION_COUNTRIES, type DistributionPage } from "@/data/distributionPages";
 import { PageHeader, Card, Input, SaveBar, Modal, PositionControl } from "@/components/admin/AdminField";
 import { ImagePickerField } from "@/components/admin/ImagePickerField";
+import { BulkSelectionBar, CollectionSelectionCheckbox } from "@/components/admin/BulkSelectionBar";
 import { Plus, Trash2, Search, X, Eye, EyeOff, ChevronDown, ChevronUp, Settings2, Clock, Download, Zap, Copy, ExternalLink, Check, RotateCcw } from "lucide-react";
 import * as XLSX from "xlsx";
 
@@ -78,6 +79,8 @@ function PageRow({
   onMoveDown,
   onSetPosition,
   defaultOpen = false,
+  selected,
+  onSelect,
 }: {
   page: DistPage;
   index: number;
@@ -94,6 +97,8 @@ function PageRow({
   onMoveDown: () => void;
   onSetPosition: (pos: number) => void;
   defaultOpen?: boolean;
+  selected: boolean;
+  onSelect: (checked: boolean) => void;
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const [slugCopied, setSlugCopied] = useState(false);
@@ -107,6 +112,7 @@ function PageRow({
   return (
     <Card className="p-0 overflow-hidden">
       <div className="flex items-center gap-2 pr-3">
+        <CollectionSelectionCheckbox checked={selected} label={`Select ${page.name || "page"}`} onChange={onSelect} />
         {/* Order control - type the position this page takes on the public page (1 = first) */}
         <PositionControl
           position={position}
@@ -545,6 +551,7 @@ export default function AdminDistributionPages() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [view, setView] = useState<"active" | "trash">("active");
   const [listsOpen, setListsOpen] = useState(false);
+  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
 
   const load = useCallback(() => {
     setLoadState("loading");
@@ -732,6 +739,28 @@ export default function AdminDistributionPages() {
     }
     return matchSearch && matchNiche && matchCountry && matchDate;
   });
+
+  const selectionKey = (page: DistPage) => `${page.slug}:${items.indexOf(page)}`;
+  useEffect(() => {
+    const visibleKeys = new Set(view === "active" ? filtered.map(selectionKey) : []);
+    setSelectedKeys((previous) => {
+      const next = new Set([...previous].filter((key) => visibleKeys.has(key)));
+      return next.size === previous.size ? previous : next;
+    });
+  }, [items, view, search, nicheFilter, countryFilter, dateFilter]);
+
+  function removeSelected() {
+    const selected = filtered.filter((page) => selectedKeys.has(selectionKey(page)));
+    if (!selected.length || !confirm(`Move ${selected.length} selected page${selected.length === 1 ? "" : "s"} to Trash?`)) return;
+    const selectedSet = new Set(selected);
+    const now = new Date().toISOString();
+    setSaved(false);
+    setItems((previous) => previous.map((page) => selectedSet.has(page)
+      ? { ...page, trashed: true, trashedAt: now, updatedAt: now }
+      : page));
+    setSelectedKeys(new Set());
+    setNewIndex(null);
+  }
 
   // Reorder is only meaningful against the full active list, so it's paused
   // while any search/filter narrows the view (keeps 1st/2nd/3rd unambiguous).
@@ -964,6 +993,14 @@ export default function AdminDistributionPages() {
         )}
       </div>
 
+      <BulkSelectionBar
+        selectedCount={selectedKeys.size}
+        visibleCount={filtered.length}
+        onSelectAllVisible={() => setSelectedKeys(new Set(filtered.map(selectionKey)))}
+        onUnselectAll={() => setSelectedKeys(new Set())}
+        onRemoveSelected={removeSelected}
+        itemLabel="pages"
+      />
       <div className="space-y-3">
         {filtered.map((page) => {
           const realIndex = items.indexOf(page);
@@ -986,6 +1023,13 @@ export default function AdminDistributionPages() {
               onMoveDown={() => moveItem(realIndex, 1)}
               onSetPosition={(n) => moveToPosition(realIndex, n)}
               defaultOpen={realIndex === newIndex}
+              selected={selectedKeys.has(selectionKey(page))}
+              onSelect={(checked) => setSelectedKeys((previous) => {
+                const next = new Set(previous);
+                const key = selectionKey(page);
+                if (checked) next.add(key); else next.delete(key);
+                return next;
+              })}
             />
           );
         })}

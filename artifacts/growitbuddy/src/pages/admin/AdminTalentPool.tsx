@@ -6,6 +6,7 @@ import { AlertCircle, ChevronDown, ChevronUp, Plus, Trash2, ExternalLink } from 
 import { sourceLabel, getEmbedUrl, detectAspectRatio } from "@/lib/videoEmbed";
 import { ImageUrlField } from "@/components/admin/ImageUrlField";
 import { getPoolFormFields, type PoolFormField } from "@/lib/talentPoolForm";
+import { BulkSelectionBar, CollectionSelectionCheckbox } from "@/components/admin/BulkSelectionBar";
 
 interface ResourceCard { id: string; title: string; desc: string; link: string; btnLabel: string; }
 interface Step { number: string; title: string; desc: string; }
@@ -73,6 +74,9 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [formBuilderError, setFormBuilderError] = useState("");
+  const [selectedSteps, setSelectedSteps] = useState<Set<number>>(new Set());
+  const [selectedResources, setSelectedResources] = useState<Set<number>>(new Set());
+  const [selectedFormFields, setSelectedFormFields] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     let cancelled = false;
@@ -177,6 +181,14 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
     if (target < 0 || target >= fields.length) return;
     [fields[index], fields[target]] = [fields[target], fields[index]];
     set("formFields", fields);
+    setSelectedFormFields(new Set());
+  }
+
+  function removeFormField(index: number) {
+    const fields = data.formFields ?? [];
+    if (!fields[index]?.key.startsWith("custom_")) return;
+    set("formFields", fields.filter((_, fieldIndex) => fieldIndex !== index));
+    setSelectedFormFields(new Set());
   }
 
   function addFormField() {
@@ -201,6 +213,19 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
   }
 
   const formFieldLimitReached = (data.formFields?.length ?? 0) >= MAX_FORM_FIELDS;
+  function removeSelectedSteps() {
+    if (!selectedSteps.size || !confirm(`Remove ${selectedSteps.size} selected steps?`)) return;
+    set("steps", data.steps.filter((_, i) => !selectedSteps.has(i))); setSelectedSteps(new Set());
+  }
+  function removeSelectedResources() {
+    if (!selectedResources.size || !confirm(`Remove ${selectedResources.size} selected resources?`)) return;
+    set("resources", data.resources.filter((_, i) => !selectedResources.has(i))); setSelectedResources(new Set());
+  }
+  function removeSelectedFormFields() {
+    if (!selectedFormFields.size || !confirm(`Remove ${selectedFormFields.size} selected custom fields?`)) return;
+    set("formFields", (data.formFields ?? []).filter((field, i) => !field.key.startsWith("custom_") || !selectedFormFields.has(i)));
+    setSelectedFormFields(new Set());
+  }
 
   return (
     <div className="max-w-3xl">
@@ -345,9 +370,11 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
         <SectionTitle>How It Works Steps</SectionTitle>
         <Input label="Section Title" value={data.stepsTitle} onChange={e => set("stepsTitle", e.target.value)} className="mb-4" />
         <div className="space-y-3">
+          <BulkSelectionBar selectedCount={selectedSteps.size} visibleCount={data.steps.length} onSelectAllVisible={() => setSelectedSteps(new Set(data.steps.map((_, i) => i)))} onUnselectAll={() => setSelectedSteps(new Set())} onRemoveSelected={removeSelectedSteps} itemLabel="steps" />
           {data.steps.map((s, i) => (
             <div key={i} className="border border-[#0B0B0B]/8 rounded-xl p-4">
               <div className="grid grid-cols-4 gap-3 mb-3">
+                <CollectionSelectionCheckbox checked={selectedSteps.has(i)} label={`Select step ${s.number}`} onChange={(checked) => setSelectedSteps((set) => { const n = new Set(set); checked ? n.add(i) : n.delete(i); return n; })} />
                 <Input label="Number" value={s.number} onChange={e => { const n = [...data.steps]; n[i] = { ...n[i], number: e.target.value }; set("steps", n); }} placeholder="01" />
                 <div className="col-span-3"><Input label="Title" value={s.title} onChange={e => { const n = [...data.steps]; n[i] = { ...n[i], title: e.target.value }; set("steps", n); }} /></div>
               </div>
@@ -373,15 +400,17 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
           <Input label="Subtext" value={data.resourcesSubtext} onChange={e => set("resourcesSubtext", e.target.value)} />
         </div>
         <div className="space-y-3">
+          <BulkSelectionBar selectedCount={selectedResources.size} visibleCount={data.resources.length} onSelectAllVisible={() => setSelectedResources(new Set(data.resources.map((_, i) => i)))} onUnselectAll={() => setSelectedResources(new Set())} onRemoveSelected={removeSelectedResources} itemLabel="resources" />
           {data.resources.map((r, i) => (
             <div key={r.id} className="border border-[#0B0B0B]/8 rounded-xl p-4 space-y-3">
+              <CollectionSelectionCheckbox checked={selectedResources.has(i)} label={`Select resource ${r.title || i + 1}`} onChange={(checked) => setSelectedResources((set) => { const n = new Set(set); checked ? n.add(i) : n.delete(i); return n; })} />
               <div className="grid grid-cols-3 gap-3">
                 <div className="col-span-2"><Input label="Title" value={r.title} onChange={e => { const n = [...data.resources]; n[i] = { ...n[i], title: e.target.value }; set("resources", n); }} /></div>
                 <Input label="Button Label" value={r.btnLabel} onChange={e => { const n = [...data.resources]; n[i] = { ...n[i], btnLabel: e.target.value }; set("resources", n); }} placeholder="Open" />
               </div>
               <Input label="Description" value={r.desc} onChange={e => { const n = [...data.resources]; n[i] = { ...n[i], desc: e.target.value }; set("resources", n); }} />
               <Input label="Link URL" value={r.link} onChange={e => { const n = [...data.resources]; n[i] = { ...n[i], link: e.target.value }; set("resources", n); }} placeholder="https://drive.google.com/..." hint="Leave blank to show 'SOON' badge." />
-              <button type="button" onClick={() => set("resources", data.resources.filter((_, idx) => idx !== i))}
+              <button type="button" onClick={() => { set("resources", data.resources.filter((_, idx) => idx !== i)); setSelectedResources(new Set()); }}
                 className="text-[12px] text-red-500 flex items-center gap-1"><Trash2 size={12} /> Remove</button>
             </div>
           ))}
@@ -441,6 +470,7 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
             </div>
 
             <div className="space-y-3">
+              <BulkSelectionBar selectedCount={selectedFormFields.size} visibleCount={(data.formFields ?? []).filter((field) => field.key.startsWith("custom_")).length} onSelectAllVisible={() => setSelectedFormFields(new Set((data.formFields ?? []).flatMap((field, i) => field.key.startsWith("custom_") ? [i] : [])))} onUnselectAll={() => setSelectedFormFields(new Set())} onRemoveSelected={removeSelectedFormFields} itemLabel="custom fields" />
               {(data.formFields ?? []).map((field, index) => {
                 const fixed = field.key === "name";
                 const fixedType = fixed || field.key === "email";
@@ -450,6 +480,7 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
                   <div key={`${field.key}-${index}`} className="rounded-xl border border-[#0B0B0B]/10 p-3 sm:p-4">
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                       <div className="flex min-w-0 items-center gap-2">
+                        <CollectionSelectionCheckbox checked={selectedFormFields.has(index)} disabled={!custom} label={`Select ${field.label || "custom field"}`} onChange={(checked) => setSelectedFormFields((set) => { const n = new Set(set); checked ? n.add(index) : n.delete(index); return n; })} />
                         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0B0B0B]/5 text-[11px] font-bold text-[#0B0B0B]/60">
                           {index + 1}
                         </span>
@@ -483,7 +514,7 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
                         {custom && (
                           <button
                             type="button"
-                            onClick={() => set("formFields", (data.formFields ?? []).filter((_, fieldIndex) => fieldIndex !== index))}
+                            onClick={() => removeFormField(index)}
                             aria-label={`Remove ${field.label || "custom field"}`}
                             title="Remove custom field"
                             className="rounded-lg p-2 text-red-600 hover:bg-red-50"

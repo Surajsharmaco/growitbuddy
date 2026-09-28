@@ -3,6 +3,7 @@ import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
 import { Plus, Trash2 } from "lucide-react";
+import { BulkSelectionBar, CollectionSelectionCheckbox } from "@/components/admin/BulkSelectionBar";
 
 import { DISTRIBUTION_NETWORK_DEFAULTS as DEFAULTS, type DistributionNetworkData, type DistNetAdvItem as AdvItem, type DistNetStep as Step } from "@/lib/distributionNetworkDefaults";
 export default function AdminDistributionNetwork() {
@@ -12,6 +13,8 @@ export default function AdminDistributionNetwork() {
   const [saved, setSaved] = useState(false);
   const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
   const [saveError, setSaveError] = useState("");
+  const [selectedBenefits, setSelectedBenefits] = useState<Set<number>>(new Set());
+  const [selectedSteps, setSelectedSteps] = useState<Set<number>>(new Set());
 
   const load = useCallback(async () => {
     setLoadState("loading");
@@ -42,6 +45,7 @@ export default function AdminDistributionNetwork() {
   function removeAdvItem(i: number) {
     setSaved(false);
     set("advantageItems", data.advantageItems.filter((_, idx) => idx !== i));
+    setSelectedBenefits(new Set());
   }
 
   function setStep(i: number, patch: Partial<Step>) {
@@ -58,6 +62,17 @@ export default function AdminDistributionNetwork() {
   function removeStep(i: number) {
     setSaved(false);
     set("hiwSteps", data.hiwSteps.filter((_, idx) => idx !== i));
+    setSelectedSteps(new Set());
+  }
+  function removeSelectedBenefits() {
+    if (!selectedBenefits.size || !confirm(`Remove ${selectedBenefits.size} selected benefits?`)) return;
+    set("advantageItems", data.advantageItems.filter((_, i) => !selectedBenefits.has(i)));
+    setSelectedBenefits(new Set());
+  }
+  function removeSelectedSteps() {
+    if (!selectedSteps.size || !confirm(`Remove ${selectedSteps.size} selected steps?`)) return;
+    set("hiwSteps", data.hiwSteps.filter((_, i) => !selectedSteps.has(i)));
+    setSelectedSteps(new Set());
   }
 
   async function handleSave() {
@@ -93,10 +108,11 @@ export default function AdminDistributionNetwork() {
         <Input label="Headline" value={data.advantageHeadline} onChange={(e) => set("advantageHeadline", e.target.value)} />
         <Textarea label="Subtext" value={data.advantageSubtext} onChange={(e) => set("advantageSubtext", e.target.value)} />
         <div className="mt-4 space-y-3">
+          <BulkSelectionBar selectedCount={selectedBenefits.size} visibleCount={data.advantageItems.length} onSelectAllVisible={() => setSelectedBenefits(new Set(data.advantageItems.map((_, i) => i)))} onUnselectAll={() => setSelectedBenefits(new Set())} onRemoveSelected={removeSelectedBenefits} itemLabel="benefits" />
           {data.advantageItems.map((item, i) => (
             <div key={i} className="border border-[#0B0B0B]/10 rounded-xl p-4 space-y-2">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[12px] font-bold text-[#0B0B0B]/50">Benefit {i + 1}</span>
+                <div className="flex items-center gap-2"><CollectionSelectionCheckbox checked={selectedBenefits.has(i)} label={`Select benefit ${i + 1}`} onChange={(checked) => setSelectedBenefits((s) => { const n = new Set(s); checked ? n.add(i) : n.delete(i); return n; })} /><span className="text-[12px] font-bold text-[#0B0B0B]/50">Benefit {i + 1}</span></div>
                 <button onClick={() => removeAdvItem(i)} className="text-[#0B0B0B]/30 hover:text-red-500 transition-colors">
                   <Trash2 size={14} />
                 </button>
@@ -119,10 +135,11 @@ export default function AdminDistributionNetwork() {
         <Input label="Section Label" value={data.hiwLabel} onChange={(e) => set("hiwLabel", e.target.value)} />
         <Input label="Headline" value={data.hiwHeadline} onChange={(e) => set("hiwHeadline", e.target.value)} />
         <div className="mt-4 space-y-3">
+          <BulkSelectionBar selectedCount={selectedSteps.size} visibleCount={data.hiwSteps.length} onSelectAllVisible={() => setSelectedSteps(new Set(data.hiwSteps.map((_, i) => i)))} onUnselectAll={() => setSelectedSteps(new Set())} onRemoveSelected={removeSelectedSteps} itemLabel="steps" />
           {data.hiwSteps.map((step, i) => (
             <div key={i} className="border border-[#0B0B0B]/10 rounded-xl p-4 space-y-2">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[12px] font-bold text-[#0B0B0B]/50">Step {step.num}</span>
+                <div className="flex items-center gap-2"><CollectionSelectionCheckbox checked={selectedSteps.has(i)} label={`Select step ${step.num}`} onChange={(checked) => setSelectedSteps((s) => { const n = new Set(s); checked ? n.add(i) : n.delete(i); return n; })} /><span className="text-[12px] font-bold text-[#0B0B0B]/50">Step {step.num}</span></div>
                 <button onClick={() => removeStep(i)} className="text-[#0B0B0B]/30 hover:text-red-500 transition-colors">
                   <Trash2 size={14} />
                 </button>

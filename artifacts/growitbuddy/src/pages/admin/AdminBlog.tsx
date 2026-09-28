@@ -6,6 +6,7 @@ import { ImageCropUploader } from "@/components/admin/ImageCropUploader";
 import { ImagePickerField } from "@/components/admin/ImagePickerField";
 import { Card } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
+import { BulkSelectionBar, CollectionSelectionCheckbox } from "@/components/admin/BulkSelectionBar";
 import WordPressPostsCard from "@/pages/admin/WordPressPostsCard";
 import {
   Plus, ArrowLeft, Bold, Italic, List, ListOrdered, Quote,
@@ -2390,10 +2391,11 @@ function generateSchema(post: BlogPost, seo: PostSeo) {
 // POST LIST
 // ─────────────────────────────────────
 
-function PostList({ posts, onEdit, onDelete, onRestore, onPermanentDelete, onAdd }: {
+function PostList({ posts, onEdit, onDelete, onDeleteSelected, onRestore, onPermanentDelete, onAdd }: {
   posts: BlogPost[];
   onEdit: (p: BlogPost) => void;
   onDelete: (slug: string, idx: number) => void;
+  onDeleteSelected: (slugs: string[]) => void;
   onRestore: (idx: number) => void;
   onPermanentDelete: (slug: string, idx: number) => void;
   onAdd: () => void;
@@ -2402,6 +2404,7 @@ function PostList({ posts, onEdit, onDelete, onRestore, onPermanentDelete, onAdd
   const [statusFilter, setStatusFilter] = useState<"all" | "published" | "draft">("all");
   const [search, setSearch] = useState("");
   const [view, setView] = useState<"active" | "trash">("active");
+  const [selectedSlugs, setSelectedSlugs] = useState<Set<string>>(new Set());
 
   const activePosts = posts.filter((p) => !p.trashed);
   const trashedPosts = posts.filter((p) => p.trashed);
@@ -2417,6 +2420,12 @@ function PostList({ posts, onEdit, onDelete, onRestore, onPermanentDelete, onAdd
     .filter((p) => !search || p.title.toLowerCase().includes(search.toLowerCase()) || p.excerpt.toLowerCase().includes(search.toLowerCase()));
   const publishedCount = activePosts.filter((p) => (p.status ?? "published") === "published").length;
   const draftCount = activePosts.filter((p) => (p.status ?? "published") === "draft").length;
+  const selectedShown = shown.filter((post) => selectedSlugs.has(post.slug));
+  const removeSelected = () => {
+    if (!selectedShown.length) return;
+    onDeleteSelected(selectedShown.map((post) => post.slug));
+    setSelectedSlugs(new Set());
+  };
 
   return (
     <div>
@@ -2428,7 +2437,7 @@ function PostList({ posts, onEdit, onDelete, onRestore, onPermanentDelete, onAdd
         <div className="flex items-center gap-2">
           <div className="relative">
             <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#0B0B0B]/30" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search posts..." className="pl-8 pr-3 py-2 text-[13px] border border-[#0B0B0B]/12 rounded-xl outline-none focus:border-[#0B0B0B]/30 bg-white w-48" />
+            <input value={search} onChange={(e) => { setSearch(e.target.value); setSelectedSlugs(new Set()); }} placeholder="Search posts..." className="pl-8 pr-3 py-2 text-[13px] border border-[#0B0B0B]/12 rounded-xl outline-none focus:border-[#0B0B0B]/30 bg-white w-48" />
           </div>
           <button onClick={onAdd} className="flex items-center gap-2 bg-[#0B0B0B] text-white text-[13px] font-semibold px-4 py-2.5 rounded-xl hover:bg-[#0B0B0B]/85 transition-colors">
             <Plus size={15} /> Add New
@@ -2439,7 +2448,7 @@ function PostList({ posts, onEdit, onDelete, onRestore, onPermanentDelete, onAdd
       {/* Active / Trash tabs */}
       <div className="flex items-center gap-1 mb-4 border-b border-[#0B0B0B]/8">
         <button
-          onClick={() => setView("active")}
+          onClick={() => { setView("active"); setSelectedSlugs(new Set()); }}
           className={`px-4 py-2.5 text-[13px] font-semibold -mb-px border-b-2 transition-colors ${
             view === "active" ? "border-[#0B0B0B] text-[#0B0B0B]" : "border-transparent text-[#0B0B0B]/40 hover:text-[#0B0B0B]/70"
           }`}
@@ -2447,7 +2456,7 @@ function PostList({ posts, onEdit, onDelete, onRestore, onPermanentDelete, onAdd
           Active ({activePosts.length})
         </button>
         <button
-          onClick={() => setView("trash")}
+          onClick={() => { setView("trash"); setSelectedSlugs(new Set()); }}
           className={`flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-semibold -mb-px border-b-2 transition-colors ${
             view === "trash" ? "border-[#0B0B0B] text-[#0B0B0B]" : "border-transparent text-[#0B0B0B]/40 hover:text-[#0B0B0B]/70"
           }`}
@@ -2512,7 +2521,7 @@ function PostList({ posts, onEdit, onDelete, onRestore, onPermanentDelete, onAdd
         ] as const).map(({ key, label, count }) => (
           <button
             key={key}
-            onClick={() => setStatusFilter(key)}
+            onClick={() => { setStatusFilter(key); setSelectedSlugs(new Set()); }}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold border transition-all ${
               statusFilter === key
                 ? key === "published"
@@ -2536,7 +2545,7 @@ function PostList({ posts, onEdit, onDelete, onRestore, onPermanentDelete, onAdd
         {allTags.map((t) => {
           const count = t === "All" ? posts.length : posts.filter((p) => p.tag === t).length;
           return (
-            <button key={t} onClick={() => setFilter(t)}
+            <button key={t} onClick={() => { setFilter(t); setSelectedSlugs(new Set()); }}
               className={`px-3.5 py-2.5 text-[13px] font-medium border-b-2 -mb-px transition-colors ${filter === t ? "text-[#0B0B0B] border-[#0B0B0B]" : "text-[#0B0B0B]/40 border-transparent hover:text-[#0B0B0B]/65"}`}>
               {t} <span className="ml-1 text-[11px] opacity-50">({count})</span>
             </button>
@@ -2545,10 +2554,11 @@ function PostList({ posts, onEdit, onDelete, onRestore, onPermanentDelete, onAdd
       </div>
 
       <Card className="p-0 overflow-hidden">
+        <BulkSelectionBar selectedCount={selectedShown.length} visibleCount={shown.length} onSelectAllVisible={() => setSelectedSlugs(new Set(shown.map((post) => post.slug)))} onUnselectAll={() => setSelectedSlugs(new Set())} onRemoveSelected={removeSelected} itemLabel="posts" />
         <table className="w-full">
           <thead>
             <tr className="border-b border-[#0B0B0B]/6 bg-[#fafafa]">
-              <th className="text-left px-5 py-3 text-[10px] font-bold text-[#0B0B0B]/40 uppercase tracking-widest">Title</th>
+              <th className="text-left px-5 py-3 text-[10px] font-bold text-[#0B0B0B]/40 uppercase tracking-widest"><span className="sr-only">Select</span>Title</th>
               <th className="text-left px-3 py-3 text-[10px] font-bold text-[#0B0B0B]/40 uppercase tracking-widest w-28 whitespace-nowrap">Status</th>
               <th className="text-left px-3 py-3 text-[10px] font-bold text-[#0B0B0B]/40 uppercase tracking-widest w-24">SEO</th>
               <th className="text-left px-3 py-3 text-[10px] font-bold text-[#0B0B0B]/40 uppercase tracking-widest w-28">Category</th>
@@ -2565,6 +2575,8 @@ function PostList({ posts, onEdit, onDelete, onRestore, onPermanentDelete, onAdd
               return (
                 <tr key={post.slug + i} className="border-b border-[#0B0B0B]/5 hover:bg-[#0B0B0B]/2 group transition-colors last:border-0">
                   <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-3">
+                      <CollectionSelectionCheckbox checked={selectedSlugs.has(post.slug)} label={`Select post ${post.title || "untitled"}`} onChange={(checked) => setSelectedSlugs((prev) => { const next = new Set(prev); checked ? next.add(post.slug) : next.delete(post.slug); return next; })} />
                     <button onClick={() => onEdit(post)} className="text-left w-full flex items-center gap-3">
                       <div className="shrink-0 w-14 h-10 rounded-lg overflow-hidden bg-[#0B0B0B]/6 flex items-center justify-center">
                         {post.featuredImage ? (
@@ -2578,6 +2590,7 @@ function PostList({ posts, onEdit, onDelete, onRestore, onPermanentDelete, onAdd
                         {post.excerpt && <p className="text-[11px] text-[#0B0B0B]/38 truncate max-w-[280px] mt-0.5">{post.excerpt}</p>}
                       </div>
                     </button>
+                    </div>
                   </td>
                   <td className="px-3 py-3.5">
                     {(() => {
@@ -2610,7 +2623,7 @@ function PostList({ posts, onEdit, onDelete, onRestore, onPermanentDelete, onAdd
                   <td className="px-3 py-3.5">
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
                       <button onClick={() => onEdit(post)} className="p-1.5 rounded hover:bg-[#0B0B0B]/8 text-[#0B0B0B]/35 hover:text-[#0B0B0B] transition-colors" title="Edit"><Edit2 size={13} /></button>
-                      <button onClick={() => onDelete(post.slug, realIdx)} className="p-1.5 rounded hover:bg-red-50 text-[#0B0B0B]/35 hover:text-red-500 transition-colors" title="Delete"><Trash2 size={13} /></button>
+                      <button onClick={() => { onDelete(post.slug, realIdx); setSelectedSlugs((prev) => { const next = new Set(prev); next.delete(post.slug); return next; }); }} className="p-1.5 rounded hover:bg-red-50 text-[#0B0B0B]/35 hover:text-red-500 transition-colors" title="Delete"><Trash2 size={13} /></button>
                     </div>
                   </td>
                 </tr>
@@ -2736,6 +2749,13 @@ export default function AdminBlog() {
         posts={posts}
         onEdit={(post) => setEditing({ post: { ...post }, isNew: false })}
         onDelete={handleDelete}
+        onDeleteSelected={(slugs) => {
+          if (!confirm(`Move ${slugs.length} selected post${slugs.length === 1 ? "" : "s"} to Trash? You can restore them anytime from the Trash tab.`)) return;
+          const now = new Date().toISOString();
+          persist(posts.map((post) => slugs.includes(post.slug) ? { ...post, trashed: true, trashedAt: now } : post)).catch(
+            () => alert("Couldn't move the selected posts to Trash. Please try again."),
+          );
+        }}
         onRestore={handleRestore}
         onPermanentDelete={handlePermanentDelete}
         onAdd={() =>
