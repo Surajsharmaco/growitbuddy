@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
-import { Plus, Trash2, ExternalLink } from "lucide-react";
+import { AlertCircle, ChevronDown, ChevronUp, Plus, Trash2, ExternalLink } from "lucide-react";
 import { sourceLabel, getEmbedUrl, detectAspectRatio } from "@/lib/videoEmbed";
 import { ImageUrlField } from "@/components/admin/ImageUrlField";
+import { getPoolFormFields, type PoolFormField } from "@/lib/talentPoolForm";
 
 interface ResourceCard { id: string; title: string; desc: string; link: string; btnLabel: string; }
 interface Step { number: string; title: string; desc: string; }
@@ -16,6 +17,8 @@ interface PoolData {
   stepsTitle: string; steps: Step[];
   resourcesTitle: string; resourcesSubtext: string; resources: ResourceCard[];
   formTitle: string; formSubtext: string; formDisclaimer: string; formNotifyEmail: string;
+  formFields: PoolFormField[];
+  formSubmitLabel?: string; formPrivacyText?: string; formSuccessTitle?: string; formSuccessText?: string;
   finalHeadline: string; finalSubtext: string; finalCtaPrimary: string;
   seoTitle: string; seoDesc: string;
 }
@@ -39,11 +42,18 @@ const EMPTY: PoolData = {
     { id: "4", title: "Resource 4", desc: "", link: "", btnLabel: "Open" },
   ],
   formTitle: "Submit Your Work", formSubtext: "", formDisclaimer: "", formNotifyEmail: "",
+  formFields: [],
+  formSubmitLabel: "", formPrivacyText: "Your details are kept private and only used to match you with relevant creative opportunities.",
+  formSuccessTitle: "", formSuccessText: "",
   finalHeadline: "Ready to join the network?",
   finalSubtext: "Submit your work and become part of the GrowitBuddy ecosystem.",
   finalCtaPrimary: "Submit Now",
   seoTitle: "", seoDesc: "",
 };
+
+const MAX_FORM_FIELDS = 50;
+const MAX_FORM_FIELD_LABEL_LENGTH = 120;
+const MAX_FORM_FIELD_PLACEHOLDER_LENGTH = 240;
 
 interface Props {
   poolKey: string;
@@ -62,6 +72,7 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [formBuilderError, setFormBuilderError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -69,6 +80,7 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
     setLoadError("");
     setSaved(false);
     setSaveError("");
+    setFormBuilderError("");
     getContentResult(poolKey).then(result => {
       if (cancelled) return;
       if (!result.ok) {
@@ -76,7 +88,14 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
         setLoadError("Unable to load this talent pool. Your existing content has not been changed.");
         return;
       }
-      setData({ ...EMPTY, ...((result.data ?? {}) as Partial<PoolData>) });
+      const savedData = (result.data ?? {}) as Partial<PoolData>;
+      setData({
+        ...EMPTY,
+        ...savedData,
+        // Old saved pool rows use the current per-pool defaults. A persisted
+        // empty array, however, is an intentional configuration and stays empty.
+        formFields: getPoolFormFields(poolKey, savedData.formFields),
+      });
       setLoadedRead({ poolKey, getContentResult });
       setLoadState("ready");
     }).catch(() => {
@@ -90,6 +109,7 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
   function set<K extends keyof PoolData>(key: K, val: PoolData[K]) {
     setSaved(false);
     setSaveError("");
+    if (key === "formFields") setFormBuilderError("");
     setData(p => ({ ...p, [key]: val }));
   }
 
@@ -99,17 +119,88 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
 
   async function save() {
     if (!readReady) return;
+    const fields = data.formFields ?? [];
+    const seenKeys = new Set<string>();
+    const duplicateKey = fields.some(field => {
+      const normalizedKey = field.key.trim().toLowerCase();
+      if (seenKeys.has(normalizedKey)) return true;
+      seenKeys.add(normalizedKey);
+      return false;
+    });
+    const fieldErrors = [
+      ...(fields.length > MAX_FORM_FIELDS ? [`A form can contain at most ${MAX_FORM_FIELDS} fields.`] : []),
+      ...(fields.some(field => !field.key.trim() || !field.label.trim()) ? ["Every field needs a label and a key."] : []),
+      ...(fields.some(field => field.label.length > MAX_FORM_FIELD_LABEL_LENGTH) ? [`Field labels must be ${MAX_FORM_FIELD_LABEL_LENGTH} characters or fewer.`] : []),
+      ...(fields.some(field => field.placeholder.length > MAX_FORM_FIELD_PLACEHOLDER_LENGTH) ? [`Field placeholders must be ${MAX_FORM_FIELD_PLACEHOLDER_LENGTH} characters or fewer.`] : []),
+      ...(duplicateKey ? ["Field keys must be unique."] : []),
+    ];
+    if (fieldErrors.length) {
+      const message = `Cannot save the form: ${fieldErrors.join(" ")}`;
+      setFormBuilderError(message);
+      setSaveError(message);
+      setSaved(false);
+      return;
+    }
     setSaving(true);
     setSaveError("");
     try {
-      await saveContent(poolKey, data as unknown as Record<string, unknown>);
+      const safeFormFields = fields.map(field => {
+        if (field.key === "name") return { ...field, type: "text" as const, enabled: true, required: true };
+        if (field.key === "email") return { ...field, type: "email" as const, enabled: true, required: true };
+        return field;
+      });
+      await saveContent(poolKey, { ...data, formFields: safeFormFields } as unknown as Record<string, unknown>);
       setSaved(true);
+      setFormBuilderError("");
     } catch (error) {
       setSaved(false);
       setSaveError(error instanceof Error ? error.message : "Unable to save this talent pool. Please try again.");
     }
     finally { setSaving(false); }
   }
+
+  function updateFormField(index: number, patch: Partial<PoolFormField>) {
+    const current = data.formFields ?? [];
+    const next = current.map((field, fieldIndex) => {
+      if (fieldIndex !== index) return field;
+      const updated = { ...field, ...patch };
+      if (updated.key === "name") return { ...updated, type: "text" as const, enabled: true, required: true };
+      if (updated.key === "email") return { ...updated, type: "email" as const, enabled: true, required: true };
+      return updated;
+    });
+    set("formFields", next);
+  }
+
+  function moveFormField(index: number, direction: -1 | 1) {
+    const fields = [...(data.formFields ?? [])];
+    const target = index + direction;
+    if (target < 0 || target >= fields.length) return;
+    [fields[index], fields[target]] = [fields[target], fields[index]];
+    set("formFields", fields);
+  }
+
+  function addFormField() {
+    const fields = data.formFields ?? [];
+    if (fields.length >= MAX_FORM_FIELDS) {
+      const message = `A form can contain at most ${MAX_FORM_FIELDS} fields. Remove a field before adding another.`;
+      setFormBuilderError(message);
+      setSaveError(message);
+      setSaved(false);
+      return;
+    }
+    const baseKey = `custom_${Date.now().toString(36)}`;
+    let key = baseKey;
+    let suffix = 1;
+    while (fields.some(field => field.key.toLowerCase() === key.toLowerCase())) {
+      key = `${baseKey}_${suffix++}`;
+    }
+    set("formFields", [
+      ...fields,
+      { key, label: "New field", placeholder: "", type: "text", required: false, enabled: true },
+    ]);
+  }
+
+  const formFieldLimitReached = (data.formFields?.length ?? 0) >= MAX_FORM_FIELDS;
 
   return (
     <div className="max-w-3xl">
@@ -306,11 +397,188 @@ export default function AdminTalentPool({ poolKey, label, description, pageUrl }
         <SectionTitle>Submission Form</SectionTitle>
         <div className="space-y-4">
           <Input label="Form Title" value={data.formTitle} onChange={e => set("formTitle", e.target.value)} />
-          <Input label="Form Subtext" value={data.formSubtext} onChange={e => set("formSubtext", e.target.value)} />
+          <Textarea label="Form Subtext" value={data.formSubtext} onChange={e => set("formSubtext", e.target.value)} />
           <Input label="Notification Email" value={data.formNotifyEmail} onChange={e => set("formNotifyEmail", e.target.value)}
             placeholder="team@growitbuddy.com" type="email" hint="Receives a copy of each submission." />
-          <Input label="Disclaimer Text" value={data.formDisclaimer} onChange={e => set("formDisclaimer", e.target.value)}
+          <Textarea label="Disclaimer Text" value={data.formDisclaimer} onChange={e => set("formDisclaimer", e.target.value)}
             hint="Shown below the form in grey. Leave blank to hide." />
+
+          <div className="border-t border-[#0B0B0B]/8 pt-4 space-y-4">
+            <Input
+              label="Submit Button Label"
+              value={data.formSubmitLabel ?? data.ctaPrimary}
+              onChange={e => set("formSubmitLabel", e.target.value)}
+              hint="If left blank, the pool's primary button label is used."
+            />
+            <Textarea
+              label="Privacy Note"
+              value={data.formPrivacyText ?? ""}
+              onChange={e => set("formPrivacyText", e.target.value)}
+              hint="Shown next to the submit button. Leave blank to hide."
+            />
+            <Input
+              label="Success Heading"
+              value={data.formSuccessTitle ?? ""}
+              onChange={e => set("formSuccessTitle", e.target.value)}
+              hint="Leave blank to use the existing pool-specific heading."
+            />
+            <Textarea
+              label="Success Message"
+              value={data.formSuccessText ?? ""}
+              onChange={e => set("formSuccessText", e.target.value)}
+              hint="Leave blank to use the standard success message."
+            />
+          </div>
+
+          <div className="border-t border-[#0B0B0B]/8 pt-4">
+            <div className="mb-4">
+              <h3 className="text-[13px] font-bold text-[#0B0B0B]">Form Fields</h3>
+              <p className="mt-1 text-[12px] leading-5 text-[#0B0B0B]/55">
+                Edit labels and placeholders, choose the input type, hide built-in fields, or add custom questions.
+                Required fields show a red “Must” badge on the public form and block submission until completed.
+                Name and email stay required so applications can be processed.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              {(data.formFields ?? []).map((field, index) => {
+                const fixed = field.key === "name" || field.key === "email";
+                const custom = field.key.startsWith("custom_");
+                return (
+                  <div key={`${field.key}-${index}`} className="rounded-xl border border-[#0B0B0B]/10 p-3 sm:p-4">
+                    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0B0B0B]/5 text-[11px] font-bold text-[#0B0B0B]/60">
+                          {index + 1}
+                        </span>
+                        <span className="truncate text-[12px] font-semibold text-[#0B0B0B]/65">
+                          {field.label.trim() || "Untitled field"}
+                        </span>
+                        {fixed && <span className="rounded-full bg-[#0B0B0B]/5 px-2 py-1 text-[10px] font-semibold text-[#0B0B0B]/50">Always required</span>}
+                      </div>
+                      <div className="flex shrink-0 items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => moveFormField(index, -1)}
+                          disabled={index === 0}
+                          aria-label={`Move ${field.label || "field"} up`}
+                          title="Move field up"
+                          className="rounded-lg p-2 text-[#0B0B0B]/55 hover:bg-[#0B0B0B]/5 disabled:cursor-not-allowed disabled:opacity-25"
+                        >
+                          <ChevronUp size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveFormField(index, 1)}
+                          disabled={index === (data.formFields?.length ?? 0) - 1}
+                          aria-label={`Move ${field.label || "field"} down`}
+                          title="Move field down"
+                          className="rounded-lg p-2 text-[#0B0B0B]/55 hover:bg-[#0B0B0B]/5 disabled:cursor-not-allowed disabled:opacity-25"
+                        >
+                          <ChevronDown size={16} />
+                        </button>
+                        {custom && (
+                          <button
+                            type="button"
+                            onClick={() => set("formFields", (data.formFields ?? []).filter((_, fieldIndex) => fieldIndex !== index))}
+                            aria-label={`Remove ${field.label || "custom field"}`}
+                            title="Remove custom field"
+                            className="rounded-lg p-2 text-red-600 hover:bg-red-50"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <Input
+                        label="Field Label"
+                        value={field.label}
+                        onChange={e => updateFormField(index, { label: e.target.value })}
+                        placeholder="e.g. Portfolio link"
+                        maxLength={MAX_FORM_FIELD_LABEL_LENGTH}
+                        required
+                      />
+                      <Input
+                        label="Placeholder"
+                        value={field.placeholder}
+                        onChange={e => updateFormField(index, { placeholder: e.target.value })}
+                        placeholder="Text shown inside the empty field"
+                        maxLength={MAX_FORM_FIELD_PLACEHOLDER_LENGTH}
+                      />
+                      <label className="block">
+                        <span className="mb-1.5 block text-[12px] font-semibold uppercase tracking-wider text-[#0B0B0B]/60">Input Type</span>
+                        <select
+                          value={field.type}
+                          disabled={fixed}
+                          onChange={e => updateFormField(index, { type: e.target.value as PoolFormField["type"] })}
+                          aria-label={`Input type for ${field.label || "field"}`}
+                          className="w-full rounded-xl border border-[#0B0B0B]/12 bg-white px-3.5 py-2.5 text-[14px] text-[#0B0B0B] outline-none focus:border-[#0B0B0B]/40 disabled:cursor-not-allowed disabled:bg-[#0B0B0B]/5 disabled:text-[#0B0B0B]/45"
+                        >
+                          <option value="text">Text</option>
+                          <option value="email">Email</option>
+                          <option value="url">Website / URL</option>
+                          <option value="textarea">Long answer</option>
+                        </select>
+                      </label>
+                    </div>
+
+                    <div className="mt-3 flex flex-col gap-3 border-t border-[#0B0B0B]/6 pt-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                      <label className={`inline-flex min-h-10 items-center gap-2 text-[12px] font-semibold ${fixed ? "text-[#0B0B0B]/45" : "text-[#0B0B0B]/70"}`}>
+                        <input
+                          type="checkbox"
+                          checked={field.enabled}
+                          disabled={fixed}
+                          onChange={e => updateFormField(index, { enabled: e.target.checked, ...(e.target.checked ? {} : { required: false }) })}
+                          className="h-4 w-4 accent-[#1E293B] disabled:cursor-not-allowed"
+                        />
+                        Show this field on the public form
+                      </label>
+                      <label className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-2 text-[12px] font-bold ${field.required ? "bg-red-50 text-red-700" : "text-[#0B0B0B]/55"} ${fixed ? "cursor-not-allowed" : "cursor-pointer"}`}>
+                        <input
+                          type="checkbox"
+                          checked={field.required}
+                          disabled={fixed || !field.enabled}
+                          onChange={e => updateFormField(index, { required: e.target.checked })}
+                          className="h-4 w-4 accent-red-600 disabled:cursor-not-allowed"
+                        />
+                        <AlertCircle size={15} aria-hidden="true" className={field.required ? "text-red-600" : "text-[#0B0B0B]/30"} />
+                        Must
+                        {fixed && <span className="font-medium text-[#0B0B0B]/40">(always required)</span>}
+                      </label>
+                      {!fixed && !field.enabled && (
+                        <span className="text-[11px] text-[#0B0B0B]/45">Hidden fields are not required.</span>
+                      )}
+                    </div>
+                    <p className="mt-1 break-all text-[10px] text-[#0B0B0B]/35">Field key: {field.key}</p>
+                  </div>
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              onClick={addFormField}
+              disabled={formFieldLimitReached}
+              className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#0B0B0B]/15 px-4 py-2 text-[13px] font-semibold text-[#0B0B0B]/65 hover:border-[#0B0B0B]/30 hover:bg-[#0B0B0B]/[0.02] disabled:cursor-not-allowed disabled:border-red-200 disabled:bg-red-50 disabled:text-red-700"
+            >
+              <Plus size={15} /> {formFieldLimitReached ? "Field limit reached" : "Add custom field"}
+            </button>
+            {formFieldLimitReached && (
+              <p role="alert" className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[12px] font-medium text-red-700">
+                A form can contain at most {MAX_FORM_FIELDS} fields. Remove a field before adding another.
+              </p>
+            )}
+            <p className="mt-2 text-[11px] leading-5 text-[#0B0B0B]/45">
+              Built-in fields can be hidden. Custom fields can be removed. Reordering here also changes their order on the public form.
+            </p>
+            {formBuilderError && (
+              <p role="alert" className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[12px] font-medium text-red-700">
+                {formBuilderError}
+              </p>
+            )}
+          </div>
         </div>
       </Card>
 

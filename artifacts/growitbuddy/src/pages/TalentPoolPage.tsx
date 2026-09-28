@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Play, CheckCircle, ArrowUpRight } from "lucide-react";
+import { AlertCircle, ArrowRight, Play, CheckCircle, ArrowUpRight } from "lucide-react";
 import { getSolidCardStyle, getSolidText, solidIsDark, CardGrain } from "@/components/WashCard";
 import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import EcosystemOptIn from "@/components/EcosystemOptIn";
+import { useVariant } from "@/context/VariantContext";
 import { API_BASE, resolveMediaUrl } from "@/lib/api";
 import { getEmbedUrl, getHiResThumbnail, getThumbnail, parseVideo, detectAspectRatio } from "@/lib/videoEmbed";
+import { getPoolFormFields, type PoolFormField, type PoolFormFieldType } from "@/lib/talentPoolForm";
 
 const VARIANT_TO_CONTEXT: Record<string, string> = {
   designers:  "designer",
@@ -44,6 +46,11 @@ export interface PoolPageData {
   formSubtext: string;
   formDisclaimer: string;
   formNotifyEmail: string;
+  formFields?: PoolFormField[];
+  formSubmitLabel?: string;
+  formPrivacyText?: string;
+  formSuccessTitle?: string;
+  formSuccessText?: string;
   finalHeadline: string;
   finalSubtext: string;
   finalCtaPrimary: string;
@@ -165,104 +172,135 @@ function VideoPlayer({ url }: { url: string }) {
   );
 }
 
-interface PoolFormProps { d: PoolPageData; formVariant: FormVariant; poolType: string; submitLabel: string; }
+interface PoolFormProps { d: PoolPageData; formVariant: FormVariant; poolKey: string; poolType: string; submitLabel: string; }
 
-function PoolForm({ d, formVariant, poolType, submitLabel }: PoolFormProps) {
-  const [base, setBase] = useState({ name: "", email: "", contact: "", notes: "" });
-  const [extra, setExtra] = useState<Record<string, string>>({});
+const DEFAULT_PRIVACY_TEXT = "Your details are kept private and only used to match you with relevant creative opportunities.";
+
+function PoolForm({ d, formVariant, poolKey, poolType, submitLabel }: PoolFormProps) {
+  const variant = useVariant();
+  let fields: PoolFormField[] = [];
+  let formConfigError = "";
+  try {
+    fields = getPoolFormFields(poolKey, d.formFields).filter(field => field.enabled);
+  } catch {
+    formConfigError = "This application form is temporarily unavailable because its saved field configuration is invalid. Please contact GrowitBuddy for help.";
+  }
+  const [values, setValues] = useState<Record<string, string>>(
+    () => Object.fromEntries(fields.map(field => [field.key, ""])),
+  );
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [serverError, setServerError] = useState("");
   const [submittedEmail, setSubmittedEmail] = useState("");
   const successRef = useRef<HTMLDivElement>(null);
+  const fieldRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | null>>({});
 
-  const sb = (k: keyof typeof base, val: string) => setBase(p => ({ ...p, [k]: val }));
-  const se = (k: string, val: string) => setExtra(p => ({ ...p, [k]: val }));
+  const setFieldValue = (key: string, value: string) => {
+    setValues(current => ({ ...current, [key]: value }));
+    setFieldErrors(current => {
+      if (!current[key]) return current;
+      const next = { ...current };
+      delete next[key];
+      return next;
+    });
+    setServerError("");
+    if (status === "error") setStatus("idle");
+  };
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    const errors: Record<string, string> = {};
+    for (const field of fields) {
+      const value = values[field.key] ?? "";
+      if (field.required && !value.trim()) {
+        errors[field.key] = "This field is required.";
+        continue;
+      }
+      const control = fieldRefs.current[field.key];
+      if (value.trim() && control && !control.validity.valid) {
+        errors[field.key] = field.type === "email"
+          ? "Enter a valid email address."
+          : field.type === "url"
+            ? "Enter a valid URL, including https://."
+            : "Check this value and try again.";
+      }
+    }
+    if (Object.keys(errors).length) {
+      setFieldErrors(errors);
+      setServerError("");
+      const firstInvalidKey = fields.find(field => errors[field.key])?.key;
+      if (firstInvalidKey) fieldRefs.current[firstInvalidKey]?.focus();
+      return;
+    }
+
+    const submittedValues = Object.fromEntries(fields.map(field => [field.key, values[field.key] ?? ""]));
+    const extraSummary = fields
+      .filter(field => !["name", "email", "contact", "notes"].includes(field.key))
+      .map(field => `${field.label}: ${values[field.key] ?? ""}`)
+      .filter(line => line.split(": ").slice(1).join(": ").trim());
+    const message = [
+      submittedValues.notes,
+      extraSummary.join("\n"),
+    ].filter(Boolean).join("\n\n") || `Talent pool application for ${poolType}`;
+
     setStatus("sending");
+    setServerError("");
     try {
-      const extraSummary = Object.entries(extra)
-        .map(([k, v]) => `${k}: ${v}`)
-        .join("\n");
-      const message = [base.notes, extraSummary].filter(Boolean).join("\n\n") || `Talent pool application for ${poolType}`;
       const res = await fetch(`${API_BASE}/forms/talent-pool`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...base, ...extra, message, type: `pool-${poolType}`, notifyEmail: d.formNotifyEmail }),
+        body: JSON.stringify({
+          ...submittedValues,
+          message,
+          type: `pool-${poolType}`,
+          ...(variant?.sourceKey === poolKey ? { variantSlug: variant.slug } : {}),
+        }),
       });
       if (res.ok) {
-        setSubmittedEmail(base.email);
+        setSubmittedEmail(submittedValues.email ?? "");
         setStatus("sent");
         setTimeout(() => successRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
       } else {
+        const result = await res.json().catch(() => ({})) as { error?: unknown; field?: unknown };
+        const message = typeof result.error === "string" ? result.error : "Something went wrong. Please try again.";
+        if (res.status === 400 && typeof result.field === "string" && fields.some(field => field.key === result.field)) {
+          setFieldErrors(current => ({ ...current, [result.field as string]: message }));
+          fieldRefs.current[result.field]?.focus();
+        } else {
+          setServerError(message);
+        }
         setStatus("error");
       }
-    } catch { setStatus("error"); }
+    } catch {
+      setServerError("Something went wrong. Please check your connection and try again.");
+      setStatus("error");
+    }
   }
 
-  const successMessages: Record<string, string> = {
-    designers:  "Design submission received - you're in the network.",
-    thumbnail:  "Thumbnail submission received - we'll be in touch.",
-    writers:    "Writing sample received - welcome to the network.",
-    social:     "Profile received - you're part of the ecosystem.",
-    motion:     "Reel received - welcome to the motion network.",
-    ai:         "AI project received - we'll review and reach out.",
-    ugc:        "Content received - you're part of the UGC network.",
-    editors:    "Reel received - welcome to the video editor network.",
-    meme:       "Memes received - you're part of the culture network.",
+  const successTitles: Record<string, string> = {
+    designers: "Design submission received - you're in the network.",
+    thumbnail: "Thumbnail submission received - we'll be in touch.",
+    writers: "Writing sample received - welcome to the network.",
+    social: "Profile received - you're part of the ecosystem.",
+    motion: "Reel received - welcome to the motion network.",
+    ai: "AI project received - we'll review and reach out.",
+    ugc: "Content received - you're part of the UGC network.",
+    editors: "Reel received - welcome to the video editor network.",
+    meme: "Memes received - you're part of the culture network.",
   };
+  const successTitle = d.formSuccessTitle?.trim() || successTitles[formVariant] || "Submission received - thank you.";
+  const successText = d.formSuccessText ?? "You're now part of the GrowitBuddy creator ecosystem. We'll reach out when new opportunities align with your craft.";
+  const visiblePrivacyText = d.formPrivacyText ?? DEFAULT_PRIVACY_TEXT;
+  const visibleSubmitLabel = d.formSubmitLabel?.trim() || submitLabel;
 
-  const inp = (label: string, val: string, onChange: (v: string) => void, type = "text", placeholder = "", required = true) => (
-    <div className="tp-input-wrap">
-      <label className="tp-label">{label}{!required && <span className="tp-label-opt"> (Optional)</span>}</label>
-      <input type={type} value={val} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-        required={required} className="gb-input tp-input" />
-    </div>
-  );
-
-  const variantFields: Record<FormVariant, React.ReactNode> = {
-    designers: (<>
-      {inp("Behance / Dribbble", extra.portfolio ?? "", v => se("portfolio", v), "text", "https://behance.net/...")}
-      {inp("Figma Portfolio", extra.figma ?? "", v => se("figma", v), "text", "https://figma.com/...", false)}
-    </>),
-    thumbnail: (<>
-      {inp("Portfolio Link", extra.portfolio ?? "", v => se("portfolio", v), "text", "https://...")}
-      {inp("Submission Link", extra.link ?? "", v => se("link", v), "text", "Google Drive / Dropbox with your thumbnail")}
-    </>),
-    writers: (<>
-      {inp("Writing Niche / Topics", extra.niche ?? "", v => se("niche", v), "text", "e.g. Finance, Health, Creator Economy")}
-      {inp("Writing Sample", extra.sample ?? "", v => se("sample", v), "text", "https://docs.google.com/...")}
-      {inp("LinkedIn Profile", extra.linkedin ?? "", v => se("linkedin", v), "text", "https://linkedin.com/in/...", false)}
-    </>),
-    social: (<>
-      {inp("Platforms Managed", extra.platforms ?? "", v => se("platforms", v), "text", "e.g. Instagram, LinkedIn, TikTok")}
-      {inp("Portfolio / Case Study", extra.portfolio ?? "", v => se("portfolio", v), "text", "https://...")}
-    </>),
-    motion: (<>
-      {inp("Tools Used", extra.tools ?? "", v => se("tools", v), "text", "e.g. After Effects, Rive, Cavalry")}
-      {inp("Reel / Demo Link", extra.reel ?? "", v => se("reel", v), "text", "https://...")}
-    </>),
-    ai: (<>
-      {inp("AI Tools Used", extra.tools ?? "", v => se("tools", v), "text", "e.g. n8n, Make, OpenAI, Zapier")}
-      {inp("Automation Example", extra.example ?? "", v => se("example", v), "text", "https://...")}
-      {inp("Loom Walkthrough", extra.loom ?? "", v => se("loom", v), "text", "https://loom.com/share/...", false)}
-    </>),
-    ugc: (<>
-      {inp("Instagram / TikTok Handle", extra.social ?? "", v => se("social", v), "text", "@yourhandle")}
-      {inp("Content Sample Link", extra.sample ?? "", v => se("sample", v), "text", "Drive / Dropbox / Link")}
-      {inp("Brand Types / Niches", extra.niche ?? "", v => se("niche", v), "text", "e.g. Skincare, Tech, Food", false)}
-    </>),
-    editors: (<>
-      {inp("Editing Software", extra.tools ?? "", v => se("tools", v), "text", "e.g. Premiere Pro, DaVinci, Final Cut")}
-      {inp("Reel / Showreel Link", extra.reel ?? "", v => se("reel", v), "text", "https://...")}
-      {inp("Sample Edit", extra.sample ?? "", v => se("sample", v), "text", "Drive / YouTube / Frame.io link", false)}
-    </>),
-    meme: (<>
-      {inp("Instagram / X Handle", extra.social ?? "", v => se("social", v), "text", "@yourhandle")}
-      {inp("Meme Portfolio Link", extra.portfolio ?? "", v => se("portfolio", v), "text", "Drive / page / IG profile")}
-      {inp("Niches You Cover", extra.niche ?? "", v => se("niche", v), "text", "e.g. Finance, Pop culture", false)}
-    </>),
-  };
+  if (formConfigError) {
+    return (
+      <div role="alert" className="tp-form-unavailable">
+        <AlertCircle size={20} aria-hidden="true" />
+        <p>{formConfigError}</p>
+      </div>
+    );
+  }
 
   if (status === "sent") return (
     <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} ref={successRef}>
@@ -271,11 +309,13 @@ function PoolForm({ d, formVariant, poolType, submitLabel }: PoolFormProps) {
           <CheckCircle size={26} color="#1E293B" />
         </div>
         <h3 style={{ fontSize: 22, fontWeight: 800, color: "#0A0A0A", marginBottom: 10, letterSpacing: "-0.02em" }}>
-          {successMessages[formVariant] ?? "Submission received - thank you."}
+          {successTitle}
         </h3>
-        <p style={{ fontSize: 15, color: "#5F5F5F", maxWidth: 420, margin: "0 auto", lineHeight: 1.65 }}>
-          You're now part of the GrowitBuddy creator ecosystem. We'll reach out when new opportunities align with your craft.
-        </p>
+        {successText && (
+          <p style={{ fontSize: 15, color: "#5F5F5F", maxWidth: 420, margin: "0 auto", lineHeight: 1.65 }}>
+            {successText}
+          </p>
+        )}
       </div>
       <div style={{ marginTop: 20 }}>
         <EcosystemOptIn
@@ -288,31 +328,67 @@ function PoolForm({ d, formVariant, poolType, submitLabel }: PoolFormProps) {
 
   return (
     <div ref={successRef} className="tp-form-container">
-      <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <form noValidate onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         <div className="tp-form-grid">
-          {inp("Full Name", base.name, v => sb("name", v), "text", "Your full name")}
-          {inp("Email Address", base.email, v => sb("email", v), "email", "you@example.com")}
-          {inp("Contact (WhatsApp / Telegram)", base.contact, v => sb("contact", v), "text", "@handle or number")}
-          {variantFields[formVariant]}
-        </div>
-        <div className="tp-input-wrap">
-          <label className="tp-label">Additional Notes <span className="tp-label-opt">(Optional)</span></label>
-          <textarea value={base.notes} onChange={e => sb("notes", e.target.value)}
-            placeholder="Anything specific you'd like us to know about your work or availability..." rows={4}
-            className="gb-input tp-input" style={{ resize: "vertical" }} />
+          {fields.map(field => {
+            const id = `pool-form-${field.key}`;
+            const errorId = `${id}-error`;
+            const error = fieldErrors[field.key];
+            const controlProps = {
+              id,
+              name: field.key,
+              value: values[field.key] ?? "",
+              placeholder: field.placeholder,
+              required: field.required,
+              "aria-required": field.required,
+              "aria-invalid": !!error,
+              "aria-describedby": error ? errorId : undefined,
+              onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFieldValue(field.key, event.target.value),
+              className: "gb-input tp-input",
+            };
+            return (
+              <div key={field.key} className={`tp-input-wrap${field.type === "textarea" ? " tp-field-wide" : ""}`}>
+                <label htmlFor={id} className="tp-label tp-field-label">
+                  <span>{field.label}</span>
+                  {field.required ? (
+                    <span className="tp-required-badge"><AlertCircle size={13} aria-hidden="true" /> Must</span>
+                  ) : (
+                    <span className="tp-label-opt">Optional</span>
+                  )}
+                </label>
+                {field.type === "textarea" ? (
+                  <textarea
+                    {...controlProps}
+                    ref={element => { fieldRefs.current[field.key] = element; }}
+                    rows={4}
+                    style={{ resize: "vertical" }}
+                  />
+                ) : (
+                  <input
+                    {...controlProps}
+                    ref={element => { fieldRefs.current[field.key] = element; }}
+                    type={field.type as Exclude<PoolFormFieldType, "textarea">}
+                  />
+                )}
+                {error && <p id={errorId} role="alert" className="tp-field-error">{error}</p>}
+              </div>
+            );
+          })}
         </div>
         <div style={{ marginTop: 8, borderTop: "1px solid #E5E5E0", paddingTop: 24, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 18 }}>
-          <p style={{ fontSize: 13, color: "#8A8A8A", maxWidth: 380, lineHeight: 1.6 }}>
-            Your details are kept private and only used to match you with relevant creative opportunities.
-          </p>
+          {visiblePrivacyText && (
+            <p style={{ fontSize: 13, color: "#8A8A8A", maxWidth: 380, lineHeight: 1.6 }}>
+              {visiblePrivacyText}
+            </p>
+          )}
           <button type="submit" disabled={status === "sending"} className="gb-btn tp-submit-btn">
-            {status === "sending" ? "Submitting Application…" : submitLabel}
+            {status === "sending" ? "Submitting Application…" : visibleSubmitLabel}
             {status !== "sending" && <ArrowRight size={16} />}
           </button>
         </div>
-        {status === "error" && (
+        {serverError && (
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ fontSize: 14, color: "#D93025", padding: "12px 16px", background: "rgba(217,48,37,0.08)", borderRadius: 8, marginTop: 8 }}>
-            Something went wrong. Please check your connection and try again.
+            {serverError}
           </motion.p>
         )}
       </form>
@@ -473,6 +549,23 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
         .tp-form-grid {
           display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
         }
+        .tp-field-wide { grid-column: 1 / -1; }
+        .tp-field-label {
+          display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        }
+        .tp-required-badge {
+          display: inline-flex; align-items: center; gap: 4px; color: #D93025;
+          font-size: 11px; font-weight: 800; letter-spacing: 0; text-transform: none;
+          white-space: nowrap;
+        }
+        .tp-field-error { color: #D93025; font-size: 12px; line-height: 1.4; }
+        .tp-form-unavailable {
+          display: flex; align-items: flex-start; gap: 10px; padding: 18px 20px;
+          border: 1px solid rgba(217,48,37,0.22); border-radius: 12px;
+          background: rgba(217,48,37,0.06); color: #A1261C;
+          font-size: 14px; line-height: 1.55;
+        }
+        .tp-form-unavailable svg { flex: 0 0 auto; margin-top: 1px; }
         .tp-input-wrap {
           display: flex; flex-direction: column; gap: 8px;
         }
@@ -650,7 +743,7 @@ export default function TalentPoolPage({ config }: { config: PoolConfig }) {
             </motion.div>
 
             <motion.div {...FI(0.15)} className="tp-form-wrapper">
-              <PoolForm d={d} formVariant={config.formVariant} poolType={config.poolType} submitLabel={d.ctaPrimary} />
+              <PoolForm d={d} formVariant={config.formVariant} poolKey={config.sectionKey} poolType={config.poolType} submitLabel={d.ctaPrimary} />
             </motion.div>
 
             {d.formDisclaimer && (
