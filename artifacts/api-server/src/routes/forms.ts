@@ -1,6 +1,7 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
+import { and, eq } from "drizzle-orm";
 import { logger } from "../lib/logger";
-import { db, leads } from "@workspace/db";
+import { db, leads, pageVariants, siteContent } from "@workspace/db";
 
 const router = Router();
 
@@ -138,7 +139,10 @@ async function saveLead(type: string, name: string | undefined, email: string, d
   try {
     await db.insert(leads).values({ type, name: name || null, email, data });
   } catch (err) {
-    logger.error(err, "Failed to save lead to DB");
+    const code = err && typeof err === "object" && "code" in err && typeof err.code === "string"
+      ? err.code
+      : undefined;
+    logger.error({ code }, "Failed to save lead to DB");
   }
 }
 
@@ -146,17 +150,29 @@ async function saveLead(type: string, name: string | undefined, email: string, d
 function row(label: string, value: string | undefined) {
   if (!value) return "";
   return `<tr>
-    <td style="padding:10px 0;color:#888;font-size:13px;width:170px;vertical-align:top;font-family:Inter,sans-serif;border-bottom:1px solid #f0f0f0">${label}</td>
-    <td style="padding:10px 0;color:#0B0B0B;font-size:14px;vertical-align:top;font-family:Inter,sans-serif;border-bottom:1px solid #f0f0f0"><strong>${value}</strong></td>
+    <td style="padding:10px 0;color:#888;font-size:13px;width:170px;vertical-align:top;font-family:Inter,sans-serif;border-bottom:1px solid #f0f0f0">${escapeHtml(label)}</td>
+    <td style="padding:10px 0;color:#0B0B0B;font-size:14px;vertical-align:top;font-family:Inter,sans-serif;border-bottom:1px solid #f0f0f0"><strong>${escapeHtml(value)}</strong></td>
   </tr>`;
 }
 
 function highlightRow(label: string, value: string | undefined, color = "#8B3A1A") {
   if (!value) return "";
   return `<tr>
-    <td style="padding:10px 0;color:#888;font-size:13px;width:170px;vertical-align:top;font-family:Inter,sans-serif;border-bottom:1px solid #f0f0f0">${label}</td>
-    <td style="padding:10px 0;font-size:14px;vertical-align:top;font-family:Inter,sans-serif;border-bottom:1px solid #f0f0f0"><strong style="color:${color}">${value}</strong></td>
+    <td style="padding:10px 0;color:#888;font-size:13px;width:170px;vertical-align:top;font-family:Inter,sans-serif;border-bottom:1px solid #f0f0f0">${escapeHtml(label)}</td>
+    <td style="padding:10px 0;font-size:14px;vertical-align:top;font-family:Inter,sans-serif;border-bottom:1px solid #f0f0f0"><strong style="color:${color}">${escapeHtml(value)}</strong></td>
   </tr>`;
+}
+
+const HTML_ESCAPES: Record<string, string> = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+    "'": "&#39;",
+};
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, character => HTML_ESCAPES[character] ?? character);
 }
 
 // Badge colours per category
@@ -470,6 +486,8 @@ const POOL_LABELS: Record<string, string> = {
   "pool-editors":             "Video Editors",
 };
 
+const SAFE_VARIANT_SLUG = /^[a-z0-9][a-z0-9-]{0,79}$/;
+
 const POOL_BADGE_COLORS: Record<string, string> = {
   "pool-designers":           "#7c3aed",
   "pool-thumbnail-designers": "#be185d",
@@ -482,42 +500,302 @@ const POOL_BADGE_COLORS: Record<string, string> = {
   "pool-editors":             "#0f766e",
 };
 
-const IGNORED_FIELDS = new Set(["type", "notifyEmail", "message", "notes"]);
+type TalentPoolFieldType = "text" | "email" | "url" | "textarea";
+
+interface TalentPoolField {
+  key: string;
+  label: string;
+  placeholder: string;
+  type: TalentPoolFieldType;
+  required: boolean;
+  enabled: boolean;
+}
+
+const POOL_FIELD_KEY = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/;
+const CUSTOM_POOL_FIELD_KEY = /^custom_[A-Za-z0-9_-]{1,56}$/;
+
+const POOL_SPECIFIC_LEGACY_FIELDS: Record<string, Array<Omit<TalentPoolField, "enabled">>> = {
+  "pool-designers": [
+    { key: "portfolio", label: "Behance / Dribbble", placeholder: "https://behance.net/...", type: "text", required: true },
+    { key: "figma", label: "Figma Portfolio", placeholder: "https://figma.com/...", type: "text", required: false },
+  ],
+  "pool-thumbnail-designers": [
+    { key: "portfolio", label: "Portfolio Link", placeholder: "https://...", type: "text", required: true },
+    { key: "link", label: "Submission Link", placeholder: "Google Drive / Dropbox with your thumbnail", type: "text", required: true },
+  ],
+  "pool-writers": [
+    { key: "niche", label: "Writing Niche / Topics", placeholder: "e.g. Finance, Health, Creator Economy", type: "text", required: true },
+    { key: "sample", label: "Writing Sample", placeholder: "https://docs.google.com/...", type: "text", required: true },
+    { key: "linkedin", label: "LinkedIn Profile", placeholder: "https://linkedin.com/in/...", type: "text", required: false },
+  ],
+  "pool-social-managers": [
+    { key: "platforms", label: "Platforms Managed", placeholder: "e.g. Instagram, LinkedIn, TikTok", type: "text", required: true },
+    { key: "portfolio", label: "Portfolio / Case Study", placeholder: "https://...", type: "text", required: true },
+  ],
+  "pool-motion-designers": [
+    { key: "tools", label: "Tools Used", placeholder: "e.g. After Effects, Rive, Cavalry", type: "text", required: true },
+    { key: "reel", label: "Reel / Demo Link", placeholder: "https://...", type: "text", required: true },
+  ],
+  "pool-ai-creators": [
+    { key: "tools", label: "AI Tools Used", placeholder: "e.g. n8n, Make, OpenAI, Zapier", type: "text", required: true },
+    { key: "example", label: "Automation Example", placeholder: "https://...", type: "text", required: true },
+    { key: "loom", label: "Loom Walkthrough", placeholder: "https://loom.com/share/...", type: "text", required: false },
+  ],
+  "pool-ugc-creators": [
+    { key: "social", label: "Instagram / TikTok Handle", placeholder: "@yourhandle", type: "text", required: true },
+    { key: "sample", label: "Content Sample Link", placeholder: "Drive / Dropbox / Link", type: "text", required: true },
+    { key: "niche", label: "Brand Types / Niches", placeholder: "e.g. Skincare, Tech, Food", type: "text", required: false },
+  ],
+  "pool-editors": [
+    { key: "tools", label: "Editing Software", placeholder: "e.g. Premiere Pro, DaVinci, Final Cut", type: "text", required: true },
+    { key: "reel", label: "Reel / Showreel Link", placeholder: "https://...", type: "text", required: true },
+    { key: "sample", label: "Sample Edit", placeholder: "Drive / YouTube / Frame.io link", type: "text", required: false },
+  ],
+  "pool-meme-designers": [
+    { key: "social", label: "Instagram / X Handle", placeholder: "@yourhandle", type: "text", required: true },
+    { key: "portfolio", label: "Meme Portfolio Link", placeholder: "Drive / page / IG profile", type: "text", required: true },
+    { key: "niche", label: "Niches You Cover", placeholder: "e.g. Finance, Pop culture", type: "text", required: false },
+  ],
+};
+
+function legacyPoolFields(poolType: string): TalentPoolField[] {
+  const common: TalentPoolField[] = [
+    { key: "name", label: "Full Name", placeholder: "Your full name", type: "text", required: true, enabled: true },
+    { key: "email", label: "Email Address", placeholder: "you@example.com", type: "email", required: true, enabled: true },
+    { key: "contact", label: "Contact (WhatsApp / Telegram)", placeholder: "@handle or number", type: "text", required: true, enabled: true },
+    { key: "notes", label: "Additional Notes", placeholder: "Anything specific you'd like us to know about your work or availability...", type: "textarea", required: false, enabled: true },
+  ];
+  const extras = (POOL_SPECIFIC_LEGACY_FIELDS[poolType] ?? []).map(field => ({ ...field, enabled: true }));
+  return [...common, ...extras];
+}
+
+function isAllowedPoolFieldKey(key: string, poolType: string): boolean {
+  if (!POOL_FIELD_KEY.test(key)) return false;
+  if (["name", "email", "contact", "notes"].includes(key)) return true;
+  if (CUSTOM_POOL_FIELD_KEY.test(key)) return true;
+  return (POOL_SPECIFIC_LEGACY_FIELDS[poolType] ?? []).some(field => field.key === key);
+}
+
+function readPoolFormFields(content: Record<string, unknown> | null, poolType: string): TalentPoolField[] {
+  if (!content || !Object.prototype.hasOwnProperty.call(content, "formFields")) {
+    return legacyPoolFields(poolType);
+  }
+
+  const rawFields = content.formFields;
+  if (!Array.isArray(rawFields) || rawFields.length > 50) {
+    throw new Error("Saved talent pool form settings are invalid.");
+  }
+
+  const seen = new Set<string>();
+  const fields = rawFields.map((raw): TalentPoolField => {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+      throw new Error("Saved talent pool form settings are invalid.");
+    }
+    const candidate = raw as Record<string, unknown>;
+    const key = candidate.key;
+    const label = candidate.label;
+    const placeholder = candidate.placeholder;
+    const type = candidate.type;
+    const required = candidate.required;
+    const enabled = candidate.enabled;
+    if (
+      typeof key !== "string" ||
+      !isAllowedPoolFieldKey(key, poolType) ||
+      seen.has(key) ||
+      typeof label !== "string" || !label.trim() || label.length > 120 ||
+      typeof placeholder !== "string" || placeholder.length > 240 ||
+      !["text", "email", "url", "textarea"].includes(String(type)) ||
+      typeof required !== "boolean" ||
+      typeof enabled !== "boolean" ||
+      (key === "name" && type !== "text") ||
+      (key === "email" && type !== "email")
+    ) {
+      throw new Error("Saved talent pool form settings are invalid.");
+    }
+    seen.add(key);
+    return { key, label: label.trim(), placeholder, type: type as TalentPoolFieldType, required, enabled };
+  });
+
+  for (const key of ["name", "email"] as const) {
+    const existing = fields.find(field => field.key === key);
+    if (existing) {
+      existing.enabled = true;
+      existing.required = true;
+    } else {
+      fields.unshift({
+        key,
+        label: key === "name" ? "Full Name" : "Email Address",
+        placeholder: key === "name" ? "Your full name" : "you@example.com",
+        type: key === "name" ? "text" : "email",
+        required: true,
+        enabled: true,
+      });
+    }
+  }
+  return fields;
+}
+
+function isValidPoolUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return (parsed.protocol === "http:" || parsed.protocol === "https:") && !!parsed.hostname;
+  } catch {
+    return false;
+  }
+}
 
 router.post("/talent-pool", formLimit, async (req, res) => {
-  const { name, email, contact, type, message } = req.body;
+  const body = req.body && typeof req.body === "object" && !Array.isArray(req.body)
+    ? req.body as Record<string, unknown>
+    : {};
+  const type = body.type;
+  if (typeof type !== "string" || !Object.prototype.hasOwnProperty.call(POOL_LABELS, type)) {
+    res.status(400).json({ error: "A valid talent pool type is required." });
+    return;
+  }
+
+  const poolType = type;
+  const poolLabel = POOL_LABELS[poolType];
+  const badgeBg = POOL_BADGE_COLORS[poolType];
+  let contentSection = poolType;
+  if (Object.prototype.hasOwnProperty.call(body, "variantSlug")) {
+    const variantSlug = body.variantSlug;
+    if (typeof variantSlug !== "string" || !SAFE_VARIANT_SLUG.test(variantSlug)) {
+      res.status(400).json({ error: "A valid variant slug is required." });
+      return;
+    }
+
+    let variants: { sourceKey: string }[];
+    try {
+      variants = await db
+        .select({ sourceKey: pageVariants.sourceKey })
+        .from(pageVariants)
+        .where(and(
+          eq(pageVariants.slug, variantSlug),
+          eq(pageVariants.isLive, true),
+        ))
+        .limit(1);
+    } catch (err) {
+      req.log.error({ err, poolType }, "Talent pool variant could not be loaded");
+      res.status(503).json({ error: "This form is temporarily unavailable. Please try again shortly." });
+      return;
+    }
+
+    if (!variants[0] || variants[0].sourceKey !== poolType) {
+      res.status(404).json({ error: "This talent pool variant was not found." });
+      return;
+    }
+    contentSection = `${poolType}__v__${variantSlug}`;
+  }
+
+  let poolContent: Record<string, unknown> | null = null;
+  try {
+    const rows = await db
+      .select({ data: siteContent.data })
+      .from(siteContent)
+      .where(eq(siteContent.section, contentSection))
+      .limit(1);
+    if (rows.length > 0) {
+      const data: unknown = rows[0].data;
+      if (!data || typeof data !== "object" || Array.isArray(data)) {
+        throw new Error("Saved talent pool content is invalid.");
+      }
+      poolContent = data as Record<string, unknown>;
+    }
+  } catch (err) {
+    req.log.error({ err, poolType }, "Talent pool form configuration could not be loaded");
+    res.status(503).json({ error: "This form is temporarily unavailable. Please try again shortly." });
+    return;
+  }
+
+  let fields: TalentPoolField[];
+  try {
+    fields = readPoolFormFields(poolContent, poolType);
+  } catch (err) {
+    req.log.error({ err, poolType }, "Talent pool form configuration is invalid");
+    res.status(503).json({ error: "This form is temporarily unavailable. Please try again shortly." });
+    return;
+  }
+
+  const submittedValues = new Map<string, string>();
+  for (const field of fields) {
+    if (!field.enabled && field.key !== "name" && field.key !== "email") continue;
+    const rawValue = Object.prototype.hasOwnProperty.call(body, field.key) ? body[field.key] : undefined;
+    if (rawValue !== undefined && rawValue !== null && typeof rawValue !== "string") {
+      res.status(400).json({ error: `Enter a valid value for ${field.label}.`, field: field.key });
+      return;
+    }
+    const value = typeof rawValue === "string" ? rawValue.trim() : "";
+    if (field.required && !value) {
+      res.status(400).json({ error: `${field.label} is required.`, field: field.key });
+      return;
+    }
+    if (value && field.type === "email" && !isValidEmail(value)) {
+      res.status(400).json({ error: `Enter a valid email address for ${field.label}.`, field: field.key });
+      return;
+    }
+    if (value && field.type === "url" && !isValidPoolUrl(value)) {
+      res.status(400).json({ error: `Enter a valid URL for ${field.label}.`, field: field.key });
+      return;
+    }
+    if (value) submittedValues.set(field.key, value);
+  }
+
+  const name = submittedValues.get("name");
+  const email = submittedValues.get("email");
   if (!name || !email) {
     res.status(400).json({ error: "name and email are required" });
     return;
   }
-  if (!isValidEmail(email)) {
-    res.status(400).json({ error: "Invalid email address" });
-    return;
-  }
-  const poolType: string = (typeof type === "string" && type.startsWith("pool-")) ? type : "pool-unknown";
-  const poolLabel = POOL_LABELS[poolType] ?? poolType;
-  const badgeBg   = POOL_BADGE_COLORS[poolType] ?? "#374151";
   const ts = nowIST();
 
-  // Collect all extra fields from the body for DB + email
-  const extraFields: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(req.body)) {
-    if (!IGNORED_FIELDS.has(k) && k !== "name" && k !== "email" && k !== "contact" && v) {
-      extraFields[k] = v;
-    }
+  const enabledFields = fields.filter(field => field.enabled);
+  const extraFields: Record<string, unknown> = Object.create(null);
+  for (const field of enabledFields) {
+    if (["name", "email", "contact", "notes"].includes(field.key)) continue;
+    const value = submittedValues.get(field.key);
+    if (value) extraFields[field.key] = value;
   }
 
-  logger.info({ name, email, poolType }, "Talent pool application submission");
-  await saveLead(poolType, name, email, { name, email, contact: contact || null, ...extraFields, message: message || null });
+  const extraSummary = enabledFields
+    .filter(field => !["name", "email", "contact", "notes"].includes(field.key))
+    .map(field => {
+      const value = submittedValues.get(field.key);
+      return value ? `${field.label}: ${value}` : "";
+    })
+    .filter(Boolean)
+    .join("\n");
+  const message = [submittedValues.get("notes"), extraSummary].filter(Boolean).join("\n\n")
+    || `Talent pool application for ${poolLabel}`;
+  const leadData: Record<string, unknown> = {
+    name,
+    email,
+    contact: submittedValues.get("contact") ?? null,
+    ...extraFields,
+    message,
+  };
 
-  // Build email rows from extra fields
-  const extraRows = Object.entries(extraFields)
-    .map(([k, v]) => row(k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, " $1"), String(v)))
+  req.log.info({ poolType }, "Talent pool application submission");
+  await saveLead(poolType, name, email, leadData);
+
+  const extraRows = enabledFields
+    .filter(field => !["name", "email", "contact", "notes"].includes(field.key))
+    .map(field => {
+      const value = submittedValues.get(field.key);
+      return value ? row(field.label, value) : "";
+    })
     .join("");
+  const nameLabel = fields.find(field => field.key === "name")?.label ?? "Name";
+  const emailLabel = fields.find(field => field.key === "email")?.label ?? "Email";
+  const contactLabel = fields.find(field => field.key === "contact")?.label ?? "Phone / Contact";
+  const notesLabel = fields.find(field => field.key === "notes")?.label ?? "Notes / Message";
+  const notifyEmail = typeof poolContent?.formNotifyEmail === "string" && isValidEmail(poolContent.formNotifyEmail.trim())
+    ? poolContent.formNotifyEmail.trim()
+    : CAREERS_EMAIL;
 
   await sendEmail(
-    CAREERS_EMAIL,
-    `[TALENT POOL – ${poolLabel.toUpperCase()}] ${name}`,
+    notifyEmail,
+    `[TALENT POOL – ${poolLabel.toUpperCase()}] Application`,
     `<!DOCTYPE html><html><head><meta charset="utf-8"/></head>
 <body style="margin:0;padding:0;background:#F7F7F5;font-family:Inter,sans-serif">
 <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 16px">
@@ -533,11 +811,11 @@ router.post("/talent-pool", formLimit, async (req, res) => {
     <p style="margin:0 0 20px;font-size:22px;font-weight:800;color:#0B0B0B;letter-spacing:-0.03em">New ${poolLabel} Application</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1.5px solid rgba(11,11,11,0.08)">
       ${highlightRow("Pool", poolLabel, badgeBg)}
-      ${row("Name", name)}
-      ${row("Email", email)}
-      ${contact ? row("Phone / Contact", contact) : ""}
+      ${row(nameLabel, name)}
+      ${row(emailLabel, email)}
+      ${row(contactLabel, submittedValues.get("contact"))}
       ${extraRows}
-      ${message ? row("Notes / Message", message) : ""}
+      ${row(notesLabel, submittedValues.get("notes"))}
     </table>
   </td></tr>
   <tr><td style="padding:20px 36px 32px;border-top:1px solid #f0f0f0;margin-top:8px">
