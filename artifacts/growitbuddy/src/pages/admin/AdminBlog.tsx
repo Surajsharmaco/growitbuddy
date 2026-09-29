@@ -7,6 +7,8 @@ import { ImagePickerField } from "@/components/admin/ImagePickerField";
 import { Card } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
 import { BulkSelectionBar, CollectionSelectionCheckbox } from "@/components/admin/BulkSelectionBar";
+import { KeywordUsageGuide } from "@/components/admin/KeywordUsageGuide";
+import { analyzeKeywordUsage, countArticleWords as wordCount, KEYWORD_DENSITY } from "@/lib/keywordUsage";
 import WordPressPostsCard from "@/pages/admin/WordPressPostsCard";
 import {
   Plus, ArrowLeft, Bold, Italic, List, ListOrdered, Quote,
@@ -25,20 +27,6 @@ import {
 
 function stripHtml(html: string) {
   return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-}
-
-function wordCount(html: string) {
-  const text = stripHtml(html);
-  return text ? text.split(" ").filter(Boolean).length : 0;
-}
-
-function getKeywordDensity(content: string, keyword: string): number {
-  if (!keyword || !content) return 0;
-  const text = stripHtml(content).toLowerCase();
-  const kw = keyword.toLowerCase();
-  const words = text.split(" ").filter(Boolean);
-  const matches = words.filter((w) => w.includes(kw)).length;
-  return words.length ? Math.round((matches / words.length) * 1000) / 10 : 0;
 }
 
 function detectSearchIntent(keyword: string): PostSeo["searchIntent"] {
@@ -114,11 +102,11 @@ function computeSeoScore(post: BlogPost, content: string, seo: PostSeo): { score
   score += hasH2 ? 10 : 0;
   issues.push({ key: "headings", label: "Uses H2 / H3 headings for structure", status: hasH2 ? "good" : "warn", tip: "Break content into sections with headings" });
 
-  const density = getKeywordDensity(content, kw);
-  const densityOk = density >= 0.5 && density <= 3;
-  const densityWarn = density > 3;
+  const { density, zone: densityZone } = analyzeKeywordUsage(content, kw);
+  const densityOk = densityZone === "in-range";
+  const densityWarn = density > KEYWORD_DENSITY.suggestedMax;
   score += densityOk ? 10 : 0;
-  const densityStatus = densityOk ? "good" : densityWarn ? "warn" : density === 0 ? "error" : "warn";
+  const densityStatus = densityOk ? "good" : densityZone === "low" || densityZone === "high" ? "warn" : "error";
   issues.push({
     key: "density",
     label: `Keyword density: ${density}% ${densityOk ? "(good)" : densityWarn ? "(over-optimized)" : "(too low)"}`,
@@ -289,7 +277,7 @@ function yoastChecks(post: BlogPost, content: string, seo: PostSeo, allPosts: Bl
   const metaDesc = seo.metaDescription.toLowerCase();
   const slug = post.slug.toLowerCase();
   const wc = wordCount(content);
-  const density = kw ? getKeywordDensity(content, kw) : 0;
+  const { density, zone: densityZone } = analyzeKeywordUsage(content, kw);
   const first10pct = text.split(" ").slice(0, Math.max(1, Math.ceil(wc * 0.1))).join(" ");
   const year = new Date().getFullYear();
 
@@ -305,7 +293,7 @@ function yoastChecks(post: BlogPost, content: string, seo: PostSeo, allPosts: Bl
   const subheadings = content.match(/<h[23][^>]*>(.*?)<\/h[23]>/gi) || [];
   const kwInSub = kw ? subheadings.some(h => stripHtml(h).toLowerCase().includes(kw)) : false;
   const hasImages = /<img/i.test(content);
-  const densityOk = density >= 0.5 && density <= 3.0;
+  const densityOk = densityZone === "in-range";
   const urlShort = slug.length <= 75 && slug.length > 0;
   const hasInternal = /href=["']\//i.test(content);
   const kwUsedElsewhere = kw ? allPosts.filter(p => p.slug !== post.slug).some(p => (p.seo?.focusKeyword || "").toLowerCase() === kw) : false;
@@ -437,7 +425,7 @@ function yoastChecks(post: BlogPost, content: string, seo: PostSeo, allPosts: Bl
           : density > 3
             ? `You use your topic word too many times (${density}%) - it looks spammy.`
             : `You barely use your topic word (${density}%) - mention it more.`,
-        pass: densityOk, warn: density > 3,
+        pass: densityOk, warn: densityZone === "low" || densityZone === "high",
         fix: densityOk ? undefined : density > 3 ? {
           tip: `You've mentioned "${kw}" so often it may look like spam to Google. Try replacing some uses with related phrases or just remove a few. Write naturally - don't repeat the same word over and over.`,
         } : {
@@ -1927,6 +1915,9 @@ function PostEditor({
                   />
                 </div>
                 <p className="text-[11px] text-[#0B0B0B]/40 mb-4">Press Enter or comma to add. First keyword is the focus keyword (green). Others are secondary.</p>
+                <div className="mb-4">
+                  <KeywordUsageGuide keyword={seo.focusKeyword || kwTagInput.trim()} content={liveContent} />
+                </div>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={!!(seo as any).pillarContent} onChange={(e) => setSeoField("pillarContent" as any, e.target.checked)} className="accent-[#0B0B0B] w-3.5 h-3.5" />
                   <span className="text-[12px] text-[#0B0B0B]/70 font-medium">This post is Pillar Content</span>
@@ -2146,6 +2137,9 @@ function PostEditor({
               placeholder="e.g. founder brand strategy"
               className="w-full border border-[#0B0B0B]/12 rounded-lg px-2.5 py-1.5 text-[12px] text-[#0B0B0B] outline-none focus:border-[#0B0B0B]/30 bg-white mb-2"
             />
+            <div className="mb-3">
+              <KeywordUsageGuide keyword={seo.focusKeyword} content={liveContent} />
+            </div>
             <input
               value={seo.secondaryKeywords}
               onChange={(e) => setSeoField("secondaryKeywords", e.target.value)}
