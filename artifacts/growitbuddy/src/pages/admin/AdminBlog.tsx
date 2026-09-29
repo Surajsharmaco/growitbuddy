@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, type ClipboardEvent as ReactClipboardEvent } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { API_BASE, resolveMediaUrl } from "@/lib/api";
 import { defaultSeo, type BlogPost, type PostSeo } from "@/data/blogPosts";
@@ -9,6 +9,7 @@ import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
 import { BulkSelectionBar, CollectionSelectionCheckbox } from "@/components/admin/BulkSelectionBar";
 import { KeywordUsageGuide } from "@/components/admin/KeywordUsageGuide";
 import { analyzeKeywordUsage, countArticleWords as wordCount, KEYWORD_DENSITY } from "@/lib/keywordUsage";
+import { formatPastedBlog, optimizeBlogContent } from "@/lib/pasteBlogContent";
 import WordPressPostsCard from "@/pages/admin/WordPressPostsCard";
 import {
   Plus, ArrowLeft, Bold, Italic, List, ListOrdered, Quote,
@@ -670,44 +671,20 @@ function yoastChecks(post: BlogPost, content: string, seo: PostSeo, allPosts: Bl
 // MARKDOWN ↔ HTML HELPERS
 // ─────────────────────────────────────
 
-function inlineFormat(text: string): string {
-  return text
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g, "<em>$1</em>");
-}
-
 function isHtmlContent(text: string): boolean {
-  return /<(h[1-6]|p|blockquote|ul|ol|li|strong|em|br)\b/i.test(text);
+  return /<(h[1-6]|p|div|blockquote|ul|ol|li|strong|em|br|a|img|table|figure|pre|section)\b/i.test(text);
 }
 
 function mdToHtml(md: string): string {
   if (!md || isHtmlContent(md)) return md;
-  const lines = md.split("\n");
-  let html = "";
-  let i = 0;
-  while (i < lines.length) {
-    const t = lines[i].trim();
-    if (!t) { i++; continue; }
-    if (t.startsWith("## ")) { html += `<h2>${inlineFormat(t.slice(3))}</h2>`; i++; continue; }
-    if (t.startsWith("### ")) { html += `<h3>${inlineFormat(t.slice(4))}</h3>`; i++; continue; }
-    if (t.startsWith("> ")) { html += `<blockquote>${inlineFormat(t.slice(2))}</blockquote>`; i++; continue; }
-    if (t.startsWith("- ") || t.startsWith("* ")) {
-      html += "<ul>";
-      while (i < lines.length && (lines[i].trim().startsWith("- ") || lines[i].trim().startsWith("* "))) {
-        html += `<li>${inlineFormat(lines[i].trim().slice(2))}</li>`; i++;
-      }
-      html += "</ul>"; continue;
-    }
-    if (/^\d+\.\s/.test(t)) {
-      html += "<ol>";
-      while (i < lines.length && /^\d+\.\s/.test(lines[i].trim())) {
-        html += `<li>${inlineFormat(lines[i].trim().replace(/^\d+\.\s/, ""))}</li>`; i++;
-      }
-      html += "</ol>"; continue;
-    }
-    html += `<p>${inlineFormat(t)}</p>`; i++;
-  }
-  return html;
+  return formatPastedBlog({ text: md }).html;
+}
+
+function shortSummary(text: string, maxLength: number): string {
+  const normalized = text.replace(/\s+/g, " ").trim();
+  if (normalized.length <= maxLength) return normalized;
+  const prefix = normalized.slice(0, maxLength + 1);
+  return prefix.slice(0, prefix.lastIndexOf(" ")) || normalized.slice(0, maxLength);
 }
 
 const EDITOR_CSS = `
@@ -725,6 +702,10 @@ const EDITOR_CSS = `
 .blog-editor strong { font-weight: 700; color: #0B0B0B; }
 .blog-editor em { font-style: italic; }
 .blog-editor a { color: #0B0B0B; text-decoration: underline; }
+.blog-editor .blog-table-scroll { max-width: 100%; overflow-x: auto; margin: 20px 0; }
+.blog-editor table { border-collapse: collapse; width: 100%; min-width: 100%; font-size: 14px; }
+.blog-editor th, .blog-editor td { border: 1px solid rgba(11,11,11,0.15); padding: 10px 12px; min-width: 110px; text-align: left; }
+.blog-editor th { background: rgba(11,11,11,0.05); font-weight: 700; }
 .blog-editor hr { border: none; border-top: 1.5px solid rgba(11,11,11,0.1); margin: 36px 0; }
 `;
 
@@ -771,6 +752,8 @@ function PostEditor({
   const [activeTab, setActiveTab] = useState<"write" | "seo">("write");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [optimizationUndo, setOptimizationUndo] = useState<{ data: BlogPost; seo: PostSeo; mode: "visual" | "text" } | null>(null);
+  const [optimizationNotice, setOptimizationNotice] = useState("");
   const [status, setStatus] = useState<"draft" | "published">(post.status ?? "published");
   const [visibility, setVisibility] = useState<"public" | "private">("public");
   const [toasts, setToasts] = useState<{ id: number; msg: string; type: "success" | "error" | "info" }[]>([]);
@@ -910,6 +893,8 @@ function PostEditor({
 
   function setField<K extends keyof BlogPost>(key: K, val: BlogPost[K]) {
     setSaved(false);
+    setOptimizationUndo(null);
+    setOptimizationNotice("");
     setData((p) => {
       const updated = { ...p, [key]: val };
       if (key === "title" && !p.slug) {
@@ -925,6 +910,8 @@ function PostEditor({
 
   function setSeoField<K extends keyof PostSeo>(key: K, val: PostSeo[K]) {
     setSaved(false);
+    setOptimizationUndo(null);
+    setOptimizationNotice("");
     setSeo((p) => ({ ...p, [key]: val }));
     if (key === "focusKeyword") {
       const intent = detectSearchIntent(val as string);
@@ -935,6 +922,149 @@ function PostEditor({
   function captureContent(): string {
     if (mode === "visual" && editorRef.current) return editorRef.current.innerHTML;
     return data.content;
+  }
+
+  function handleOptimize() {
+    const original = captureContent();
+    if (!original.trim()) {
+      showToast("Paste or write your article before optimizing.", "info");
+      return;
+    }
+    try {
+      const sourceType = mode === "visual" || isHtmlContent(original) ? "html" : "markdown";
+      const result = optimizeBlogContent(original, sourceType);
+      if (!result.html.trim()) throw new Error("No usable content found.");
+      const container = document.createElement("div");
+      container.innerHTML = result.html;
+      let title = data.title.trim();
+      container.querySelectorAll("h1").forEach((heading) => {
+        const text = heading.textContent?.trim() ?? "";
+        const removable = !heading.hasAttributes() && !heading.querySelector("a");
+        if (!title && text) {
+          title = text;
+          if (removable) {
+            heading.remove(); // The post title is rendered as its H1 on the public page.
+            return;
+          }
+        } else if (removable && text && text.toLocaleLowerCase() === title.toLocaleLowerCase()) {
+          heading.remove();
+          return;
+        }
+        const h2 = document.createElement("h2");
+        for (const attr of Array.from(heading.attributes)) h2.setAttribute(attr.name, attr.value);
+        while (heading.firstChild) h2.appendChild(heading.firstChild);
+        heading.replaceWith(h2);
+      });
+      const content = container.innerHTML;
+      const paragraph = Array.from(container.querySelectorAll("p"))
+        .map((p) => p.textContent?.replace(/\s+/g, " ").trim() ?? "")
+        .find(Boolean) ?? "";
+      const excerpt = data.excerpt.trim() || shortSummary(paragraph, 160);
+      const description = shortSummary(excerpt, 160);
+      const nextSeo: PostSeo = {
+        ...seo,
+        seoTitle: seo.seoTitle.trim() || shortSummary(title, 60),
+        metaDescription: seo.metaDescription.trim() || description,
+        ogTitle: seo.ogTitle.trim() || title,
+        ogDescription: seo.ogDescription.trim() || description,
+      };
+      const nextData: BlogPost = { ...data, content, title, excerpt };
+      if (content === original && title === data.title && excerpt === data.excerpt &&
+          nextSeo.seoTitle === seo.seoTitle && nextSeo.metaDescription === seo.metaDescription &&
+          nextSeo.ogTitle === seo.ogTitle && nextSeo.ogDescription === seo.ogDescription) {
+        showToast("This draft is already formatted. Review the SEO Analysis before publishing.", "info");
+        return;
+      }
+      setOptimizationUndo({ data: { ...data, content: original }, seo: { ...seo }, mode });
+      setData(nextData);
+      setSeo(nextSeo);
+      setSaved(false);
+      if (mode === "text") {
+        setMode("visual");
+        setTimeout(() => { if (editorRef.current) editorRef.current.innerHTML = content; }, 0);
+      } else if (editorRef.current) {
+        editorRef.current.innerHTML = content;
+      }
+      const missing = [
+        !title && "a title",
+        !description && "a description",
+        !seo.focusKeyword.trim() && "a focus keyword",
+      ].filter(Boolean);
+      setOptimizationNotice(missing.length
+        ? `Formatting complete. Add ${missing.join(" and ")}, then review the SEO Analysis before publishing.`
+        : "Draft optimized. Review the article and SEO Analysis before publishing.");
+      showToast(result.omittedImages
+        ? `Optimized. ${result.omittedImages} unsafe image${result.omittedImages === 1 ? " was" : "s were"} omitted; add it via Insert Image.`
+        : "Draft optimized. Review before publishing.", result.omittedImages ? "info" : "success");
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Optimization failed. Your draft was not changed.", "error");
+    }
+  }
+
+  function undoOptimize() {
+    if (!optimizationUndo) return;
+    setData(optimizationUndo.data);
+    setSeo(optimizationUndo.seo);
+    setMode(optimizationUndo.mode);
+    if (optimizationUndo.mode === "visual") {
+      setTimeout(() => { if (editorRef.current) editorRef.current.innerHTML = optimizationUndo.data.content; }, 0);
+    }
+    setOptimizationUndo(null);
+    setOptimizationNotice("");
+    setSaved(false);
+    showToast("Optimization undone.", "info");
+  }
+
+  function handleEditorPaste(event: ReactClipboardEvent<HTMLDivElement>) {
+    const html = event.clipboardData.getData("text/html");
+    const text = event.clipboardData.getData("text/plain");
+    if (!html && !text) return;
+
+    const { html: formatted, omittedImages } = formatPastedBlog({ html, text });
+    event.preventDefault();
+    if (!formatted) {
+      showToast("No usable blog content found in the clipboard.", "error");
+      return;
+    }
+
+    const pasted = document.createElement("div");
+    pasted.innerHTML = formatted;
+    if (!data.title.trim() && !editorRef.current?.textContent?.trim()) {
+      const first = pasted.firstElementChild;
+      if (first?.tagName === "H1" && first.textContent?.trim()) {
+        setField("title", first.textContent.trim());
+        first.remove(); // The post title is already rendered as the article's H1.
+      }
+    }
+
+    const content = pasted.innerHTML;
+    if (content && editorRef.current) {
+      if (!document.execCommand("insertHTML", false, content)) {
+        const selection = window.getSelection();
+        if (selection?.rangeCount && editorRef.current.contains(selection.anchorNode)) {
+          const range = selection.getRangeAt(0);
+          range.deleteContents();
+          const fragment = range.createContextualFragment(content);
+          const last = fragment.lastChild;
+          range.insertNode(fragment);
+          if (last) {
+            range.setStartAfter(last);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+          }
+        } else {
+          editorRef.current.insertAdjacentHTML("beforeend", content);
+        }
+      }
+      setField("content", editorRef.current.innerHTML);
+    }
+    showToast(
+      omittedImages
+        ? `Formatting applied. ${omittedImages} pasted image${omittedImages === 1 ? " was" : "s were"} omitted; add via Insert Image.`
+        : "Blog formatting applied. Review before publishing.",
+      omittedImages ? "info" : "success",
+    );
   }
 
   async function runAiAnalysis() {
@@ -1312,11 +1442,11 @@ function PostEditor({
       )}
 
       {/* Top bar — sticky so Save Draft/Publish stay visible without scrolling on long posts */}
-      <div className="sticky top-0 z-30 flex items-center gap-3 mb-5 py-3 bg-[#F7F7F5]/95 backdrop-blur border-b border-[#0B0B0B]/8">
+      <div className="sticky top-0 z-30 flex flex-wrap items-center gap-2 sm:gap-3 mb-5 py-3 bg-[#F7F7F5]/95 backdrop-blur border-b border-[#0B0B0B]/8">
         <button onClick={onBack} className="flex items-center gap-1.5 text-[13px] text-[#0B0B0B]/45 hover:text-[#0B0B0B] transition-colors">
           <ArrowLeft size={14} /> All Posts
         </button>
-        <h1 className="text-[19px] font-black tracking-tight text-[#0B0B0B] flex-1">{isNew ? "Add New Post" : "Edit Post"}</h1>
+        <h1 className="text-[19px] font-black tracking-tight text-[#0B0B0B] flex-1 min-w-[130px]">{isNew ? "Add New Post" : "Edit Post"}</h1>
         {saved && <span className="text-[12px] text-emerald-600 font-medium">Saved</span>}
         <button onClick={() => handleSave("draft")} disabled={saving} className="text-[13px] font-medium text-[#0B0B0B]/55 border border-[#0B0B0B]/15 px-3.5 py-2 rounded-xl hover:border-[#0B0B0B]/30 transition-colors disabled:opacity-40">
           Save Draft
@@ -1325,6 +1455,7 @@ function PostEditor({
           {saving ? "Saving..." : "Publish"}
         </button>
       </div>
+      {optimizationNotice && <p className="text-[12px] text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 mb-4" role="status">{optimizationNotice}</p>}
 
       <div className="flex gap-5 items-start">
         {/* ── Left: tabs + content ── */}
@@ -1490,7 +1621,9 @@ function PostEditor({
                 </div>
                 {mode === "visual" ? (
                   <div ref={editorRef} contentEditable
+                     data-testid="blog-content-editor"
                     onInput={() => { if (editorRef.current) setField("content", editorRef.current.innerHTML); }}
+                     onPaste={handleEditorPaste}
                     onMouseUp={saveSelection}
                     onKeyUp={saveSelection}
                     className="blog-editor min-h-[460px] px-8 py-7 outline-none"
@@ -1507,7 +1640,9 @@ function PostEditor({
                       {readability.label} (avg {readability.avgWords} words/sentence)
                     </span>
                   </div>
-                  <span className="text-[11px] text-[#0B0B0B]/22">Select text to format</span>
+                  <span className="text-[11px] text-[#0B0B0B]/40">
+                    {mode === "visual" ? "Paste Markdown or rich text to auto-format" : "HTML source mode · switch to Visual for auto-format paste"}
+                  </span>
                 </div>
               </div>
             </>
@@ -2122,10 +2257,19 @@ function PostEditor({
                 <input type="text" value={data.date} onChange={(e) => setField("date", e.target.value)} className="text-[12px] text-[#0B0B0B] border border-[#0B0B0B]/12 rounded px-2 py-1 bg-white outline-none w-36 text-right" />
               </FieldRow>
             </div>
-            <div className="px-4 pb-4 pt-1">
+            <div className="px-4 pb-4 pt-1 space-y-2">
               <button onClick={() => handleSave("publish")} disabled={saving} className="w-full bg-[#0B0B0B] text-white text-[13px] font-semibold py-2.5 rounded-lg hover:bg-[#0B0B0B]/85 disabled:opacity-40 transition-colors">
                 {saving ? "Saving..." : "Publish"}
               </button>
+              <button type="button" onClick={handleOptimize} disabled={saving} className="w-full flex items-center justify-center gap-2 bg-emerald-100 border border-emerald-300 text-emerald-950 text-[13px] font-bold py-2.5 rounded-lg hover:bg-emerald-200 disabled:opacity-40 transition-colors">
+                <Sparkles size={14} /> Optimize
+              </button>
+              {optimizationUndo && (
+                <button type="button" onClick={undoOptimize} className="w-full text-[11px] font-medium text-[#0B0B0B]/55 hover:text-[#0B0B0B] py-1">
+                  Undo Optimize
+                </button>
+              )}
+              <p className="text-[10px] leading-snug text-[#0B0B0B]/45">Format the draft, then review before publishing.</p>
             </div>
           </div>
 
