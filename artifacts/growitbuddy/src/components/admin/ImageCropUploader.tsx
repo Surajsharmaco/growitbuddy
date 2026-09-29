@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useId } from "react";
+import { useState, useRef, useCallback, useEffect, useId } from "react";
 import { Upload, X, RotateCcw, Check, Crop, Images } from "lucide-react";
 import { MediaLibrary } from "./MediaLibrary";
 import { useAdmin } from "@/context/AdminContext";
@@ -55,6 +55,13 @@ export function ImageCropUploader({ value, onChange, hint }: Props) {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
+  const uploadAbortRef = useRef<AbortController | null>(null);
+  const uploadIdRef = useRef(0);
+
+  useEffect(() => () => {
+    uploadIdRef.current++;
+    uploadAbortRef.current?.abort();
+  }, []);
 
   const dragState = useRef<{
     handle: Handle;
@@ -162,8 +169,10 @@ export function ImageCropUploader({ value, onChange, hint }: Props) {
   function onPointerUp() { dragState.current = null; }
 
   async function applyCrop() {
+    if (uploading) return;
     const img = imgRef.current;
     if (!img) return;
+    const uploadId = ++uploadIdRef.current;
     const scaleX = img.naturalWidth / imgDisplay.w;
     const scaleY = img.naturalHeight / imgDisplay.h;
     // The preview may be only a few hundred pixels wide. Crop from the original
@@ -192,16 +201,22 @@ export function ImageCropUploader({ value, onChange, hint }: Props) {
 
     setUploading(true);
     setUploadError(null);
+    const controller = new AbortController();
+    uploadAbortRef.current = controller;
+    const timeout = setTimeout(() => controller.abort(), 45_000);
     try {
       const blob = await new Promise<Blob>((resolve, reject) =>
-        canvas.toBlob((b) => b ? resolve(b) : reject(new Error("canvas empty")), "image/png", 0.92)
+        canvas.toBlob((b) => b ? resolve(b) : reject(new Error("canvas empty")), "image/webp", 0.96)
       );
+      if (uploadId !== uploadIdRef.current) return;
       const fd = new FormData();
-      fd.append("file", blob, "image.png");
+      fd.append("file", blob, blob.type === "image/webp" ? "image.webp" : "image.png");
       const res = await authFetch(`${API}/admin/upload`, {
         method: "POST",
         body: fd,
+        signal: controller.signal,
       });
+      if (uploadId !== uploadIdRef.current) return;
       if (res.ok) {
         const { url } = await res.json() as { url: string };
         setFinalSrc(url);
@@ -210,16 +225,29 @@ export function ImageCropUploader({ value, onChange, hint }: Props) {
         onChange(url);
       } else {
         const data = await res.json().catch(() => ({}));
-        setUploadError((data as { error?: string }).error ?? `Upload failed (${res.status}) - please try again`);
+        setUploadError(res.status === 401 ? "Session expired. Sign in and retry the upload."
+          : (data as { error?: string }).error ?? `Upload failed (${res.status}) - please try again`);
       }
-    } catch {
-      setUploadError("Network error - please check your connection and try again.");
+    } catch (error) {
+      if (uploadId !== uploadIdRef.current) return;
+      setUploadError(controller.signal.aborted
+        ? "Upload timed out after 45 seconds. Please try again."
+        : error instanceof Error ? `Upload failed: ${error.message}` : "Upload failed. Please try again.");
     } finally {
-      setUploading(false);
+      clearTimeout(timeout);
+      if (uploadId === uploadIdRef.current) {
+        uploadAbortRef.current = null;
+        setUploading(false);
+      }
     }
   }
 
   function reset() {
+    uploadIdRef.current++;
+    uploadAbortRef.current?.abort();
+    uploadAbortRef.current = null;
+    setUploading(false);
+    setUploadError(null);
     setStage("empty"); setRawSrc(""); setFinalSrc(""); onChange("");
   }
 
@@ -372,11 +400,11 @@ export function ImageCropUploader({ value, onChange, hint }: Props) {
           )}
 
           <div className="flex gap-2 pt-1">
-            <button onClick={reset}
+            <button type="button" onClick={reset}
               className="flex items-center gap-1.5 text-[12px] text-[#0B0B0B]/45 hover:text-[#0B0B0B] px-3 py-2 rounded-xl border border-[#0B0B0B]/12 hover:border-[#0B0B0B]/25 transition-colors">
               <RotateCcw size={12} /> Cancel
             </button>
-            <button onClick={applyCrop} disabled={uploading}
+            <button type="button" onClick={applyCrop} disabled={uploading}
               className="flex-1 flex items-center justify-center gap-1.5 text-[12px] font-semibold bg-[#0B0B0B] text-white px-3 py-2 rounded-xl hover:bg-[#0B0B0B]/85 transition-colors disabled:opacity-50">
               {uploading ? (
                 <>Uploading…</>

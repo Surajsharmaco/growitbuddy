@@ -66,6 +66,9 @@ export async function uploadToCloudinary(
   const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/auto/upload`, {
     method: "POST",
     body: form,
+    // A stalled upstream must not leave the editor's upload pending forever.
+    // The caller falls back to database storage on failure.
+    signal: AbortSignal.timeout(12_000),
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
