@@ -4,7 +4,7 @@ import { db, pool, siteContent, leads, certificates, teamMembers, portfolioItems
 import { eq, desc, count, asc, lt, inArray } from "drizzle-orm";
 import { logger } from "../lib/logger";
 import { cloudinaryConfigured, uploadToCloudinary } from "../lib/cloudinary";
-import { convertImageBuffer, type ConvertFormat } from "../lib/imageConvert";
+import { convertImageBuffer, prepareUploadedImage, type ConvertFormat } from "../lib/imageConvert";
 import { buildContentSnapshot, buildHandoffDocs, assembleBackupZip, buildMasterPrompt, type BackupMeta } from "../lib/backup";
 import { buildBlogExport } from "../lib/blogExport";
 import { buildContentArchive } from "../lib/contentArchive";
@@ -26,19 +26,24 @@ const upload = multer({
 
 let warnedCloudinaryUnconfigured = false;
 
-async function saveFileToDb(file: Express.Multer.File): Promise<{ id: number; url: string }> {
+async function saveFileToDb(file: Express.Multer.File): Promise<{ id: number; url: string; size: number; mimetype: string }> {
+  const prepared = await prepareUploadedImage(file.buffer, file.mimetype);
+  const filename = prepared.mimetype === "image/avif" && file.mimetype !== "image/avif"
+    ? `${path.parse(file.originalname).name}.avif`
+    : file.originalname;
+  const size = prepared.buffer.length;
   if (cloudinaryConfigured()) {
     try {
-      const { url, publicId } = await uploadToCloudinary(file.buffer, file.mimetype);
+      const { url, publicId } = await uploadToCloudinary(prepared.buffer, prepared.mimetype);
       const rows = await db.insert(mediaFiles).values({
-        filename: file.originalname,
-        mimetype: file.mimetype,
-        size: file.size,
+        filename,
+        mimetype: prepared.mimetype,
+        size,
         data: null,
         url,
         cloudinaryPublicId: publicId,
       }).returning({ id: mediaFiles.id });
-      return { id: rows[0].id, url };
+      return { id: rows[0].id, url, size, mimetype: prepared.mimetype };
     } catch (err) {
       logger.error({ err }, "Cloudinary upload failed; falling back to DB storage");
     }
@@ -53,15 +58,15 @@ async function saveFileToDb(file: Express.Multer.File): Promise<{ id: number; ur
       "CLOUDINARY not configured — uploaded media is stored in the database and served from relative /api/media URLs. Set CLOUDINARY_URL for CDN-backed uploads.",
     );
   }
-  const b64 = file.buffer.toString("base64");
+  const b64 = prepared.buffer.toString("base64");
   const rows = await db.insert(mediaFiles).values({
-    filename: file.originalname,
-    mimetype: file.mimetype,
-    size: file.size,
+    filename,
+    mimetype: prepared.mimetype,
+    size,
     data: b64,
   }).returning({ id: mediaFiles.id });
   const id = rows[0].id;
-  return { id, url: `/api/media/file/${id}` };
+  return { id, url: `/api/media/file/${id}`, size, mimetype: prepared.mimetype };
 }
 
 const router = Router();
@@ -697,8 +702,8 @@ router.post("/upload", authMiddleware, upload.single("file"), async (req, res) =
   const file = req.file;
   if (!file) { res.status(400).json({ error: "No file uploaded" }); return; }
   try {
-    const { id, url } = await saveFileToDb(file);
-    res.json({ url, filename: String(id), size: file.size });
+    const { id, url, size, mimetype } = await saveFileToDb(file);
+    res.json({ url, filename: String(id), size, mimetype });
   } catch (err) {
     logger.error({ err }, "DB upload failed");
     res.status(500).json({ error: "Upload failed" });

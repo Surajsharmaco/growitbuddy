@@ -166,8 +166,13 @@ export function ImageCropUploader({ value, onChange, hint }: Props) {
     if (!img) return;
     const scaleX = img.naturalWidth / imgDisplay.w;
     const scaleY = img.naturalHeight / imgDisplay.h;
-    const outW = Math.max(1, Math.round(crop.w * 2));
-    const outH = Math.max(1, Math.round(crop.h * 2));
+    // The preview may be only a few hundred pixels wide. Crop from the original
+    // pixels, not 2× the preview, so the saved image does not become blurry.
+    const sourceW = crop.w * scaleX;
+    const sourceH = crop.h * scaleY;
+    const outputScale = Math.min(1, 4096 / Math.max(sourceW, sourceH));
+    const outW = Math.max(1, Math.round(sourceW * outputScale));
+    const outH = Math.max(1, Math.round(sourceH * outputScale));
     const canvas = document.createElement("canvas");
     canvas.width = outW;
     canvas.height = outH;

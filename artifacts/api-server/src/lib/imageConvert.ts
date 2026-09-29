@@ -25,6 +25,37 @@ export interface ConvertSkip {
 export type ConvertResult = ConvertSuccess | ConvertSkip;
 
 /**
+ * Optimize new static raster uploads at full resolution. Keep tiny/already
+ * efficient originals when AVIF would make the file larger; never re-encode
+ * AVIF, vector graphics, animation or video.
+ */
+export async function prepareUploadedImage(
+  input: Buffer,
+  mimetype: string,
+): Promise<{ buffer: Buffer; mimetype: string }> {
+  const original = { buffer: input, mimetype };
+  const mt = mimetype.toLowerCase();
+  if (!mt.startsWith("image/") || mt === "image/svg+xml" || mt === "image/gif" || mt === "image/avif") return original;
+
+  const meta = await sharp(input, { limitInputPixels: 80_000_000 }).metadata();
+  if ((meta.pages ?? 1) > 1) return original;
+
+  const encode = (quality: number) =>
+    sharp(input, { limitInputPixels: 80_000_000 })
+      .rotate()
+      .avif({ quality, effort: 6, chromaSubsampling: "4:4:4" })
+      .toBuffer();
+  let output = await encode(82);
+  if (output.length >= input.length) {
+    const smaller = await encode(76);
+    if (smaller.length < output.length) output = smaller;
+  }
+  return output.length < input.length
+    ? { buffer: output, mimetype: "image/avif" }
+    : original;
+}
+
+/**
  * Re-encode a raster image to WebP or AVIF at high (near-lossless) quality.
  * Dimensions are preserved (never resized/upscaled) and metadata is stripped.
  * Returns a skip result for vectors, animations, videos, unreadable input, or
@@ -60,7 +91,7 @@ export async function convertImageBuffer(
         .toBuffer();
     } else {
       out = await pipeline
-        .avif({ quality: 58, effort: 4, chromaSubsampling: "4:4:4" })
+        .avif({ quality: 80, effort: 6, chromaSubsampling: "4:4:4" })
         .toBuffer();
     }
   } catch {
