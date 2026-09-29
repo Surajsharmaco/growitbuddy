@@ -1356,7 +1356,8 @@ function PostEditor({
             ))}
           </div>
 
-          {activeTab === "write" && (
+          {/* Keep both panels mounted: Write uses contentEditable DOM that holds unsaved formatting/content. */}
+          <div hidden={activeTab !== "write"}>
             <>
               {/* Title */}
               <div className="bg-white border border-[#0B0B0B]/10 rounded-2xl mb-4 overflow-hidden shadow-sm">
@@ -1522,9 +1523,9 @@ function PostEditor({
                 </div>
               </div>
             </>
-          )}
+          </div>
 
-          {activeTab === "seo" && (
+          <div hidden={activeTab !== "seo"}>
             <div className="space-y-4">
 
               {/* ── AI Intelligence ── */}
@@ -2092,7 +2093,7 @@ function PostEditor({
                 </div>
               )}
             </div>
-          )}
+          </div>
         </div>
 
         {/* ── Right sidebar ── */}

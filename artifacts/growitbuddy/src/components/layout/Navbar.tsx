@@ -262,7 +262,7 @@ export function Navbar() {
 
           <div className="hidden lg:flex items-center gap-2 flex-shrink-0">
             <div className="hidden xl:flex items-center gap-3 mr-1">
-              <SocialLinks variant="light" size={17} gap={14} />
+              <SocialLinks source="navbar" variant="light" size={17} gap={14} />
               <span aria-hidden style={{ width: 1, height: 18, background: "rgba(10,10,10,0.10)" }} />
             </div>
             <button
@@ -606,7 +606,7 @@ export function Navbar() {
                   <p style={{ fontSize: 12, color: "#8A8A8A", margin: 0, marginTop: 4 }}>
                     © {new Date().getFullYear()} GrowitBuddy
                   </p>
-                  <SocialLinks variant="light" size={20} gap={18} className="mt-3" />
+                  <SocialLinks source="navbar" variant="light" size={20} gap={18} className="mt-3" />
                 </div>
               </m.div>
             </div>

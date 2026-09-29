@@ -44,7 +44,7 @@ export default function AdminNavbar() {
 
   return (
     <div>
-      <PageHeader title="Navbar" description="Edit the site navigation links and CTA button." />
+      <PageHeader title="Navbar" description="Edit the site navigation links, header social links, and CTA button." />
 
       <div className="space-y-5">
         <Card>
@@ -57,6 +57,19 @@ export default function AdminNavbar() {
           </div>
           <p className="text-[12px] text-[#0B0B0B]/45 mt-3">
             Navigation links (Services, Work, Framework, Network, About, Careers, More) are managed in the site code and cannot be edited here.
+          </p>
+        </Card>
+
+        <Card>
+          <SectionTitle>Header social links</SectionTitle>
+          <div className="grid grid-cols-2 gap-3">
+            <Input label="Instagram URL" value={data.instagram} onChange={(e) => set("instagram", e.target.value)} placeholder="https://instagram.com/growitbuddy" />
+            <Input label="LinkedIn URL" value={data.linkedin} onChange={(e) => set("linkedin", e.target.value)} placeholder="https://www.linkedin.com/company/growitbuddy" />
+            <Input label="X (Twitter) URL" value={data.twitter} onChange={(e) => set("twitter", e.target.value)} placeholder="https://x.com/growitbuddy" />
+            <Input label="YouTube URL" value={data.youtube} onChange={(e) => set("youtube", e.target.value)} placeholder="https://youtube.com/@growitbuddy" />
+          </div>
+          <p className="text-[12px] text-[#0B0B0B]/45 mt-3">
+            These links control the header icons on desktop and in the mobile menu. Footer links are edited separately under Footer. Blank fields use the default GrowitBuddy profile.
           </p>
         </Card>
       </div>

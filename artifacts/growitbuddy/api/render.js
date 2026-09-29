@@ -7,7 +7,7 @@ var BRAND = {
   name: "GrowitBuddy",
   url: SITE_URL,
   logo: `${SITE_URL}/logo-dark.png`,
-  email: "hello@growitbuddy.com",
+  email: "cs.growitbuddy@gmail.com",
   twitter: "@growitbuddy",
   description: "GrowitBuddy builds positioning, production, distribution, and inbound demand systems for founders and creators.",
   founder: {
@@ -15,7 +15,7 @@ var BRAND = {
     name: "Suraj Sharma",
     jobTitle: "Founder & CEO"
   },
-  /** Social / external profiles — strengthens entity recognition for AI engines (GEO). */
+  /** Social / external profiles - strengthens entity recognition for AI engines (GEO). */
   sameAs: [
     "https://instagram.com/growitbuddy",
     "https://youtube.com/@growitbuddy",
@@ -30,49 +30,49 @@ var PAGE_REGISTRY = [
   { slug: "contact", path: "/contact", label: "Contact", group: "Core", priority: 0.7, changefreq: "monthly", defaults: { title: "Contact GrowitBuddy", description: "Get in touch with the GrowitBuddy team." } },
   { slug: "insights", path: "/blog", label: "Insights / Blog", group: "Core", priority: 0.8, changefreq: "weekly", defaults: { title: "GrowitBuddy Insights", description: "Strategies, frameworks, and lessons from running a modern creator agency." } },
   // Services
-  { slug: "services", path: "/services", label: "Services", group: "Services", priority: 0.9, changefreq: "monthly", defaults: { title: "Services \u2014 GrowitBuddy", description: "Content, distribution, and growth services for creators and brands." } },
-  { slug: "work", path: "/work", label: "Work / Case Studies", group: "Services", priority: 0.8, changefreq: "monthly", defaults: { title: "Our Work \u2014 GrowitBuddy", description: "Real results from the brands and creators we've worked with." } },
+  { slug: "services", path: "/services", label: "Services", group: "Services", priority: 0.9, changefreq: "monthly", defaults: { title: "Services - GrowitBuddy", description: "Content, distribution, and growth services for creators and brands." } },
+  { slug: "work", path: "/work", label: "Work / Case Studies", group: "Services", priority: 0.8, changefreq: "monthly", defaults: { title: "Our Work - GrowitBuddy", description: "Real results from the brands and creators we've worked with." } },
   { slug: "framework", path: "/framework", label: "Framework", group: "Services", priority: 0.7, changefreq: "monthly", defaults: { title: "The GrowitBuddy Framework", description: "Our 4-step framework: Positioning, Production, Distribution, Inbound Demand." } },
-  { slug: "authority-audit", path: "/authority-audit", label: "Authority Audit", group: "Services", priority: 0.8, changefreq: "monthly", defaults: { title: "Authority Audit \u2014 GrowitBuddy", description: "Free authority audit to identify content and distribution gaps." } },
+  { slug: "authority-audit", path: "/authority-audit", label: "Authority Audit", group: "Services", priority: 0.8, changefreq: "monthly", defaults: { title: "Authority Audit - GrowitBuddy", description: "Free authority audit to identify content and distribution gaps." } },
   // Network & Hiring
-  { slug: "influencers", path: "/influencers", label: "Influencers", group: "Network", priority: 0.7, changefreq: "weekly", defaults: { title: "Influencer Network \u2014 GrowitBuddy", description: "Explore our network of vetted creators and influencers." } },
-  { slug: "distribution", path: "/distribution", label: "Distribution Network", group: "Network", priority: 0.7, changefreq: "monthly", defaults: { title: "Distribution Network \u2014 GrowitBuddy", description: "Our owned distribution network of pages and creators." } },
-  { slug: "links", path: "/links", label: "Links", group: "Utility", priority: 0.5, changefreq: "monthly", defaults: { title: "Links \u2014 GrowitBuddy", description: "All of GrowitBuddy's links in one place." } },
-  { slug: "join", path: "/join", label: "Join Network", group: "Network", priority: 0.7, changefreq: "monthly", defaults: { title: "Join the Network \u2014 GrowitBuddy", description: "Join the GrowitBuddy creator and page-owner network." } },
-  { slug: "creators", path: "/creators", label: "Creators", group: "Network", priority: 0.7, changefreq: "monthly", defaults: { title: "Creators \u2014 GrowitBuddy", description: "Resources and opportunities for creators with GrowitBuddy." } },
-  { slug: "career", path: "/career", label: "Careers (Unified)", group: "Network", priority: 0.7, changefreq: "monthly", defaults: { title: "Careers \u2014 GrowitBuddy", description: "Join GrowitBuddy as a full-time team member, intern, or talent network member." } },
+  { slug: "influencers", path: "/influencers", label: "Influencers", group: "Network", priority: 0.7, changefreq: "weekly", defaults: { title: "Influencer Network - GrowitBuddy", description: "Explore our network of vetted creators and influencers." } },
+  { slug: "distribution", path: "/distribution", label: "Distribution Network", group: "Network", priority: 0.7, changefreq: "monthly", defaults: { title: "Distribution Network - GrowitBuddy", description: "Our owned distribution network of pages and creators." } },
+  { slug: "links", path: "/links", label: "Links", group: "Utility", priority: 0.5, changefreq: "monthly", defaults: { title: "Links - GrowitBuddy", description: "All of GrowitBuddy's links in one place." } },
+  { slug: "join", path: "/join", label: "Join Network", group: "Network", priority: 0.7, changefreq: "monthly", defaults: { title: "Join the Network - GrowitBuddy", description: "Join the GrowitBuddy creator and page-owner network." } },
+  { slug: "creators", path: "/creators", label: "Creators", group: "Network", priority: 0.7, changefreq: "monthly", defaults: { title: "Creators - GrowitBuddy", description: "Resources and opportunities for creators with GrowitBuddy." } },
+  { slug: "career", path: "/career", label: "Careers (Unified)", group: "Network", priority: 0.7, changefreq: "monthly", defaults: { title: "Careers - GrowitBuddy", description: "Join GrowitBuddy as a full-time team member, intern, or talent network member." } },
   // Talent Pools
   // NOTE: /editors-pool (slug "creator-school") and /video-editors are DISTINCT
   // pages, not duplicates: /editors-pool is the Creator School onboarding hub
   // (VSL, guidelines, FAQ, submissions); /video-editors is the public talent-pool
   // landing page. They formerly shared the same <title>, so each carries a
   // distinct title/description here to avoid duplicate-title cannibalization.
-  { slug: "creator-school", path: "/editors-pool", label: "Creator School", group: "Pools", priority: 0.6, changefreq: "monthly", defaults: { title: "Creator School \u2014 Editor Onboarding | GrowitBuddy", description: "GrowitBuddy Creator School: onboarding, guidelines, FAQ, and submission resources for video editors." } },
-  { slug: "video-editors", path: "/video-editors", label: "Video Editors", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "Video Editors Pool \u2014 GrowitBuddy", description: "Join the GrowitBuddy video editors talent pool." } },
-  { slug: "designers-pool", path: "/designers-pool", label: "Designers Pool", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "Designers Pool \u2014 GrowitBuddy", description: "Join the GrowitBuddy designers talent pool." } },
-  { slug: "thumbnail-designers", path: "/thumbnail-designers", label: "Thumbnail Designers", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "Thumbnail Designers Pool \u2014 GrowitBuddy", description: "Join the GrowitBuddy thumbnail designers talent pool." } },
-  { slug: "writers-pool", path: "/writers-pool", label: "Writers Pool", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "Writers Pool \u2014 GrowitBuddy", description: "Join the GrowitBuddy writers talent pool." } },
-  { slug: "social-media-managers", path: "/social-media-managers", label: "Social Media Managers", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "Social Media Managers Pool \u2014 GrowitBuddy", description: "Join the GrowitBuddy social media managers talent pool." } },
-  { slug: "motion-designers", path: "/motion-designers", label: "Motion Designers", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "Motion Designers Pool \u2014 GrowitBuddy", description: "Join the GrowitBuddy motion designers talent pool." } },
-  { slug: "ai-creators", path: "/ai-creators", label: "AI Creators", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "AI Creators Pool \u2014 GrowitBuddy", description: "Join the GrowitBuddy AI creators talent pool." } },
-  { slug: "ugc-creators", path: "/ugc-creators", label: "UGC Creators", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "UGC Creators Pool \u2014 GrowitBuddy", description: "Join the GrowitBuddy UGC creators talent pool." } },
-  { slug: "meme-designers", path: "/meme-designers", label: "Meme Designers", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "Meme Designers Pool \u2014 GrowitBuddy", description: "Join the GrowitBuddy meme designers talent pool." } },
+  { slug: "creator-school", path: "/editors-pool", label: "Creator School", group: "Pools", priority: 0.6, changefreq: "monthly", defaults: { title: "Creator School - Editor Onboarding | GrowitBuddy", description: "GrowitBuddy Creator School: onboarding, guidelines, FAQ, and submission resources for video editors." } },
+  { slug: "video-editors", path: "/video-editors", label: "Video Editors", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "Video Editors Pool - GrowitBuddy", description: "Join the GrowitBuddy video editors talent pool." } },
+  { slug: "designers-pool", path: "/designers-pool", label: "Designers Pool", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "Designers Pool - GrowitBuddy", description: "Join the GrowitBuddy designers talent pool." } },
+  { slug: "thumbnail-designers", path: "/thumbnail-designers", label: "Thumbnail Designers", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "Thumbnail Designers Pool - GrowitBuddy", description: "Join the GrowitBuddy thumbnail designers talent pool." } },
+  { slug: "writers-pool", path: "/writers-pool", label: "Writers Pool", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "Writers Pool - GrowitBuddy", description: "Join the GrowitBuddy writers talent pool." } },
+  { slug: "social-media-managers", path: "/social-media-managers", label: "Social Media Managers", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "Social Media Managers Pool - GrowitBuddy", description: "Join the GrowitBuddy social media managers talent pool." } },
+  { slug: "motion-designers", path: "/motion-designers", label: "Motion Designers", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "Motion Designers Pool - GrowitBuddy", description: "Join the GrowitBuddy motion designers talent pool." } },
+  { slug: "ai-creators", path: "/ai-creators", label: "AI Creators", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "AI Creators Pool - GrowitBuddy", description: "Join the GrowitBuddy AI creators talent pool." } },
+  { slug: "ugc-creators", path: "/ugc-creators", label: "UGC Creators", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "UGC Creators Pool - GrowitBuddy", description: "Join the GrowitBuddy UGC creators talent pool." } },
+  { slug: "meme-designers", path: "/meme-designers", label: "Meme Designers", group: "Pools", priority: 0.7, changefreq: "monthly", defaults: { title: "Meme Designers Pool - GrowitBuddy", description: "Join the GrowitBuddy meme designers talent pool." } },
   // Additional public pages
-  { slug: "resources", path: "/resources", label: "Resources", group: "Core", priority: 0.7, changefreq: "weekly", defaults: { title: "Resources \u2014 GrowitBuddy", description: "Free guides, templates, and resources for creators and brands." } },
-  { slug: "join-page-owner", path: "/join/page-owner", label: "Join \xB7 Page Owner", group: "Network", priority: 0.6, changefreq: "monthly", defaults: { title: "Join as a Page Owner \u2014 GrowitBuddy", description: "Apply to join the GrowitBuddy distribution network as a page owner." } },
-  // Legal — indexed by default (trust signal); admin can flip
-  { slug: "privacy", path: "/privacy", label: "Privacy Policy", group: "Legal", priority: 0.3, changefreq: "yearly", defaults: { title: "Privacy Policy \u2014 GrowitBuddy", description: "GrowitBuddy privacy policy and how we handle your data." } },
-  { slug: "terms", path: "/terms", label: "Terms of Service", group: "Legal", priority: 0.3, changefreq: "yearly", defaults: { title: "Terms of Service \u2014 GrowitBuddy", description: "GrowitBuddy terms of service." } },
-  // Utility — default noindex (not meant for search, excluded from sitemap)
-  { slug: "portfolio", path: "/portfolio", label: "Portfolio", group: "Utility", defaults: { title: "Portfolio \u2014 GrowitBuddy", description: "Client portfolio.", index: false, sitemap: false } },
-  { slug: "verify", path: "/verify", label: "Verify Certificate", group: "Utility", defaults: { title: "Verify Certificate \u2014 GrowitBuddy", description: "Verify a GrowitBuddy certificate.", index: false, sitemap: false } },
-  { slug: "verify-id", path: "/verify/:id", label: "Verify Detail", group: "Utility", defaults: { title: "Certificate Verification \u2014 GrowitBuddy", description: "Verify a specific certificate.", index: false, sitemap: false } },
-  // Internal guides — standalone routes (rendered outside the registry-driven
+  { slug: "resources", path: "/resources", label: "Resources", group: "Core", priority: 0.7, changefreq: "weekly", defaults: { title: "Resources - GrowitBuddy", description: "Free guides, templates, and resources for creators and brands." } },
+  { slug: "join-page-owner", path: "/join/page-owner", label: "Join \xB7 Page Owner", group: "Network", priority: 0.6, changefreq: "monthly", defaults: { title: "Join as a Page Owner - GrowitBuddy", description: "Apply to join the GrowitBuddy distribution network as a page owner." } },
+  // Legal - indexed by default (trust signal); admin can flip
+  { slug: "privacy", path: "/privacy", label: "Privacy Policy", group: "Legal", priority: 0.3, changefreq: "yearly", defaults: { title: "Privacy Policy - GrowitBuddy", description: "GrowitBuddy privacy policy and how we handle your data." } },
+  { slug: "terms", path: "/terms", label: "Terms of Service", group: "Legal", priority: 0.3, changefreq: "yearly", defaults: { title: "Terms of Service - GrowitBuddy", description: "GrowitBuddy terms of service." } },
+  // Utility - default noindex (not meant for search, excluded from sitemap)
+  { slug: "portfolio", path: "/portfolio", label: "Portfolio", group: "Utility", defaults: { title: "Portfolio - GrowitBuddy", description: "Client portfolio.", index: false, sitemap: false } },
+  { slug: "verify", path: "/verify", label: "Verify Certificate", group: "Utility", defaults: { title: "Verify Certificate - GrowitBuddy", description: "Verify a GrowitBuddy certificate.", index: false, sitemap: false } },
+  { slug: "verify-id", path: "/verify/:id", label: "Verify Detail", group: "Utility", defaults: { title: "Certificate Verification - GrowitBuddy", description: "Verify a specific certificate.", index: false, sitemap: false } },
+  // Internal guides - standalone routes (rendered outside the registry-driven
   // Switch). Not meant for search: noindex + excluded from the sitemap so the
   // SSR head, the admin SEO panel, and the sitemap all agree. Without registry
   // entries these served the default index meta and were crawlable.
-  { slug: "site-guide", path: "/guide", label: "Site Guide", group: "Utility", defaults: { title: "Site Guide \u2014 GrowitBuddy", description: "Internal GrowitBuddy site guide.", index: false, sitemap: false } },
-  { slug: "seo-guide", path: "/seo-guide", label: "SEO Guide", group: "Utility", defaults: { title: "SEO Guide \u2014 GrowitBuddy", description: "Internal GrowitBuddy SEO guide.", index: false, sitemap: false } }
+  { slug: "site-guide", path: "/guide", label: "Site Guide", group: "Utility", defaults: { title: "Site Guide - GrowitBuddy", description: "Internal GrowitBuddy site guide.", index: false, sitemap: false } },
+  { slug: "seo-guide", path: "/seo-guide", label: "SEO Guide", group: "Utility", defaults: { title: "SEO Guide - GrowitBuddy", description: "Internal GrowitBuddy SEO guide.", index: false, sitemap: false } }
 ];
 function findEntryByPath(pathname) {
   const exact = PAGE_REGISTRY.find((p2) => p2.path === pathname);
@@ -5452,7 +5452,7 @@ var HOME_DEFAULTS = {
     {
       step: "02",
       title: "Production",
-      desc: "Create high-signal content built for attention, trust, and consistency at scale \u2014 video, copy, and graphics that communicate authority."
+      desc: "Create high-signal content built for attention, trust, and consistency at scale - video, copy, and graphics that communicate authority."
     },
     {
       step: "03",
@@ -5462,7 +5462,7 @@ var HOME_DEFAULTS = {
     {
       step: "04",
       title: "Inbound Demand",
-      desc: "Turn compounding visibility into authority, qualified leads, and inbound opportunities \u2014 without chasing anyone."
+      desc: "Turn compounding visibility into authority, qualified leads, and inbound opportunities - without chasing anyone."
     }
   ],
   frameworkCTA: "Explore the Full Framework",
@@ -5521,13 +5521,13 @@ var HOME_DEFAULTS = {
   testimonialsHeadline: "What founders we've worked with say.",
   testimonials: [
     {
-      quote: "Honestly, I was skeptical at first \u2014 I'd worked with two agencies before and both just recycled my old posts. The GrowitBuddy team actually sat with me for two hours figuring out what I wanted to be known for. Three months in, I'm getting cold DMs from people I used to look up to. That's the part nobody warned me would feel weird.",
+      quote: "Honestly, I was skeptical at first - I'd worked with two agencies before and both just recycled my old posts. The GrowitBuddy team actually sat with me for two hours figuring out what I wanted to be known for. Three months in, I'm getting cold DMs from people I used to look up to. That's the part nobody warned me would feel weird.",
       name: "Rishabh Mehta",
       role: "Founder, Aarna Consumer Labs",
       initials: "RM"
     },
     {
-      quote: "The first month was slower than I'd hoped \u2014 they kept pushing back on my ideas which annoyed me a little, in hindsight rightly so. By month two the inbound started: two podcast invites, one investor intro, and a partnership conversation that's now signed. I still write my own posts; they just made me sound more like myself.",
+      quote: "The first month was slower than I'd hoped - they kept pushing back on my ideas which annoyed me a little, in hindsight rightly so. By month two the inbound started: two podcast invites, one investor intro, and a partnership conversation that's now signed. I still write my own posts; they just made me sound more like myself.",
       name: "Priya Iyer",
       role: "Co-founder, Lumen.health",
       initials: "PI"
@@ -5916,7 +5916,7 @@ var CREATOR_SCHOOL_DEFAULTS = {
 var RESOURCES_DEFAULTS = {
   heroEyebrow: "Resources",
   heroHeadline: "Authority, content, and distribution systems.",
-  heroSubtext: "Authority, content, and distribution systems for founders, creators, and modern brands \u2014 packaged as free templates, playbooks, eBooks and toolkits you can ship today.",
+  heroSubtext: "Authority, content, and distribution systems for founders, creators, and modern brands - packaged as free templates, playbooks, eBooks and toolkits you can ship today.",
   ctaLabel: "Book a Strategy Call",
   ctaUrl: "/contact",
   items: [
@@ -5939,7 +5939,7 @@ var RESOURCES_DEFAULTS = {
       aiSummary: "A 47-point self-assessment used by GrowitBuddy to diagnose authority gaps for founders, creators, and modern brands."
     },
     {
-      title: "Distribution Stack \u2014 Notion Template",
+      title: "Distribution Stack - Notion Template",
       desc: "The exact Notion workspace we use to plan, ship, and distribute content for clients across every channel.",
       tag: "Template",
       link: "https://www.notion.so/templates/sample-distribution-stack",
@@ -6004,7 +6004,7 @@ var RESOURCES_DEFAULTS = {
   faqs: [
     {
       q: "Are these resources really free?",
-      a: "Yes \u2014 every template, eBook, and playbook on this page is free. Some require an email so we can send updates when we improve them."
+      a: "Yes - every template, eBook, and playbook on this page is free. Some require an email so we can send updates when we improve them."
     },
     {
       q: "Can I use these resources for my agency or clients?",
@@ -6012,12 +6012,12 @@ var RESOURCES_DEFAULTS = {
     },
     {
       q: "How often are new resources added?",
-      a: "We ship new resources roughly once a month \u2014 the ones we wish existed when we were figuring out distribution."
+      a: "We ship new resources roughly once a month - the ones we wish existed when we were figuring out distribution."
     }
   ],
   seoTitle: "Free Authority, Content & Distribution Resources for Founders, Creators & Modern Brands | GrowitBuddy",
-  seoDesc: "Authority, content, and distribution systems for founders, creators, and modern brands \u2014 free templates, playbooks, eBooks, and toolkits you can copy and ship today.",
-  aiSummary: "GrowitBuddy Resources is a free library of authority-building, content, and distribution systems for founders, creators, and modern brands \u2014 shipped as templates, playbooks, toolkits, and eBooks.",
+  seoDesc: "Authority, content, and distribution systems for founders, creators, and modern brands - free templates, playbooks, eBooks, and toolkits you can copy and ship today.",
+  aiSummary: "GrowitBuddy Resources is a free library of authority-building, content, and distribution systems for founders, creators, and modern brands - shipped as templates, playbooks, toolkits, and eBooks.",
   aiKeywords: "authority building resources, content systems for founders, distribution playbook, creator growth toolkit, notion templates for founders, modern brand frameworks",
   primaryEntity: "Authority, content and distribution systems",
   relatedTopics: "Personal branding, Distribution systems, Short-form video, Authority building, Founder-led marketing, Modern brand building",
@@ -6196,7 +6196,7 @@ var LINKS_DEFAULTS = {
         { id: "s1", platform: "instagram", url: "https://instagram.com/growitbuddy" },
         { id: "s2", platform: "youtube", url: "https://youtube.com/@growitbuddy" },
         { id: "s3", platform: "x", url: "https://x.com/growitbuddy" },
-        { id: "s4", platform: "email", url: "hello@growitbuddy.com" }
+        { id: "s4", platform: "email", url: "cs.growitbuddy@gmail.com" }
       ]
     },
     {

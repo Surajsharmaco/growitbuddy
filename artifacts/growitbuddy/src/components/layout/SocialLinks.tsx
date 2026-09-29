@@ -1,7 +1,25 @@
 import { usePublicContent } from "@/hooks/usePublicContent";
-import { FOOTER_DEFAULTS, type FooterData } from "@/lib/footerDefaults";
+import { FOOTER_DEFAULTS } from "@/lib/footerDefaults";
+import { NAVBAR_DEFAULTS, type NavbarData } from "@/lib/navbarDefaults";
 
 type SocialKey = "instagram" | "linkedin" | "twitter" | "youtube";
+type SocialData = Pick<NavbarData, SocialKey>;
+type SocialSource = "navbar" | "footer";
+
+const SOCIAL_DEFAULTS: Record<SocialSource, SocialData> = {
+  navbar: {
+    instagram: NAVBAR_DEFAULTS.instagram,
+    linkedin: NAVBAR_DEFAULTS.linkedin,
+    twitter: NAVBAR_DEFAULTS.twitter,
+    youtube: NAVBAR_DEFAULTS.youtube,
+  },
+  footer: {
+    instagram: FOOTER_DEFAULTS.instagram,
+    linkedin: FOOTER_DEFAULTS.linkedin,
+    twitter: FOOTER_DEFAULTS.twitter,
+    youtube: FOOTER_DEFAULTS.youtube,
+  },
+};
 
 const PLATFORMS: { key: SocialKey; label: string; path: string }[] = [
   {
@@ -27,27 +45,29 @@ const PLATFORMS: { key: SocialKey; label: string; path: string }[] = [
 ];
 
 /**
- * Renders the brand's social icons as links. URLs live in the admin-editable
- * "footer" content (Admin -> Footer), so the header and footer share one
- * source of truth. Falls back to the brand defaults when a URL is empty so the
- * icons reliably appear even when the stored content has blank social fields.
+ * Renders the brand's social icons as links. The header and footer use separate
+ * admin-editable content sections. Falls back to the brand defaults when a URL
+ * is empty so icons remain visible if saved content contains blank fields.
  */
 export function SocialLinks({
+  source = "footer",
   variant = "dark",
   size = 18,
   gap = 16,
   className,
 }: {
+  source?: SocialSource;
   variant?: "dark" | "light";
   size?: number;
   gap?: number;
   className?: string;
 }) {
-  const data = usePublicContent<FooterData>("footer", FOOTER_DEFAULTS);
+  const defaults = SOCIAL_DEFAULTS[source];
+  const data = usePublicContent<SocialData>(source, defaults);
 
   const active = PLATFORMS.map((p) => ({
     ...p,
-    url: (data[p.key] || "").trim() || FOOTER_DEFAULTS[p.key],
+    url: (data[p.key] || "").trim() || defaults[p.key],
   })).filter((p) => p.url);
 
   if (active.length === 0) return null;
