@@ -25,9 +25,9 @@ export interface ConvertSkip {
 export type ConvertResult = ConvertSuccess | ConvertSkip;
 
 /**
- * Optimize new static raster uploads at full resolution. Keep tiny/already
- * efficient originals when AVIF would make the file larger; never re-encode
- * AVIF, vector graphics, animation or video.
+ * Encode new static raster uploads to AVIF at full resolution. If a
+ * high-quality encoding is larger than the original, try a slightly lower
+ * quality before storing it. Never re-encode AVIF, vectors, animation or video.
  */
 export async function prepareUploadedImage(
   input: Buffer,
@@ -50,9 +50,7 @@ export async function prepareUploadedImage(
     const smaller = await encode(76);
     if (smaller.length < output.length) output = smaller;
   }
-  return output.length < input.length
-    ? { buffer: output, mimetype: "image/avif" }
-    : original;
+  return { buffer: output, mimetype: "image/avif" };
 }
 
 /**
