@@ -795,8 +795,11 @@ function PostEditor({
   const [currentTextColor, setCurrentTextColor] = useState("#0B0B0B");
   const colorPickerRef = useRef<HTMLDivElement>(null);
   const [linkPreview, setLinkPreview] = useState<{ url: string; kind: "internal" | "external"; left: number; top: number } | null>(null);
+  const editingAnchorRef = useRef<HTMLAnchorElement | null>(null);
+  const [editingLink, setEditingLink] = useState<{ href: string; left: number; top: number; label: string } | null>(null);
 
   function previewEditorLink(target: EventTarget | null) {
+    if (editingLink) return;
     const element = target instanceof Element ? target : target instanceof Node ? target.parentElement : null;
     const anchor = element?.closest("a[href]");
     if (!anchor || !editorRef.current?.contains(anchor)) {
@@ -814,6 +817,53 @@ function PostEditor({
     setLinkPreview((previous) =>
       previous?.url === link.url && previous.left === left && previous.top === top
         ? previous : { url: link.url, kind: link.kind, left, top });
+  }
+
+  function openLinkEditor(anchor: HTMLAnchorElement) {
+    if (!editorRef.current?.contains(anchor)) return;
+    const rect = anchor.getBoundingClientRect();
+    editingAnchorRef.current = anchor;
+    setLinkPreview(null);
+    setEditingLink({
+      href: anchor.getAttribute("href") ?? "",
+      label: anchor.textContent?.trim() || "Linked content",
+      left: Math.max(12, Math.min(rect.left, window.innerWidth - Math.min(360, window.innerWidth - 24))),
+      top: rect.bottom + 8 + 205 > window.innerHeight ? Math.max(12, rect.top - 213) : rect.bottom + 8,
+    });
+  }
+
+  function closeLinkEditor() {
+    editingAnchorRef.current = null;
+    setEditingLink(null);
+  }
+
+  function updateLink() {
+    const anchor = editingAnchorRef.current;
+    const href = editingLink?.href.trim();
+    if (!anchor || !editorRef.current?.contains(anchor) || !href) {
+      showToast("Enter a link URL before saving.", "error");
+      return;
+    }
+    try {
+      const parsed = new URL(href, "https://growitbuddy.com/");
+      if (parsed.protocol !== "https:" && parsed.protocol !== "http:") throw new Error("Invalid link");
+    } catch {
+      showToast("Use a website URL, relative page path, or #anchor.", "error");
+      return;
+    }
+    anchor.setAttribute("href", href);
+    setField("content", editorRef.current.innerHTML);
+    closeLinkEditor();
+    showToast("Link updated.", "success");
+  }
+
+  function removeLink() {
+    const anchor = editingAnchorRef.current;
+    if (!anchor || !editorRef.current?.contains(anchor)) return;
+    anchor.replaceWith(...Array.from(anchor.childNodes));
+    setField("content", editorRef.current.innerHTML);
+    closeLinkEditor();
+    showToast("Link removed; text kept.", "info");
   }
 
   function copyFix(key: string, text: string) {
@@ -1184,6 +1234,14 @@ function PostEditor({
   }
 
   function insertLinkWithFeedback() {
+    const selection = window.getSelection();
+    const node = selection?.anchorNode;
+    const element = node instanceof Element ? node : node?.parentElement;
+    const existing = element?.closest("a[href]");
+    if (existing instanceof HTMLAnchorElement && editorRef.current?.contains(existing)) {
+      openLinkEditor(existing);
+      return;
+    }
     const url = prompt("Enter URL:");
     if (url) {
       editorRef.current?.focus();
@@ -1675,6 +1733,13 @@ function PostEditor({
                     onInput={() => { if (editorRef.current) setField("content", editorRef.current.innerHTML); }}
                      onPaste={handleEditorPaste}
                      onMouseOver={(e) => previewEditorLink(e.target)}
+                      onClick={(e) => {
+                        const anchor = (e.target as Element).closest?.("a[href]");
+                        if (anchor instanceof HTMLAnchorElement && editorRef.current?.contains(anchor)) {
+                          e.preventDefault();
+                          openLinkEditor(anchor);
+                        }
+                      }}
                      onMouseLeave={() => setLinkPreview(null)}
                      onScroll={() => setLinkPreview(null)}
                      onFocusCapture={(e) => previewEditorLink(e.target)}
@@ -1705,6 +1770,27 @@ function PostEditor({
                     <div className="text-[10px] font-bold uppercase tracking-wide text-white/65">{linkPreview.kind} link · URL</div>
                     <div className="text-[12px] font-medium break-all leading-snug">{linkPreview.url}</div>
                   </div>
+                )}
+                {mode === "visual" && editingLink && (
+                  <form role="dialog" aria-label="Edit hyperlink" onSubmit={(e) => { e.preventDefault(); updateLink(); }}
+                    onKeyDown={(e) => { if (e.key === "Escape") closeLinkEditor(); }}
+                    className="fixed z-[101] w-[min(360px,calc(100vw-24px))] rounded-xl border border-[#0B0B0B]/10 bg-white p-4 text-[#0B0B0B] shadow-2xl"
+                    style={{ left: editingLink.left, top: editingLink.top }}>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-[13px] font-bold">Edit link</span>
+                      <button type="button" onClick={closeLinkEditor} aria-label="Close link editor" className="text-[13px] text-[#0B0B0B]/60 hover:text-[#0B0B0B]">✕</button>
+                    </div>
+                    <p className="mt-1 truncate text-[11px] text-[#0B0B0B]/50">Linked text: {editingLink.label}</p>
+                    <label htmlFor="blog-link-url" className="mt-3 block text-[11px] font-semibold">URL</label>
+                    <input id="blog-link-url" autoFocus type="text" value={editingLink.href}
+                      onChange={(e) => setEditingLink((current) => current ? { ...current, href: e.target.value } : null)}
+                      className="mt-1 w-full rounded-lg border border-[#0B0B0B]/20 px-3 py-2 text-[12px] outline-none focus:border-[#0B0B0B]"
+                      placeholder="https://example.com or /blog/post" />
+                    <div className="mt-3 flex items-center justify-between gap-2">
+                      <button type="button" onClick={removeLink} className="text-[11px] font-semibold text-red-600 hover:underline">Remove link</button>
+                      <button type="submit" className="rounded-lg bg-[#0B0B0B] px-3 py-2 text-[11px] font-semibold text-white hover:bg-[#333]">Save link</button>
+                    </div>
+                  </form>
                 )}
               </div>
             </>
