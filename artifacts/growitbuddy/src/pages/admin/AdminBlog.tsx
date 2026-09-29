@@ -1448,10 +1448,6 @@ function PostEditor({
         </button>
         <h1 className="text-[19px] font-black tracking-tight text-[#0B0B0B] flex-1 min-w-[130px]">{isNew ? "Add New Post" : "Edit Post"}</h1>
         {saved && <span className="text-[12px] text-emerald-600 font-medium">Saved</span>}
-        {optimizationUndo && <button type="button" onClick={undoOptimize} className="text-[12px] font-medium text-[#0B0B0B]/60 hover:text-[#0B0B0B] px-2 py-2">Undo Optimize</button>}
-        <button type="button" onClick={handleOptimize} disabled={saving} className="flex items-center gap-1.5 text-[13px] font-semibold text-[#0B0B0B] bg-emerald-100 border border-emerald-200 px-3.5 py-2 rounded-xl hover:bg-emerald-200 disabled:opacity-40 transition-colors">
-          <Sparkles size={14} /> Optimize
-        </button>
         <button onClick={() => handleSave("draft")} disabled={saving} className="text-[13px] font-medium text-[#0B0B0B]/55 border border-[#0B0B0B]/15 px-3.5 py-2 rounded-xl hover:border-[#0B0B0B]/30 transition-colors disabled:opacity-40">
           Save Draft
         </button>
@@ -2261,10 +2257,19 @@ function PostEditor({
                 <input type="text" value={data.date} onChange={(e) => setField("date", e.target.value)} className="text-[12px] text-[#0B0B0B] border border-[#0B0B0B]/12 rounded px-2 py-1 bg-white outline-none w-36 text-right" />
               </FieldRow>
             </div>
-            <div className="px-4 pb-4 pt-1">
+            <div className="px-4 pb-4 pt-1 space-y-2">
               <button onClick={() => handleSave("publish")} disabled={saving} className="w-full bg-[#0B0B0B] text-white text-[13px] font-semibold py-2.5 rounded-lg hover:bg-[#0B0B0B]/85 disabled:opacity-40 transition-colors">
                 {saving ? "Saving..." : "Publish"}
               </button>
+              <button type="button" onClick={handleOptimize} disabled={saving} className="w-full flex items-center justify-center gap-2 bg-emerald-100 border border-emerald-300 text-emerald-950 text-[13px] font-bold py-2.5 rounded-lg hover:bg-emerald-200 disabled:opacity-40 transition-colors">
+                <Sparkles size={14} /> Optimize
+              </button>
+              {optimizationUndo && (
+                <button type="button" onClick={undoOptimize} className="w-full text-[11px] font-medium text-[#0B0B0B]/55 hover:text-[#0B0B0B] py-1">
+                  Undo Optimize
+                </button>
+              )}
+              <p className="text-[10px] leading-snug text-[#0B0B0B]/45">Format the draft, then review before publishing.</p>
             </div>
           </div>
 

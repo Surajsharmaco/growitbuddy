@@ -104,6 +104,7 @@ export function formatPastedBlog({ html = "", text = "" }: ClipboardBlog): { htm
 
 const HEADING_LINE = /^\s{0,3}#{1,6}\s+\S/m;
 const TABLE_DIVIDER = /^\s*\|?\s*:?-{3,}:?\s*\|(?:\s*:?-{3,}:?\s*\|?)+\s*$/m;
+const MARKDOWN_DETAIL = /(?:\*\*[^*\n]+\*\*|__[^_\n]+__|\[[^\]]+\]\([^)]+\)|`[^`\n]+`|(?:^|\n)\s*(?:[-*+•●]\s+\S|\d+[.)]\s+\S))/m;
 
 function plainBlock(node: Element): string | null {
   if (!["P", "DIV"].includes(node.tagName) || node.attributes.length) return null;
@@ -132,8 +133,8 @@ function convertMarkdownBlocks(parent: Element): boolean {
       }
       const markdown = lines.map((line, index) =>
         index && lines[index - 1].includes("|") && line.includes("|") ? `\n${line}` : `${index ? "\n\n" : ""}${line}`,
-      ).join("");
-      if (HEADING_LINE.test(markdown) || TABLE_DIVIDER.test(markdown)) {
+      ).join("").replace(/^(\s{0,3})[•●]\s+/gm, "$1- ");
+      if (HEADING_LINE.test(markdown) || TABLE_DIVIDER.test(markdown) || MARKDOWN_DETAIL.test(markdown)) {
         const formatted = formatPastedBlog({ text: markdown }).html;
         if (formatted) {
           const replacement = document.createElement("div");
