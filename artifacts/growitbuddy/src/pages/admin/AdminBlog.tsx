@@ -8,6 +8,7 @@ import { Card } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
 import { BulkSelectionBar, CollectionSelectionCheckbox } from "@/components/admin/BulkSelectionBar";
 import { KeywordUsageGuide } from "@/components/admin/KeywordUsageGuide";
+import { classifyArticleLink, getArticleLinks } from "@/lib/blogLinks";
 import { analyzeKeywordSet, needsCombinedReview, needsRepetitionReview, countArticleWords as wordCount } from "@/lib/keywordUsage";
 import { formatPastedBlog, optimizeBlogContent } from "@/lib/pasteBlogContent";
 import WordPressPostsCard from "@/pages/admin/WordPressPostsCard";
@@ -55,6 +56,7 @@ interface SeoIssue {
 
 function computeSeoScore(post: BlogPost, content: string, seo: PostSeo): { score: number; issues: SeoIssue[] } {
   const text = stripHtml(content).toLowerCase();
+  const links = getArticleLinks(content);
   const title = post.title.toLowerCase();
   const kw = seo.focusKeyword.toLowerCase().trim();
   const metaDesc = seo.metaDescription.trim();
@@ -69,7 +71,7 @@ function computeSeoScore(post: BlogPost, content: string, seo: PostSeo): { score
   }
 
   const kwInTitle = title.includes(kw);
-  score += kwInTitle ? 20 : 0;
+  score += kwInTitle ? 15 : 0;
   issues.push({ key: "title", label: "Focus keyword in post title", status: kwInTitle ? "good" : "error", tip: "Add your keyword to the title" });
 
   const first150 = text.split(" ").slice(0, 150).join(" ");
@@ -94,7 +96,7 @@ function computeSeoScore(post: BlogPost, content: string, seo: PostSeo): { score
   });
 
   const wc = wordCount(content);
-  const wcScore = wc >= 1000 ? 15 : wc >= 600 ? 10 : wc >= 300 ? 5 : 0;
+  const wcScore = wc >= 1000 ? 10 : wc >= 600 ? 7 : wc >= 300 ? 3 : 0;
   score += wcScore;
   const wcStatus = wc >= 600 ? "good" : wc >= 300 ? "warn" : "error";
   issues.push({ key: "wc", label: `Word count: ${wc} words ${wc >= 600 ? "(good)" : wc >= 300 ? "(a bit short)" : "(too short)"}`, status: wcStatus, tip: "Aim for 600+ words" });
@@ -125,6 +127,13 @@ function computeSeoScore(post: BlogPost, content: string, seo: PostSeo): { score
   const hasOgImage = seo.ogImage.trim().length > 0;
   score += hasOgImage ? 5 : 0;
   issues.push({ key: "og", label: "Open Graph image set", status: hasOgImage ? "good" : "warn", tip: "Add an OG image for social sharing previews" });
+
+  const internalCount = links.filter((link) => link.kind === "internal").length;
+  const externalCount = links.filter((link) => link.kind === "external").length;
+  score += internalCount ? 5 : 0;
+  score += externalCount ? 5 : 0;
+  issues.push({ key: "internal-links", label: `Internal links: ${internalCount}`, status: internalCount ? "good" : "warn", tip: "Links to growitbuddy.com, www.growitbuddy.com, or relative pages count as internal." });
+  issues.push({ key: "external-links", label: `External links: ${externalCount}`, status: externalCount ? "good" : "warn", tip: "Links to other websites count as external." });
 
   return { score, issues };
 }
@@ -281,6 +290,7 @@ function yoastChecks(post: BlogPost, content: string, seo: PostSeo, allPosts: Bl
   const metaDesc = seo.metaDescription.toLowerCase();
   const slug = post.slug.toLowerCase();
   const wc = wordCount(content);
+  const links = getArticleLinks(content);
   const keywordReport = analyzeKeywordSet(content, kw, seo.secondaryKeywords);
   const repetitionReview = needsCombinedReview(keywordReport) ||
     [{ keyword: kw, ...keywordReport.focus }, ...keywordReport.secondary]
@@ -301,7 +311,9 @@ function yoastChecks(post: BlogPost, content: string, seo: PostSeo, allPosts: Bl
   const kwInSub = kw ? subheadings.some(h => stripHtml(h).toLowerCase().includes(kw)) : false;
   const hasImages = /<img/i.test(content);
   const urlShort = slug.length <= 75 && slug.length > 0;
-  const hasInternal = /href=["']\//i.test(content);
+  const internalCount = links.filter((link) => link.kind === "internal").length;
+  const externalCount = links.filter((link) => link.kind === "external").length;
+  const hasInternal = internalCount > 0;
   const kwUsedElsewhere = kw ? allPosts.filter(p => p.slug !== post.slug).some(p => (p.seo?.focusKeyword || "").toLowerCase() === kw) : false;
 
   // Title readability
@@ -455,7 +467,7 @@ function yoastChecks(post: BlogPost, content: string, seo: PostSeo, allPosts: Bl
       {
         key: "internal",
         label: hasInternal
-          ? "Your post links to other pages on your website."
+          ? `Your post has ${internalCount} internal link${internalCount === 1 ? "" : "s"} to your website.`
           : "Your post doesn't link to any other pages on your website.",
         pass: hasInternal, warn: false,
         fix: hasInternal ? undefined : {
@@ -557,7 +569,7 @@ function yoastChecks(post: BlogPost, content: string, seo: PostSeo, allPosts: Bl
       const textFull = stripHtml(content).toLowerCase();
       const hasDirectIntroAnswer = kw ? textFull.slice(0, 300).includes(kw) : false;
       const hasFirstPerson = /\b(i |we |our |my |i've|we've)\b/.test(textFull);
-      const hasCitations = /<a\s[^>]*href=["']https?:\/\/(?!growitbuddy)/i.test(content);
+      const hasCitations = externalCount > 0;
       const imgs = content.match(/<img[^>]*>/gi) || [];
       const allImgsHaveAlt = imgs.length === 0 || imgs.every(img => /alt=["'][^"']+["']/i.test(img));
       const hasFAQSection = /\b(faq|frequently asked|q:|\bq\.)\b/i.test(textFull);
@@ -595,7 +607,7 @@ function yoastChecks(post: BlogPost, content: string, seo: PostSeo, allPosts: Bl
         {
           key: "eeat-citations",
           label: hasCitations
-            ? "Your post links to an outside source - builds reader and Google trust."
+            ? `Your post has ${externalCount} external link${externalCount === 1 ? "" : "s"} to other websites.`
             : "Your post doesn't link to any outside websites as proof or references.",
           pass: hasCitations, warn: !hasCitations,
           fix: hasCitations ? undefined : {
@@ -782,6 +794,27 @@ function PostEditor({
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [currentTextColor, setCurrentTextColor] = useState("#0B0B0B");
   const colorPickerRef = useRef<HTMLDivElement>(null);
+  const [linkPreview, setLinkPreview] = useState<{ url: string; kind: "internal" | "external"; left: number; top: number } | null>(null);
+
+  function previewEditorLink(target: EventTarget | null) {
+    const element = target instanceof Element ? target : target instanceof Node ? target.parentElement : null;
+    const anchor = element?.closest("a[href]");
+    if (!anchor || !editorRef.current?.contains(anchor)) {
+      setLinkPreview(null);
+      return;
+    }
+    const link = classifyArticleLink(anchor.getAttribute("href") ?? "");
+    if (!link) {
+      setLinkPreview(null);
+      return;
+    }
+    const rect = anchor.getBoundingClientRect();
+    const left = Math.max(12, Math.min(rect.left, window.innerWidth - Math.min(440, window.innerWidth - 24)));
+    const top = rect.bottom + 8 > window.innerHeight - 90 ? Math.max(12, rect.top - 84) : rect.bottom + 8;
+    setLinkPreview((previous) =>
+      previous?.url === link.url && previous.left === left && previous.top === top
+        ? previous : { url: link.url, kind: link.kind, left, top });
+  }
 
   function copyFix(key: string, text: string) {
     navigator.clipboard.writeText(text).then(() => {
@@ -1101,9 +1134,11 @@ function PostEditor({
     }
   }
 
-  function exec(cmd: string, val?: string) {
-    document.execCommand(cmd, false, val);
+  function exec(cmd: string, val?: string): boolean {
+    const changed = document.execCommand(cmd, false, val);
+    if (changed && editorRef.current) setField("content", editorRef.current.innerHTML);
     editorRef.current?.focus();
+    return changed;
   }
 
   function insertLink() {
@@ -1150,7 +1185,15 @@ function PostEditor({
 
   function insertLinkWithFeedback() {
     const url = prompt("Enter URL:");
-    if (url) { exec("createLink", url); showToast("Link inserted.", "info"); }
+    if (url) {
+      editorRef.current?.focus();
+      if (savedRangeRef.current) {
+        const selection = window.getSelection();
+        if (selection) { selection.removeAllRanges(); selection.addRange(savedRangeRef.current); }
+      }
+      if (exec("createLink", url)) showToast("Link inserted.", "info");
+      else showToast("Select some text in the editor before inserting a link.", "error");
+    }
   }
 
   async function openImgModal() {
@@ -1631,6 +1674,11 @@ function PostEditor({
                      data-testid="blog-content-editor"
                     onInput={() => { if (editorRef.current) setField("content", editorRef.current.innerHTML); }}
                      onPaste={handleEditorPaste}
+                     onMouseOver={(e) => previewEditorLink(e.target)}
+                     onMouseLeave={() => setLinkPreview(null)}
+                     onScroll={() => setLinkPreview(null)}
+                     onFocusCapture={(e) => previewEditorLink(e.target)}
+                     onBlurCapture={() => setLinkPreview(null)}
                     onMouseUp={saveSelection}
                     onKeyUp={saveSelection}
                     className="blog-editor h-[65vh] min-h-[300px] max-h-[calc(100vh-300px)] overflow-y-auto overscroll-contain px-8 py-7 outline-none"
@@ -1651,6 +1699,13 @@ function PostEditor({
                     {mode === "visual" ? "Paste Markdown or rich text to auto-format" : "HTML source mode · switch to Visual for auto-format paste"}
                   </span>
                 </div>
+                {mode === "visual" && linkPreview && (
+                  <div role="status" className="fixed z-[100] pointer-events-none max-w-[min(420px,calc(100vw-24px))] rounded-lg bg-[#0B0B0B] px-3 py-2 text-white shadow-xl"
+                    style={{ left: linkPreview.left, top: linkPreview.top }}>
+                    <div className="text-[10px] font-bold uppercase tracking-wide text-white/65">{linkPreview.kind} link · URL</div>
+                    <div className="text-[12px] font-medium break-all leading-snug">{linkPreview.url}</div>
+                  </div>
+                )}
               </div>
             </>
           </div>
