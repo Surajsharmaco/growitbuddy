@@ -4,6 +4,7 @@ import { API_BASE, resolveMediaUrl } from "@/lib/api";
 import { defaultSeo, type BlogPost, type PostSeo } from "@/data/blogPosts";
 import { ImageCropUploader } from "@/components/admin/ImageCropUploader";
 import { ImagePickerField } from "@/components/admin/ImagePickerField";
+import { BlogButtonDialog, createBlogButton, readBlogButton, DEFAULT_BLOG_BUTTON, type BlogButtonSettings } from "@/components/admin/BlogButtonDialog";
 import { Card } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
 import { BulkSelectionBar, CollectionSelectionCheckbox } from "@/components/admin/BulkSelectionBar";
@@ -19,7 +20,7 @@ import {
   ChevronDown, ChevronUp, Search, Target, Tag, BarChart2,
   CheckCircle, AlertCircle, XCircle, Lightbulb, Share2,
   Code, HelpCircle, Eye, Strikethrough, Underline, Eraser,
-  ImagePlus, Table2, X as XIcon, Pilcrow,
+  ImagePlus, Table2, X as XIcon, Pilcrow, MousePointerClick,
   Sparkles, Zap, TrendingUp, RefreshCw, Layers, RotateCcw,
 } from "lucide-react";
 
@@ -720,6 +721,9 @@ const EDITOR_CSS = `
 .blog-editor strong { font-weight: 700; color: #0B0B0B; }
 .blog-editor em { font-style: italic; }
 .blog-editor a { color: #0B0B0B; text-decoration: underline; }
+.blog-editor .gb-blog-button-wrap { margin: 22px 0; line-height: normal; }
+.blog-editor a.gb-blog-button { text-decoration: none; cursor: pointer; }
+.blog-editor a.gb-blog-button:hover { filter: brightness(1.08); }
 .blog-editor .blog-table-scroll { max-width: 100%; overflow-x: auto; margin: 20px 0; }
 .blog-editor table { border-collapse: collapse; width: 100%; min-width: 100%; font-size: 14px; }
 .blog-editor th, .blog-editor td { border: 1px solid rgba(11,11,11,0.15); padding: 10px 12px; min-width: 110px; text-align: left; }
@@ -797,11 +801,17 @@ function PostEditor({
   const [linkPreview, setLinkPreview] = useState<{ url: string; kind: "internal" | "external"; left: number; top: number } | null>(null);
   const editingAnchorRef = useRef<HTMLAnchorElement | null>(null);
   const [editingLink, setEditingLink] = useState<{ href: string; left: number; top: number; label: string } | null>(null);
+  const [buttonDialog, setButtonDialog] = useState<{ initial: BlogButtonSettings; editing: boolean } | null>(null);
+  const editingButtonRef = useRef<HTMLAnchorElement | null>(null);
 
   function previewEditorLink(target: EventTarget | null) {
-    if (editingLink) return;
+    if (editingLink || buttonDialog) return;
     const element = target instanceof Element ? target : target instanceof Node ? target.parentElement : null;
     const anchor = element?.closest("a[href]");
+    if (anchor?.classList.contains("gb-blog-button")) {
+      setLinkPreview(null);
+      return;
+    }
     if (!anchor || !editorRef.current?.contains(anchor)) {
       setLinkPreview(null);
       return;
@@ -1239,6 +1249,7 @@ function PostEditor({
     const element = node instanceof Element ? node : node?.parentElement;
     const existing = element?.closest("a[href]");
     if (existing instanceof HTMLAnchorElement && editorRef.current?.contains(existing)) {
+      if (existing.classList.contains("gb-blog-button")) { openButtonDialog(existing); return; }
       openLinkEditor(existing);
       return;
     }
@@ -1252,6 +1263,57 @@ function PostEditor({
       if (exec("createLink", url)) showToast("Link inserted.", "info");
       else showToast("Select some text in the editor before inserting a link.", "error");
     }
+  }
+
+  function openButtonDialog(anchor?: HTMLAnchorElement) {
+    if (anchor && !editorRef.current?.contains(anchor)) return;
+    if (!anchor) saveSelection();
+    editingButtonRef.current = anchor ?? null;
+    const selectedText = !anchor ? window.getSelection()?.toString().trim().slice(0, 120) : "";
+    setLinkPreview(null);
+    setButtonDialog({
+      initial: anchor ? readBlogButton(anchor) : { ...DEFAULT_BLOG_BUTTON, label: selectedText || DEFAULT_BLOG_BUTTON.label },
+      editing: !!anchor,
+    });
+  }
+
+  function saveButton(settings: BlogButtonSettings) {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const button = createBlogButton(settings);
+    const old = editingButtonRef.current;
+    const oldWrap = old?.closest(".gb-blog-button-wrap");
+    if (oldWrap && editor.contains(oldWrap)) {
+      oldWrap.replaceWith(button);
+    } else {
+      editor.focus();
+      const selection = window.getSelection();
+      const range = savedRangeRef.current;
+      if (range && editor.contains(range.commonAncestorContainer) && selection) {
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+      // execCommand handles splitting the current paragraph around a block insertion.
+      if (!document.execCommand("insertHTML", false, button.outerHTML)) {
+        editor.insertAdjacentHTML("beforeend", button.outerHTML);
+      }
+    }
+    setField("content", editor.innerHTML);
+    editingButtonRef.current = null;
+    setButtonDialog(null);
+    showToast(old ? "Button updated." : "Button inserted.", "success");
+  }
+
+  function removeButton() {
+    const editor = editorRef.current;
+    const wrapper = editingButtonRef.current?.closest(".gb-blog-button-wrap");
+    if (!editor || !wrapper || !editor.contains(wrapper)) return;
+    if (!window.confirm("Remove this button from the blog post?")) return;
+    wrapper.remove();
+    setField("content", editor.innerHTML);
+    editingButtonRef.current = null;
+    setButtonDialog(null);
+    showToast("Button removed.", "info");
   }
 
   async function openImgModal() {
@@ -1427,6 +1489,16 @@ function PostEditor({
       </div>
 
       {/* ── Inline Image Upload Modal ── */}
+      {buttonDialog && (
+        <BlogButtonDialog
+          key={buttonDialog.editing ? `edit-${buttonDialog.initial.url}` : "new"}
+          initial={buttonDialog.initial}
+          editing={buttonDialog.editing}
+          onClose={() => { editingButtonRef.current = null; setButtonDialog(null); }}
+          onSave={saveButton}
+          onDelete={removeButton}
+        />
+      )}
       {showImgModal && (
         <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[560px] overflow-hidden">
@@ -1713,6 +1785,13 @@ function PostEditor({
                   <ToolBtn icon={<AlignJustify size={14} />} title="Justify" onClick={() => exec("justifyFull")} />
                   <div className="w-px h-5 bg-[#0B0B0B]/10 mx-0.5" />
                   <ToolBtn icon={<Link2 size={14} />} title="Insert Link" onClick={insertLinkWithFeedback} />
+                  {mode === "visual" && <ToolBtn icon={<MousePointerClick size={14} />} title="Insert or edit button" onClick={() => {
+                    const selection = window.getSelection();
+                    const node = selection?.anchorNode;
+                    const element = node instanceof Element ? node : node?.parentElement;
+                    const anchor = element?.closest("a.gb-blog-button");
+                    openButtonDialog(anchor instanceof HTMLAnchorElement ? anchor : undefined);
+                  }} />}
                   <ToolBtn icon={<ImagePlus size={14} />} title="Insert Image" onClick={insertImageWithFeedback} />
                   <ToolBtn icon={<Table2 size={14} />} title="Insert Table" onClick={insertTableWithFeedback} />
                   <ToolBtn icon={<Minus size={14} />} title="Horizontal Rule" onClick={() => exec("insertHorizontalRule")} />
@@ -1737,7 +1816,8 @@ function PostEditor({
                         const anchor = (e.target as Element).closest?.("a[href]");
                         if (anchor instanceof HTMLAnchorElement && editorRef.current?.contains(anchor)) {
                           e.preventDefault();
-                          openLinkEditor(anchor);
+                          if (anchor.classList.contains("gb-blog-button")) openButtonDialog(anchor);
+                          else openLinkEditor(anchor);
                         }
                       }}
                      onMouseLeave={() => setLinkPreview(null)}

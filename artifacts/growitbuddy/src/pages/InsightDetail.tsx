@@ -64,6 +64,10 @@ const ARTICLE_CSS = `
 .article-body em, .article-body i { font-style: italic; }
 .article-body a { color: #8B3A1A; text-decoration: underline; text-underline-offset: 3px; }
 .article-body a:hover { color: #A34722; }
+.article-body .gb-blog-button-wrap { margin: 28px 0; line-height: normal; }
+.article-body a.gb-blog-button { text-decoration: none; transition: filter 0.15s ease, transform 0.15s ease; }
+.article-body a.gb-blog-button:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.article-body a.gb-blog-button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .article-body code { font-family: 'Fira Code', monospace; font-size: 14px; background: rgba(11,11,11,0.06); padding: 2px 7px; border-radius: 5px; color: #1E293B; }
 
 /* ── Separator / HR ── */
