@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useParams } from "wouter";
-import { ArrowLeft, ArrowRight, Calendar, Share2, Twitter, Linkedin, Link2, Check, List } from "lucide-react";
+import { ArrowLeft, ArrowRight, Calendar, List } from "lucide-react";
 import { defaultSeo, type BlogPost } from "@/data/blogPosts";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import { useWordPressPosts, fetchWpPostBySlug } from "@/hooks/useWordPressPosts";
@@ -328,13 +328,9 @@ const ARTICLE_CSS = `
   .gb-hero-img > div { border-radius: 0 !important; box-shadow: none !important; }
 }
 
-/* ── Reserve bottom space so sticky share bar doesn't cover content ── */
-/* Reserve just enough space at the bottom for the sticky share bar */
+/* Give the fixed contact CTA space at the end of the article. */
 .gb-article-section { padding-bottom: 96px !important; }
 @media (min-width: 900px) { .gb-article-section { padding-bottom: 80px !important; } }
-@media (min-width: 900px) {
-  .gb-share-bar { box-shadow: 0 -2px 20px rgba(11,11,11,0.04) !important; }
-}
 `;
 
 function isHtml(text: string): boolean {
@@ -613,37 +609,22 @@ function buildPostSchema(post: BlogPost): Record<string, unknown>[] {
   return schemas;
 }
 
-/** Sticky share bar - visible at the bottom on mobile, side rail on desktop. */
-function ShareBar({ url, title }: { url: string; title: string }) {
-  const [copied, setCopied] = useState(false);
-  const enc = (s: string) => encodeURIComponent(s);
-  const onCopy = async () => {
-    try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { /* noop */ }
-  };
-  const Btn = ({ href, label, onClick, children }: { href?: string; label: string; onClick?: () => void; children: React.ReactNode }) => {
-    const style: React.CSSProperties = { width: 44, height: 44, borderRadius: 12, display: "inline-flex", alignItems: "center", justifyContent: "center", background: "#fff", border: "1.5px solid rgba(11,11,11,0.10)", color: "#1E293B", cursor: "pointer", transition: "all .15s" };
-    return href
-      ? <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label} style={style}>{children}</a>
-      : <button type="button" onClick={onClick} aria-label={label} style={{ ...style, fontFamily: "inherit" }}>{children}</button>;
-  };
+/** Compact contact CTA in place of the article's social-share controls. */
+function ConsultationCta() {
   return (
-    <div className="gb-share-bar" style={{ position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 50, padding: "10px 14px", background: "rgba(255,255,255,0.94)", backdropFilter: "blur(14px)", borderTop: "1px solid rgba(11,11,11,0.08)", boxShadow: "0 -4px 24px rgba(11,11,11,0.06)" }}>
-      <div style={{ maxWidth: 680, margin: "0 auto", display: "flex", alignItems: "center", gap: 10, justifyContent: "space-between" }}>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, color: "#1E293B", textTransform: "uppercase", letterSpacing: "0.12em" }}>
-          <Share2 className="w-3.5 h-3.5" /> Share
+    <aside aria-label="Talk to GrowitBuddy" className="fixed bottom-3 inset-x-3 sm:bottom-5 sm:inset-x-5 z-50 pointer-events-none">
+      <div className="pointer-events-auto mx-auto flex max-w-[990px] items-center gap-2.5 sm:gap-4 rounded-[20px] border border-[#E8E8E6] bg-white/95 py-2 pl-2.5 pr-2 shadow-[0_8px_34px_rgba(20,32,46,0.12)] backdrop-blur-md sm:py-2.5 sm:pl-3 sm:pr-3">
+        <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F2F3F5] text-[#1E293B] max-[360px]:hidden">
+          <Calendar className="h-[19px] w-[19px]" strokeWidth={2} />
         </span>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Btn href={`https://twitter.com/intent/tweet?url=${enc(url)}&text=${enc(title)}`} label="Share on X / Twitter"><Twitter className="w-4 h-4" /></Btn>
-          <Btn href={`https://www.linkedin.com/sharing/share-offsite/?url=${enc(url)}`} label="Share on LinkedIn"><Linkedin className="w-4 h-4" /></Btn>
-          <Btn href={`https://api.whatsapp.com/send?text=${enc(title + " " + url)}`} label="Share on WhatsApp">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.2-1.8-.9-2.1-1s-.5-.2-.7.2c-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.2-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1s0-.4.1-.5c.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5s0-.4 0-.5-.7-1.7-1-2.3c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4s-1 1-1 2.5 1.1 2.9 1.2 3.1c.2.2 2.2 3.3 5.3 4.7.7.3 1.3.5 1.8.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.5.3-.7.3-1.4.2-1.5-.1-.1-.3-.2-.6-.3z"/><path d="M20.5 3.5C18.2 1.2 15.2 0 12 0 5.4 0 0 5.4 0 12c0 2.1.5 4.2 1.6 6L0 24l6.2-1.6c1.7 1 3.8 1.4 5.8 1.4 6.6 0 12-5.4 12-12 0-3.2-1.2-6.2-3.5-8.3zM12 21.8c-1.8 0-3.6-.5-5.2-1.4l-.4-.2-3.7 1 1-3.6-.2-.4C2.5 15.6 2 13.8 2 12 2 6.5 6.5 2 12 2c2.7 0 5.2 1 7.1 2.9C21 6.8 22 9.3 22 12c0 5.5-4.5 9.8-10 9.8z"/></svg>
-          </Btn>
-          <Btn label="Copy link" onClick={onCopy}>
-            {copied ? <Check className="w-4 h-4" style={{ color: "#16a34a" }} /> : <Link2 className="w-4 h-4" />}
-          </Btn>
-        </div>
+        <span className="min-w-0 text-[12px] font-bold leading-tight text-[#1E293B] sm:whitespace-nowrap sm:text-sm">Need expert help?</span>
+        <span aria-hidden="true" className="hidden h-6 w-px bg-[#E7E9EC] md:block" />
+        <span className="hidden min-w-0 flex-1 text-[13px] text-[#848B9B] md:block">Discuss your project with our team.</span>
+        <Link href="/contact" className="ml-auto inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#1E293B] px-3 text-[12px] font-semibold text-white no-underline shadow-sm transition-colors hover:bg-[#334155] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1E293B] sm:px-4 sm:text-[13px]">
+          Get in Touch <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        </Link>
       </div>
-    </div>
+    </aside>
   );
 }
 
@@ -715,7 +696,6 @@ export default function InsightDetail() {
     if (!post) return "";
     return isHtml(post.content) ? addHeadingIds(enhanceWpHtml(rewriteSelfAnchors(post.content))) : post.content;
   }, [post]);
-  const shareUrl = post ? `${SITE}/blog/${post.slug}` : SITE;
 
   if (wpLoading) {
     return (
@@ -867,8 +847,8 @@ export default function InsightDetail() {
         </div>
       </section>
 
-      {/* Mobile-first sticky share bar */}
-      <ShareBar url={shareUrl} title={post.title} />
+      {/* Compact contact CTA replaces article share controls */}
+      <ConsultationCta />
 
       {/* Related posts */}
       {related.length > 0 && (
