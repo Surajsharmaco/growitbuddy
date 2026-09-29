@@ -1,88 +1,75 @@
-import { analyzeKeywordUsage, KEYWORD_DENSITY, type KeywordUsageZone } from "@/lib/keywordUsage";
+import { analyzeKeywordSet, needsCombinedReview, needsRepetitionReview } from "@/lib/keywordUsage";
 
-const FEEDBACK: Record<KeywordUsageZone, { label: string; tone: string; advice: string }> = {
-  empty: {
-    label: "Waiting",
-    tone: "bg-[#0B0B0B]/5 text-[#0B0B0B]/60 border-[#0B0B0B]/10",
-    advice: "Add a focus keyword and write your article to see its usage.",
-  },
-  "very-low": {
-    label: "Red · Too low",
-    tone: "bg-red-50 text-red-700 border-red-200",
-    advice: "The phrase is missing or very sparse. Add it naturally where it fits.",
-  },
-  low: {
-    label: "Yellow · Low",
-    tone: "bg-amber-50 text-amber-800 border-amber-200",
-    advice: "A little low. Mention the phrase naturally if it helps the reader.",
-  },
-  "in-range": {
-    label: "Green · In range",
-    tone: "bg-emerald-50 text-emerald-800 border-emerald-200",
-    advice: "Within the suggested range. Keep the writing natural.",
-  },
-  high: {
-    label: "Yellow · High",
-    tone: "bg-amber-50 text-amber-800 border-amber-200",
-    advice: "A little frequent. Review repeated uses of the exact phrase.",
-  },
-  "very-high": {
-    label: "Red · Too high",
-    tone: "bg-red-50 text-red-700 border-red-200",
-    advice: "The phrase is overused. Replace unnecessary repetitions with natural wording.",
-  },
-};
-
-const BANDS: { zone: KeywordUsageZone; color: string }[] = [
-  { zone: "very-low", color: "bg-red-500" },
-  { zone: "low", color: "bg-amber-400" },
-  { zone: "in-range", color: "bg-emerald-500" },
-  { zone: "high", color: "bg-amber-400" },
-  { zone: "very-high", color: "bg-red-500" },
-];
-
-export function KeywordUsageGuide({ keyword, content }: { keyword: string; content: string }) {
-  const usage = analyzeKeywordUsage(content, keyword);
-  const feedback = FEEDBACK[usage.zone];
-  const advice = !keyword.trim()
-    ? FEEDBACK.empty.advice
-    : usage.wordCount === 0
-      ? "Start writing to see how often the phrase appears."
-      : usage.mentions === 0
-        ? "Not used in the article yet. Add it naturally where it fits."
-        : feedback.advice;
+export function KeywordUsageGuide({ keyword, secondaryKeywords = "", content }: { keyword: string; secondaryKeywords?: string; content: string }) {
+  const report = analyzeKeywordSet(content, keyword, secondaryKeywords);
+  const rows = [
+    ...(keyword.trim() ? [{ keyword: keyword.trim(), type: "Focus", ...report.focus }] : []),
+    ...report.secondary.map((secondary) => ({ ...secondary, type: "Additional" })),
+  ];
+  const flagged = rows.filter((row) => needsRepetitionReview(row, row.keyword));
+  const reviewCombined = needsCombinedReview(report);
+  const needsReview = flagged.length > 0 || reviewCombined;
 
   return (
     <div className="rounded-xl border border-[#0B0B0B]/10 bg-[#fafafa] p-3">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-[#0B0B0B]/45 mb-2">Keyword usage &amp; frequency</p>
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="text-[13px] font-bold text-[#0B0B0B]">{usage.mentions} use{usage.mentions === 1 ? "" : "s"}</p>
-          <p className="text-[10px] text-[#0B0B0B]/50">{usage.wordCount} article words</p>
+      <div className="flex flex-wrap items-center justify-between gap-1">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-[#0B0B0B]/55">All keywords · live frequency</p>
+        <span className="text-[10px] text-[#0B0B0B]/55">{rows.length} tracked · {report.wordCount} article words</span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 mt-3">
+        <div className="rounded-lg bg-white border border-[#0B0B0B]/10 px-2.5 py-2">
+          <p className="text-[17px] font-bold leading-none text-[#0B0B0B]">{report.wordCount ? report.totalMentions : "—"}</p>
+          <p className="text-[10px] leading-snug text-[#0B0B0B]/60 mt-1">Total unique uses</p>
         </div>
-        <div className="text-right">
-          <p className="text-[13px] font-bold text-[#0B0B0B]">{usage.zone === "empty" ? "—" : `${usage.density.toFixed(2)}%`}</p>
-          <span className={`inline-block rounded-md border px-1.5 py-0.5 text-[10px] font-bold ${feedback.tone}`}>{feedback.label}</span>
+        <div className="rounded-lg bg-white border border-[#0B0B0B]/10 px-2.5 py-2">
+          <p className="text-[17px] font-bold leading-none text-[#0B0B0B]">{report.wordCount ? `${report.combinedFrequency.toFixed(2)}%` : "—"}</p>
+          <p className="text-[10px] leading-snug text-[#0B0B0B]/60 mt-1">Combined frequency</p>
         </div>
       </div>
-      <div className="grid grid-cols-5 gap-1 mt-3" aria-hidden="true">
-        {BANDS.map((band) => (
-          <span
-            key={band.zone}
-            className={`h-2 rounded-full ${band.color} ${usage.zone === band.zone ? "ring-2 ring-black/50 ring-offset-1" : "opacity-35"}`}
-          />
-        ))}
+      <p className="text-[10px] text-[#0B0B0B]/60 mt-1.5">Matched words: {report.coveredWords} of {report.wordCount} ({report.coverage.toFixed(2)}% body coverage)</p>
+
+      <div className="mt-3 border-t border-[#0B0B0B]/10 pt-2 space-y-1.5">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-[#0B0B0B]/55 mb-1">Every keyword · exact phrase</p>
+        {rows.map((row) => {
+          const review = needsRepetitionReview(row, row.keyword);
+          return (
+            <div key={`${row.type}-${row.keyword}`} className="flex items-start justify-between gap-2 rounded-lg border border-[#0B0B0B]/10 bg-white px-2.5 py-2">
+              <div className="min-w-0">
+                <span className="block text-[10px] text-[#0B0B0B]/50">{row.type}</span>
+                <span className="block break-words text-[11px] font-semibold text-[#0B0B0B]" title={row.keyword}>{row.keyword}</span>
+                {report.wordCount > 0 && row.mentions === 0 && <span className="text-[10px] text-amber-700">Not found in article</span>}
+                {review && <span className="text-[10px] text-amber-700">Review repetition</span>}
+              </div>
+              <div className="shrink-0 text-right">
+                <span className="block text-[12px] font-bold text-[#0B0B0B]">{row.mentions} use{row.mentions === 1 ? "" : "s"}</span>
+                <span className="block text-[10px] text-[#0B0B0B]/60">{row.density.toFixed(2)}% frequency</span>
+              </div>
+            </div>
+          );
+        })}
+        {rows.length === 0 && <p className="text-[11px] text-[#0B0B0B]/60">Add keywords above to track them here.</p>}
       </div>
-      <p className="text-[11px] leading-snug text-[#0B0B0B]/70 mt-3">{advice}</p>
-      {usage.zone !== "empty" && usage.wordCount < 100 && (
-        <p className="text-[10px] text-amber-700 mt-1">Early estimate: short drafts can change zones quickly.</p>
+
+      {rows.length > 0 && (
+        <p className={`mt-3 rounded-lg border px-2.5 py-2 text-[11px] leading-snug ${needsReview ? "border-amber-200 bg-amber-50 text-amber-900" : "border-[#0B0B0B]/10 bg-white text-[#0B0B0B]/70"}`}>
+          {!report.wordCount
+            ? "Start writing to see frequency for every keyword."
+            : needsReview
+              ? "Possible over-repetition. Read the highlighted phrases in context and remove any that sound forced; these numbers cannot prove keyword stuffing."
+              : "Counts help you spot repetition, but no percentage can confirm that a draft is free of keyword stuffing. Read it for naturalness and usefulness."}
+        </p>
       )}
-      <p className="text-[10px] leading-relaxed text-[#0B0B0B]/45 mt-2">
-        <span className="text-emerald-700 font-semibold">Green</span> {KEYWORD_DENSITY.suggestedMin}–{KEYWORD_DENSITY.suggestedMax}% ·{" "}
-        <span className="text-amber-700 font-semibold">Yellow</span> {KEYWORD_DENSITY.veryLow}–&lt;{KEYWORD_DENSITY.suggestedMin}% or &gt;{KEYWORD_DENSITY.suggestedMax}–{KEYWORD_DENSITY.veryHigh}% ·{" "}
-        <span className="text-red-700 font-semibold">Red</span> &lt;{KEYWORD_DENSITY.veryLow}% or &gt;{KEYWORD_DENSITY.veryHigh}%.
+      {report.wordCount > 0 && report.wordCount < 100 && (
+        <p className="text-[10px] text-amber-700 mt-1">Early estimate: short drafts can change quickly.</p>
+      )}
+      <p className="text-[10px] leading-relaxed text-[#0B0B0B]/55 mt-2">
+        Each phrase's frequency and the combined frequency = uses per 100 body words. Combined uses and coverage count overlaps once. Titles, metadata and spelling variants are not counted.
       </p>
-      <p className="text-[10px] leading-snug text-[#0B0B0B]/40 mt-1">Frequency = whole-word phrase uses per 100 article words. Body only; a guide, not a ranking guarantee.</p>
+      <p className="text-[10px] leading-relaxed text-[#0B0B0B]/55 mt-1">
+        Google sets no ideal keyword-density percentage. This is an editorial review signal, not a ranking score.{" "}
+        <a href="https://developers.google.com/search/docs/essentials/spam-policies#keyword-stuffing" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#0B0B0B]">Google&apos;s guidance</a>
+      </p>
     </div>
   );
 }

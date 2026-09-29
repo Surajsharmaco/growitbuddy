@@ -8,7 +8,7 @@ import { Card } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
 import { BulkSelectionBar, CollectionSelectionCheckbox } from "@/components/admin/BulkSelectionBar";
 import { KeywordUsageGuide } from "@/components/admin/KeywordUsageGuide";
-import { analyzeKeywordUsage, countArticleWords as wordCount, KEYWORD_DENSITY } from "@/lib/keywordUsage";
+import { analyzeKeywordSet, needsCombinedReview, needsRepetitionReview, countArticleWords as wordCount } from "@/lib/keywordUsage";
 import { formatPastedBlog, optimizeBlogContent } from "@/lib/pasteBlogContent";
 import WordPressPostsCard from "@/pages/admin/WordPressPostsCard";
 import {
@@ -103,16 +103,19 @@ function computeSeoScore(post: BlogPost, content: string, seo: PostSeo): { score
   score += hasH2 ? 10 : 0;
   issues.push({ key: "headings", label: "Uses H2 / H3 headings for structure", status: hasH2 ? "good" : "warn", tip: "Break content into sections with headings" });
 
-  const { density, zone: densityZone } = analyzeKeywordUsage(content, kw);
-  const densityOk = densityZone === "in-range";
-  const densityWarn = density > KEYWORD_DENSITY.suggestedMax;
-  score += densityOk ? 10 : 0;
-  const densityStatus = densityOk ? "good" : densityZone === "low" || densityZone === "high" ? "warn" : "error";
+  const keywordReport = analyzeKeywordSet(content, kw, seo.secondaryKeywords);
+  const keywordRows = [{ keyword: kw, ...keywordReport.focus }, ...keywordReport.secondary];
+  const repetitionReview = needsCombinedReview(keywordReport) ||
+    keywordRows.some((row) => needsRepetitionReview(row, row.keyword));
+  const focusPresent = keywordReport.focus.mentions > 0;
+  score += focusPresent ? 10 : 0;
   issues.push({
     key: "density",
-    label: `Keyword density: ${density}% ${densityOk ? "(good)" : densityWarn ? "(over-optimized)" : "(too low)"}`,
-    status: densityStatus,
-    tip: "Aim for 0.5-3% keyword density",
+    label: repetitionReview
+      ? `Review keyword repetition: ${keywordReport.totalMentions} unique uses across all terms`
+      : `Focus phrase in article: ${keywordReport.focus.mentions} uses · ${keywordReport.totalMentions} unique uses across all terms`,
+    status: repetitionReview || !focusPresent ? "warn" : "good",
+    tip: "Google has no ideal keyword density. Check the full keyword report and read repeated phrases in context.",
   });
 
   const hasSeoTitle = seo.seoTitle.trim().length > 0;
@@ -278,7 +281,10 @@ function yoastChecks(post: BlogPost, content: string, seo: PostSeo, allPosts: Bl
   const metaDesc = seo.metaDescription.toLowerCase();
   const slug = post.slug.toLowerCase();
   const wc = wordCount(content);
-  const { density, zone: densityZone } = analyzeKeywordUsage(content, kw);
+  const keywordReport = analyzeKeywordSet(content, kw, seo.secondaryKeywords);
+  const repetitionReview = needsCombinedReview(keywordReport) ||
+    [{ keyword: kw, ...keywordReport.focus }, ...keywordReport.secondary]
+      .some((row) => needsRepetitionReview(row, row.keyword));
   const first10pct = text.split(" ").slice(0, Math.max(1, Math.ceil(wc * 0.1))).join(" ");
   const year = new Date().getFullYear();
 
@@ -294,7 +300,6 @@ function yoastChecks(post: BlogPost, content: string, seo: PostSeo, allPosts: Bl
   const subheadings = content.match(/<h[23][^>]*>(.*?)<\/h[23]>/gi) || [];
   const kwInSub = kw ? subheadings.some(h => stripHtml(h).toLowerCase().includes(kw)) : false;
   const hasImages = /<img/i.test(content);
-  const densityOk = densityZone === "in-range";
   const urlShort = slug.length <= 75 && slug.length > 0;
   const hasInternal = /href=["']\//i.test(content);
   const kwUsedElsewhere = kw ? allPosts.filter(p => p.slug !== post.slug).some(p => (p.seo?.focusKeyword || "").toLowerCase() === kw) : false;
@@ -421,17 +426,18 @@ function yoastChecks(post: BlogPost, content: string, seo: PostSeo, allPosts: Bl
       },
       {
         key: "density",
-        label: densityOk
-          ? `You use your topic word the right amount (${density}%).`
-          : density > 3
-            ? `You use your topic word too many times (${density}%) - it looks spammy.`
-            : `You barely use your topic word (${density}%) - mention it more.`,
-        pass: densityOk, warn: densityZone === "low" || densityZone === "high",
-        fix: densityOk ? undefined : density > 3 ? {
-          tip: `You've mentioned "${kw}" so often it may look like spam to Google. Try replacing some uses with related phrases or just remove a few. Write naturally - don't repeat the same word over and over.`,
-        } : {
-          tip: `Your topic word "${kw}" only appears a tiny amount in your post. Naturally mention it a few more times as you write about your topic. There's no need to force it - just write clearly about what the post is about.`,
-        },
+        label: repetitionReview
+          ? `Review repetition across your keywords (${keywordReport.totalMentions} unique uses).`
+          : keywordReport.focus.mentions
+            ? `Focus phrase: ${keywordReport.focus.mentions} uses. See every keyword's frequency above.`
+            : `Focus phrase not found in article; add it only if it reads naturally.`,
+        pass: keywordReport.focus.mentions > 0 && !repetitionReview,
+        warn: repetitionReview || keywordReport.wordCount < 100,
+        fix: repetitionReview ? {
+          tip: "Read the article aloud and remove repeated phrases that sound forced. No percentage proves keyword stuffing; Google evaluates unnatural repetition and usefulness.",
+        } : keywordReport.focus.mentions === 0 ? {
+          tip: `The exact phrase "${kw}" wasn't found in the article. It does not need to appear a fixed number of times. Use it only where it helps readers.`,
+        } : undefined,
       },
       {
         key: "url-len",
@@ -1281,13 +1287,14 @@ function PostEditor({
   ];
 
   function addKwTag(val: string) {
-    const trimmed = val.trim();
-    if (!trimmed) return;
-    if (!seo.focusKeyword.trim()) { setSeoField("focusKeyword", trimmed); }
-    else {
-      const existing = seo.secondaryKeywords ? seo.secondaryKeywords.split(",").map(k => k.trim()).filter(Boolean) : [];
-      if (!existing.includes(trimmed)) setSeoField("secondaryKeywords", [...existing, trimmed].join(", "));
+    const added = val.split(",").map((term) => term.trim()).filter(Boolean);
+    if (!added.length) return;
+    const next = [...kwTags];
+    for (const term of added) {
+      if (!next.some((existing) => existing.toLocaleLowerCase() === term.toLocaleLowerCase())) next.push(term);
     }
+    if (!seo.focusKeyword.trim()) setSeoField("focusKeyword", next[0] ?? "");
+    setSeoField("secondaryKeywords", next.slice(1).join(", "));
     setKwTagInput("");
   }
 
@@ -1489,8 +1496,8 @@ function PostEditor({
               </div>
 
               {/* Editor */}
-              <div className="bg-white border border-[#0B0B0B]/10 rounded-2xl overflow-hidden shadow-sm">
-                <div className="flex items-center flex-wrap gap-0.5 px-3 py-2 border-b border-[#0B0B0B]/8 bg-[#fafafa]">
+              <div className="bg-white border border-[#0B0B0B]/10 rounded-2xl shadow-sm">
+                <div className="sticky top-[8rem] sm:top-[4.5rem] z-20 flex items-center flex-wrap gap-0.5 px-3 py-2 border-b border-[#0B0B0B]/8 bg-[#fafafa] rounded-t-2xl shadow-sm">
                   {/* Block format custom dropdown */}
                   <div className="relative mr-1 shrink-0">
                     <button
@@ -1626,14 +1633,14 @@ function PostEditor({
                      onPaste={handleEditorPaste}
                     onMouseUp={saveSelection}
                     onKeyUp={saveSelection}
-                    className="blog-editor min-h-[460px] px-8 py-7 outline-none"
+                    className="blog-editor h-[65vh] min-h-[300px] max-h-[calc(100vh-300px)] overflow-y-auto overscroll-contain px-8 py-7 outline-none"
                     suppressContentEditableWarning />
                 ) : (
                   <textarea value={data.content} onChange={(e) => setField("content", e.target.value)}
-                    className="w-full min-h-[460px] px-7 py-6 text-[13px] text-[#0B0B0B]/65 font-mono leading-relaxed outline-none resize-none bg-[#fafafa]"
+                    className="w-full h-[65vh] min-h-[300px] max-h-[calc(100vh-300px)] overflow-y-auto overscroll-contain px-7 py-6 text-[13px] text-[#0B0B0B]/65 font-mono leading-relaxed outline-none resize-none bg-[#fafafa]"
                     placeholder="Write your post content..." spellCheck={false} />
                 )}
-                <div className="flex items-center justify-between px-5 py-2.5 border-t border-[#0B0B0B]/6 bg-[#fafafa]">
+                <div className="flex items-center justify-between px-5 py-2.5 border-t border-[#0B0B0B]/6 bg-[#fafafa] rounded-b-2xl">
                   <div className="flex items-center gap-4">
                     <span className="text-[11px] text-[#0B0B0B]/30">Words: {wc}</span>
                     <span className={`text-[11px] font-medium ${readability.score >= 80 ? "text-emerald-600" : readability.score >= 60 ? "text-amber-600" : "text-red-500"}`}>
@@ -2028,7 +2035,7 @@ function PostEditor({
               {/* Focus Keywords */}
               <div className="bg-white border border-[#0B0B0B]/10 rounded-2xl p-5 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
-                  <h3 className="text-[13px] font-semibold text-[#0B0B0B]">Focus Keyword</h3>
+                  <h3 className="text-[13px] font-semibold text-[#0B0B0B]">Tracked keywords</h3>
                   <HelpCircle size={13} className="text-[#0B0B0B]/30" />
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5 min-h-[40px] border border-[#0B0B0B]/15 rounded-xl px-3 py-2 bg-white focus-within:border-[#0B0B0B]/30 mb-3">
@@ -2049,9 +2056,9 @@ function PostEditor({
                     className="flex-1 min-w-[120px] text-[12px] outline-none bg-transparent"
                   />
                 </div>
-                <p className="text-[11px] text-[#0B0B0B]/40 mb-4">Press Enter or comma to add. First keyword is the focus keyword (green). Others are secondary.</p>
+                <p className="text-[11px] text-[#0B0B0B]/50 mb-4">Press Enter or comma to add. The first tag is the focus keyword; every tag is counted separately in the live report below.</p>
                 <div className="mb-4">
-                  <KeywordUsageGuide keyword={seo.focusKeyword || kwTagInput.trim()} content={liveContent} />
+                  <KeywordUsageGuide keyword={seo.focusKeyword || kwTagInput.trim()} secondaryKeywords={seo.secondaryKeywords} content={liveContent} />
                 </div>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={!!(seo as any).pillarContent} onChange={(e) => setSeoField("pillarContent" as any, e.target.checked)} className="accent-[#0B0B0B] w-3.5 h-3.5" />
@@ -2281,15 +2288,15 @@ function PostEditor({
               placeholder="e.g. founder brand strategy"
               className="w-full border border-[#0B0B0B]/12 rounded-lg px-2.5 py-1.5 text-[12px] text-[#0B0B0B] outline-none focus:border-[#0B0B0B]/30 bg-white mb-2"
             />
-            <div className="mb-3">
-              <KeywordUsageGuide keyword={seo.focusKeyword} content={liveContent} />
-            </div>
             <input
               value={seo.secondaryKeywords}
               onChange={(e) => setSeoField("secondaryKeywords", e.target.value)}
               placeholder="Secondary keywords (comma separated)"
               className="w-full border border-[#0B0B0B]/12 rounded-lg px-2.5 py-1.5 text-[12px] text-[#0B0B0B] outline-none focus:border-[#0B0B0B]/30 bg-white mb-2"
             />
+            <div className="mb-3">
+              <KeywordUsageGuide keyword={seo.focusKeyword} secondaryKeywords={seo.secondaryKeywords} content={liveContent} />
+            </div>
             {seo.searchIntent && (
               <div className="flex items-center gap-1.5 mt-1">
                 <Lightbulb size={11} className="text-[#0B0B0B]/35" />
