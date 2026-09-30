@@ -8,6 +8,10 @@ import { useWordPressPosts } from "@/hooks/useWordPressPosts";
 import { resolveMediaUrl } from "@/lib/api";
 import SEOMeta from "@/components/SEOMeta";
 
+function normalizeBlogCategory(tag: string): string {
+  return /^founders?$/i.test(tag.trim()) ? "Founders" : tag.trim();
+}
+
 export default function Insights() {
   const [activeTag, setActiveTag] = useState("All");
   // CMS is the source of truth, merged with any WordPress posts. If both are
@@ -28,9 +32,11 @@ export default function Insights() {
 
   // Always show the core brand categories so the filter bar stays consistent
   // even before CMS posts have loaded or if a category is temporarily empty.
-  const FIXED_TAGS = ["Founder", "Brand", "Creator"];
-  const allTags = ["All", ...Array.from(new Set([...FIXED_TAGS, ...blogPosts.map(p => p.tag)]))];
-  const filtered = activeTag === "All" ? blogPosts : blogPosts.filter(p => p.tag === activeTag);
+  const FIXED_TAGS = ["Founders", "Brand", "Creator"];
+  const allTags = ["All", ...Array.from(new Set([...FIXED_TAGS, ...blogPosts.map(p => normalizeBlogCategory(p.tag))]))];
+  const filtered = activeTag === "All"
+    ? blogPosts
+    : blogPosts.filter(p => normalizeBlogCategory(p.tag) === activeTag);
 
   return (
     <div style={{ background: "#F8F8F6", fontFamily: "'Inter', sans-serif" }}>
@@ -163,7 +169,7 @@ export default function Insights() {
                             background: featured ? "rgba(255,255,255,0.12)" : "#EFEFEA",
                             color: featured ? "#F8F8F6" : "#0A0A0A",
                           }}>
-                            {post.tag}
+                            {normalizeBlogCategory(post.tag)}
                           </span>
                         </div>
                         <h2 style={{

@@ -22,7 +22,7 @@ import {
   Link2, AlignLeft, AlignCenter, AlignRight, AlignJustify,
   Minus, FileText, Trash2, Edit2, Calendar, Globe, Lock,
   ChevronDown, ChevronUp, Search, Target, Tag, BarChart2,
-  CheckCircle, AlertCircle, XCircle, Lightbulb, Share2,
+  CheckCircle, Check, Copy, AlertCircle, XCircle, Lightbulb, Share2,
   Code, HelpCircle, Eye, Strikethrough, Underline, Eraser,
   ImagePlus, Table2, X as XIcon, Pilcrow, MousePointerClick,
   Sparkles, Zap, TrendingUp, RefreshCw, Layers, RotateCcw,
@@ -2827,6 +2827,28 @@ function generateSchema(post: BlogPost, seo: PostSeo) {
 // POST LIST
 // ─────────────────────────────────────
 
+async function copyTextToClipboard(text: string): Promise<void> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+  } catch {
+    // Continue with the legacy browser fallback below.
+  }
+
+  const input = document.createElement("textarea");
+  input.value = text;
+  input.setAttribute("readonly", "");
+  input.style.position = "fixed";
+  input.style.opacity = "0";
+  document.body.appendChild(input);
+  input.select();
+  const copied = document.execCommand("copy");
+  input.remove();
+  if (!copied) throw new Error("Clipboard unavailable");
+}
+
 function PostList({ posts, onEdit, onDelete, onDeleteSelected, onRestore, onPermanentDelete, onAdd }: {
   posts: BlogPost[];
   onEdit: (p: BlogPost) => void;
@@ -2841,6 +2863,22 @@ function PostList({ posts, onEdit, onDelete, onDeleteSelected, onRestore, onPerm
   const [search, setSearch] = useState("");
   const [view, setView] = useState<"active" | "trash">("active");
   const [selectedSlugs, setSelectedSlugs] = useState<Set<string>>(new Set());
+  const [linkFeedback, setLinkFeedback] = useState<{ slug: string; status: "copied" | "error" } | null>(null);
+
+  async function copyPostLink(post: BlogPost) {
+    try {
+      await copyTextToClipboard(resolveBlogSeo(post).url);
+      setLinkFeedback({ slug: post.slug, status: "copied" });
+      window.setTimeout(() => {
+        setLinkFeedback((current) => current?.slug === post.slug ? null : current);
+      }, 1800);
+    } catch {
+      setLinkFeedback({ slug: post.slug, status: "error" });
+      window.setTimeout(() => {
+        setLinkFeedback((current) => current?.slug === post.slug ? null : current);
+      }, 2400);
+    }
+  }
 
   const activePosts = posts.filter((p) => !p.trashed);
   const trashedPosts = posts.filter((p) => p.trashed);
@@ -2999,7 +3037,7 @@ function PostList({ posts, onEdit, onDelete, onDeleteSelected, onRestore, onPerm
               <th className="text-left px-3 py-3 text-[10px] font-bold text-[#0B0B0B]/40 uppercase tracking-widest w-24">SEO</th>
               <th className="text-left px-3 py-3 text-[10px] font-bold text-[#0B0B0B]/40 uppercase tracking-widest w-28">Category</th>
               <th className="text-left px-3 py-3 text-[10px] font-bold text-[#0B0B0B]/40 uppercase tracking-widest w-32">Date</th>
-              <th className="w-20" />
+              <th className="w-28"><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
           <tbody>
@@ -3057,9 +3095,46 @@ function PostList({ posts, onEdit, onDelete, onDeleteSelected, onRestore, onPerm
                     <div className="flex items-center gap-1.5 text-[12px] text-[#0B0B0B]/45"><Calendar size={11} />{post.date}</div>
                   </td>
                   <td className="px-3 py-3.5">
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
-                      <button onClick={() => onEdit(post)} className="p-1.5 rounded hover:bg-[#0B0B0B]/8 text-[#0B0B0B]/35 hover:text-[#0B0B0B] transition-colors" title="Edit"><Edit2 size={13} /></button>
-                      <button onClick={() => { onDelete(post.slug, realIdx); setSelectedSlugs((prev) => { const next = new Set(prev); next.delete(post.slug); return next; }); }} className="p-1.5 rounded hover:bg-red-50 text-[#0B0B0B]/35 hover:text-red-500 transition-colors" title="Delete"><Trash2 size={13} /></button>
+                    <div className="flex items-center gap-1 justify-end">
+                      <button
+                        type="button"
+                        disabled={(post.status ?? "published") !== "published"}
+                        onClick={() => void copyPostLink(post)}
+                        className={`p-1.5 rounded transition-colors ${
+                          (post.status ?? "published") !== "published"
+                            ? "text-[#0B0B0B]/20 cursor-not-allowed"
+                            : linkFeedback?.slug === post.slug && linkFeedback.status === "error"
+                              ? "text-red-500 hover:bg-red-50"
+                              : "text-[#0B0B0B]/45 hover:bg-[#0B0B0B]/8 hover:text-[#0B0B0B]"
+                        }`}
+                        title={
+                          (post.status ?? "published") !== "published"
+                            ? "Publish this draft to copy its public link"
+                            : linkFeedback?.slug === post.slug
+                              ? linkFeedback.status === "copied" ? "Link copied" : "Could not copy link"
+                              : "Copy public blog link"
+                        }
+                        aria-label={
+                          (post.status ?? "published") !== "published"
+                            ? "Publish this draft to enable its public link"
+                            : linkFeedback?.slug === post.slug && linkFeedback.status === "copied"
+                              ? "Blog link copied"
+                              : linkFeedback?.slug === post.slug && linkFeedback.status === "error"
+                                ? "Could not copy public blog link"
+                                : "Copy public blog link"
+                        }
+                        aria-live="polite"
+                      >
+                        {linkFeedback?.slug === post.slug && linkFeedback.status === "copied"
+                          ? <Check size={13} />
+                          : linkFeedback?.slug === post.slug && linkFeedback.status === "error"
+                            ? <AlertCircle size={13} />
+                            : <Copy size={13} />}
+                      </button>
+                      <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => onEdit(post)} className="p-1.5 rounded hover:bg-[#0B0B0B]/8 text-[#0B0B0B]/35 hover:text-[#0B0B0B] transition-colors" title="Edit"><Edit2 size={13} /></button>
+                        <button onClick={() => { onDelete(post.slug, realIdx); setSelectedSlugs((prev) => { const next = new Set(prev); next.delete(post.slug); return next; }); }} className="p-1.5 rounded hover:bg-red-50 text-[#0B0B0B]/35 hover:text-red-500 transition-colors" title="Delete"><Trash2 size={13} /></button>
+                      </div>
                     </div>
                   </td>
                 </tr>
