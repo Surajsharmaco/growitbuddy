@@ -33,6 +33,10 @@ import {
   BLOG_PATH,
   buildSitemapXml,
   wrapUrlset,
+  isBlogInSitemap,
+  isPublicBlogPost,
+  resolveBlogSeo,
+  type BlogSeoPost,
   type PageRegistryEntry,
   type PageSEOData,
 } from "@workspace/seo";
@@ -312,6 +316,32 @@ function injectBody(html: string, bodyHtml: string): string {
     : html;
 }
 
+function applyBlogSeo(html: string, metaTagsHtml: string): string {
+  const cleaned = html
+    .replace(/<title\b[^>]*>[\s\S]*?<\/title>/i, "")
+    .replace(/<meta\b[^>]*>/gi, (tag) => {
+      const name = /\bname=["']([^"']+)["']/i.exec(tag)?.[1]?.toLowerCase();
+      const property = /\bproperty=["']([^"']+)["']/i.exec(tag)?.[1]?.toLowerCase();
+      return name === "description" ||
+        name === "robots" ||
+        /^twitter:(card|title|description|image|url)$/.test(name ?? "") ||
+        /^og:(title|description|url|type|image|site_name)$/.test(property ?? "")
+        ? ""
+        : tag;
+    })
+    .replace(/<link\b(?=[^>]*\brel=["']canonical["'])[^>]*>/i, "")
+    .replace(/<script\b(?=[^>]*\bid=["']gb-jsonld["'])[^>]*>[\s\S]*?<\/script>/i, "")
+    .replace(/<script\b(?=[^>]*\bid=["']gb-blog-jsonld["'])[^>]*>[\s\S]*?<\/script>/i, "");
+  return cleaned.replace(/<\/head>/i, `    ${metaTagsHtml}\n  </head>`);
+}
+
+function injectArticleBody(html: string, bodyHtml: string): string {
+  return html.replace(
+    /<div id="root"[^>]*>[\s\S]*?<\/div>/i,
+    `<div id="root"><div data-ssr-seo style="${SEO_HIDE}">${bodyHtml}</div></div>`,
+  );
+}
+
 /* ───────────────────────────── data ───────────────────────────────── */
 interface Bundle {
   seo: PageSEOData;
@@ -363,6 +393,20 @@ async function loadFromPublicApi(
     throw new Error("Public content API returned an incomplete section response");
   }
   return buildBundle(slug, contentSections, new Map(Object.entries(responseData)));
+}
+
+async function loadPublicSections(keys: string[]): Promise<Record<string, unknown>> {
+  const apiBase = process.env.VITE_API_URL?.replace(/\/+$/, "");
+  if (!apiBase) throw new Error("VITE_API_URL is not configured for public content");
+  const response = await fetch(
+    `${apiBase}/admin/public/content-bulk?sections=${encodeURIComponent(keys.join(","))}`,
+    { cache: "no-store", signal: AbortSignal.timeout(PUBLIC_API_TIMEOUT_MS) },
+  );
+  if (!response.ok) throw new Error(`Public content API returned HTTP ${response.status}`);
+  const payload = (await response.json()) as { data?: Record<string, unknown> };
+  if (!payload.data || keys.some((key) => !Object.prototype.hasOwnProperty.call(payload.data, key)))
+    throw new Error("Public content API returned an incomplete section response");
+  return payload.data;
 }
 
 // Query all SEO + page content rows together when a DB URL is available. Vercel
@@ -551,30 +595,38 @@ interface WPPost {
 // flagged noindex/no-sitemap (seo:<slug>) and honoring the seo-global kill switch.
 async function buildMainSitemap(): Promise<string> {
   const today = new Date().toISOString().split("T")[0];
-  if (!DB_URL) return buildSitemapXml({ lastmod: today, siteUrl: SITE });
-
   let globalIndexable = true;
   const seoMap = new Map<string, SEOFlags>();
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
-  try {
-    const sql = neon(DB_URL, { fetchOptions: { signal: ctrl.signal } });
-    const rows = (await sql`
-      SELECT section, data FROM site_content
-      WHERE section = 'seo-global' OR section LIKE 'seo:%'
-    `) as Array<{ section: string; data: unknown }>;
-    for (const r of rows) {
-      if (r.section === "seo-global") {
-        const gd = r.data as { siteIndexable?: boolean } | undefined;
-        if (gd && gd.siteIndexable === false) globalIndexable = false;
-      } else {
-        seoMap.set(r.section.replace(/^seo:/, ""), (r.data as SEOFlags) ?? {});
+  if (DB_URL) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
+    try {
+      const sql = neon(DB_URL, { fetchOptions: { signal: ctrl.signal } });
+      const rows = (await sql`
+        SELECT section, data FROM site_content
+        WHERE section = 'seo-global' OR section LIKE 'seo:%'
+      `) as Array<{ section: string; data: unknown }>;
+      for (const r of rows) {
+        if (r.section === "seo-global") {
+          const gd = r.data as { siteIndexable?: boolean } | undefined;
+          if (gd && gd.siteIndexable === false) globalIndexable = false;
+        } else {
+          seoMap.set(r.section.replace(/^seo:/, ""), (r.data as SEOFlags) ?? {});
+        }
       }
+    } catch {
+      try {
+        const data = await loadPublicSections(["seo-global"]);
+        globalIndexable = (data["seo-global"] as { siteIndexable?: boolean } | null)?.siteIndexable !== false;
+      } catch { /* unavailable sources: retain indexable default */ }
+    } finally {
+      clearTimeout(timer);
     }
-  } catch {
-    /* DB down — include every eligible page by default */
-  } finally {
-    clearTimeout(timer);
+  } else {
+    try {
+      const data = await loadPublicSections(["seo-global"]);
+      globalIndexable = (data["seo-global"] as { siteIndexable?: boolean } | null)?.siteIndexable !== false;
+    } catch { /* unavailable source: retain indexable default */ }
   }
 
   if (!globalIndexable) return wrapUrlset([]);
@@ -592,6 +644,7 @@ async function buildMainSitemap(): Promise<string> {
 // site_content "blog" section. Each source is best-effort.
 async function buildBlogSitemap(): Promise<string> {
   let globalIndexable = true;
+  let cmsPosts: BlogSeoPost[] = [];
   if (DB_URL) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
@@ -603,10 +656,20 @@ async function buildBlogSitemap(): Promise<string> {
       const gd = rows[0]?.data as { siteIndexable?: boolean } | undefined;
       if (gd && gd.siteIndexable === false) globalIndexable = false;
     } catch {
-      /* ignore — default to allowed */
+      try {
+        const data = await loadPublicSections(["seo-global"]);
+        globalIndexable = (data["seo-global"] as { siteIndexable?: boolean } | null)?.siteIndexable !== false;
+      } catch { /* unavailable sources: retain indexable default */ }
     } finally {
       clearTimeout(timer);
     }
+  } else {
+    try {
+      const data = await loadPublicSections(["seo-global", "blog"]);
+      globalIndexable = (data["seo-global"] as { siteIndexable?: boolean } | null)?.siteIndexable !== false;
+      const blog = data.blog as { posts?: BlogSeoPost[] } | null;
+      cmsPosts = Array.isArray(blog?.posts) ? blog.posts : [];
+    } catch { /* unavailable source: retain indexable default */ }
   }
   if (!globalIndexable) return wrapUrlset([]);
 
@@ -638,26 +701,23 @@ async function buildBlogSitemap(): Promise<string> {
       const sql = neon(DB_URL, { fetchOptions: { signal: ctrl.signal } });
       const rows = (await sql`
         SELECT data FROM site_content WHERE section = 'blog' LIMIT 1
-      `) as Array<{ data: { posts?: Array<{ slug?: string; date?: string; trashed?: boolean; status?: string }> } }>;
-      const posts = rows[0]?.data?.posts ?? [];
-      const fallbackDate = new Date().toISOString().split("T")[0];
-      for (const post of posts) {
-        if (!post.slug) continue;
-        // Never advertise trashed or draft posts in the sitemap (mirror /blog).
-        if (post.trashed === true || (post.status ?? "published") !== "published")
-          continue;
-        const lastmod = post.date
-          ? new Date(post.date).toISOString().split("T")[0]
-          : fallbackDate;
-        urls.push(
-          `  <url>\n    <loc>${SITE}${BLOG_PATH}/${post.slug}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`,
-        );
-      }
+      `) as Array<{ data: { posts?: BlogSeoPost[] } }>;
+      cmsPosts = rows[0]?.data?.posts ?? [];
     } catch {
       /* DB error — skip gracefully */
     } finally {
       clearTimeout(timer);
     }
+  }
+
+  for (const post of cmsPosts) {
+    if (!post.slug || !isBlogInSitemap(post, globalIndexable)) continue;
+    const resolved = resolveBlogSeo(post, { globalIndexable });
+    const lastmod = resolved.sitemap.lastmod;
+    const escapedUrl = resolved.sitemap.url.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    urls.push(
+      `  <url>\n    <loc>${escapedUrl}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`,
+    );
   }
 
   return wrapUrlset(urls);
@@ -854,6 +914,37 @@ export default async function handler(req: any, res: any): Promise<void> {
       res.setHeader("location", redirectTo.startsWith("http") ? redirectTo : `${SITE}${redirectTo}`);
       res.setHeader("cache-control", "public, max-age=3600, s-maxage=3600");
       res.end();
+      return;
+    }
+
+    // CMS articles get a dedicated SSR path so every crawl-visible SEO field and
+    // the semantic article body come from the shared @workspace/seo resolver.
+    // WordPress slugs retain their existing read-only handler below.
+    const blogMatch = pathname.match(/^\/blog\/([^/]+)$/);
+    if (blogMatch && !blogMatch[1].startsWith("wp-")) {
+      let slug: string;
+      try { slug = decodeURIComponent(blogMatch[1]); } catch { send404(res, template); return; }
+      const sections = sectionsForSlug("insights");
+      const bundle = await loadData("insights", sections);
+      const blog = bundle.content.blog as { posts?: BlogSeoPost[] } | null;
+      const post = blog?.posts?.find((candidate) => candidate.slug === slug);
+      if (!post || !isPublicBlogPost(post)) {
+        send404(res, template);
+        return;
+      }
+      const resolved = resolveBlogSeo(post, { globalIndexable: bundle.globalIndexable });
+      const entry = findEntryByPath("/blog");
+      if (!entry) throw new Error("Insights registry entry is missing");
+      const page = buildHtml(template, entry, pathname, bundle, {
+        bodySections: [],
+        seoSlug: "insights",
+      });
+      let articleHtml = applyBlogSeo(page, resolved.metaTagsHtml);
+      articleHtml = injectArticleBody(articleHtml, resolved.crawlerBodyHtml);
+      if (resolved.robots.startsWith("noindex")) {
+        res.setHeader("x-robots-tag", resolved.robots.replace(",", ", "));
+      }
+      sendHtml(res, articleHtml, "no-store");
       return;
     }
 

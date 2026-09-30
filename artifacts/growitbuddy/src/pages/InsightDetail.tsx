@@ -2,11 +2,13 @@ import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useParams } from "wouter";
 import { ArrowLeft, ArrowRight, Calendar, List } from "lucide-react";
-import { defaultSeo, type BlogPost } from "@/data/blogPosts";
+import type { BlogPost } from "@/data/blogPosts";
+import { isPublicBlogPost, resolveBlogSeo } from "@workspace/seo";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import { useWordPressPosts, fetchWpPostBySlug } from "@/hooks/useWordPressPosts";
 import { resolveMediaUrl } from "@/lib/api";
 import SEOMeta from "@/components/SEOMeta";
+import { cachedGlobal, readBootstrap } from "@/lib/seoCache";
 
 const ARTICLE_CSS = `
 /* ── Base ── */
@@ -443,21 +445,6 @@ function renderMarkdown(text: string): React.ReactElement[] {
   return elements;
 }
 
-const SITE = "https://growitbuddy.com";
-
-/** Convert any post.date format (ISO or "10 April 2026") into ISO 8601 for schema.org. */
-function toIsoDate(post: BlogPost): string {
-  if (post.isoDate) return post.isoDate;
-  const d = new Date(post.date);
-  if (!isNaN(d.getTime())) return d.toISOString();
-  return new Date().toISOString();
-}
-
-/** Count words in HTML or markdown content (for schema wordCount + AEO signal). */
-function countWords(content: string): number {
-  return content.replace(/<[^>]*>/g, " ").replace(/[#*_>`-]/g, " ").split(/\s+/).filter(Boolean).length;
-}
-
 /** Inject loading="lazy", decoding="async", and proper sizing on every image/iframe in WP HTML.
  *  Also adds `fetchpriority="high"` to the FIRST image (LCP optimization). */
 function enhanceWpHtml(html: string): string {
@@ -560,55 +547,6 @@ function addHeadingIds(html: string): string {
   });
 }
 
-function buildPostSchema(post: BlogPost): Record<string, unknown>[] {
-  const seo = { ...defaultSeo(), ...post.seo };
-  const schemaType = seo.schemaType || "Article";
-  const isoDate = toIsoDate(post);
-  const modIsoDate = post.modifiedIsoDate ?? isoDate;
-  const wordCount = countWords(post.content);
-  const url = `${SITE}/blog/${post.slug}`;
-  const imageUrl = resolveMediaUrl(post.featuredImage || seo.ogImage || "") || `${SITE}/opengraph.jpg`;
-
-  const base: Record<string, unknown> = {
-    "headline": seo.seoTitle || post.title,
-    "description": seo.metaDescription || post.excerpt,
-    "url": url,
-    "datePublished": isoDate,
-    "dateModified": modIsoDate,
-    "image": { "@type": "ImageObject", "url": imageUrl, "width": 1200, "height": 630 },
-    "author": { "@type": "Person", "@id": `${SITE}/#suraj-sharma`, "name": "Suraj Sharma", "url": `${SITE}/about` },
-    "publisher": { "@type": "Organization", "@id": `${SITE}/#organization`, "name": "GrowitBuddy", "logo": { "@type": "ImageObject", "url": `${SITE}/logo.png` } },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": url },
-    "keywords": [seo.focusKeyword, seo.secondaryKeywords].filter(Boolean).join(", ") || post.tag,
-    "articleSection": post.tag,
-    "inLanguage": "en-US",
-    "wordCount": wordCount,
-    "isAccessibleForFree": true,
-    // Speakable - voice assistants & AI overviews can read these aloud
-    "speakable": { "@type": "SpeakableSpecification", "cssSelector": [".article-body h2", ".article-body p"] },
-  };
-
-  const schemas: Record<string, unknown>[] = [];
-  schemas.push({
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Home", "item": SITE },
-      { "@type": "ListItem", "position": 2, "name": "Blog", "item": `${SITE}/blog` },
-      { "@type": "ListItem", "position": 3, "name": post.title, "item": url },
-    ],
-  });
-
-  if (schemaType === "FAQ") {
-    schemas.push({ "@type": "FAQPage", ...base, "mainEntity": (seo.faqItems ?? []).map((f) => ({ "@type": "Question", "name": f.question, "acceptedAnswer": { "@type": "Answer", "text": f.answer } })) });
-  } else if (schemaType === "HowTo") {
-    schemas.push({ "@type": "HowTo", ...base, "name": seo.seoTitle || post.title, "step": (seo.howToSteps ?? []).map((s, i) => ({ "@type": "HowToStep", "position": i + 1, "name": s.name, "text": s.text })) });
-  } else if (schemaType !== "None") {
-    schemas.push({ "@type": schemaType, ...base });
-  }
-
-  return schemas;
-}
-
 /** Compact contact CTA in place of the article's social-share controls. */
 function ConsultationCta() {
   return (
@@ -647,10 +585,11 @@ function ReadingProgress() {
   );
 }
 
-export default function InsightDetail() {
+export default function InsightDetail({ previewPost }: { previewPost?: BlogPost } = {}) {
   const params = useParams<{ slug: string }>();
   const slug = params.slug ?? "";
-  const isWp = slug.startsWith("wp-");
+  const isPreview = !!previewPost;
+  const isWp = !isPreview && slug.startsWith("wp-");
 
   const { posts: cmsPosts } = usePublicContent<{ posts: BlogPost[] }>("blog", { posts: [] });
   const { posts: wpPosts } = useWordPressPosts();
@@ -667,7 +606,7 @@ export default function InsightDetail() {
   }, [slug, isWp, wpPosts]);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    if (!isPreview) window.scrollTo(0, 0);
     const existing = document.getElementById("article-styles");
     if (!existing) {
       const s = document.createElement("style");
@@ -676,17 +615,19 @@ export default function InsightDetail() {
       document.head.appendChild(s);
     }
     return () => { document.getElementById("article-styles")?.remove(); };
-  }, [slug]);
+  }, [slug, isPreview]);
 
   // Only live posts are reachable on the public site: trashed or draft CMS posts
   // must 404 (and never surface as "related"), exactly like the listing page.
   const allPosts: BlogPost[] = [
-    ...(cmsPosts ?? []).filter((p) => !p.trashed && (p.status ?? "published") === "published"),
+    ...(cmsPosts ?? []).filter(isPublicBlogPost),
     ...wpPosts,
   ];
 
-  const post: BlogPost | undefined = isWp ? (wpPost ?? undefined) : allPosts.find((p) => p.slug === slug);
-  const related = allPosts.filter((p) => p.slug !== slug).slice(0, 3);
+  const post: BlogPost | undefined = previewPost ?? (isWp ? (wpPost ?? undefined) : allPosts.find((p) => p.slug === slug));
+  const related = allPosts.filter((p) => p.slug !== (post?.slug ?? slug)).slice(0, 3);
+  const globalIndexable = cachedGlobal() ?? readBootstrap("insights").bootGlobal;
+  const resolvedSeo = post ? resolveBlogSeo(post, { globalIndexable }) : undefined;
 
   // Pre-compute heavy derived values once per post change.
   // Suppress our auto TOC when the WP content already has its own, so we never duplicate.
@@ -708,6 +649,7 @@ export default function InsightDetail() {
   if (!post) {
     return (
       <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', sans-serif" }}>
+        {!isPreview && <SEOMeta title="Post not found | GrowitBuddy Insights" description="This post could not be found." robots="noindex,nofollow" />}
         <div style={{ textAlign: "center" }}>
           <h1 style={{ fontWeight: 800, fontSize: 40, letterSpacing: "-0.04em", color: "#0A0A0A", marginBottom: 12 }}>Post not found</h1>
           <Link href="/blog">
@@ -723,15 +665,22 @@ export default function InsightDetail() {
   return (
     <div style={{ background: "#F8F8F6", fontFamily: "'Inter', sans-serif" }}>
       <ReadingProgress />
-      <SEOMeta
-        title={`${post.seo?.seoTitle || post.title} | GrowitBuddy Insights`}
-        description={post.seo?.metaDescription || post.excerpt}
-        ogImage={resolveMediaUrl(post.seo?.ogImage || post.featuredImage || "") || undefined}
+      {!isPreview && resolvedSeo && <SEOMeta
+        title={resolvedSeo.title}
+        description={resolvedSeo.description}
+        ogTitle={resolvedSeo.og.title}
+        ogDescription={resolvedSeo.og.description}
+        ogImage={resolvedSeo.og.image}
         ogType="article"
-        canonical={post.seo?.canonicalUrl || undefined}
-        robots={post.seo?.noIndex ? "noindex,nofollow" : "index,follow"}
-        schema={buildPostSchema(post)}
-      />
+        canonical={resolvedSeo.canonical}
+        robots={resolvedSeo.robots}
+        twitterCard={resolvedSeo.twitter.card as "summary" | "summary_large_image"}
+        twitterTitle={resolvedSeo.twitter.title}
+        twitterDescription={resolvedSeo.twitter.description}
+        twitterImage={resolvedSeo.twitter.image}
+        twitterUrl={resolvedSeo.twitter.url}
+        schema={resolvedSeo.jsonLd["@graph"]}
+      />}
 
       {/* Hero - tight vertical rhythm, white space minimized */}
       <section style={{ paddingTop: "clamp(56px, 9vw, 80px)", paddingBottom: 0, background: "#FFFFFF" }}>
@@ -749,6 +698,11 @@ export default function InsightDetail() {
             <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, color: "#7A7A85", fontWeight: 500 }}>
               <Calendar className="w-3 h-3" /> {post.date}
             </span>
+            {post.modifiedIsoDate && !Number.isNaN(new Date(post.modifiedIsoDate).getTime()) && (
+              <span style={{ fontSize: 12, color: "#7A7A85", fontWeight: 500 }}>
+                Updated {new Date(post.modifiedIsoDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+              </span>
+            )}
           </div>
 
           {/* Author byline */}
@@ -831,6 +785,18 @@ export default function InsightDetail() {
             ? <div dangerouslySetInnerHTML={{ __html: enhancedContent }} />
             : renderMarkdown(post.content)
           }
+
+          {post.seo?.faqItems?.some((item) => item.question?.trim() && item.answer?.trim()) && (
+            <section aria-label="Frequently asked questions" style={{ marginTop: 42 }}>
+              <h2>Frequently asked questions</h2>
+              {post.seo.faqItems.filter((item) => item.question?.trim() && item.answer?.trim()).map((item, index) => (
+                <div key={`${item.question}-${index}`} style={{ marginTop: 20 }}>
+                  <h3>{item.question}</h3>
+                  <p>{item.answer}</p>
+                </div>
+              ))}
+            </section>
+          )}
 
           <div style={{ marginTop: 40, padding: "26px 22px", background: "#EFEFEA", borderRadius: 18, textAlign: "center" }}>
             <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#8A8A8A", marginBottom: 10 }}>Ready to build your authority?</p>

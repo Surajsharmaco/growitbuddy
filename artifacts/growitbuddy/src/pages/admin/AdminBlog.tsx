@@ -12,6 +12,10 @@ import { KeywordUsageGuide } from "@/components/admin/KeywordUsageGuide";
 import { classifyArticleLink, getArticleLinks } from "@/lib/blogLinks";
 import { analyzeKeywordSet, needsCombinedReview, needsRepetitionReview, countArticleWords as wordCount } from "@/lib/keywordUsage";
 import { formatPastedBlog, optimizeBlogContent } from "@/lib/pasteBlogContent";
+import { analyzeBlogSeo } from "@/lib/blogSeoAudit";
+import { resolveBlogSeo } from "@workspace/seo";
+import SeoPreviewDashboard from "@/components/admin/SeoPreviewDashboard";
+import InsightDetail from "@/pages/InsightDetail";
 import WordPressPostsCard from "@/pages/admin/WordPressPostsCard";
 import {
   Plus, ArrowLeft, Bold, Italic, List, ListOrdered, Quote,
@@ -773,6 +777,10 @@ function PostEditor({
   const [mode, setMode] = useState<"visual" | "text">("visual");
   const [activeTab, setActiveTab] = useState<"write" | "seo">("write");
   const [saving, setSaving] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewPost, setPreviewPost] = useState<BlogPost | null>(null);
+  const [previewIndexable, setPreviewIndexable] = useState(true);
+  const [publishIssues, setPublishIssues] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
   const [optimizationUndo, setOptimizationUndo] = useState<{ data: BlogPost; seo: PostSeo; mode: "visual" | "text" } | null>(null);
   const [optimizationNotice, setOptimizationNotice] = useState("");
@@ -1023,6 +1031,39 @@ function PostEditor({
     return data.content;
   }
 
+  function postForPublication(): BlogPost {
+    const slug = (data.slug || data.title).toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "").slice(0, 80);
+    return { ...data, slug, content: captureContent(), seo, status: "published" };
+  }
+
+  async function getGlobalIndexable(): Promise<boolean> {
+    // The SSR renderer reads this same public content section; do not assume
+    // indexing is enabled if the authoritative section cannot be reached.
+    const response = await fetch(`${API_BASE}/admin/public/content/seo-global`, { cache: "no-store" });
+    if (!response.ok) throw new Error("Can't verify the global indexing setting. Please retry before publishing.");
+    const payload = await response.json() as { data?: { siteIndexable?: boolean } | null };
+    return payload.data?.siteIndexable !== false;
+  }
+
+  const currentlyPublished = (slug: string) =>
+    !isNew && post.slug === slug && (post.status ?? "published") === "published" && !post.trashed;
+
+  async function handlePreview() {
+    if (previewLoading || saving) return;
+    setPreviewLoading(true);
+    try {
+      const candidate = postForPublication();
+      const indexable = await getGlobalIndexable();
+      setPreviewIndexable(indexable);
+      setPreviewPost(candidate);
+      setPublishIssues([]);
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Could not load SEO preview. Please retry.", "error");
+    } finally {
+      setPreviewLoading(false);
+    }
+  }
+
   function handleOptimize() {
     const original = captureContent();
     if (!original.trim()) {
@@ -1217,18 +1258,30 @@ function PostEditor({
   }
 
   async function handleSave(mode: "draft" | "publish" = "draft") {
-    const content = captureContent();
-    const slug = (data.slug || data.title).toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "").slice(0, 80);
+    const candidate = postForPublication();
+    const slug = candidate.slug;
     if (!slug) {
       showToast("Please add a title or URL slug before saving.", "error");
       return;
     }
     const resolvedStatus: "draft" | "published" = mode === "publish" ? "published" : "draft";
-    const finalPost: BlogPost = { ...data, slug, content, seo, status: resolvedStatus };
-    setStatus(resolvedStatus);
+    const finalPost: BlogPost = { ...candidate, status: resolvedStatus };
     setSaving(true);
     try {
+      if (mode === "publish") {
+        const indexable = await getGlobalIndexable();
+        const audit = analyzeBlogSeo(candidate, resolveBlogSeo(candidate, { globalIndexable: indexable }), allPosts, currentlyPublished(slug));
+        if (audit.criticalErrors.length) {
+          setPreviewIndexable(indexable);
+          setPreviewPost(candidate);
+          setPublishIssues(audit.criticalErrors);
+          showToast("Publishing paused. Fix the critical issues shown in the SEO preview.", "error");
+          return;
+        }
+      }
       await onSave(finalPost);
+      setStatus(resolvedStatus);
+      setPublishIssues([]);
       setSaved(true);
       if (mode === "publish") {
         showToast(`Published! View at /blog/${slug}`, "success");
@@ -1636,6 +1689,10 @@ function PostEditor({
         </button>
       </div>
       {optimizationNotice && <p className="text-[12px] text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 mb-4" role="status">{optimizationNotice}</p>}
+      {publishIssues.length > 0 && <div role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[12px] text-red-800">
+        <strong>Publishing paused — fix these critical SEO issues:</strong>
+        <ul className="mt-2 list-disc pl-5">{publishIssues.map((issue) => <li key={issue}>{issue}</li>)}</ul>
+      </div>}
 
       <div className="flex gap-5 items-start">
         {/* ── Left: tabs + content ── */}
@@ -2460,9 +2517,6 @@ function PostEditor({
                 <button onClick={() => handleSave("draft")} className="text-[11px] font-semibold bg-white border border-[#0B0B0B]/15 text-[#0B0B0B]/55 px-2.5 py-1 rounded hover:bg-[#f5f5f5] transition-colors">
                   Save Draft
                 </button>
-                <button className="text-[11px] font-semibold bg-white border border-[#0B0B0B]/15 text-[#0B0B0B]/55 px-2.5 py-1 rounded hover:bg-[#f5f5f5] transition-colors">
-                  Preview
-                </button>
               </div>
             </div>
             <div className="px-4 py-3 space-y-0">
@@ -2488,6 +2542,9 @@ function PostEditor({
             <div className="px-4 pb-4 pt-1 space-y-2">
               <button onClick={() => handleSave("publish")} disabled={saving} className="w-full bg-[#0B0B0B] text-white text-[13px] font-semibold py-2.5 rounded-lg hover:bg-[#0B0B0B]/85 disabled:opacity-40 transition-colors">
                 {saving ? "Saving..." : "Publish"}
+              </button>
+              <button type="button" onClick={handlePreview} disabled={saving || previewLoading} className="w-full flex items-center justify-center gap-2 bg-white border border-[#0B0B0B]/20 text-[#0B0B0B] text-[13px] font-semibold py-2.5 rounded-lg hover:bg-[#f5f5f5] disabled:opacity-40 transition-colors">
+                <Eye size={14} /> {previewLoading ? "Preparing preview..." : "Preview"}
               </button>
               <button type="button" onClick={handleOptimize} disabled={saving} className="w-full flex items-center justify-center gap-2 bg-emerald-100 border border-emerald-300 text-emerald-950 text-[13px] font-bold py-2.5 rounded-lg hover:bg-emerald-200 disabled:opacity-40 transition-colors">
                 <Sparkles size={14} /> Optimize
@@ -2706,6 +2763,18 @@ function PostEditor({
           </SidePanel>
         </div>
       </div>
+      {previewPost && <SeoPreviewDashboard
+        post={previewPost}
+        allPosts={allPosts}
+        globalIndexable={previewIndexable}
+        currentlyPublished={currentlyPublished(previewPost.slug)}
+        onClose={() => setPreviewPost(null)}
+        articlePreview={<div onClickCapture={(event) => {
+          const target = event.target;
+          const link = target instanceof Element ? target.closest("a") : null;
+          if (link && !link.getAttribute("href")?.startsWith("#")) event.preventDefault();
+        }}><InsightDetail previewPost={previewPost} /></div>}
+      />}
     </div>
   );
 }

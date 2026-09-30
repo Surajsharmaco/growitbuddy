@@ -19,34 +19,8 @@
  * should derive Organization/WebSite data from the builders below.
  * ──────────────────────────────────────────────────────────────────────────── */
 
-/** Canonical public origin (no trailing slash). */
-export const SITE_URL = "https://growitbuddy.com";
-/** Public API origin that serves the dynamic sitemaps (no trailing slash). */
-export const API_URL = "https://growitbuddy-api.onrender.com";
-/** Canonical path for blog/insights posts. Old /insights/* URLs 301 here. */
-export const BLOG_PATH = "/blog";
-
-export const BRAND = {
-  name: "GrowitBuddy",
-  url: SITE_URL,
-  logo: `${SITE_URL}/logo-dark.png`,
-  email: "cs.growitbuddy@gmail.com",
-  twitter: "@growitbuddy",
-  description:
-    "GrowitBuddy builds positioning, production, distribution, and inbound demand systems for founders and creators.",
-  founder: {
-    id: `${SITE_URL}/#suraj-sharma`,
-    name: "Suraj Sharma",
-    jobTitle: "Founder & CEO",
-  },
-  /** Social / external profiles - strengthens entity recognition for AI engines (GEO). */
-  sameAs: [
-    "https://instagram.com/growitbuddy",
-    "https://youtube.com/@growitbuddy",
-    "https://x.com/growitbuddy",
-    "https://www.linkedin.com/company/growitbuddy",
-  ],
-} as const;
+import { BRAND, SITE_URL } from "./constants";
+export { API_URL, BLOG_PATH, BRAND, SITE_URL } from "./constants";
 
 /* ────────────────────────────────────────────────────────────────────────────
  * Page registry - the single source of truth
@@ -311,3 +285,12 @@ export interface PageSEOData {
 
 export const SEO_SECTION_PREFIX = "seo:";
 export const seoSectionKey = (slug: string) => `${SEO_SECTION_PREFIX}${slug}`;
+
+export {
+  isBlogInSitemap,
+  isPublicBlogPost,
+  resolveBlogSeo,
+  type BlogSeoPost,
+  type ResolvedBlogSeo,
+} from "./blog";
+export type { ResolvedBlogSeo as BlogSeoOutput } from "./blog";

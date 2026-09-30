@@ -153,8 +153,18 @@ function parseBroadcastSection(value: string | null): string | null {
   return m ? m[1] : value;
 }
 
+function releaseSeoOwnership(): void {
+  document.querySelector("title")?.removeAttribute("data-gb-admin");
+  document.head
+    .querySelectorAll('[data-gb-admin="1"]')
+    .forEach((element) => element.removeAttribute("data-gb-admin"));
+}
+
 export default function DynamicPageSEO() {
   const [location] = useLocation();
+  // Article SEO is resolved from the live public CMS record in InsightDetail.
+  // Applying the generic Insights registry entry here would overwrite it.
+  const isBlogArticle = /^\/blog\/[^/]+$/.test(location);
 
   // Synchronously lock the SSR-injected (bootstrap) SEO for this page BEFORE any
   // page-level <SEOMeta> passive effect runs. useLayoutEffect fires before
@@ -163,13 +173,20 @@ export default function DynamicPageSEO() {
   // closing the race that let a hardcoded client title flicker in and made Google
   // index an inconsistent desktop title.
   useLayoutEffect(() => {
+    if (isBlogArticle) {
+      // Generic page SEO may have stamped these tags on the previous route.
+      // Let the article's shared resolver reclaim them synchronously.
+      releaseSeoOwnership();
+      return;
+    }
     const entry = findEntryByPath(location);
     if (!entry) return;
     const { data, global } = syncSeoFor(entry.slug);
     applySEO(entry, data, location, global);
-  }, [location]);
+  }, [location, isBlogArticle]);
 
   useEffect(() => {
+    if (isBlogArticle) return;
     const entry = findEntryByPath(location);
     if (!entry) return;
     let cancelled = false;
@@ -246,7 +263,7 @@ export default function DynamicPageSEO() {
       window.removeEventListener("storage", onStorage);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [location]);
+  }, [location, isBlogArticle]);
 
   return null;
 }

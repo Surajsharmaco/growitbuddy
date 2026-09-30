@@ -1,7 +1,15 @@
 import { Router, type Request, type Response, type IRouter } from "express";
 import { db, siteContent } from "@workspace/db";
 import { eq, like } from "drizzle-orm";
-import { SITE_URL, BLOG_PATH, buildSitemapXml, wrapUrlset } from "@workspace/seo";
+import {
+  SITE_URL,
+  BLOG_PATH,
+  buildSitemapXml,
+  wrapUrlset,
+  isBlogInSitemap,
+  resolveBlogSeo,
+  type BlogSeoPost,
+} from "@workspace/seo";
 
 const sitemapRouter: IRouter = Router();
 
@@ -107,19 +115,19 @@ sitemapRouter.get("/sitemap-blog.xml", async (_req: Request, res: Response) => {
       .where(eq(siteContent.section, "blog"))
       .limit(1);
 
-    const posts = (rows[0]?.data?.posts ?? []) as Array<{ slug?: string; date?: string; trashed?: boolean; status?: string }>;
-    const fallbackDate = new Date().toISOString().split("T")[0];
+    const posts = (rows[0]?.data?.posts ?? []) as BlogSeoPost[];
 
     for (const post of posts) {
       if (!post.slug) continue;
-      // Never advertise trashed or draft posts in the sitemap (mirror /blog).
-      if (post.trashed === true || (post.status ?? "published") !== "published")
-        continue;
-      const lastmod = post.date
-        ? new Date(post.date).toISOString().split("T")[0]
-        : fallbackDate;
+      if (!isBlogInSitemap(post, globalIndexable)) continue;
+      const resolved = resolveBlogSeo(post, { globalIndexable });
+      const escapedUrl = resolved.sitemap.url
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+      const lastmod = resolved.sitemap.lastmod;
       urls.push(
-        `  <url>\n    <loc>${SITE}${BLOG_PATH}/${post.slug}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`,
+        `  <url>\n    <loc>${escapedUrl}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`,
       );
     }
   } catch { /* DB error — skip gracefully */ }

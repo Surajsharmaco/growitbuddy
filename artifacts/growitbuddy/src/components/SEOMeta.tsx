@@ -10,8 +10,15 @@ export interface SEOMetaProps {
   description: string;
   robots?:   string;
   ogImage?:  string;
+  ogTitle?: string;
+  ogDescription?: string;
   ogType?:   "website" | "article";
   canonical?: string;
+  twitterCard?: "summary" | "summary_large_image";
+  twitterTitle?: string;
+  twitterDescription?: string;
+  twitterImage?: string;
+  twitterUrl?: string;
   schema?:   Record<string, unknown> | Record<string, unknown>[];
 }
 
@@ -43,14 +50,23 @@ export default function SEOMeta({
   description,
   robots  = "index,follow",
   ogImage,
+  ogTitle,
+  ogDescription,
   ogType  = "website",
   canonical,
+  twitterCard = "summary_large_image",
+  twitterTitle,
+  twitterDescription,
+  twitterImage,
+  twitterUrl,
   schema,
 }: SEOMetaProps) {
   const pageUrl = canonical ?? `${SITE}${window.location.pathname}`;
-  const imgUrl  = ogImage
-    ? (ogImage.startsWith("http") ? ogImage : `${SITE}${ogImage}`)
+  const resolveUrl = (value?: string) => value
+    ? (value.startsWith("http") || value.startsWith("//") ? value : `${SITE}${value.startsWith("/") ? "" : "/"}${value}`)
     : DEFAULT_IMAGE;
+  const imgUrl = resolveUrl(ogImage);
+  const socialImage = resolveUrl(twitterImage ?? ogImage);
 
   useEffect(() => {
     // If admin SEO is active for this page, don't overwrite the title
@@ -62,8 +78,8 @@ export default function SEOMeta({
     setMeta('meta[name="robots"]',              "name",     "robots",          robots);
     setMeta('meta[name="author"]',              "name",     "author",          SITE_NAME);
 
-    setMeta('meta[property="og:title"]',        "property", "og:title",        title);
-    setMeta('meta[property="og:description"]',  "property", "og:description",  description);
+    setMeta('meta[property="og:title"]',        "property", "og:title",        ogTitle ?? title);
+    setMeta('meta[property="og:description"]',  "property", "og:description",  ogDescription ?? description);
     setMeta('meta[property="og:url"]',          "property", "og:url",          pageUrl);
     setMeta('meta[property="og:type"]',         "property", "og:type",         ogType);
     setMeta('meta[property="og:image"]',        "property", "og:image",        imgUrl);
@@ -71,10 +87,11 @@ export default function SEOMeta({
     setMeta('meta[property="og:image:height"]', "property", "og:image:height", "630");
     setMeta('meta[property="og:site_name"]',    "property", "og:site_name",    SITE_NAME);
 
-    setMeta('meta[name="twitter:card"]',        "name", "twitter:card",        "summary_large_image");
-    setMeta('meta[name="twitter:title"]',       "name", "twitter:title",       title);
-    setMeta('meta[name="twitter:description"]', "name", "twitter:description", description);
-    setMeta('meta[name="twitter:image"]',       "name", "twitter:image",       imgUrl);
+    setMeta('meta[name="twitter:card"]',        "name", "twitter:card",        twitterCard);
+    setMeta('meta[name="twitter:title"]',       "name", "twitter:title",       twitterTitle ?? ogTitle ?? title);
+    setMeta('meta[name="twitter:description"]', "name", "twitter:description", twitterDescription ?? ogDescription ?? description);
+    setMeta('meta[name="twitter:image"]',       "name", "twitter:image",       socialImage);
+    setMeta('meta[name="twitter:url"]',          "name", "twitter:url",          twitterUrl ?? pageUrl);
     setMeta('meta[name="twitter:site"]',        "name", "twitter:site",        TWITTER);
 
     setLink("canonical", pageUrl);
@@ -95,7 +112,7 @@ export default function SEOMeta({
     } else {
       script?.remove();
     }
-  }, [title, description, robots, pageUrl, imgUrl, ogType, schema]);
+  }, [title, description, robots, pageUrl, imgUrl, socialImage, ogTitle, ogDescription, ogType, twitterCard, twitterTitle, twitterDescription, twitterUrl, schema]);
 
   return null;
 }
