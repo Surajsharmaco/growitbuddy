@@ -65,6 +65,7 @@ Talent Pools (9 pages) (/designers-pool) - Each pool has its own URL: /designers
 Certificate Verify (/verify) - Public certificate verification page.
 Site Guide (this page) (/guide) - The team onboarding guide you're reading right now. Bookmark and share with every new member.
 SEO Strategy Guide (/seo-guide) - Standalone internal SEO playbook - how to optimise each page, write meta titles, structure keywords, etc.
+ACTS Club (/acts-club) - Dedicated branded landing page for the ACTS creator and freelancer community, with its own navigation and footer. Its content is built into the page and is not editable from the admin panel.
 Privacy & Terms (/privacy) - Legal pages.`,
     },
     {

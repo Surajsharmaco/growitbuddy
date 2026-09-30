@@ -29,6 +29,7 @@ const Creators             = lazy(() => import("@/pages/Creators"));
 const Career               = lazy(() => import("@/pages/Career"));
 const InfluencerExplore    = lazy(() => import("@/pages/InfluencerExplore"));
 const DistributionNetwork  = lazy(() => import("@/pages/DistributionNetwork"));
+const ActsClub             = lazy(() => import("@/pages/acts-club/ActsClub"));
 const Links                = lazy(() => import("@/pages/Links"));
 const JoinNetwork          = lazy(() => import("@/pages/JoinNetwork"));
 const PageOwnerApply       = lazy(() => import("@/pages/PageOwnerApply"));
@@ -327,6 +328,9 @@ function App() {
 
           {/* Bio link page - standalone (no site navbar/footer chrome) */}
           <Route path="/links">{() => <ContentFreshnessGate slug="links"><Suspense fallback={<PageSpinner />}><PageGate slug="links"><Links /></PageGate></Suspense></ContentFreshnessGate>}</Route>
+
+          {/* ACTS Club - standalone branded landing page (own nav/footer) */}
+          <Route path="/acts-club">{() => <ContentFreshnessGate slug="acts-club"><Suspense fallback={<PageSpinner />}><PageGate slug="acts-club"><ActsClub /></PageGate></Suspense></ContentFreshnessGate>}</Route>
 
           <Route>
             {() => (
