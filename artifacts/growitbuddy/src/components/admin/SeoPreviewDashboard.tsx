@@ -145,7 +145,7 @@ export default function SeoPreviewDashboard({ post, allPosts, globalIndexable, c
   const robotsBlocked = /(?:^|,|\s)noindex(?:,|\s|$)/i.test(output.robots);
   const comparisonRows: ComparisonRow[] = [
     { label: "Slug / generated URL", input: post.slug || "", resolved: output.url, explanation: "The slug is a path segment; the resolver constructs the public article URL." },
-    { label: "Search title", input: post.seo?.seoTitle || "", resolved: output.title, explanation: "An empty SEO title can fall back to the post title or site formatting in the shared resolver." },
+    { label: "Search title", input: post.seo?.seoTitle || "", resolved: output.title, explanation: "The SEO title is used as entered. If it is empty, the post title is used; no site-name suffix is added." },
     { label: "Meta description", input: post.seo?.metaDescription || "", resolved: output.description, explanation: "The generated description can use other post fields when the dedicated input is empty." },
     { label: "Canonical URL", input: post.seo?.canonicalUrl || "", resolved: output.canonical, explanation: "A missing override resolves to the canonical article URL. A different URL can be intentional syndication." },
     { label: "Robots / noindex", input: post.seo?.noIndex ? "Noindex requested" : "Noindex off", resolved: output.robots, explanation: "Global indexing and publication rules may affect the generated robots directive." },

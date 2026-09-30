@@ -217,8 +217,8 @@ export function resolveBlogSeo(
 ): ResolvedBlogSeo {
   const seo = post.seo ?? {};
   const url = `${SITE_URL}${BLOG_PATH}/${encodeURIComponent(post.slug)}`;
-  const articleHeadline = seo.seoTitle || post.title;
-  const title = `${articleHeadline} | GrowitBuddy Insights`;
+  const articleHeadline = seo.seoTitle?.trim() || post.title.trim();
+  const title = articleHeadline;
   const description = seo.metaDescription?.trim() || post.excerpt || "";
   const canonical = absoluteUrl(seo.canonicalUrl, url);
   const globalIndexable = options.globalIndexable !== false;
