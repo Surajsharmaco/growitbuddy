@@ -22,3 +22,13 @@ test("wp- slug: valid CMS page, invalid blog post", () => {
 test("reserved slug fails page audit", () => {
   assert.equal(slugLevel(post("blog"), true), "error");
 });
+
+test("image alt text survives Blog/Pages crawler output", () => {
+  const body = '<p>Article body text.</p><img src="/api/media/file/7" alt="A team planning a product launch around a table">';
+  const blogPost = { ...post("image-alt-test"), content: body };
+  const page = { ...blogPost, slug: "image-alt-page" };
+
+  for (const resolved of [resolveBlogSeo(blogPost), resolveCmsPageSeo(page)]) {
+    assert.match(resolved.crawlerBodyHtml, /<img\b[^>]*alt="A team planning a product launch around a table"/);
+  }
+});
