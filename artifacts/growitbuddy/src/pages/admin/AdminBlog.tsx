@@ -32,6 +32,16 @@ import {
   Sparkles, Zap, TrendingUp, RefreshCw, Layers, RotateCcw,
 } from "lucide-react";
 
+type InsertMediaItem = { url: string; filename: string; altText?: string };
+
+function escapeHtmlAttribute(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 // ─────────────────────────────────────
 // SEO ANALYSIS ENGINE
 // ─────────────────────────────────────
@@ -805,7 +815,7 @@ function PostEditor({
   const [imgUploadFile, setImgUploadFile] = useState<File | null>(null);
   const [imgPreview, setImgPreview] = useState<string | null>(null);
   const [imgUploading, setImgUploading] = useState(false);
-  const [mediaLib, setMediaLib] = useState<{ url: string; filename: string }[]>([]);
+  const [mediaLib, setMediaLib] = useState<InsertMediaItem[]>([]);
   const [mediaLibLoading, setMediaLibLoading] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   const imgFileInputRef = useRef<HTMLInputElement>(null);
@@ -1401,8 +1411,10 @@ function PostEditor({
       try {
         const form = new FormData();
         form.append("file", imgUploadFile);
+        form.append("altText", imgAlt.trim());
         const r = await authFetch(ADMIN_API + "/upload", { method: "POST", body: form });
         const json = await r.json();
+        if (!r.ok) throw new Error("Image upload failed");
         url = json.url as string;
       } catch {
         showToast("Upload failed. Try again.", "error");
@@ -1414,7 +1426,7 @@ function PostEditor({
     if (!url) { showToast("Please select or upload an image.", "error"); return; }
     const absUrl = resolveMediaUrl(url);
     setShowImgModal(false);
-    const html = `<img src="${absUrl}" alt="${imgAlt.replace(/"/g, "&quot;")}" style="max-width:100%;border-radius:12px;margin:24px 0;display:block;" />`;
+    const html = `<img src="${escapeHtmlAttribute(absUrl)}" alt="${escapeHtmlAttribute(imgAlt.trim())}" style="max-width:100%;border-radius:12px;margin:24px 0;display:block;" />`;
     editorRef.current?.focus();
     if (savedRangeRef.current) {
       const sel = window.getSelection();
@@ -1586,6 +1598,7 @@ function PostEditor({
                     const f = e.target.files?.[0] ?? null;
                     setImgUploadFile(f);
                     setSelectedMedia(null);
+                    setImgAlt("");
                     if (f) {
                       const reader = new FileReader();
                       reader.onload = (ev) => setImgPreview(ev.target?.result as string);
@@ -1633,7 +1646,16 @@ function PostEditor({
                       {mediaLib.map((m) => (
                         <button
                           key={m.filename}
-                          onClick={() => setSelectedMedia(selectedMedia === m.url ? null : m.url)}
+                          aria-label={`Select image: ${m.filename}`}
+                          onClick={() => {
+                            if (selectedMedia === m.url) {
+                              setSelectedMedia(null);
+                              setImgAlt("");
+                            } else {
+                              setSelectedMedia(m.url);
+                              setImgAlt(m.altText ?? "");
+                            }
+                          }}
                           className={`relative rounded-xl overflow-hidden aspect-square border-2 transition-all ${selectedMedia === m.url ? "border-[#0B0B0B] shadow-md" : "border-transparent hover:border-[#0B0B0B]/20"}`}
                         >
                           <img src={resolveMediaUrl(m.url)} alt={m.filename} className="w-full h-full object-cover" />
@@ -1651,14 +1673,19 @@ function PostEditor({
 
               {/* Alt text */}
               <div>
-                <label className="text-[11px] font-bold text-[#0B0B0B]/40 uppercase tracking-widest block mb-1.5">Alt Text (for SEO & accessibility)</label>
-                <input
-                  type="text"
+                <label htmlFor="blog-image-alt-text" className="text-[11px] font-bold text-[#0B0B0B]/40 uppercase tracking-widest block mb-1.5">Alt Text (for SEO & accessibility)</label>
+                <textarea
+                  id="blog-image-alt-text"
                   value={imgAlt}
                   onChange={(e) => setImgAlt(e.target.value)}
-                  placeholder="e.g. content marketing strategy diagram"
-                  className="w-full border border-[#0B0B0B]/12 rounded-xl px-3.5 py-2.5 text-[13px] text-[#0B0B0B] placeholder-[#0B0B0B]/25 outline-none focus:border-[#0B0B0B]/30 bg-[#fafafa]"
+                  maxLength={500}
+                  rows={3}
+                  placeholder="Describe the image in the context of this post or page"
+                  className="w-full resize-y border border-[#0B0B0B]/12 rounded-xl px-3.5 py-2.5 text-[13px] text-[#0B0B0B] placeholder-[#0B0B0B]/25 outline-none focus:border-[#0B0B0B]/30 bg-[#fafafa]"
                 />
+                <p className="mt-1.5 text-[11px] leading-relaxed text-[#0B0B0B]/40">
+                  Describe what matters in the image, naturally and briefly. Leave it empty only for a decorative image. Library text is a starting point; tailor it for this post.
+                </p>
               </div>
             </div>
 

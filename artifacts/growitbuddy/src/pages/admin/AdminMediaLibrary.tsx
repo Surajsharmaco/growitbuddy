@@ -3,7 +3,7 @@ import { PageHeader, Card } from "@/components/admin/AdminField";
 import { useAdmin } from "@/context/AdminContext";
 import {
   Upload, Trash2, Copy, Check, RefreshCw, ImageIcon,
-  Search, X, ZoomIn, AlertCircle, Wand2, Loader2, CheckSquare, Square, MinusSquare,
+  Search, X, ZoomIn, AlertCircle, Wand2, Loader2, CheckSquare, Square, MinusSquare, Save,
 } from "lucide-react";
 
 import { API_BASE as API, resolveMediaUrl } from "@/lib/api";
@@ -14,6 +14,7 @@ interface MediaItem {
   uploadedAt: number;
   size?: number;
   originalName?: string;
+  altText?: string;
 }
 
 function fmtDate(ts: number) {
@@ -43,6 +44,9 @@ export default function AdminMediaLibrary() {
   const [copied, setCopied] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [preview, setPreview] = useState<MediaItem | null>(null);
+  const [altDraft, setAltDraft] = useState("");
+  const [altSaving, setAltSaving] = useState(false);
+  const [altError, setAltError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const [selected, setSelected] = useState<Set<number>>(new Set());
@@ -125,6 +129,37 @@ export default function AdminMediaLibrary() {
     });
   }
 
+  function openPreview(item: MediaItem) {
+    setPreview(item);
+    setAltDraft(item.altText ?? "");
+    setAltError(null);
+  }
+
+  async function saveAltText() {
+    if (!preview || altSaving) return;
+    const altText = altDraft.trim();
+    setAltSaving(true);
+    setAltError(null);
+    try {
+      const res = await authFetch(`${API}/admin/media/${encodeURIComponent(preview.filename)}/alt`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ altText }),
+      });
+      const data = await res.json().catch(() => ({})) as { altText?: string; error?: string };
+      if (!res.ok) throw new Error(data.error ?? `Could not save alt text (${res.status}).`);
+      const savedText = data.altText ?? altText;
+      const updated = { ...preview, altText: savedText };
+      setItems((current) => current.map((item) => item.filename === updated.filename ? updated : item));
+      setPreview(updated);
+      setAltDraft(savedText);
+    } catch (error) {
+      setAltError(error instanceof Error ? error.message : "Network error saving alt text.");
+    } finally {
+      setAltSaving(false);
+    }
+  }
+
   function onDrop(e: React.DragEvent) {
     e.preventDefault();
     setDragging(false);
@@ -133,7 +168,9 @@ export default function AdminMediaLibrary() {
 
   const filtered = items.filter((item) => {
     const q = search.toLowerCase();
-    return !q || cleanName(item.filename).toLowerCase().includes(q);
+    return !q ||
+      cleanName(item.filename).toLowerCase().includes(q) ||
+      item.altText?.toLowerCase().includes(q);
   });
 
   const idOf = (item: MediaItem) => Number(item.filename);
@@ -360,7 +397,7 @@ export default function AdminMediaLibrary() {
                     </button>
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
                       <button
-                        onClick={(e) => { e.stopPropagation(); setPreview(item); }}
+                        onClick={(e) => { e.stopPropagation(); openPreview(item); }}
                         className="p-2 bg-white/90 rounded-lg hover:bg-white transition-colors"
                         title="Preview"
                       >
@@ -386,7 +423,12 @@ export default function AdminMediaLibrary() {
                     </div>
                   </div>
                   <div className="px-2 py-1.5 bg-white border-t border-[#0B0B0B]/6 shrink-0 flex items-center justify-between gap-1">
-                    <p className="text-[9px] text-[#0B0B0B]/30">{fmtDate(item.uploadedAt)}</p>
+                    <div className="min-w-0">
+                      <p className="text-[9px] text-[#0B0B0B]/30">{fmtDate(item.uploadedAt)}</p>
+                      <p className={`text-[9px] truncate ${item.altText ? "text-emerald-700" : "text-amber-700"}`}>
+                        {item.altText ? "Alt text set" : "Alt text missing"}
+                      </p>
+                    </div>
                     {item.size ? <p className="text-[9px] font-semibold text-[#0B0B0B]/45 shrink-0">{fmtBytes(item.size)}</p> : null}
                   </div>
                 </div>
@@ -408,7 +450,7 @@ export default function AdminMediaLibrary() {
         <div
           className="fixed inset-0 z-50 flex items-center justify-center"
           style={{ background: "rgba(0,0,0,0.75)" }}
-          onClick={() => setPreview(null)}
+          onClick={() => { setPreview(null); setAltError(null); }}
         >
           <div
             className="relative bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col"
@@ -439,7 +481,7 @@ export default function AdminMediaLibrary() {
                   <Trash2 size={13} /> Delete
                 </button>
                 <button
-                  onClick={() => setPreview(null)}
+                  onClick={() => { setPreview(null); setAltError(null); }}
                   className="p-2 rounded-xl hover:bg-[#0B0B0B]/5 text-[#0B0B0B]/40 transition-colors"
                 >
                   <X size={16} />
@@ -449,9 +491,40 @@ export default function AdminMediaLibrary() {
             <div className="flex-1 overflow-auto flex items-center justify-center p-4 bg-[#F7F7F5]" style={{ minHeight: 300 }}>
               <img
                 src={resolveMediaUrl(preview.url)}
-                alt={cleanName(preview.filename)}
-                style={{ maxWidth: "100%", maxHeight: "68vh", objectFit: "contain", borderRadius: 12 }}
+                alt={preview.altText || cleanName(preview.filename)}
+                style={{ maxWidth: "100%", maxHeight: "42vh", objectFit: "contain", borderRadius: 12 }}
               />
+            </div>
+            <div className="px-5 py-4 border-t border-[#0B0B0B]/8 bg-white shrink-0">
+              <label htmlFor="media-alt-text" className="block text-[12px] font-semibold text-[#0B0B0B]/70 mb-1.5">
+                Default alt text
+              </label>
+              <textarea
+                id="media-alt-text"
+                value={altDraft}
+                onChange={(event) => { setAltDraft(event.target.value); setAltError(null); }}
+                maxLength={500}
+                rows={2}
+                placeholder="Describe what the image shows"
+                className="w-full resize-y border border-[#0B0B0B]/12 rounded-xl px-3 py-2 text-[12px] text-[#0B0B0B] placeholder-[#0B0B0B]/30 outline-none focus:border-[#0B0B0B]/30"
+              />
+              <div className="mt-1 flex items-start justify-between gap-3">
+                <p className="text-[10px] leading-relaxed text-[#0B0B0B]/40">
+                  Used as the starting text for new Blog/Pages inserts. Existing posts keep their own alt text.
+                </p>
+                <span className="shrink-0 text-[10px] text-[#0B0B0B]/35">{altDraft.length}/500</span>
+              </div>
+              {altError && <p role="alert" className="mt-2 text-[11px] text-red-600">{altError}</p>}
+              <div className="mt-3 flex justify-end">
+                <button
+                  onClick={saveAltText}
+                  disabled={altSaving || altDraft.trim() === (preview.altText ?? "")}
+                  className="flex items-center gap-1.5 rounded-xl bg-[#0B0B0B] px-3.5 py-2 text-[11px] font-semibold text-white transition-colors hover:bg-[#0B0B0B]/85 disabled:opacity-40"
+                >
+                  {altSaving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+                  {altSaving ? "Saving..." : "Save alt text"}
+                </button>
+              </div>
             </div>
             <div className="px-5 py-3 border-t border-[#0B0B0B]/8 bg-white shrink-0">
               <p className="text-[11px] text-[#0B0B0B]/40 font-mono truncate">{preview.url}</p>

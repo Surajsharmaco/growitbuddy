@@ -17,7 +17,7 @@ test("generated SSR handler serves CMS pages safely and preserves legacy blog bo
         title: "SSR regression published page",
         status: "published",
         visibility: "public",
-        content: "<p>SSR regression published body content.</p>",
+        content: '<p>SSR regression published body content.</p><img src="/api/media/file/7" alt="A team planning a product launch around a table">',
       },
       {
         slug: "ssr-regression-private",
@@ -101,6 +101,7 @@ test("generated SSR handler serves CMS pages safely and preserves legacy blog bo
     assert.equal(published.statusCode, 200);
     assert.match(published.body, /SSR regression published page/);
     assert.match(published.body, /SSR regression published body content/);
+    assert.match(published.body, /<img\b[^>]*alt="A team planning a product launch around a table"/);
 
     for (const slug of ["private", "draft", "trashed"]) {
       const hidden = await request(`/ssr-regression-${slug}`);

@@ -33,12 +33,13 @@ const upload = multer({
 
 let warnedCloudinaryUnconfigured = false;
 
-async function saveFileToDb(file: Express.Multer.File): Promise<{ id: number; url: string; size: number; mimetype: string }> {
+async function saveFileToDb(file: Express.Multer.File, altText = ""): Promise<{ id: number; url: string; size: number; mimetype: string }> {
   const prepared = await prepareUploadedImage(file.buffer, file.mimetype);
   const filename = prepared.mimetype === "image/avif" && file.mimetype !== "image/avif"
     ? `${path.parse(file.originalname).name}.avif`
     : file.originalname;
   const size = prepared.buffer.length;
+  const savedAltText = altText.trim();
   if (cloudinaryConfigured()) {
     try {
       const { url, publicId } = await uploadToCloudinary(prepared.buffer, prepared.mimetype);
@@ -49,6 +50,7 @@ async function saveFileToDb(file: Express.Multer.File): Promise<{ id: number; ur
         data: null,
         url,
         cloudinaryPublicId: publicId,
+        altText: savedAltText,
       }).returning({ id: mediaFiles.id });
       return { id: rows[0].id, url, size, mimetype: prepared.mimetype };
     } catch (err) {
@@ -71,6 +73,7 @@ async function saveFileToDb(file: Express.Multer.File): Promise<{ id: number; ur
     mimetype: prepared.mimetype,
     size,
     data: b64,
+    altText: savedAltText,
   }).returning({ id: mediaFiles.id });
   const id = rows[0].id;
   return { id, url: `/api/media/file/${id}`, size, mimetype: prepared.mimetype };
@@ -750,11 +753,22 @@ router.delete("/leads/:id", authMiddleware, requirePermission("leads"), async (r
 
 // ── Media uploads (database-backed, works on any deployment) ──
 
+const MAX_MEDIA_ALT_TEXT_LENGTH = 500;
+
 router.post("/upload", authMiddleware, upload.single("file"), async (req, res) => {
   const file = req.file;
   if (!file) { res.status(400).json({ error: "No file uploaded" }); return; }
+  const submittedAltText = req.body?.altText;
+  if (submittedAltText !== undefined && (
+    typeof submittedAltText !== "string" ||
+    submittedAltText.length > MAX_MEDIA_ALT_TEXT_LENGTH
+  )) {
+    res.status(400).json({ error: `Alt text must be ${MAX_MEDIA_ALT_TEXT_LENGTH} characters or fewer.` });
+    return;
+  }
   try {
-    const { id, url, size, mimetype } = await saveFileToDb(file);
+    const altText = typeof submittedAltText === "string" ? submittedAltText.trim() : "";
+    const { id, url, size, mimetype } = await saveFileToDb(file, altText);
     res.json({ url, filename: String(id), size, mimetype });
   } catch (err) {
     logger.error({ err }, "DB upload failed");
@@ -765,7 +779,14 @@ router.post("/upload", authMiddleware, upload.single("file"), async (req, res) =
 router.get("/media", authMiddleware, async (_req, res) => {
   try {
     const rows = await db
-      .select({ id: mediaFiles.id, filename: mediaFiles.filename, size: mediaFiles.size, uploadedAt: mediaFiles.uploadedAt, url: mediaFiles.url })
+      .select({
+        id: mediaFiles.id,
+        filename: mediaFiles.filename,
+        size: mediaFiles.size,
+        uploadedAt: mediaFiles.uploadedAt,
+        url: mediaFiles.url,
+        altText: mediaFiles.altText,
+      })
       .from(mediaFiles)
       .orderBy(desc(mediaFiles.uploadedAt))
       .limit(200);
@@ -775,10 +796,41 @@ router.get("/media", authMiddleware, async (_req, res) => {
       uploadedAt: r.uploadedAt.getTime(),
       size: r.size,
       originalName: r.filename,
+      altText: r.altText,
     })));
   } catch (err) {
     logger.error({ err }, "Media list failed");
     res.json([]);
+  }
+});
+
+router.put("/media/:filename/alt", authMiddleware, requirePermission("media"), async (req, res) => {
+  const rawId = Array.isArray(req.params.filename) ? req.params.filename[0] : req.params.filename;
+  if (!/^[1-9]\d*$/.test(rawId)) { res.status(400).json({ error: "Invalid media id" }); return; }
+  const id = Number(rawId);
+  if (!Number.isSafeInteger(id)) { res.status(400).json({ error: "Invalid media id" }); return; }
+
+  const altText = req.body?.altText;
+  if (typeof altText !== "string") {
+    res.status(400).json({ error: "Alt text must be a string." });
+    return;
+  }
+  if (altText.length > MAX_MEDIA_ALT_TEXT_LENGTH) {
+    res.status(400).json({ error: `Alt text must be ${MAX_MEDIA_ALT_TEXT_LENGTH} characters or fewer.` });
+    return;
+  }
+
+  try {
+    const [updated] = await db
+      .update(mediaFiles)
+      .set({ altText: altText.trim() })
+      .where(eq(mediaFiles.id, id))
+      .returning({ altText: mediaFiles.altText });
+    if (!updated) { res.status(404).json({ error: "Media file not found" }); return; }
+    res.json({ altText: updated.altText });
+  } catch (err) {
+    req.log.error({ err, mediaId: id }, "Media alt text update failed");
+    res.status(500).json({ error: "Could not save alt text." });
   }
 });
 
