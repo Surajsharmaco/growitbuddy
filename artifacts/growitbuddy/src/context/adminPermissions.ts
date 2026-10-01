@@ -8,6 +8,7 @@ export const ALL_PERMISSIONS = [
   { key: "framework", label: "Framework" },
   { key: "work", label: "Work" },
   { key: "blog", label: "Blog / Insights" },
+  { key: "cms-pages", label: "Pages" },
   { key: "resources", label: "Resources" },
   { key: "about", label: "About" },
   { key: "contact", label: "Contact" },

@@ -7,6 +7,7 @@ export const SHARED_CONTENT_SECTIONS = [
 
 const CONTENT_SECTION_BY_SLUG: Record<string, string[]> = {
   insights: ["blog"],
+  "cms-pages": ["cms-pages"],
   career: ["fulltime", "internship", "freelancers"],
   distribution: ["distribution-network", "distribution-pages"],
   influencers: ["influencer-explore"],

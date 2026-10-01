@@ -1,5 +1,5 @@
 import type { BlogPost } from "../data/blogPosts";
-import { resolveBlogSeo, type BlogSeoOutput } from "@workspace/seo";
+import { resolveBlogSeo, resolveCmsPageSeo, validateCmsPageSlug, type BlogSeoOutput } from "@workspace/seo";
 
 export type SeoCheckLevel = "pass" | "warning" | "error";
 export type SeoCheckCategory = "on-page" | "technical";
@@ -87,6 +87,7 @@ export function analyzeBlogSeo(
   output: BlogSeoOutput,
   allPosts: BlogPost[],
   currentlyPublished: boolean,
+  pageMode = false,
 ): BlogSeoAudit {
   const checks: SeoCheck[] = [];
   const add = (key: string, category: SeoCheckCategory, level: SeoCheckLevel, label: string, detail: string) =>
@@ -114,9 +115,11 @@ export function analyzeBlogSeo(
     try { if (siteOrigin && new URL(href, output.url).origin === siteOrigin) internal = true; } catch { /* Keep relative classification. */ }
     return { text: anchor.textContent?.trim() || "(unlabelled link)", href, internal, rel: anchor.getAttribute("rel") || "" };
   }).filter((link) => !!link.href) : [];
-  const slugValid = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(post.slug || "") && !post.slug.startsWith("wp-");
+  const slugValid = pageMode
+    ? validateCmsPageSlug(post.slug || "").valid
+    : /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(post.slug || "") && !post.slug.startsWith("wp-");
   add("slug", "technical", slugValid ? "pass" : "error",
-    "URL slug", slugValid ? `Valid path segment: ${post.slug}` : "Use a non-empty lowercase, hyphen-separated slug. The wp- prefix is reserved for WordPress URLs.");
+    "URL slug", slugValid ? `Valid path segment: ${post.slug}` : (pageMode ? (validateCmsPageSlug(post.slug || "").error ?? "Use a valid slug.") : "Use a non-empty lowercase, hyphen-separated slug. The wp- prefix is reserved for WordPress URLs."));
   add("title", "on-page", post.title?.trim() && output.title?.trim() ? "pass" : "error",
     "Article and search title", post.title?.trim() && output.title?.trim() ? `${output.title.length} characters in the generated title.` : "A post title and a generated search title are required.");
   add("canonical", "technical", validHttpUrl(output.canonical || "") ? "pass" : "error",
@@ -140,7 +143,7 @@ export function analyzeBlogSeo(
   add("article", "on-page", wordCount > 0 ? "pass" : "error",
     "Article body", wordCount > 0 ? `${wordCount.toLocaleString()} words detected in the saved content.` : "The article body is empty.");
 
-  const requestedType = post.seo?.schemaType || "Article";
+  const requestedType = post.seo?.schemaType || (pageMode ? "WebPage" : "Article");
   add("schema-type", "technical", allowedSchemaTypes.has(requestedType) ? "pass" : "error",
     "Schema selection", allowedSchemaTypes.has(requestedType) ? `${requestedType} selected; ${output.jsonLd?.["@graph"]?.length || 0} node(s) in the generated graph.` : `Unsupported schema type: ${requestedType}.`);
   add("schema-graph", "technical",
@@ -173,7 +176,7 @@ export function analyzeBlogSeo(
     "The supplied article preview can be inspected at narrow width, but this static content audit does not verify public-device rendering or mobile usability.");
 
   const others = allPosts.filter((other) => other !== post && other.slug !== post.slug && !other.trashed);
-  const sameTitle = others.filter((other) => normalizeText(resolveBlogSeo(other).title) === normalizeText(output.title) && !!normalizeText(output.title));
+  const sameTitle = others.filter((other) => normalizeText((pageMode ? resolveCmsPageSeo(other) : resolveBlogSeo(other)).title) === normalizeText(output.title) && !!normalizeText(output.title));
   const sameDescription = others.filter((other) => normalizeText(other.seo?.metaDescription || other.excerpt) === normalizeText(output.description) && !!normalizeText(output.description));
   add("duplicate-title", "on-page", sameTitle.length ? "warning" : "pass", "Duplicate titles",
     sameTitle.length ? `Same title found on: ${sameTitle.map((item) => item.slug).join(", ")}.` : "No matching title among the posts supplied to this audit.");

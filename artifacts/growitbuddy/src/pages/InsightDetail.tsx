@@ -3,10 +3,11 @@ import { motion } from "framer-motion";
 import { Link, useParams } from "wouter";
 import { ArrowLeft, ArrowRight, Calendar, List } from "lucide-react";
 import type { BlogPost } from "@/data/blogPosts";
-import { isPublicBlogPost, resolveBlogSeo } from "@workspace/seo";
+import { isPublicBlogPost, resolveBlogSeo, isPublicCmsPage, resolveCmsPageSeo } from "@workspace/seo";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import { useWordPressPosts, fetchWpPostBySlug } from "@/hooks/useWordPressPosts";
 import { resolveMediaUrl } from "@/lib/api";
+import { DEFAULT_TOC_VISIBLE, limitInlineToc, tocVisibleCount } from "@/lib/blogToc";
 import SEOMeta from "@/components/SEOMeta";
 import { cachedGlobal, readBootstrap } from "@/lib/seoCache";
 
@@ -117,6 +118,10 @@ const ARTICLE_CSS = `
 .article-body .wp-block-column { flex: 1; min-width: 220px; }
 
 /* ── Table ── */
+.article-body .blog-table-scroll { max-width: 100%; overflow-x: auto; margin: 30px 0; }
+.article-body .blog-table-scroll table { margin: 0; min-width: 100%; }
+.article-body .blog-table-scroll th,
+.article-body .blog-table-scroll td { min-width: 110px; }
 .article-body table,
 .article-body .wp-block-table table { width: 100%; border-collapse: collapse; margin: 30px 0; font-size: 15px; }
 .article-body .wp-block-table { overflow-x: auto; margin: 30px 0; }
@@ -205,6 +210,24 @@ const ARTICLE_CSS = `
 .article-body .ez-toc-toggle,
 .article-body .lwptoc_toggle,
 .article-body .kb-toc-toggle { display: none !important; }
+/* Keep every anchor in the HTML; only hide the entries beyond the configured limit. */
+.article-body li[data-gb-toc-extra][hidden],
+.article-toc li[hidden] { display: none !important; }
+.article-body .gb-toc-toggle,
+.article-toc .gb-toc-toggle {
+  display: inline-flex; align-items: center; gap: 7px;
+  margin-top: 14px; padding: 7px 0;
+  border: 0; background: transparent; cursor: pointer;
+  color: #1E293B; font: 700 12px Inter, sans-serif;
+}
+.article-body .gb-toc-toggle:hover,
+.article-toc .gb-toc-toggle:hover { text-decoration: underline; }
+.article-body .gb-toc-toggle:focus-visible,
+.article-toc .gb-toc-toggle:focus-visible { outline: 2px solid #1E293B; outline-offset: 3px; border-radius: 3px; }
+.article-body .gb-toc-toggle::after,
+.article-toc .gb-toc-toggle::after { content: "↓"; font-size: 15px; line-height: 1; }
+.article-body .gb-toc-toggle[aria-expanded="true"]::after,
+.article-toc .gb-toc-toggle[aria-expanded="true"]::after { content: "↑"; }
 /* TOC links - dark, no underline, brand-coloured hover (overrides body links) */
 .article-body .wp-block-table-of-contents a,
 .article-body .ez-toc-container a,
@@ -358,6 +381,7 @@ function parseInline(text: string): React.ReactNode[] {
 function renderMarkdown(text: string): React.ReactElement[] {
   const lines = text.trim().split("\n");
   const elements: React.ReactElement[] = [];
+  const usedHeadingIds = new Set<string>();
   let key = 0;
   let i = 0;
 
@@ -369,7 +393,7 @@ function renderMarkdown(text: string): React.ReactElement[] {
 
     if (trimmed.startsWith("## ")) {
       elements.push(
-        <h2 key={key++} style={{ fontWeight: 800, fontSize: "clamp(22px, 3vw, 28px)", letterSpacing: "-0.03em", color: "#0A0A0A", marginTop: 56, marginBottom: 20, lineHeight: 1.25, paddingBottom: 12, borderBottom: "2px solid #E5E5E0" }}>
+        <h2 key={key++} id={uniqueHeadingId(trimmed.slice(3), usedHeadingIds)} style={{ fontWeight: 800, fontSize: "clamp(22px, 3vw, 28px)", letterSpacing: "-0.03em", color: "#0A0A0A", marginTop: 56, marginBottom: 20, lineHeight: 1.25, paddingBottom: 12, borderBottom: "2px solid #E5E5E0" }}>
           {trimmed.slice(3)}
         </h2>
       );
@@ -513,16 +537,32 @@ function hasInlineToc(html: string): boolean {
   return false;
 }
 
+function uniqueHeadingId(text: string, used: Set<string>): string {
+  const base = text.toLowerCase().replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 60) || "section";
+  let id = base;
+  let suffix = 2;
+  while (used.has(id)) id = `${base}-${suffix++}`;
+  used.add(id);
+  return id;
+}
+
+function existingHeadingIds(html: string): Set<string> {
+  const ids = new Set<string>();
+  for (const match of html.matchAll(/\bid\s*=\s*(["'])(.*?)\1/gi)) ids.add(match[2]);
+  return ids;
+}
+
 /** Pull H2 headings out of the rendered article (HTML or markdown) for the auto-TOC. */
 function extractToc(content: string): Array<{ id: string; text: string }> {
   const items: Array<{ id: string; text: string }> = [];
-  const slugify = (s: string) => s.toLowerCase().replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 60);
+  const used = existingHeadingIds(content);
   // HTML <h2>
-  const htmlRe = /<h2\b[^>]*>([\s\S]*?)<\/h2>/gi;
+  const htmlRe = /<h2\b([^>]*)>([\s\S]*?)<\/h2>/gi;
   let m: RegExpExecArray | null;
   while ((m = htmlRe.exec(content)) !== null) {
-    const text = m[1].replace(/<[^>]*>/g, "").trim();
-    if (text) items.push({ id: slugify(text), text });
+    const text = m[2].replace(/<[^>]*>/g, "").trim();
+    const id = /\bid\s*=\s*(["'])(.*?)\1/i.exec(m[1])?.[2];
+    if (text) items.push({ id: id ?? uniqueHeadingId(text, used), text });
   }
   // Markdown ## headings (only if no HTML matched)
   if (items.length === 0) {
@@ -530,7 +570,7 @@ function extractToc(content: string): Array<{ id: string; text: string }> {
       const t = line.trim();
       if (t.startsWith("## ") && !t.startsWith("### ")) {
         const text = t.slice(3).trim();
-        if (text) items.push({ id: slugify(text), text });
+        if (text) items.push({ id: uniqueHeadingId(text, used), text });
       }
     }
   }
@@ -539,11 +579,11 @@ function extractToc(content: string): Array<{ id: string; text: string }> {
 
 /** Inject id="..." onto h2s in HTML content so TOC anchor links work. */
 function addHeadingIds(html: string): string {
-  const slugify = (s: string) => s.toLowerCase().replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 60);
+  const used = existingHeadingIds(html);
   return html.replace(/<h2\b([^>]*)>([\s\S]*?)<\/h2>/gi, (_m, attrs: string, inner: string) => {
-    if (/\bid\s*=/.test(attrs)) return _m;
+    if (/\bid\s*=/i.test(attrs)) return _m;
     const text = inner.replace(/<[^>]*>/g, "").trim();
-    return `<h2${attrs} id="${slugify(text)}">${inner}</h2>`;
+    return `<h2${attrs} id="${uniqueHeadingId(text, used)}">${inner}</h2>`;
   });
 }
 
@@ -585,25 +625,35 @@ function ReadingProgress() {
   );
 }
 
-export default function InsightDetail({ previewPost }: { previewPost?: BlogPost } = {}) {
+export default function InsightDetail({ previewPost, pageMode = false }: { previewPost?: BlogPost; pageMode?: boolean } = {}) {
   const params = useParams<{ slug: string }>();
   const slug = params.slug ?? "";
   const isPreview = !!previewPost;
-  const isWp = !isPreview && slug.startsWith("wp-");
+  const isWp = !isPreview && !pageMode && slug.startsWith("wp-");
 
-  const { posts: cmsPosts } = usePublicContent<{ posts: BlogPost[] }>("blog", { posts: [] });
-  const { posts: wpPosts } = useWordPressPosts();
+  const { posts: cmsPosts, tocInitialVisible } = usePublicContent<{ posts: BlogPost[]; tocInitialVisible?: number }>(
+    pageMode ? "cms-pages" : "blog", { posts: [], tocInitialVisible: DEFAULT_TOC_VISIBLE },
+  );
+  const visibleCount = tocVisibleCount(tocInitialVisible);
+  const [expandedSlug, setExpandedSlug] = useState("");
+  const tocExpanded = expandedSlug === slug;
+  const { posts: wpPosts } = useWordPressPosts(!pageMode && !isPreview);
 
   const [wpPost, setWpPost] = useState<BlogPost | null>(null);
   const [wpLoading, setWpLoading] = useState(isWp);
 
   useEffect(() => {
     if (!isWp) return;
-    const fromList = wpPosts.find((p) => p.slug === slug);
-    if (fromList) { setWpPost(fromList); setWpLoading(false); return; }
+    // The WordPress list intentionally omits the content field. Always fetch
+    // the full post here; otherwise the article (and its inline TOC) is empty.
+    let active = true;
     setWpLoading(true);
-    fetchWpPostBySlug(slug).then((p) => { setWpPost(p); setWpLoading(false); });
-  }, [slug, isWp, wpPosts]);
+    setWpPost(null);
+    fetchWpPostBySlug(slug).then((p) => {
+      if (active) { setWpPost(p); setWpLoading(false); }
+    });
+    return () => { active = false; };
+  }, [slug, isWp]);
 
   useEffect(() => {
     if (!isPreview) window.scrollTo(0, 0);
@@ -619,15 +669,17 @@ export default function InsightDetail({ previewPost }: { previewPost?: BlogPost 
 
   // Only live posts are reachable on the public site: trashed or draft CMS posts
   // must 404 (and never surface as "related"), exactly like the listing page.
-  const allPosts: BlogPost[] = [
-    ...(cmsPosts ?? []).filter(isPublicBlogPost),
-    ...wpPosts,
-  ];
+  const allPosts: BlogPost[] = pageMode
+    ? (cmsPosts ?? []).filter(isPublicCmsPage)
+    : [
+      ...(cmsPosts ?? []).filter(isPublicBlogPost),
+      ...wpPosts,
+    ];
 
   const post: BlogPost | undefined = previewPost ?? (isWp ? (wpPost ?? undefined) : allPosts.find((p) => p.slug === slug));
-  const related = allPosts.filter((p) => p.slug !== (post?.slug ?? slug)).slice(0, 3);
-  const globalIndexable = cachedGlobal() ?? readBootstrap("insights").bootGlobal;
-  const resolvedSeo = post ? resolveBlogSeo(post, { globalIndexable }) : undefined;
+  const related = pageMode ? [] : allPosts.filter((p) => p.slug !== (post?.slug ?? slug)).slice(0, 3);
+  const globalIndexable = cachedGlobal() ?? readBootstrap(pageMode ? "cms-pages" : "insights").bootGlobal;
+  const resolvedSeo = post ? (pageMode ? resolveCmsPageSeo(post, { globalIndexable }) : resolveBlogSeo(post, { globalIndexable })) : undefined;
 
   // Pre-compute heavy derived values once per post change.
   // Suppress our auto TOC when the WP content already has its own, so we never duplicate.
@@ -635,8 +687,10 @@ export default function InsightDetail({ previewPost }: { previewPost?: BlogPost 
   const toc = useMemo(() => (post && !wpHasToc) ? extractToc(post.content) : [], [post, wpHasToc]);
   const enhancedContent = useMemo(() => {
     if (!post) return "";
-    return isHtml(post.content) ? addHeadingIds(enhanceWpHtml(rewriteSelfAnchors(post.content))) : post.content;
-  }, [post]);
+    if (!isHtml(post.content)) return post.content;
+    const html = addHeadingIds(enhanceWpHtml(rewriteSelfAnchors(post.content)));
+    return wpHasToc ? limitInlineToc(html, visibleCount, tocExpanded) : html;
+  }, [post, wpHasToc, visibleCount, tocExpanded]);
 
   if (wpLoading) {
     return (
@@ -649,12 +703,12 @@ export default function InsightDetail({ previewPost }: { previewPost?: BlogPost 
   if (!post) {
     return (
       <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', sans-serif" }}>
-        {!isPreview && <SEOMeta title="Post not found | GrowitBuddy Insights" description="This post could not be found." robots="noindex,nofollow" />}
+        {!isPreview && <SEOMeta title={pageMode ? "Page not found | GrowitBuddy" : "Post not found | GrowitBuddy Insights"} description="This post could not be found." robots="noindex,nofollow" />}
         <div style={{ textAlign: "center" }}>
-          <h1 style={{ fontWeight: 800, fontSize: 40, letterSpacing: "-0.04em", color: "#0A0A0A", marginBottom: 12 }}>Post not found</h1>
-          <Link href="/blog">
+          <h1 style={{ fontWeight: 800, fontSize: 40, letterSpacing: "-0.04em", color: "#0A0A0A", marginBottom: 12 }}>{pageMode ? "Page not found" : "Post not found"}</h1>
+          <Link href={pageMode ? "/" : "/blog"}>
             <span style={{ fontSize: 15, fontWeight: 600, color: "#0A0A0A", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <ArrowLeft className="w-4 h-4" /> Back to Insights
+              <ArrowLeft className="w-4 h-4" /> {pageMode ? "Back to home" : "Back to Insights"}
             </span>
           </Link>
         </div>
@@ -664,14 +718,14 @@ export default function InsightDetail({ previewPost }: { previewPost?: BlogPost 
 
   return (
     <div style={{ background: "#F8F8F6", fontFamily: "'Inter', sans-serif" }}>
-      <ReadingProgress />
+      {!isPreview && <ReadingProgress />}
       {!isPreview && resolvedSeo && <SEOMeta
         title={resolvedSeo.title}
         description={resolvedSeo.description}
         ogTitle={resolvedSeo.og.title}
         ogDescription={resolvedSeo.og.description}
         ogImage={resolvedSeo.og.image}
-        ogType="article"
+        ogType={pageMode ? (resolvedSeo.og.type === "article" ? "article" : "website") : "article"}
         canonical={resolvedSeo.canonical}
         robots={resolvedSeo.robots}
         twitterCard={resolvedSeo.twitter.card as "summary" | "summary_large_image"}
@@ -685,11 +739,11 @@ export default function InsightDetail({ previewPost }: { previewPost?: BlogPost 
       {/* Hero - tight vertical rhythm, white space minimized */}
       <section style={{ paddingTop: "clamp(56px, 9vw, 80px)", paddingBottom: 0, background: "#FFFFFF" }}>
         <div className="max-w-[760px] mx-auto" style={{ padding: "0 18px" }}>
-          <Link href="/blog">
+          {!pageMode && <Link href="/blog">
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "#7A7A85", cursor: "pointer", marginBottom: 18, letterSpacing: "0.01em" }}>
               <ArrowLeft className="w-3.5 h-3.5" /> All posts
             </span>
-          </Link>
+          </Link>}
 
           <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 16 }}>
             <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", padding: "5px 13px", borderRadius: 100, background: "rgba(30,41,59,0.12)", border: "1px solid rgba(30,41,59,0.25)", color: "var(--gb-accent)" }}>
@@ -767,20 +821,33 @@ export default function InsightDetail({ previewPost }: { previewPost?: BlogPost 
               <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.15em", textTransform: "uppercase", color: "#7A7A85", margin: 0, marginBottom: 12, display: "inline-flex", alignItems: "center", gap: 7 }}>
                 <List className="w-3.5 h-3.5" /> On this page
               </p>
-              <ol style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8, counterReset: "toc" }}>
-                {toc.map((h) => (
-                  <li key={h.id} style={{ counterIncrement: "toc", fontSize: 14, lineHeight: 1.45 }}>
+              <ol id="gb-auto-toc-list" style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8, counterReset: "toc" }}>
+                {toc.map((h, index) => (
+                  <li key={`${h.id}-${index}`} hidden={!tocExpanded && index >= visibleCount} style={{ counterIncrement: "toc", fontSize: 14, lineHeight: 1.45 }}>
                     <a href={`#${h.id}`} style={{ color: "#1E293B", textDecoration: "none", display: "inline-flex", alignItems: "baseline", gap: 8 }}>
-                      <span style={{ fontVariantNumeric: "tabular-nums", color: "#A0A0A8", fontSize: 12, fontWeight: 700, minWidth: 18 }}>{String(toc.indexOf(h) + 1).padStart(2, "0")}</span>
+                      <span style={{ fontVariantNumeric: "tabular-nums", color: "#A0A0A8", fontSize: 12, fontWeight: 700, minWidth: 18 }}>{String(index + 1).padStart(2, "0")}</span>
                       <span style={{ fontWeight: 500 }}>{h.text}</span>
                     </a>
                   </li>
                 ))}
               </ol>
+              {toc.length > visibleCount && (
+                <button type="button" className="gb-toc-toggle" aria-controls="gb-auto-toc-list" aria-expanded={tocExpanded}
+                  onClick={() => setExpandedSlug(tocExpanded ? "" : slug)}>
+                  {tocExpanded ? "Show Less" : `Show More (${toc.length - visibleCount})`}
+                </button>
+              )}
             </nav>
           )}
 
-        <div className="article-body">
+        <div className="article-body" onClick={(event) => {
+          const target = event.target;
+          if (!(target instanceof Element) || !target.closest("[data-gb-toc-toggle]")) return;
+          const article = event.currentTarget;
+          setExpandedSlug(tocExpanded ? "" : slug);
+          // Replacing WordPress HTML also replaces its button; restore keyboard focus.
+          requestAnimationFrame(() => article.querySelector<HTMLButtonElement>("[data-gb-toc-toggle]")?.focus({ preventScroll: true }));
+        }}>
           {isHtml(post.content)
             ? <div dangerouslySetInnerHTML={{ __html: enhancedContent }} />
             : renderMarkdown(post.content)
@@ -814,7 +881,7 @@ export default function InsightDetail({ previewPost }: { previewPost?: BlogPost 
       </section>
 
       {/* Compact contact CTA replaces article share controls */}
-      <ConsultationCta />
+      {!isPreview && <ConsultationCta />}
 
       {/* Related posts */}
       {related.length > 0 && (

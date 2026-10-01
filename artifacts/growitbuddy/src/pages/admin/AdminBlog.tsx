@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback, type ClipboardEvent as ReactClipboardEvent } from "react";
+import { createContext, useContext, useEffect, useState, useRef, useCallback, type ClipboardEvent as ReactClipboardEvent } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { API_BASE, resolveMediaUrl } from "@/lib/api";
 import { defaultSeo, type BlogPost, type PostSeo } from "@/data/blogPosts";
@@ -12,8 +12,12 @@ import { KeywordUsageGuide } from "@/components/admin/KeywordUsageGuide";
 import { classifyArticleLink, getArticleLinks } from "@/lib/blogLinks";
 import { analyzeKeywordSet, needsCombinedReview, needsRepetitionReview, countArticleWords as wordCount } from "@/lib/keywordUsage";
 import { formatPastedBlog, optimizeBlogContent } from "@/lib/pasteBlogContent";
+import { DEFAULT_TOC_VISIBLE, tocVisibleCount } from "@/lib/blogToc";
 import { analyzeBlogSeo } from "@/lib/blogSeoAudit";
-import { resolveBlogSeo } from "@workspace/seo";
+import { resolveBlogSeo, resolveCmsPageSeo, isReservedCmsPageSlug } from "@workspace/seo";
+
+export type CmsMode = "blog" | "page";
+const CmsModeContext = createContext<CmsMode>("blog");
 import SeoPreviewDashboard from "@/components/admin/SeoPreviewDashboard";
 import InsightDetail from "@/pages/InsightDetail";
 import WordPressPostsCard from "@/pages/admin/WordPressPostsCard";
@@ -772,8 +776,9 @@ function PostEditor({
   const { authFetch } = useAdmin();
   const AI_SEO_URL = API_BASE + "/admin/ai-seo/analyze";
   const ADMIN_API = API_BASE + "/admin";
+  const pageMode = useContext(CmsModeContext) === "page";
   const [data, setData] = useState<BlogPost>(post);
-  const [seo, setSeo] = useState<PostSeo>({ ...defaultSeo(), ...post.seo });
+  const [seo, setSeo] = useState<PostSeo>({ ...defaultSeo(), ...(pageMode && !post.seo?.schemaType ? { schemaType: "WebPage" as const } : {}), ...post.seo });
   const [mode, setMode] = useState<"visual" | "text">("visual");
   const [activeTab, setActiveTab] = useState<"write" | "seo">("write");
   const [saving, setSaving] = useState(false);
@@ -785,7 +790,8 @@ function PostEditor({
   const [optimizationUndo, setOptimizationUndo] = useState<{ data: BlogPost; seo: PostSeo; mode: "visual" | "text" } | null>(null);
   const [optimizationNotice, setOptimizationNotice] = useState("");
   const [status, setStatus] = useState<"draft" | "published">(post.status ?? "published");
-  const [visibility, setVisibility] = useState<"public" | "private">("public");
+  const resolveSeo = (p: BlogPost, o?: { globalIndexable?: boolean }) => pageMode ? resolveCmsPageSeo(p, o) : resolveBlogSeo(p, o);
+  const [visibility, setVisibility] = useState<"public" | "private">(post.visibility === "private" ? "private" : "public");
   const [toasts, setToasts] = useState<{ id: number; msg: string; type: "success" | "error" | "info" }[]>([]);
   const [currentBlock, setCurrentBlock] = useState("p");
   const [blockDropOpen, setBlockDropOpen] = useState(false);
@@ -1033,7 +1039,7 @@ function PostEditor({
 
   function postForPublication(): BlogPost {
     const slug = (data.slug || data.title).toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "").slice(0, 80);
-    return { ...data, slug, content: captureContent(), seo, status: "published" };
+    return { ...data, slug, content: captureContent(), seo, status: "published", ...(pageMode ? { visibility } : {}) };
   }
 
   async function getGlobalIndexable(): Promise<boolean> {
@@ -1270,7 +1276,7 @@ function PostEditor({
     try {
       if (mode === "publish") {
         const indexable = await getGlobalIndexable();
-        const audit = analyzeBlogSeo(candidate, resolveBlogSeo(candidate, { globalIndexable: indexable }), allPosts, currentlyPublished(slug));
+        const audit = analyzeBlogSeo(candidate, resolveSeo(candidate, { globalIndexable: indexable }), allPosts, currentlyPublished(slug), pageMode);
         if (audit.criticalErrors.length) {
           setPreviewIndexable(indexable);
           setPreviewPost(candidate);
@@ -1284,7 +1290,7 @@ function PostEditor({
       setPublishIssues([]);
       setSaved(true);
       if (mode === "publish") {
-        showToast(`Published! View at /blog/${slug}`, "success");
+        showToast(pageMode ? (visibility === "private" ? `Published, but set to Private: /${slug} will not be publicly visible.` : `Published! View at /${slug}`) : `Published! View at /blog/${slug}`, "success");
       } else {
         showToast("Draft saved.", "info");
       }
@@ -1677,9 +1683,9 @@ function PostEditor({
       {/* Top bar — sticky so Save Draft/Publish stay visible without scrolling on long posts */}
       <div className="sticky top-0 z-30 flex flex-wrap items-center gap-2 sm:gap-3 mb-5 py-3 bg-[#F7F7F5]/95 backdrop-blur border-b border-[#0B0B0B]/8">
         <button onClick={onBack} className="flex items-center gap-1.5 text-[13px] text-[#0B0B0B]/45 hover:text-[#0B0B0B] transition-colors">
-          <ArrowLeft size={14} /> All Posts
+          <ArrowLeft size={14} /> {pageMode ? "All Pages" : "All Posts"}
         </button>
-        <h1 className="text-[19px] font-black tracking-tight text-[#0B0B0B] flex-1 min-w-[130px]">{isNew ? "Add New Post" : "Edit Post"}</h1>
+        <h1 className="text-[19px] font-black tracking-tight text-[#0B0B0B] flex-1 min-w-[130px]">{pageMode ? (isNew ? "Add Page" : "Edit Page") : (isNew ? "Add New Post" : "Edit Post")}</h1>
         {saved && <span className="text-[12px] text-emerald-600 font-medium">Saved</span>}
         <button onClick={() => handleSave("draft")} disabled={saving} className="text-[13px] font-medium text-[#0B0B0B]/55 border border-[#0B0B0B]/15 px-3.5 py-2 rounded-xl hover:border-[#0B0B0B]/30 transition-colors disabled:opacity-40">
           Save Draft
@@ -2294,7 +2300,7 @@ function PostEditor({
                   <p className="text-[17px] font-normal text-[#1a0dab] leading-snug mb-1 hover:underline cursor-default">
                     {(() => {
                       const kw = seo.focusKeyword.trim();
-                      const title = seoTitleDisplay || "Post title will appear here";
+                      const title = seoTitleDisplay || (pageMode ? "Page title will appear here" : "Post title will appear here");
                       if (!kw) return title;
                       const idx = title.toLowerCase().indexOf(kw.toLowerCase());
                       if (idx === -1) return title;
@@ -2307,7 +2313,7 @@ function PostEditor({
                       : <span className="italic text-[#0B0B0B]/30">Meta description will appear here - add one in the sidebar.</span>}
                   </p>
                 </div>
-                <button className="mt-3 text-[12px] font-semibold text-white bg-[#0B0B0B] px-4 py-1.5 rounded-lg hover:bg-[#0B0B0B]/85 transition-colors">Edit Snippet</button>
+                <button type="button" onClick={() => { const el = document.getElementById("gb-seo-title-input") as HTMLInputElement | null; el?.scrollIntoView({ block: "center" }); el?.focus(); }} className="mt-3 text-[12px] font-semibold text-white bg-[#0B0B0B] px-4 py-1.5 rounded-lg hover:bg-[#0B0B0B]/85 transition-colors">Edit Snippet</button>
               </div>
 
               {/* Focus Keywords */}
@@ -2499,7 +2505,7 @@ function PostEditor({
                 <div className="bg-white border border-[#0B0B0B]/10 rounded-2xl p-5 shadow-sm">
                   <h3 className="text-[13px] font-semibold text-[#0B0B0B] mb-3 flex items-center gap-2"><Code size={13} /> Schema Markup ({seo.schemaType})</h3>
                   <pre className="text-[10px] text-[#0B0B0B]/60 bg-[#fafafa] rounded-lg p-3 overflow-x-auto whitespace-pre-wrap font-mono leading-relaxed">
-                    {JSON.stringify(generateSchema(data, seo), null, 2).slice(0, 600) + "..."}
+                    {JSON.stringify(pageMode ? resolveCmsPageSeo({ ...data, seo }).jsonLd["@graph"] : generateSchema(data, seo), null, 2).slice(0, 600) + "..."}
                   </pre>
                 </div>
               )}
@@ -2595,6 +2601,7 @@ function PostEditor({
                   <CharCount val={seo.seoTitle.length} max={60} />
                 </div>
                 <input
+                  id="gb-seo-title-input"
                   value={seo.seoTitle}
                   onChange={(e) => setSeoField("seoTitle", e.target.value)}
                   placeholder={data.title || "SEO title..."}
@@ -2670,7 +2677,7 @@ function PostEditor({
               <div>
                 <label className="block text-[10px] font-semibold text-[#0B0B0B]/45 mb-1 uppercase tracking-widest">Schema Type</label>
                 <select value={seo.schemaType} onChange={(e) => setSeoField("schemaType", e.target.value as PostSeo["schemaType"])} className="w-full border border-[#0B0B0B]/12 rounded-lg px-2.5 py-1.5 text-[12px] text-[#0B0B0B] outline-none bg-white">
-                  <option value="Article">Article (default)</option>
+                  <option value="Article">{pageMode ? "Article" : "Article (default)"}</option>
                   <option value="BlogPosting">Blog Post</option>
                   <option value="NewsArticle">News Article</option>
                   <option value="TechArticle">Tech Article</option>
@@ -2678,7 +2685,7 @@ function PostEditor({
                   <option value="FAQ">FAQ Page</option>
                   <option value="HowTo">HowTo Guide</option>
                   <option value="VideoObject">Video</option>
-                  <option value="WebPage">Web Page</option>
+                  <option value="WebPage">{pageMode ? "Web Page (default)" : "Web Page"}</option>
                   <option value="None">None</option>
                 </select>
               </div>
@@ -2758,12 +2765,13 @@ function PostEditor({
             <ImageCropUploader
               value={data.featuredImage ?? ""}
               onChange={(url) => setField("featuredImage", url)}
-              hint="Recommended: 1200 × 630 px • JPG or PNG • Shown at the top of the post and on the blog listing"
+              hint={pageMode ? "Recommended: 1200 × 630 px • JPG or PNG • Shown at the top of the page and as the social share image" : "Recommended: 1200 × 630 px • JPG or PNG • Shown at the top of the post and on the blog listing"}
             />
           </SidePanel>
         </div>
       </div>
       {previewPost && <SeoPreviewDashboard
+        pageMode={pageMode}
         post={previewPost}
         allPosts={allPosts}
         globalIndexable={previewIndexable}
@@ -2773,7 +2781,7 @@ function PostEditor({
           const target = event.target;
           const link = target instanceof Element ? target.closest("a") : null;
           if (link && !link.getAttribute("href")?.startsWith("#")) event.preventDefault();
-        }}><InsightDetail previewPost={previewPost} /></div>}
+        }}><InsightDetail previewPost={previewPost} pageMode={pageMode} /></div>}
       />}
     </div>
   );
@@ -2862,12 +2870,13 @@ function PostList({ posts, onEdit, onDelete, onDeleteSelected, onRestore, onPerm
   const [statusFilter, setStatusFilter] = useState<"all" | "published" | "draft">("all");
   const [search, setSearch] = useState("");
   const [view, setView] = useState<"active" | "trash">("active");
+  const pageMode = useContext(CmsModeContext) === "page";
   const [selectedSlugs, setSelectedSlugs] = useState<Set<string>>(new Set());
   const [linkFeedback, setLinkFeedback] = useState<{ slug: string; status: "copied" | "error" } | null>(null);
 
   async function copyPostLink(post: BlogPost) {
     try {
-      await copyTextToClipboard(resolveBlogSeo(post).url);
+      await copyTextToClipboard((pageMode ? resolveCmsPageSeo(post) : resolveBlogSeo(post)).url);
       setLinkFeedback({ slug: post.slug, status: "copied" });
       window.setTimeout(() => {
         setLinkFeedback((current) => current?.slug === post.slug ? null : current);
@@ -2905,8 +2914,8 @@ function PostList({ posts, onEdit, onDelete, onDeleteSelected, onRestore, onPerm
     <div>
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-[22px] font-black tracking-tight text-[#0B0B0B]">Blog / Insights</h1>
-          <p className="text-[13px] text-[#0B0B0B]/40 mt-0.5">{activePosts.length} post{activePosts.length !== 1 ? "s" : ""}</p>
+          <h1 className="text-[22px] font-black tracking-tight text-[#0B0B0B]">{pageMode ? "Pages" : "Blog / Insights"}</h1>
+          <p className="text-[13px] text-[#0B0B0B]/40 mt-0.5">{activePosts.length} {pageMode ? "page" : "post"}{activePosts.length !== 1 ? "s" : ""}</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="relative">
@@ -2914,7 +2923,7 @@ function PostList({ posts, onEdit, onDelete, onDeleteSelected, onRestore, onPerm
             <input value={search} onChange={(e) => { setSearch(e.target.value); setSelectedSlugs(new Set()); }} placeholder="Search posts..." className="pl-8 pr-3 py-2 text-[13px] border border-[#0B0B0B]/12 rounded-xl outline-none focus:border-[#0B0B0B]/30 bg-white w-48" />
           </div>
           <button onClick={onAdd} className="flex items-center gap-2 bg-[#0B0B0B] text-white text-[13px] font-semibold px-4 py-2.5 rounded-xl hover:bg-[#0B0B0B]/85 transition-colors">
-            <Plus size={15} /> Add New
+            <Plus size={15} /> {pageMode ? "Add Page" : "Add New"}
           </button>
         </div>
       </div>
@@ -3156,40 +3165,71 @@ function PostList({ posts, onEdit, onDelete, onDeleteSelected, onRestore, onPerm
 // MAIN
 // ─────────────────────────────────────
 
-export default function AdminBlog() {
+export default function AdminBlog({ mode = "blog" }: { mode?: CmsMode } = {}) {
   const { getContentResult, saveContent } = useAdmin();
+  const pageMode = mode === "page";
+  const SECTION = pageMode ? "cms-pages" : "blog";
   const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [tocInitialVisible, setTocInitialVisible] = useState(DEFAULT_TOC_VISIBLE);
+  const [tocDraft, setTocDraft] = useState(String(DEFAULT_TOC_VISIBLE));
+  const [tocSaving, setTocSaving] = useState(false);
+  const [tocFeedback, setTocFeedback] = useState("");
   const [editing, setEditing] = useState<{ post: BlogPost; isNew: boolean } | null>(null);
   const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
 
   const load = useCallback(() => {
     setLoadState("loading");
-    getContentResult("blog").then((res) => {
+    getContentResult(SECTION).then((res) => {
       // Fail closed: on a load FAILURE never mount the editor, so a Save can
       // never overwrite real data with demo defaults (deleted-ghost re-intro).
       if (!res.ok) { setLoadState("error"); return; }
       const d = res.data;
       setPosts(Array.isArray(d?.posts) ? (d!.posts as BlogPost[]) : []);
+      const count = tocVisibleCount(d?.tocInitialVisible);
+      setTocInitialVisible(count);
+      setTocDraft(String(count));
       setLoadState("ready");
     });
-  }, [getContentResult]);
+  }, [getContentResult, SECTION]);
 
   useEffect(() => { load(); }, [load]);
 
   async function persist(updated: BlogPost[]) {
-    await saveContent("blog", { posts: updated });
+    await saveContent(SECTION, { posts: updated, tocInitialVisible });
     setPosts(updated);
+  }
+
+  async function saveTocSetting() {
+    const count = Number(tocDraft);
+    if (!Number.isInteger(count) || count < 1 || count > 30) {
+      setTocFeedback("Choose a whole number from 1 to 30.");
+      return;
+    }
+    setTocSaving(true);
+    setTocFeedback("");
+    try {
+      await saveContent(SECTION, { posts, tocInitialVisible: count });
+      setTocInitialVisible(count);
+      setTocFeedback("Table of Contents setting saved.");
+    } catch {
+      setTocFeedback("Couldn't save this setting. Please try again.");
+    } finally {
+      setTocSaving(false);
+    }
   }
 
   async function handleSave(post: BlogPost) {
     // Enforce unique slugs so two posts can never collide - a collision makes
     // a post appear to "duplicate" or silently overwrite another on save.
     const norm = (s?: string) => (s ?? "").trim().toLowerCase();
+    if (pageMode && isReservedCmsPageSlug(post.slug)) {
+      throw new Error("This URL slug is reserved by the site. Please choose a different slug.");
+    }
     const slugTaken = posts.some(
       (p) => norm(p.slug) === norm(post.slug) && norm(p.slug) !== norm(editing?.post.slug),
     );
     if (slugTaken) {
-      throw new Error("A post with this URL slug already exists. Please choose a unique slug.");
+      throw new Error(pageMode ? "A page with this URL slug already exists. Please choose a unique slug." : "A post with this URL slug already exists. Please choose a unique slug.");
     }
     let updated: BlogPost[];
     if (editing?.isNew) {
@@ -3198,9 +3238,7 @@ export default function AdminBlog() {
       updated = posts.map((p) => (p.slug === editing?.post.slug ? post : p));
     }
     await persist(updated);
-    if (editing?.isNew) {
-      setEditing({ post, isNew: false });
-    }
+    setEditing({ post, isNew: false });
   }
 
   // Soft delete → move to Trash. Reversible, but we still confirm so a
@@ -3243,19 +3281,43 @@ export default function AdminBlog() {
 
   if (editing) {
     return (
-      <PostEditor
+      <CmsModeContext.Provider value={mode}><PostEditor
         post={editing.post}
         isNew={editing.isNew}
         onBack={() => setEditing(null)}
         onSave={handleSave}
         allPosts={posts}
-      />
+      /></CmsModeContext.Provider>
     );
   }
 
   return (
+    <CmsModeContext.Provider value={mode}>
     <div className="space-y-6">
-      <WordPressPostsCard />
+      <section className="rounded-2xl border border-[#0B0B0B]/10 bg-white p-5 sm:p-6" aria-labelledby="toc-settings-title">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 id="toc-settings-title" className="flex items-center gap-2 text-[15px] font-bold text-[#0B0B0B]">
+              <List size={17} /> Table of Contents
+            </h2>
+            <p className="mt-1 text-[12px] text-[#0B0B0B]/55">Choose how many headings appear before Show More {pageMode ? "on all pages." : "on all blog posts, including WordPress posts."}</p>
+          </div>
+          <div className="flex items-end gap-2">
+            <label className="text-[11px] font-semibold text-[#0B0B0B]/65">
+              Headings shown
+              <input type="number" min={1} max={30} step={1} value={tocDraft}
+                onChange={(event) => { setTocDraft(event.target.value); setTocFeedback(""); }}
+                className="mt-1 block w-24 rounded-lg border border-[#0B0B0B]/15 bg-white px-3 py-2 text-[13px] text-[#0B0B0B] focus:border-[#0B0B0B] focus:outline-none" />
+            </label>
+            <button type="button" onClick={saveTocSetting} disabled={tocSaving || tocDraft === String(tocInitialVisible)}
+              className="rounded-lg bg-[#0B0B0B] px-4 py-2 text-[12px] font-semibold text-white disabled:opacity-40">
+              {tocSaving ? "Saving…" : "Save setting"}
+            </button>
+          </div>
+        </div>
+        {tocFeedback && <p role="status" className={`mt-3 text-[12px] ${tocFeedback.includes("saved") ? "text-emerald-700" : "text-red-600"}`}>{tocFeedback}</p>}
+      </section>
+      {!pageMode && <WordPressPostsCard />}
       <PostList
         posts={posts}
         onEdit={(post) => setEditing({ post: { ...post }, isNew: false })}
@@ -3280,11 +3342,13 @@ export default function AdminBlog() {
               tag: "Founders",
               readTime: "5 min read",
               content: "",
+              ...(pageMode ? { status: "draft" as const, visibility: "public" as const } : {}),
             },
           })
         }
       />
-      <PageVisibilityCard slug="insights" />
+      {!pageMode && <PageVisibilityCard slug="insights" />}
     </div>
+    </CmsModeContext.Provider>
   );
 }

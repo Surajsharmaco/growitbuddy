@@ -282,6 +282,228 @@ function resolveBlogSeo(post, options = {}) {
   };
 }
 
+// lib/seo/src/pages.ts
+var RESERVED_ROOT_SLUGS = /* @__PURE__ */ new Set([
+  // Static registry paths and every explicit public route in App.tsx.
+  "about",
+  "contact",
+  "blog",
+  "services",
+  "work",
+  "framework",
+  "authority-audit",
+  "influencers",
+  "distribution",
+  "acts-club",
+  "links",
+  "join",
+  "creators",
+  "career",
+  "editors-pool",
+  "video-editors",
+  "designers-pool",
+  "thumbnail-designers",
+  "writers-pool",
+  "social-media-managers",
+  "motion-designers",
+  "ai-creators",
+  "ugc-creators",
+  "meme-designers",
+  "resources",
+  "privacy",
+  "terms",
+  "portfolio",
+  "verify",
+  "guide",
+  "seo-guide",
+  "home",
+  "join-page-owner",
+  "verify-id",
+  "site-guide",
+  // Aliases/redirects and path roots with nested explicit routes.
+  "insights",
+  "freelancers",
+  "full-time",
+  "internship",
+  "portfolio-private",
+  // API, admin, framework/static assets and platform-owned paths.
+  "api",
+  "admin",
+  "assets",
+  "static",
+  "public",
+  "src",
+  "node_modules",
+  "favicon.ico",
+  "robots.txt",
+  "sitemap.xml",
+  "sitemap-blog.xml",
+  // Permanently retired legacy roots and common file/metadata endpoints.
+  "product",
+  "products",
+  "collection",
+  "collections",
+  "cart",
+  "checkout",
+  "checkouts",
+  "account",
+  "accounts",
+  "order",
+  "orders",
+  "pages",
+  "policies",
+  "apps",
+  "layout",
+  "layouts",
+  "blogs",
+  "fonts",
+  "images",
+  "media",
+  "opengraph.jpg",
+  "logo.png",
+  "logo-dark.png"
+]);
+function isReservedCmsPageSlug(slug) {
+  return RESERVED_ROOT_SLUGS.has(slug.toLowerCase());
+}
+function isCmsPagesVariantSection(section) {
+  return /^cms-pages__v__/i.test(section);
+}
+function validateCmsPageSlug(slug) {
+  if (typeof slug !== "string" || slug.length > 80 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+    return { valid: false, error: "slug must be one lowercase kebab-case URL segment (max 80 characters)" };
+  }
+  if (isReservedCmsPageSlug(slug)) {
+    return { valid: false, error: `slug "${slug}" is reserved by an existing route` };
+  }
+  return { valid: true };
+}
+function isPublicCmsPage(page) {
+  return page.trashed !== true && page.status === "published" && (page.visibility === void 0 || page.visibility === "public");
+}
+function absoluteUrl2(value, fallback) {
+  const url = (value ?? "").trim();
+  if (!url) return fallback;
+  if (/^https?:\/\//i.test(url)) return url;
+  if (url.startsWith("//")) return `https:${url}`;
+  if (url.startsWith("/api/")) return `${API_URL}${url}`;
+  return `${SITE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+}
+function escapeHtml2(value) {
+  return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+function safeJson2(value) {
+  return JSON.stringify(value).replace(/</g, "\\u003c").replace(/>/g, "\\u003e").replace(/&/g, "\\u0026").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
+}
+function validDate2(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+function isCmsPageInSitemap(page, globalIndexable = true) {
+  if (!globalIndexable || !isPublicCmsPage(page) || page.seo?.noIndex === true) return false;
+  const expectedUrl = `${SITE_URL}/${page.slug}`;
+  const canonical = absoluteUrl2(page.seo?.canonicalUrl, expectedUrl);
+  return canonical === expectedUrl && validateCmsPageSlug(page.slug).valid;
+}
+function resolveCmsPageSeo(page, options = {}) {
+  const base = resolveBlogSeo(page, options);
+  const seo = page.seo ?? {};
+  const url = `${SITE_URL}/${encodeURIComponent(page.slug)}`;
+  const title = seo.seoTitle?.trim() || page.title.trim();
+  const description = seo.metaDescription?.trim() || page.excerpt || "";
+  const canonical = absoluteUrl2(seo.canonicalUrl, url);
+  const globalIndexable = options.globalIndexable !== false;
+  const robots = globalIndexable && seo.noIndex !== true ? "index,follow" : "noindex,nofollow";
+  const image = absoluteUrl2(seo.ogImage || page.featuredImage, `${SITE_URL}/opengraph.jpg`);
+  const ogTitle = seo.ogTitle?.trim() || title;
+  const ogDescription = seo.ogDescription?.trim() || description;
+  const datePublished = validDate2(page.isoDate || page.date);
+  const dateModified = validDate2(page.modifiedIsoDate) || datePublished;
+  const faqItems = (seo.faqItems ?? []).filter((item) => item.question?.trim() && item.answer?.trim());
+  const schemaType = seo.schemaType || "WebPage";
+  const graph = [
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+        { "@type": "ListItem", position: 2, name: page.title, item: canonical }
+      ]
+    }
+  ];
+  if (schemaType !== "None") {
+    const type = schemaType === "FAQ" ? "FAQPage" : schemaType;
+    if (type === "FAQPage") {
+      graph.push({
+        "@type": "FAQPage",
+        mainEntity: faqItems.map((item) => ({
+          "@type": "Question",
+          name: item.question,
+          acceptedAnswer: { "@type": "Answer", text: item.answer }
+        }))
+      });
+    } else {
+      const isHowTo = type === "HowTo";
+      graph.push({
+        "@type": type,
+        name: title,
+        headline: title,
+        description,
+        url: canonical,
+        mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
+        ...datePublished ? { datePublished } : {},
+        ...dateModified ? { dateModified } : {},
+        ...image ? { image } : {},
+        ...isHowTo ? {
+          step: (seo.howToSteps ?? []).filter((step) => step.name?.trim() && step.text?.trim()).map((step, index) => ({
+            "@type": "HowToStep",
+            position: index + 1,
+            name: step.name,
+            text: step.text
+          }))
+        } : {}
+      });
+    }
+  }
+  const jsonLd = { "@context": "https://schema.org", "@graph": graph };
+  const ogType = schemaType === "Article" ? "article" : "website";
+  const metaTagsHtml = [
+    `<title>${escapeHtml2(title)}</title>`,
+    `<meta name="description" content="${escapeHtml2(description)}" />`,
+    `<meta name="robots" content="${escapeHtml2(robots)}" />`,
+    `<link rel="canonical" href="${escapeHtml2(canonical)}" />`,
+    `<meta property="og:title" content="${escapeHtml2(ogTitle)}" />`,
+    `<meta property="og:description" content="${escapeHtml2(ogDescription)}" />`,
+    `<meta property="og:url" content="${escapeHtml2(canonical)}" />`,
+    `<meta property="og:type" content="${ogType}" />`,
+    `<meta property="og:image" content="${escapeHtml2(image)}" />`,
+    `<meta property="og:site_name" content="${escapeHtml2(BRAND.name)}" />`,
+    `<meta name="twitter:card" content="summary_large_image" />`,
+    `<meta name="twitter:title" content="${escapeHtml2(ogTitle)}" />`,
+    `<meta name="twitter:description" content="${escapeHtml2(ogDescription)}" />`,
+    `<meta name="twitter:image" content="${escapeHtml2(image)}" />`,
+    `<meta name="twitter:url" content="${escapeHtml2(canonical)}" />`,
+    `<script type="application/ld+json" id="gb-jsonld">${safeJson2(jsonLd)}</script>`
+  ].join("\n");
+  return {
+    ...base,
+    url,
+    title,
+    description,
+    canonical,
+    robots,
+    og: { title: ogTitle, description: ogDescription, url: canonical, type: ogType, image, siteName: BRAND.name },
+    twitter: { card: "summary_large_image", title: ogTitle, description: ogDescription, image, url: canonical },
+    jsonLd,
+    metaTagsHtml,
+    sitemap: {
+      included: isCmsPageInSitemap(page, globalIndexable),
+      url,
+      lastmod: (validDate2(page.modifiedIsoDate || page.isoDate || page.date) ?? null)?.slice(0, 10) ?? null
+    }
+  };
+}
+
 // lib/seo/src/index.ts
 var PAGE_REGISTRY = [
   // Core
@@ -6588,6 +6810,7 @@ var SHARED_CONTENT_SECTIONS = [
 ];
 var CONTENT_SECTION_BY_SLUG = {
   insights: ["blog"],
+  "cms-pages": ["cms-pages"],
   career: ["fulltime", "internship", "freelancers"],
   distribution: ["distribution-network", "distribution-pages"],
   influencers: ["influencer-explore"],
@@ -6637,6 +6860,46 @@ var VARIANT_SOURCES = [
   { key: "pool-editors", label: "Video Editors Pool", basePath: "/video-editors", adminPath: "/admin/pool-editors" }
 ];
 
+// artifacts/growitbuddy/ssr/publicContent.ts
+function sanitizePublicContent(content) {
+  const out = { ...content };
+  for (const section of Object.keys(out)) {
+    if (section !== "cms-pages" && isCmsPagesVariantSection(section)) {
+      delete out[section];
+    }
+  }
+  const blog = out.blog;
+  if (blog && Array.isArray(blog.posts)) {
+    out.blog = {
+      ...blog,
+      posts: blog.posts.filter(
+        (post) => !!post && post.trashed !== true && (post.status ?? "published") === "published"
+      )
+    };
+  }
+  const cmsPages = out["cms-pages"];
+  if (cmsPages && Array.isArray(cmsPages.posts)) {
+    out["cms-pages"] = {
+      ...cmsPages,
+      posts: cmsPages.posts.filter(
+        (page) => !!page && typeof page === "object" && typeof page.slug === "string" && typeof page.title === "string" && validateCmsPageSlug(page.slug).valid && isPublicCmsPage(page)
+      )
+    };
+  }
+  for (const key of ["distribution-pages", "influencers"]) {
+    const section = out[key];
+    if (section && Array.isArray(section.items)) {
+      out[key] = {
+        ...section,
+        items: section.items.filter(
+          (item) => !!item && item.trashed !== true && item.profileEnabled !== false
+        )
+      };
+    }
+  }
+  return out;
+}
+
 // artifacts/growitbuddy/ssr/render.ts
 var DB_URL = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL || "";
 var SITE = SITE_URL;
@@ -6649,7 +6912,7 @@ var PUBLIC_API_TIMEOUT_MS = 2e4;
 function escAttr(s) {
   return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
-function safeJson2(value) {
+function safeJson3(value) {
   return JSON.stringify(value ?? null).replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
 }
 function setTitle(html, title) {
@@ -6710,30 +6973,6 @@ function collectBlocks(value, keyHint, out, depth) {
       collectBlocks(v2, k, out, depth + 1);
     }
   }
-}
-function sanitizePublicContent(content) {
-  const out = { ...content };
-  const blog = out.blog;
-  if (blog && Array.isArray(blog.posts)) {
-    out.blog = {
-      ...blog,
-      posts: blog.posts.filter(
-        (p2) => !!p2 && p2.trashed !== true && (p2.status ?? "published") === "published"
-      )
-    };
-  }
-  for (const key of ["distribution-pages", "influencers"]) {
-    const sec = out[key];
-    if (sec && Array.isArray(sec.items)) {
-      out[key] = {
-        ...sec,
-        items: sec.items.filter(
-          (p2) => !!p2 && p2.trashed !== true && p2.profileEnabled !== false
-        )
-      };
-    }
-  }
-  return out;
 }
 function renderContentBody(content, sections, h1) {
   const blocks = [];
@@ -6895,12 +7134,12 @@ function buildHtml(template, entry, pathname, b2, options = {}) {
   if (seo.schema && seo.schema.trim()) {
     try {
       const parsed = JSON.parse(seo.schema);
-      schemaScript = `<script type="application/ld+json" id="gb-jsonld">${safeJson2(parsed)}</script>`;
+      schemaScript = `<script type="application/ld+json" id="gb-jsonld">${safeJson3(parsed)}</script>`;
     } catch {
     }
   }
   const publicContent = sanitizePublicContent(b2.content);
-  const bootstrap = `<script>window.__GB_PUBLIC_CONTENT__=${safeJson2(publicContent)};window.__GB_CONTENT_SECTIONS__=${safeJson2(b2.contentSections)};window.__GB_SEO__=${safeJson2({
+  const bootstrap = `<script>window.__GB_PUBLIC_CONTENT__=${safeJson3(publicContent)};window.__GB_CONTENT_SECTIONS__=${safeJson3(b2.contentSections)};window.__GB_SEO__=${safeJson3({
     slug: options.seoSlug ?? entry.slug,
     path: pathname,
     data: seo,
@@ -6952,6 +7191,7 @@ async function buildMainSitemap() {
   const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
   let globalIndexable = true;
   const seoMap = /* @__PURE__ */ new Map();
+  let cmsPages = [];
   if (DB_URL) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
@@ -6959,20 +7199,26 @@ async function buildMainSitemap() {
       const sql = cs(DB_URL, { fetchOptions: { signal: ctrl.signal } });
       const rows = await sql`
         SELECT section, data FROM site_content
-        WHERE section = 'seo-global' OR section LIKE 'seo:%'
+        WHERE section = 'seo-global' OR section LIKE 'seo:%' OR section = 'cms-pages'
       `;
       for (const r of rows) {
         if (r.section === "seo-global") {
           const gd = r.data;
           if (gd && gd.siteIndexable === false) globalIndexable = false;
+        } else if (r.section === "cms-pages") {
+          const data = r.data;
+          cmsPages = Array.isArray(data?.posts) ? data.posts : [];
         } else {
           seoMap.set(r.section.replace(/^seo:/, ""), r.data ?? {});
         }
       }
     } catch {
       try {
-        const data = await loadPublicSections(["seo-global"]);
+        const data = await loadPublicSections(["seo-global", "cms-pages"]);
         globalIndexable = data["seo-global"]?.siteIndexable !== false;
+        const cms = sanitizePublicContent({ "cms-pages": data["cms-pages"] });
+        const section = cms["cms-pages"];
+        cmsPages = Array.isArray(section?.posts) ? section.posts : [];
       } catch {
       }
     } finally {
@@ -6980,13 +7226,16 @@ async function buildMainSitemap() {
     }
   } else {
     try {
-      const data = await loadPublicSections(["seo-global"]);
+      const data = await loadPublicSections(["seo-global", "cms-pages"]);
       globalIndexable = data["seo-global"]?.siteIndexable !== false;
+      const cms = sanitizePublicContent({ "cms-pages": data["cms-pages"] });
+      const section = cms["cms-pages"];
+      cmsPages = Array.isArray(section?.posts) ? section.posts : [];
     } catch {
     }
   }
   if (!globalIndexable) return wrapUrlset([]);
-  return buildSitemapXml({
+  const registryXml = buildSitemapXml({
     lastmod: today,
     siteUrl: SITE,
     include: (page) => {
@@ -6994,6 +7243,20 @@ async function buildMainSitemap() {
       return !(seo && (seo.index === false || seo.sitemap === false));
     }
   });
+  const registryUrls = [...registryXml.matchAll(/  <url>[\s\S]*?<\/url>/g)].map((match) => match[0]);
+  const cmsUrls = cmsPages.flatMap((page) => {
+    if (!isCmsPageInSitemap(page, globalIndexable)) return [];
+    const resolved = resolveCmsPageSeo(page, { globalIndexable });
+    const loc = resolved.sitemap.url.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const lastmod = resolved.sitemap.lastmod;
+    return [`  <url>
+    <loc>${loc}</loc>${lastmod ? `
+    <lastmod>${lastmod}</lastmod>` : ""}
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>`];
+  });
+  return wrapUrlset([...registryUrls, ...cmsUrls]);
 }
 async function buildBlogSitemap() {
   let globalIndexable = true;
@@ -7128,7 +7391,9 @@ async function getVariantFromPublicApi(slug) {
   )) {
     throw new Error("Public variants API returned malformed variant records");
   }
-  return rows.find((row) => row.slug === slug) ?? null;
+  return rows.find(
+    (row) => row.slug === slug && VARIANT_SOURCES.some((source) => source.key === row.sourceKey)
+  ) ?? null;
 }
 async function resolveLiveVariant(slug) {
   if (!DB_URL) return getVariantFromPublicApi(slug);
@@ -7147,6 +7412,7 @@ async function resolveLiveVariant(slug) {
     if (typeof variant.slug !== "string" || typeof variant.sourceKey !== "string" || typeof variant.label !== "string") {
       throw new Error("Database returned malformed variant metadata");
     }
+    if (!VARIANT_SOURCES.some((source) => source.key === variant.sourceKey)) return null;
     return variant;
   } catch {
     return getVariantFromPublicApi(slug);
@@ -7240,6 +7506,32 @@ async function handler(req, res) {
       const segments = pathname.split("/").filter(Boolean);
       if (segments.length === 1 && isSafeSlug(segments[0])) {
         const slug = segments[0];
+        const cmsBundle = await loadData("cms-pages", ["cms-pages"]);
+        const rawCmsSection = cmsBundle.content["cms-pages"];
+        const reservedCmsSlug = rawCmsSection?.posts?.some((candidate) => candidate?.slug === slug) ?? false;
+        const publicCmsContent = sanitizePublicContent(cmsBundle.content);
+        const cmsSection = publicCmsContent["cms-pages"];
+        const cmsPage = cmsSection?.posts?.find((candidate) => candidate.slug === slug);
+        if (reservedCmsSlug && !cmsPage) {
+          send404(res, template);
+          return;
+        }
+        if (cmsPage && isPublicCmsPage(cmsPage)) {
+          const resolved = resolveCmsPageSeo(cmsPage, { globalIndexable: cmsBundle.globalIndexable });
+          const homeEntry = findEntryByPath("/");
+          if (!homeEntry) throw new Error("Home registry entry is missing");
+          const shell = buildHtml(template, homeEntry, pathname, cmsBundle, {
+            bodySections: [],
+            seoSlug: "cms-pages"
+          });
+          let cmsHtml = applyBlogSeo(shell, resolved.metaTagsHtml);
+          cmsHtml = injectArticleBody(cmsHtml, resolved.crawlerBodyHtml);
+          if (resolved.robots.startsWith("noindex")) {
+            res.setHeader("x-robots-tag", resolved.robots.replace(",", ", "));
+          }
+          sendHtml(res, cmsHtml, "no-store");
+          return;
+        }
         const variant = await resolveLiveVariant(slug);
         if (!variant) {
           send404(res, template);

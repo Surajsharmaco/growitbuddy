@@ -180,7 +180,12 @@ export default function DynamicPageSEO() {
       return;
     }
     const entry = findEntryByPath(location);
-    if (!entry) return;
+    if (!entry) {
+      // Unknown single-segment root path (CMS page / variant / 404): let the
+      // page-level SEOMeta own the tags instead of the previous route.
+      if (/^\/[^/]+$/.test(location)) releaseSeoOwnership();
+      return;
+    }
     const { data, global } = syncSeoFor(entry.slug);
     applySEO(entry, data, location, global);
   }, [location, isBlogArticle]);

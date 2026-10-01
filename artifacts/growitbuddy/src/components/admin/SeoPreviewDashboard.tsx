@@ -4,7 +4,7 @@ import { AlertCircle, AlertTriangle, ArrowDownToLine, Check, CheckCircle2, Chevr
 import type { BlogPost } from "../../data/blogPosts";
 import { analyzeBlogSeo } from "../../lib/blogSeoAudit";
 import type { SeoCheck } from "../../lib/blogSeoAudit";
-import { isBlogInSitemap, resolveBlogSeo } from "@workspace/seo";
+import { isBlogInSitemap, resolveBlogSeo, isCmsPageInSitemap, resolveCmsPageSeo } from "@workspace/seo";
 
 interface SeoPreviewDashboardProps {
   post: BlogPost;
@@ -13,6 +13,7 @@ interface SeoPreviewDashboardProps {
   currentlyPublished: boolean;
   onClose: () => void;
   articlePreview: ReactNode;
+  pageMode?: boolean;
 }
 
 type SectionId = "overview" | "appearance" | "article" | "technical" | "source";
@@ -25,6 +26,7 @@ const sections: { id: SectionId; label: string; number: string }[] = [
 ];
 const groups = ["on-page", "technical"] as const;
 const SITEMAP_ENDPOINT = "https://growitbuddy.com/sitemap-blog.xml";
+const PAGE_SITEMAP_ENDPOINT = "https://growitbuddy.com/sitemap.xml";
 
 /** Capture shared template tags from this running document, not invented article tags. */
 function readStaticHead(): string {
@@ -80,9 +82,9 @@ function CodePanel({ label, code, onCopy }: { label: string; code: string; onCop
   </div>;
 }
 
-export default function SeoPreviewDashboard({ post, allPosts, globalIndexable, currentlyPublished, onClose, articlePreview }: SeoPreviewDashboardProps) {
-  const output = useMemo(() => resolveBlogSeo(post, { globalIndexable }), [post, globalIndexable]);
-  const audit = useMemo(() => analyzeBlogSeo(post, output, allPosts, currentlyPublished), [post, output, allPosts, currentlyPublished]);
+export default function SeoPreviewDashboard({ post, allPosts, globalIndexable, currentlyPublished, onClose, articlePreview, pageMode = false }: SeoPreviewDashboardProps) {
+  const output = useMemo(() => pageMode ? resolveCmsPageSeo(post, { globalIndexable }) : resolveBlogSeo(post, { globalIndexable }), [post, globalIndexable, pageMode]);
+  const audit = useMemo(() => analyzeBlogSeo(post, output, allPosts, currentlyPublished, pageMode), [post, output, allPosts, currentlyPublished, pageMode]);
   const errors = audit.checks.filter((check) => check.level === "error");
   const warnings = audit.checks.filter((check) => check.level === "warning");
   const passes = audit.checks.filter((check) => check.level === "pass");
@@ -93,7 +95,7 @@ export default function SeoPreviewDashboard({ post, allPosts, globalIndexable, c
     const type = node["@type"];
     return Array.isArray(type) ? type.map(String) : type ? [String(type)] : [];
   });
-  const sitemapIncluded = isBlogInSitemap(post, globalIndexable);
+  const sitemapIncluded = pageMode ? isCmsPageInSitemap(post, globalIndexable) : isBlogInSitemap(post, globalIndexable);
   const [active, setActive] = useState<SectionId>("overview");
   const [notice, setNotice] = useState("");
   const [showAllChecks, setShowAllChecks] = useState(false);
@@ -138,13 +140,13 @@ export default function SeoPreviewDashboard({ post, allPosts, globalIndexable, c
 
   const jsonLdText = JSON.stringify(output.jsonLd, null, 2);
   const staticHeadHtml = readStaticHead();
-  const metaWithStatic = `<!-- Shared index template tags observed in this document -->\n${staticHeadHtml}\n\n<!-- Article-specific generated tags -->\n${output.metaTagsHtml}`;
+  const metaWithStatic = `<!-- Shared index template tags observed in this document -->\n${staticHeadHtml}\n\n<!-- ${pageMode ? "Page" : "Article"}-specific generated tags -->\n${output.metaTagsHtml}`;
   const schemaHtml = `<script type="application/ld+json">${JSON.stringify(output.jsonLd)}</script>`;
   const fullHtml = [metaWithStatic, !output.metaTagsHtml.includes("application/ld+json") ? schemaHtml : "", output.crawlerBodyHtml].filter(Boolean).join("\n\n");
   const liveLabel = currentlyPublished ? "Published version exists" : "Not live yet";
   const robotsBlocked = /(?:^|,|\s)noindex(?:,|\s|$)/i.test(output.robots);
   const comparisonRows: ComparisonRow[] = [
-    { label: "Slug / generated URL", input: post.slug || "", resolved: output.url, explanation: "The slug is a path segment; the resolver constructs the public article URL." },
+    { label: "Slug / generated URL", input: post.slug || "", resolved: output.url, explanation: `The slug is a path segment; the resolver constructs the public ${pageMode ? "page (root /slug)" : "article"} URL.` },
     { label: "Search title", input: post.seo?.seoTitle || "", resolved: output.title, explanation: "The SEO title is used as entered. If it is empty, the post title is used; no site-name suffix is added." },
     { label: "Meta description", input: post.seo?.metaDescription || "", resolved: output.description, explanation: "The generated description can use other post fields when the dedicated input is empty." },
     { label: "Canonical URL", input: post.seo?.canonicalUrl || "", resolved: output.canonical, explanation: "A missing override resolves to the canonical article URL. A different URL can be intentional syndication." },
@@ -153,21 +155,21 @@ export default function SeoPreviewDashboard({ post, allPosts, globalIndexable, c
     { label: "Open Graph description", input: post.seo?.ogDescription || "", resolved: output.og.description, explanation: "The social description may inherit the resolved meta description." },
     { label: "Open Graph image", input: post.seo?.ogImage || "", resolved: output.og.image || "", explanation: "Social image may fall back to the featured image or a site default." },
     { label: "Schema type / JSON-LD", input: post.seo?.schemaType || "Article (default)", resolved: schemaTypes.join(", ") || "No @type in graph", explanation: "The selected type is an input; the generated JSON-LD graph may contain several nodes or adjusted types." },
-    { label: "Sitemap status", input: `Post: ${post.status || "not specified"}; global indexable: ${globalIndexable ? "on" : "off"}; noindex: ${post.seo?.noIndex ? "on" : "off"}`, resolved: output.sitemap.included ? "Included" : "Excluded", explanation: "Generated eligibility depends on production sitemap rules. Deployed sitemap was not fetched." },
+    { label: "Sitemap status", input: `${pageMode ? "Page" : "Post"}: ${post.status || "not specified"}; visibility: ${pageMode ? (post.visibility === "private" ? "private" : "public") : "n/a"}; global indexable: ${globalIndexable ? "on" : "off"}; noindex: ${post.seo?.noIndex ? "on" : "off"}`, resolved: output.sitemap.included ? "Included" : "Excluded", explanation: "Generated eligibility depends on production sitemap rules. Deployed sitemap was not fetched." },
   ];
   const report = [
     `# SEO pre-publish report — ${post.title || post.slug || "Untitled post"}`,
     `Generated: ${new Date().toISOString()}`,
     `Readiness: ${readiness} (${audit.criticalErrors.length} errors, ${warnings.length} warnings, ${passes.length} passes)`,
     `Publication: ${liveLabel}. This is generated output, not a live HTTP inspection.`,
-    "CMS availability: Posts are public only after publication; no private-post setting is persisted. Anonymous HTTP access was not tested.",
+    pageMode ? "CMS availability: Pages are public only when published and set to Public visibility. Anonymous HTTP access was not tested." : "CMS availability: Posts are public only after publication; no private-post setting is persisted. Anonymous HTTP access was not tested.",
     "",
     "## Resolved output",
     `URL: ${output.url}`, `Title: ${output.title}`, `Description: ${output.description}`,
     `Canonical: ${output.canonical}`, `Robots: ${output.robots}`,
     `Sitemap: ${sitemapIncluded ? "Included in generated sitemap" : "Excluded from generated sitemap"}`,
-    `Sitemap endpoint: ${SITEMAP_ENDPOINT}`,
-    `Article <loc>: ${output.sitemap.url || "Not supplied"}`,
+    `Sitemap endpoint: ${pageMode ? PAGE_SITEMAP_ENDPOINT : SITEMAP_ENDPOINT}`,
+    `${pageMode ? "Page" : "Article"} <loc>: ${output.sitemap.url || "Not supplied"}`,
     `Last modified: ${output.sitemap.lastmod || "Not supplied"}`,
     `Open Graph: ${JSON.stringify(output.og, null, 2)}`,
     `Twitter: ${JSON.stringify(output.twitter, null, 2)}`,
@@ -234,6 +236,8 @@ export default function SeoPreviewDashboard({ post, allPosts, globalIndexable, c
       .seo-code-panel{border:1px solid #344550;background:#17232c;border-radius:11px;overflow:hidden;margin-top:13px}.seo-code-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #344550;color:#d6e4e1;font-size:11px;font-weight:750}.seo-code-head span,.seo-code-head button{display:inline-flex;align-items:center;gap:7px}.seo-code-head button{background:#2a3c45;color:#e7f2ef;border:1px solid #45575e;border-radius:6px;padding:6px 8px;font-size:10px}.seo-code-head button:hover{background:#3c535b}.seo-code-panel pre{margin:0;padding:16px;max-height:300px;overflow:auto;color:#c9dcd6;font:11px/1.7 ui-monospace,SFMono-Regular,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
       .seo-copy-row{display:flex;gap:8px;flex-wrap:wrap}.seo-stack{display:grid;gap:16px}.seo-toast{position:absolute;bottom:20px;right:23px;background:#1b343b;color:#fff;padding:11px 16px;border-radius:9px;font-size:12px;box-shadow:0 12px 30px #0e1e2340;z-index:2}
       .seo-difference{background:#fbe9e8;color:#a23d3c}.seo-preview-bar{display:flex;justify-content:space-between;align-items:center;gap:12px}.seo-preview-bar button{background:#fffefa;border:1px solid #cad7d4;border-radius:6px;padding:5px 9px;color:#31565d;font-size:10px;font-weight:750}.seo-preview-window{height:520px;margin:auto;position:relative;contain:layout paint;overscroll-behavior:contain}.seo-preview-window.mobile{max-width:390px}.seo-preview-window .fixed{position:absolute!important}.seo-preview-window :where([style*="position: fixed"],[style*="position:fixed"]){position:absolute!important}
+      .seo-preview-window{container-type:inline-size;container-name:seoprev}.seo-preview-window *{min-width:0;box-sizing:border-box}.seo-preview-window h1,.seo-preview-window h2,.seo-preview-window h3,.seo-preview-window p,.seo-preview-window li,.seo-preview-window a{overflow-wrap:break-word;word-break:normal}.seo-preview-window img,.seo-preview-window video,.seo-preview-window iframe{max-width:100%;height:auto}.seo-preview-window .article-body{overflow-x:auto}.seo-preview-window aside[aria-label="Talk to GrowitBuddy"]{display:none!important}
+      @container seoprev (max-width:640px){.article-body p,.article-body li{font-size:16px;line-height:1.72}.article-body h1{font-size:26px;line-height:1.15}.article-body h2{font-size:21px;line-height:1.25}.article-body h3{font-size:17px}.article-body table{display:block;overflow-x:auto;font-size:14px}.article-body pre{font-size:13px;overflow-x:auto}.article-body .wp-block-columns{display:block}.article-body .alignleft,.article-body .alignright{float:none;margin:22px auto;max-width:100%}.gb-hero-img{padding:0!important}.seo-preview-window h1{font-size:clamp(26px,8cqw,34px)!important;line-height:1.12!important;letter-spacing:-.03em!important}}
       @media(max-width:850px){.seo-dialog{inset:0;border-radius:0}.seo-header{padding:12px 16px}.seo-shell{display:flex;flex-direction:column}.seo-side{flex:none;flex-direction:row;overflow:auto;padding:7px 11px;border-right:0;border-bottom:1px solid var(--line)}.seo-side-label,.seo-side-foot{display:none}.seo-nav{padding:9px 12px;font-size:11px}.seo-content{padding:27px 17px 65px}.seo-grid{grid-template-columns:1fr}}
       @media(max-width:600px){.seo-brand-icon{width:32px;height:32px}.seo-brand strong{font-size:13px}.seo-brand small{font-size:8px}.seo-head-actions .seo-btn-text{display:none}.seo-head-actions{gap:5px}.seo-head-actions .seo-btn{padding:8px}.seo-head-actions .seo-icon-btn{width:32px;height:32px}.seo-stats{grid-template-columns:repeat(2,1fr)}.seo-hero{padding:20px;display:block}.seo-hero-symbol{display:inline-block;margin-top:16px}.seo-social-grid,.seo-facts,.seo-compare-grid{grid-template-columns:1fr}.seo-section{margin-bottom:52px}.seo-preview-window{height:350px}}
       @media(prefers-reduced-motion:reduce){.seo-room .seo-btn{transition:none}.seo-scroll{scroll-behavior:auto}}
@@ -278,7 +282,7 @@ export default function SeoPreviewDashboard({ post, allPosts, globalIndexable, c
                     <dl className="seo-facts" style={{ display: "block" }}>
                       <Fact label="Live publication" value={liveLabel} note={currentlyPublished ? "Existing live HTTP response was not fetched." : "A draft cannot be presented as an HTTP 200 page."} />
                       <Fact label="Post status" value={post.status || "Not specified"} />
-                      <Fact label="CMS availability" value="Public after publish" note="The sidebar visibility selector is not persisted for CMS posts; no private-post behavior is assumed." />
+                      <Fact label="CMS availability" value={pageMode ? (post.visibility === "private" ? "Private (not rendered)" : "Public after publish") : "Public after publish"} note={pageMode ? "Pages persist the Visibility selector; private pages are never rendered publicly." : "The sidebar visibility selector is not persisted for CMS posts; no private-post behavior is assumed."} />
                       <Fact label="Anonymous access" value="Not tested" note="No public HTTP request was attempted." />
                       <Fact label="Global indexing switch" value={globalIndexable ? "On" : "Off"} />
                     </dl>

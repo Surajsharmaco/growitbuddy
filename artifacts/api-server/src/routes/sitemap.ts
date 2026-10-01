@@ -8,7 +8,10 @@ import {
   wrapUrlset,
   isBlogInSitemap,
   resolveBlogSeo,
+  isCmsPageInSitemap,
+  resolveCmsPageSeo,
   type BlogSeoPost,
+  type CmsPageSeoPost,
 } from "@workspace/seo";
 
 const sitemapRouter: IRouter = Router();
@@ -43,6 +46,7 @@ sitemapRouter.get("/sitemap.xml", async (_req: Request, res: Response) => {
 
   // Fetch ALL seo:* rows in one query
   let seoMap = new Map<string, SEOData>();
+  let cmsPages: CmsPageSeoPost[] = [];
   try {
     const rows = await db
       .select({ section: siteContent.section, data: siteContent.data, updatedAt: siteContent.updatedAt })
@@ -51,18 +55,39 @@ sitemapRouter.get("/sitemap.xml", async (_req: Request, res: Response) => {
     seoMap = new Map(rows.map((r: { section: string; data: unknown }) => [r.section.replace(/^seo:/, ""), r.data as SEOData]));
   } catch { /* DB down — fall through with empty map (all pages included by default) */ }
 
+  try {
+    const rows = await db
+      .select({ data: siteContent.data })
+      .from(siteContent)
+      .where(eq(siteContent.section, "cms-pages"))
+      .limit(1);
+    const data = rows[0]?.data as { posts?: unknown } | undefined;
+    cmsPages = Array.isArray(data?.posts) ? data.posts as CmsPageSeoPost[] : [];
+  } catch { /* Ignore this dynamic source without breaking registry sitemap URLs. */ }
+
   const today = new Date().toISOString().split("T")[0];
   // Built from the shared @workspace/seo registry so this sitemap can never
   // drift from the frontend page list or the static fallback sitemap.
   const xml = globalIndexable
-    ? buildSitemapXml({
+    ? (() => {
+        const registryXml = buildSitemapXml({
         lastmod: today,
         siteUrl: SITE,
         include: (page) => {
           const seo = seoMap.get(page.slug);
           return !(seo && (seo.index === false || seo.sitemap === false));
         },
-      })
+        });
+        const cmsUrls = cmsPages.flatMap((page) => {
+          if (!page || !isCmsPageInSitemap(page, globalIndexable)) return [];
+          const resolved = resolveCmsPageSeo(page, { globalIndexable });
+          const loc = resolved.sitemap.url.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          const lastmod = resolved.sitemap.lastmod;
+          return [`  <url>\n    <loc>${loc}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>`];
+        });
+        const registryUrls = [...registryXml.matchAll(/  <url>[\s\S]*?<\/url>/g)].map((match) => match[0]);
+        return wrapUrlset([...registryUrls, ...cmsUrls]);
+      })()
     : wrapUrlset([]);
   res.setHeader("Content-Type", "application/xml; charset=utf-8");
   res.setHeader("Cache-Control", "public, max-age=600, stale-while-revalidate=3600");

@@ -81,7 +81,11 @@ export function wpPostToBlogPost(wp: WPPost): BlogPost {
 
   // Find position of first real text block: heading or paragraph with non-whitespace text
   const firstTextBlock = /<(h[1-6]\b|p\b)[^>]*>\s*\S/i.exec(cleanContent);
-  if (firstTextBlock && firstTextBlock.index > 0) {
+  // A WordPress TOC can precede that first paragraph. Don't cut into its
+  // wrapper, which would discard the TOC and leave malformed closing tags.
+  const leadingHasToc = /(?:ez-toc|lwptoc|toc_container|wp-block-table-of-contents|kb-table-of-content|rank-math-toc|rmp-toc)/i
+    .test(cleanContent.slice(0, firstTextBlock?.index ?? 0));
+  if (firstTextBlock && firstTextBlock.index > 0 && !leadingHasToc) {
     cleanContent = cleanContent.slice(firstTextBlock.index).trim();
   }
 
@@ -103,13 +107,14 @@ export function wpPostToBlogPost(wp: WPPost): BlogPost {
   };
 }
 
-export function useWordPressPosts() {
+export function useWordPressPosts(enabled = true) {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [imagesResolving, setImagesResolving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!enabled) { setLoading(false); return; }
     let cancelled = false;
     setLoading(true);
     // The list view only needs title/excerpt/date/tag/image, so we drop the
@@ -148,7 +153,7 @@ export function useWordPressPosts() {
       })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, []);
+  }, [enabled]);
 
   return { posts, loading, imagesResolving, error };
 }

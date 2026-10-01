@@ -12,7 +12,7 @@ import { AdminLayout, NAV_GATING } from "@/components/admin/AdminLayout";
 import { PageGate } from "@/components/PageGate";
 import DynamicPageSEO from "@/components/DynamicPageSEO";
 import { prefetchAllSEO } from "@/lib/seoCache";
-import { VariantResolver } from "@/components/VariantResolver";
+import CmsPageResolver from "@/pages/CmsPageFallback";
 import { RouteErrorBoundary } from "@/components/ErrorBoundary";
 import { resolveMediaUrl } from "@/lib/api";
 import { ContentFreshnessGate } from "@/components/ContentFreshnessGate";
@@ -63,6 +63,7 @@ const AdminDashboard          = lazy(() => import("@/pages/admin/AdminDashboard"
 const AdminSettings           = lazy(() => import("@/pages/admin/AdminSettings"));
 const AdminInfluencers        = lazy(() => import("@/pages/admin/AdminInfluencers"));
 const AdminBlog               = lazy(() => import("@/pages/admin/AdminBlog"));
+const AdminPages              = lazy(() => import("@/pages/admin/AdminPages"));
 const AdminServices           = lazy(() => import("@/pages/admin/AdminServices"));
 const AdminWork               = lazy(() => import("@/pages/admin/AdminWork"));
 const AdminHome               = lazy(() => import("@/pages/admin/AdminHome"));
@@ -171,6 +172,7 @@ function AdminRoutes() {
       <Route path="/admin/work">{() => <AdminGuard><AdminWork /></AdminGuard>}</Route>
       <Route path="/admin/influencers">{() => <AdminGuard><AdminInfluencers /></AdminGuard>}</Route>
       <Route path="/admin/blog">{() => <AdminGuard><AdminBlog /></AdminGuard>}</Route>
+      <Route path="/admin/pages">{() => <AdminGuard><AdminPages /></AdminGuard>}</Route>
       <Route path="/admin/about">{() => <AdminGuard><AdminAbout /></AdminGuard>}</Route>
       <Route path="/admin/navbar">{() => <AdminGuard><AdminNavbar /></AdminGuard>}</Route>
       <Route path="/admin/footer">{() => <AdminGuard><AdminFooter /></AdminGuard>}</Route>
@@ -279,7 +281,7 @@ function PublicContentGate({ children }: { children: React.ReactNode }) {
   };
   const slug = routeSlugs[path]
     ?? (path.startsWith("/blog/") ? "insights" : path.startsWith("/portfolio/") ? "portfolio" : undefined);
-  const sections = slug ? sectionsForSlug(slug) : [...SHARED_CONTENT_SECTIONS];
+  const sections = slug ? sectionsForSlug(slug) : [...SHARED_CONTENT_SECTIONS, "cms-pages"];
   return <ContentFreshnessGate slug={path} sections={sections}>{children}</ContentFreshnessGate>;
 }
 
@@ -390,7 +392,7 @@ function App() {
                       <Route path="/video-editors">{() => <PageGate slug="video-editors"><EditorsPool /></PageGate>}</Route>
                       {/* Page Variants - catch-all that resolves /:slug to a variant of a source page.
                           Falls through to NotFound if the slug doesn't match a live variant. */}
-                      <Route path="/:slug" component={VariantResolver} />
+                      <Route path="/:slug" component={CmsPageResolver} />
                       <Route component={NotFound} />
                     </Switch>
                   </Suspense>

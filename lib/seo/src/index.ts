@@ -295,3 +295,12 @@ export {
   type ResolvedBlogSeo,
 } from "./blog";
 export type { ResolvedBlogSeo as BlogSeoOutput } from "./blog";
+export {
+  isCmsPageInSitemap,
+  isCmsPagesVariantSection,
+  isPublicCmsPage,
+  isReservedCmsPageSlug,
+  resolveCmsPageSeo,
+  validateCmsPageSlug,
+  type CmsPageSeoPost,
+} from "./pages";

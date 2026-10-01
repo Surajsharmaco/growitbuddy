@@ -35,6 +35,7 @@ const navGroups: NavGroup[] = [
       { label: "Framework", path: "/admin/framework", icon: <GitBranch size={15} />, permission: "framework" },
       { label: "Work", path: "/admin/work", icon: <Briefcase size={15} />, permission: "work" },
       { label: "Blog / Insights", path: "/admin/blog", icon: <FileText size={15} />, permission: "blog" },
+      { label: "Pages", path: "/admin/pages", icon: <FileText size={15} />, permission: "cms-pages" },
       { label: "Resources", path: "/admin/resources", icon: <BookOpen size={15} />, permission: "resources" },
       { label: "About", path: "/admin/about", icon: <Info size={15} />, permission: "about" },
       { label: "Contact", path: "/admin/contact", icon: <Mail size={15} />, permission: "contact" },

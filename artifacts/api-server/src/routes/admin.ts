@@ -8,6 +8,13 @@ import { convertImageBuffer, prepareUploadedImage, type ConvertFormat } from "..
 import { buildContentSnapshot, buildHandoffDocs, assembleBackupZip, buildMasterPrompt, type BackupMeta } from "../lib/backup";
 import { buildBlogExport } from "../lib/blogExport";
 import { buildContentArchive } from "../lib/contentArchive";
+import {
+  DEFAULT_PUBLIC_CONTENT_SECTIONS,
+  isSupportedVariantSourceKey,
+  projectPublicContentSection,
+  validateCmsPagesData,
+} from "../lib/cmsPages";
+import { validateCmsPageSlug } from "@workspace/seo";
 import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -433,6 +440,19 @@ router.delete("/team/:id", authMiddleware, superAdminOnly, async (req, res) => {
 // Variant content is stored in site_content under key `${sourceKey}__v__${slug}`.
 function variantKey(sourceKey: string, slug: string) { return `${sourceKey}__v__${slug}`; }
 function isSafeSlug(s: string) { return /^[a-z0-9][a-z0-9-]{0,79}$/.test(s); }
+function normalizeRouteSlug(slug: string) { return slug.trim().toLowerCase().replace(/-+/g, "-"); }
+
+async function getCmsPageSlugs(): Promise<Set<string>> {
+  const rows = await db.select({ data: siteContent.data }).from(siteContent)
+    .where(eq(siteContent.section, "cms-pages")).limit(1);
+  const data = rows[0]?.data as { posts?: unknown } | undefined;
+  const posts = Array.isArray(data?.posts) ? data.posts : [];
+  return new Set(posts.flatMap((post) =>
+    post && typeof post === "object" && typeof (post as { slug?: unknown }).slug === "string"
+      ? [normalizeRouteSlug((post as { slug: string }).slug)]
+      : [],
+  ));
+}
 
 // Public: list LIVE variants only (slug -> sourceKey resolver for frontend router).
 router.get("/public/variants", async (_req, res) => {
@@ -443,7 +463,11 @@ router.get("/public/variants", async (_req, res) => {
     const rows = await db.select({
       slug: pageVariants.slug, sourceKey: pageVariants.sourceKey, label: pageVariants.label,
     }).from(pageVariants).where(eq(pageVariants.isLive, true));
-    res.json(rows);
+    const cmsSlugs = await getCmsPageSlugs();
+    res.json(rows.filter((row) =>
+      isSupportedVariantSourceKey(row.sourceKey) &&
+      !cmsSlugs.has(normalizeRouteSlug(row.slug)),
+    ));
   } catch (err) {
     logger.error({ err }, "Public variant read failed");
     res.status(503).json({ error: "Public variants are temporarily unavailable" });
@@ -460,8 +484,18 @@ router.get("/variants", authMiddleware, superAdminOnly, async (_req, res) => {
 router.post("/variants", authMiddleware, superAdminOnly, async (req, res) => {
   const { sourceKey, slug, label, isLive, copyFromBase } = req.body ?? {};
   if (!sourceKey || typeof sourceKey !== "string") { res.status(400).json({ error: "sourceKey required" }); return; }
-  if (!slug || !isSafeSlug(String(slug))) { res.status(400).json({ error: "slug must be lowercase letters, digits, dashes (max 80 chars)" }); return; }
+  if (!isSupportedVariantSourceKey(sourceKey)) {
+    res.status(400).json({ error: "Unsupported page variant sourceKey." });
+    return;
+  }
+  if (!slug || !isSafeSlug(String(slug)) || !validateCmsPageSlug(String(slug)).valid) {
+    res.status(400).json({ error: "slug must be a non-reserved lowercase kebab-case route segment (max 80 chars)" }); return;
+  }
   try {
+    if ((await getCmsPageSlugs()).has(normalizeRouteSlug(String(slug)))) {
+      res.status(409).json({ error: `Slug "${slug}" is already used by a CMS page.` });
+      return;
+    }
     const inserted = await db.insert(pageVariants).values({
       sourceKey: String(sourceKey),
       slug: String(slug),
@@ -498,10 +532,21 @@ router.put("/variants/:id", authMiddleware, superAdminOnly, async (req, res) => 
   const existing = await db.select().from(pageVariants).where(eq(pageVariants.id, id));
   if (existing.length === 0) { res.status(404).json({ error: "Variant not found" }); return; }
   const cur = existing[0];
+  if (!isSupportedVariantSourceKey(cur.sourceKey)) {
+    res.status(400).json({ error: "Unsupported page variant sourceKey." });
+    return;
+  }
   const newSlug = typeof slug === "string" ? slug : cur.slug;
-  if (!isSafeSlug(newSlug)) { res.status(400).json({ error: "slug must be lowercase letters, digits, dashes (max 80 chars)" }); return; }
+  if (!isSafeSlug(newSlug) || !validateCmsPageSlug(newSlug).valid) {
+    res.status(400).json({ error: "slug must be a non-reserved lowercase kebab-case route segment (max 80 chars)" }); return;
+  }
   const newLabel = typeof label === "string" ? label : cur.label;
   const newIsLive = typeof isLive === "boolean" ? isLive : cur.isLive;
+
+  if ((await getCmsPageSlugs()).has(normalizeRouteSlug(newSlug))) {
+    res.status(409).json({ error: `Slug "${newSlug}" is already used by a CMS page.` });
+    return;
+  }
 
   // Pre-check slug uniqueness BEFORE touching site_content — saves a rollback
   // when the rename would obviously fail.
@@ -560,7 +605,8 @@ router.get("/public/content/:section", async (req, res) => {
   try {
     const rows = await db.select().from(siteContent).where(eq(siteContent.section, section));
     if (rows.length === 0) { res.json({ section, data: null }); return; }
-    res.json(rows[0]);
+    const row = rows[0];
+    res.json({ ...row, data: projectPublicContentSection(section, row.data) });
   } catch (err) {
     logger.error({ err, section }, "Public content read failed");
     res.status(503).json({ error: "Public content is temporarily unavailable" });
@@ -572,12 +618,13 @@ router.get("/public/content-bulk", async (req, res) => {
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Expires", "0");
   const rawSections = req.query.sections;
-  if (typeof rawSections !== "string" || !rawSections.trim()) {
-    res.status(400).json({ error: "sections query parameter is required" });
+  if (rawSections !== undefined && (typeof rawSections !== "string" || !rawSections.trim())) {
+    res.status(400).json({ error: "sections must be a non-empty comma-separated list" });
     return;
   }
-
-  const requested = rawSections.split(",").map((section) => section.trim());
+  const requested = typeof rawSections === "string"
+    ? rawSections.split(",").map((section) => section.trim())
+    : [...DEFAULT_PUBLIC_CONTENT_SECTIONS];
   if (
     requested.length > 50 ||
     requested.some((section) => !section || section.length > 100)
@@ -596,10 +643,7 @@ router.get("/public/content-bulk", async (req, res) => {
       .from(siteContent)
       .where(inArray(siteContent.section, sections));
     for (const row of rows) {
-      data[row.section] =
-        row.data !== null && typeof row.data === "object" && !Array.isArray(row.data)
-          ? (row.data as object)
-          : null;
+      data[row.section] = projectPublicContentSection(row.section, row.data);
     }
     res.status(200).json({ data });
   } catch (err) {
@@ -642,6 +686,14 @@ router.put("/content/:section", authMiddleware, requireSectionPermission, async 
   if (data === undefined || data === null) {
     res.status(400).json({ error: "data field required" });
     return;
+  }
+  if (section === "cms-pages") {
+    const variants = await db.select({ slug: pageVariants.slug }).from(pageVariants);
+    const error = validateCmsPagesData(data, variants.map((variant) => variant.slug));
+    if (error) {
+      res.status(400).json({ error });
+      return;
+    }
   }
   await db
     .insert(siteContent)

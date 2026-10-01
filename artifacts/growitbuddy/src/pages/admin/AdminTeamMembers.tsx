@@ -23,7 +23,7 @@ const PERMISSION_GROUPS = [
   },
   {
     label: "Content",
-    keys: ["home", "services", "framework", "work", "blog", "resources", "about", "contact"],
+    keys: ["home", "services", "framework", "work", "blog", "cms-pages", "resources", "about", "contact"],
   },
   {
     label: "Network & Hiring",

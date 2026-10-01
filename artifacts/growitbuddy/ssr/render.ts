@@ -36,7 +36,11 @@ import {
   isBlogInSitemap,
   isPublicBlogPost,
   resolveBlogSeo,
+  isCmsPageInSitemap,
+  isPublicCmsPage,
+  resolveCmsPageSeo,
   type BlogSeoPost,
+  type CmsPageSeoPost,
   type PageRegistryEntry,
   type PageSEOData,
 } from "@workspace/seo";
@@ -51,6 +55,7 @@ import {
   SHARED_CONTENT_SECTIONS,
 } from "../src/lib/publicContentSections";
 import { VARIANT_SOURCES } from "../src/lib/variantSources";
+import { sanitizePublicContent } from "./publicContent";
 
 // Server-side only. Prefer a dedicated Neon URL; the public API is used when
 // direct database access is unavailable.
@@ -193,44 +198,6 @@ function collectBlocks(
 // SEO body. Without this, the raw HTML SOURCE / no-JS view / JSON bootstrap would
 // still expose content the React app hides. Mirrors the public-site filters
 // exactly (Insights, DistributionNetwork, InfluencerExplore).
-function sanitizePublicContent(
-  content: Record<string, unknown>,
-): Record<string, unknown> {
-  const out: Record<string, unknown> = { ...content };
-
-  // Blog: only live posts (not trashed, status published).
-  const blog = out.blog as { posts?: unknown } | undefined;
-  if (blog && Array.isArray(blog.posts)) {
-    out.blog = {
-      ...blog,
-      posts: blog.posts.filter(
-        (p) =>
-          !!p &&
-          (p as { trashed?: boolean }).trashed !== true &&
-          ((p as { status?: string }).status ?? "published") === "published",
-      ),
-    };
-  }
-
-  // Distribution pages + influencers: drop trashed and hidden (profileEnabled===false).
-  for (const key of ["distribution-pages", "influencers"] as const) {
-    const sec = out[key] as { items?: unknown } | undefined;
-    if (sec && Array.isArray(sec.items)) {
-      out[key] = {
-        ...sec,
-        items: sec.items.filter(
-          (p) =>
-            !!p &&
-            (p as { trashed?: boolean }).trashed !== true &&
-            (p as { profileEnabled?: boolean }).profileEnabled !== false,
-        ),
-      };
-    }
-  }
-
-  return out;
-}
-
 // Build the visible content markup placed inside #root for crawlers/no-JS.
 function renderContentBody(
   content: Record<string, unknown>,
@@ -597,6 +564,7 @@ async function buildMainSitemap(): Promise<string> {
   const today = new Date().toISOString().split("T")[0];
   let globalIndexable = true;
   const seoMap = new Map<string, SEOFlags>();
+  let cmsPages: CmsPageSeoPost[] = [];
   if (DB_URL) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
@@ -604,33 +572,42 @@ async function buildMainSitemap(): Promise<string> {
       const sql = neon(DB_URL, { fetchOptions: { signal: ctrl.signal } });
       const rows = (await sql`
         SELECT section, data FROM site_content
-        WHERE section = 'seo-global' OR section LIKE 'seo:%'
+        WHERE section = 'seo-global' OR section LIKE 'seo:%' OR section = 'cms-pages'
       `) as Array<{ section: string; data: unknown }>;
       for (const r of rows) {
         if (r.section === "seo-global") {
           const gd = r.data as { siteIndexable?: boolean } | undefined;
           if (gd && gd.siteIndexable === false) globalIndexable = false;
+        } else if (r.section === "cms-pages") {
+          const data = r.data as { posts?: unknown } | undefined;
+          cmsPages = Array.isArray(data?.posts) ? data.posts as CmsPageSeoPost[] : [];
         } else {
           seoMap.set(r.section.replace(/^seo:/, ""), (r.data as SEOFlags) ?? {});
         }
       }
     } catch {
       try {
-        const data = await loadPublicSections(["seo-global"]);
+        const data = await loadPublicSections(["seo-global", "cms-pages"]);
         globalIndexable = (data["seo-global"] as { siteIndexable?: boolean } | null)?.siteIndexable !== false;
+        const cms = sanitizePublicContent({ "cms-pages": data["cms-pages"] });
+        const section = cms["cms-pages"] as { posts?: CmsPageSeoPost[] } | null;
+        cmsPages = Array.isArray(section?.posts) ? section.posts : [];
       } catch { /* unavailable sources: retain indexable default */ }
     } finally {
       clearTimeout(timer);
     }
   } else {
     try {
-      const data = await loadPublicSections(["seo-global"]);
+      const data = await loadPublicSections(["seo-global", "cms-pages"]);
       globalIndexable = (data["seo-global"] as { siteIndexable?: boolean } | null)?.siteIndexable !== false;
+      const cms = sanitizePublicContent({ "cms-pages": data["cms-pages"] });
+      const section = cms["cms-pages"] as { posts?: CmsPageSeoPost[] } | null;
+      cmsPages = Array.isArray(section?.posts) ? section.posts : [];
     } catch { /* unavailable source: retain indexable default */ }
   }
 
   if (!globalIndexable) return wrapUrlset([]);
-  return buildSitemapXml({
+  const registryXml = buildSitemapXml({
     lastmod: today,
     siteUrl: SITE,
     include: (page) => {
@@ -638,6 +615,15 @@ async function buildMainSitemap(): Promise<string> {
       return !(seo && (seo.index === false || seo.sitemap === false));
     },
   });
+  const registryUrls = [...registryXml.matchAll(/  <url>[\s\S]*?<\/url>/g)].map((match) => match[0]);
+  const cmsUrls = cmsPages.flatMap((page) => {
+    if (!isCmsPageInSitemap(page, globalIndexable)) return [];
+    const resolved = resolveCmsPageSeo(page, { globalIndexable });
+    const loc = resolved.sitemap.url.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const lastmod = resolved.sitemap.lastmod;
+    return [`  <url>\n    <loc>${loc}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>`];
+  });
+  return wrapUrlset([...registryUrls, ...cmsUrls]);
 }
 
 // Blog sitemap: WordPress posts (blog.growitbuddy.com) + CMS posts in the
@@ -815,7 +801,9 @@ async function getVariantFromPublicApi(slug: string): Promise<LiveVariant | null
   ) {
     throw new Error("Public variants API returned malformed variant records");
   }
-  return (rows as LiveVariant[]).find((row) => row.slug === slug) ?? null;
+  return (rows as LiveVariant[]).find((row) =>
+    row.slug === slug && VARIANT_SOURCES.some((source) => source.key === row.sourceKey),
+  ) ?? null;
 }
 
 // Null means the authoritative source confirmed this slug is not a live variant.
@@ -841,6 +829,7 @@ async function resolveLiveVariant(slug: string): Promise<LiveVariant | null> {
     ) {
       throw new Error("Database returned malformed variant metadata");
     }
+    if (!VARIANT_SOURCES.some((source) => source.key === variant.sourceKey)) return null;
     return variant;
   } catch {
     return getVariantFromPublicApi(slug);
@@ -960,11 +949,42 @@ export default async function handler(req: any, res: any): Promise<void> {
         sendHtml(res, shell, "public, s-maxage=30, stale-while-revalidate=300");
         return;
       }
-      // A single-segment /:slug may be a live Page Variant. The resolver
-      // distinguishes an authoritative miss from a database/API failure.
       const segments = pathname.split("/").filter(Boolean);
       if (segments.length === 1 && isSafeSlug(segments[0])) {
         const slug = segments[0];
+
+        // CMS Pages own root-level slugs after exact registry routes have had
+        // priority. Load their authoritative collection before checking legacy
+        // page variants; a source failure becomes a noindex 503, never a soft 404.
+        const cmsBundle = await loadData("cms-pages", ["cms-pages"]);
+        const rawCmsSection = cmsBundle.content["cms-pages"] as { posts?: CmsPageSeoPost[] } | null;
+        const reservedCmsSlug = rawCmsSection?.posts?.some((candidate) => candidate?.slug === slug) ?? false;
+        const publicCmsContent = sanitizePublicContent(cmsBundle.content);
+        const cmsSection = publicCmsContent["cms-pages"] as { posts?: CmsPageSeoPost[] } | null;
+        const cmsPage = cmsSection?.posts?.find((candidate) => candidate.slug === slug);
+        if (reservedCmsSlug && !cmsPage) {
+          send404(res, template);
+          return;
+        }
+        if (cmsPage && isPublicCmsPage(cmsPage)) {
+          const resolved = resolveCmsPageSeo(cmsPage, { globalIndexable: cmsBundle.globalIndexable });
+          const homeEntry = findEntryByPath("/");
+          if (!homeEntry) throw new Error("Home registry entry is missing");
+          const shell = buildHtml(template, homeEntry, pathname, cmsBundle, {
+            bodySections: [],
+            seoSlug: "cms-pages",
+          });
+          let cmsHtml = applyBlogSeo(shell, resolved.metaTagsHtml);
+          cmsHtml = injectArticleBody(cmsHtml, resolved.crawlerBodyHtml);
+          if (resolved.robots.startsWith("noindex")) {
+            res.setHeader("x-robots-tag", resolved.robots.replace(",", ", "));
+          }
+          sendHtml(res, cmsHtml, "no-store");
+          return;
+        }
+
+        // A single-segment /:slug may be a live Page Variant. The resolver
+        // distinguishes an authoritative miss from a database/API failure.
         const variant = await resolveLiveVariant(slug);
         if (!variant) {
           send404(res, template);
