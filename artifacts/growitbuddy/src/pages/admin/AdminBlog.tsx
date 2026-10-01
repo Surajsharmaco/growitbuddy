@@ -1731,6 +1731,24 @@ function PostEditor({
                 />
               </div>
 
+              {/* Public overview shown directly beneath the title */}
+              <div className="bg-white border border-[#0B0B0B]/10 rounded-2xl mb-4 p-4 sm:p-5 shadow-sm">
+                <label htmlFor="content-overview" className="block text-[11px] font-bold text-[#0B0B0B]/50 uppercase tracking-widest mb-2">
+                  {pageMode ? "Page overview (shown below title)" : "Post overview (shown below title)"}
+                </label>
+                <textarea
+                  id="content-overview"
+                  value={data.excerpt}
+                  onChange={(e) => setField("excerpt", e.target.value)}
+                  placeholder={pageMode ? "Write the overview readers will see below this page title..." : "Write the overview readers will see below this post title..."}
+                  rows={3}
+                  className="w-full resize-y border border-[#0B0B0B]/12 rounded-xl px-3.5 py-2.5 text-[13px] leading-relaxed text-[#0B0B0B] placeholder-[#0B0B0B]/30 outline-none focus:border-[#0B0B0B]/30 bg-white"
+                />
+                <p className="mt-2 text-[11px] leading-relaxed text-[#0B0B0B]/45">
+                  This text appears directly under the title and before the main content. It is separate from the SEO meta description.
+                </p>
+              </div>
+
               {/* Editor */}
               <div className="bg-white border border-[#0B0B0B]/10 rounded-2xl shadow-sm">
                 <div className="sticky top-[8rem] sm:top-[4.5rem] z-20 flex items-center flex-wrap gap-0.5 px-3 py-2 border-b border-[#0B0B0B]/8 bg-[#fafafa] rounded-t-2xl shadow-sm">
@@ -2753,11 +2771,6 @@ function PostEditor({
                 </label>
               ))}
             </div>
-          </SidePanel>
-
-          {/* Excerpt */}
-          <SidePanel title="Excerpt" defaultOpen={false}>
-            <textarea value={data.excerpt} onChange={(e) => setField("excerpt", e.target.value)} placeholder="Short description for the blog listing page..." rows={3} className="w-full border border-[#0B0B0B]/12 rounded-lg px-2.5 py-2 text-[12px] text-[#0B0B0B] outline-none focus:border-[#0B0B0B]/30 bg-white resize-y leading-relaxed" />
           </SidePanel>
 
           {/* Featured Image */}
