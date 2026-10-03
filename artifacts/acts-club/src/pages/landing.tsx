@@ -159,7 +159,7 @@ export default function Landing() {
     </button>
   );
 
-  const nav = [['community', 'Community', 'community'], ['opportunities', 'Opportunities', 'skills'], ['events', 'Events', 'inside'], ['about', 'About', 'why']];
+  const nav = [['community', 'Community', 'community'], ['opportunities', 'Opportunities', 'skills'], ['events', 'Events', 'inside'], ['how-it-works', 'How it works', 'why']];
 
   const cards = [
     ['01', 'Opportunities by your skills', 'Discover opportunities based on what you actually know and can do.', 'skills'],
