@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import { MembershipDialog } from '@/components/MembershipDialog';
 
 const img = (n: string) => `${import.meta.env.BASE_URL}img/${n}.jpg`;
+const legalHref = (path: string) => `${import.meta.env.BASE_URL}${path}`;
 const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
 
 function Reveal({ children, className = '', delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
@@ -51,13 +53,13 @@ function PriceOffer({
   return (
     <div
       role="group"
-      aria-label="Regular price ₹799; limited-time offer ₹9"
+      aria-label="Regular price ₹799; limited-time offer ₹99"
       data-testid={testId}
       className={`inline-flex items-center gap-1.5 whitespace-nowrap ${className}`}
     >
       <s className={`font-display font-bold ${sizes.old} ${onDark ? 'text-cream/65' : 'text-ink/45'}`}>₹799</s>
       <span className={`rounded-full bg-acts font-bold tracking-wide text-cream ${sizes.badge}`}>FOR LIMITED TIME</span>
-      <span className={`font-display font-extrabold leading-none ${sizes.current} ${onDark ? 'text-cream' : 'text-ink'}`}>₹9</span>
+      <span className={`font-display font-extrabold leading-none ${sizes.current} ${onDark ? 'text-cream' : 'text-ink'}`}>₹99</span>
       {oneTime && <span className={`font-bold tracking-widest ${sizes.term} ${onDark ? 'text-cream/75' : 'text-ink/65'}`}>ONE-TIME</span>}
     </div>
   );
@@ -66,9 +68,7 @@ function PriceOffer({
 export default function Landing() {
   const [open, setOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
-  const [done, setDone] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', skill: '' });
-  const join = () => { setDone(false); setOpen(true); };
+  const join = () => setOpen(true);
 
   const JoinBtn = ({ id, label = 'JOIN ACTS', className = '' }: { id: string; label?: string; className?: string }) => (
     <button data-testid={`button-join-${id}`} onClick={join}
@@ -322,44 +322,32 @@ export default function Landing() {
               {['Instagram', 'LinkedIn', 'YouTube'].map(s => <button key={s} data-testid={`link-social-${s.toLowerCase()}`} onClick={() => setLoginOpen(true)} className="hover:text-acts">{s}</button>)}
             </div>
           </div>
-          <p className="mt-8 w-full text-sm text-cream/50" data-testid="text-powered">Powered by GrowItBuddy</p>
+          <div className="mt-8 flex flex-col gap-3 border-t border-cream/15 pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-cream/50" data-testid="text-powered">Powered by GrowItBuddy</p>
+            <nav aria-label="Legal information" className="flex flex-wrap justify-end gap-x-4 gap-y-1 text-xs">
+              <a data-testid="link-footer-privacy-policy" href={legalHref('privacy-policy')} className="text-cream/75 underline-offset-2 hover:text-cream hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream">Privacy Policy</a>
+              <a data-testid="link-footer-terms-and-conditions" href={legalHref('terms-and-conditions')} className="text-cream/75 underline-offset-2 hover:text-cream hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream">Terms &amp; Conditions</a>
+              <a data-testid="link-footer-community-guidelines" href={legalHref('community-guidelines')} className="text-cream/75 underline-offset-2 hover:text-cream hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream">Community Guidelines</a>
+            </nav>
+          </div>
+          <p className="mt-2 text-right text-[11px] text-cream/50">ACTS Club is operated by GrowItBuddy.</p>
         </div>
       </footer>
 
       {/* sticky mobile CTA */}
       <div className="fixed inset-x-0 bottom-0 z-50 border-t border-ink/10 bg-cream/95 p-3 backdrop-blur md:hidden" data-testid="bar-mobile-cta">
         <div className="flex w-full items-center justify-between gap-2">
-          <PriceOffer size="compact" oneTime testId="price-offer-mobile" />
+          <PriceOffer size="compact" oneTime className="min-w-0 flex-1 flex-wrap gap-x-1 gap-y-0.5" testId="price-offer-mobile" />
           <button data-testid="button-join-mobile" onClick={join} className="btn-3d btn-3d--orange btn-3d--compact shrink-0 px-4 py-3.5 font-display text-sm font-bold">JOIN ACTS →</button>
         </div>
       </div>
 
       {/* dialogs */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="rounded-3xl border-0 bg-cream" data-testid="dialog-join">
-          <p className="mb-2 text-xs font-bold tracking-widest text-acts">FOUNDING MEMBER ACCESS</p>
-          <PriceOffer size="standard" oneTime testId="price-offer-dialog" />
-          <DialogTitle className="font-display text-3xl font-extrabold uppercase">Join ACTS Club</DialogTitle>
-          <DialogDescription>Tell us who you are to continue with founding access.</DialogDescription>
-          {done ? (
-            <p className="rounded-2xl bg-acts/10 p-5 font-medium" data-testid="text-join-success">You're on the founding list, {form.name || 'friend'}. We'll email {form.email} with next steps.</p>
-          ) : (
-            <form className="space-y-3" onSubmit={e => { e.preventDefault(); setDone(true); }}>
-              <input required data-testid="input-name" placeholder="Your name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full rounded-xl border-2 border-ink/20 bg-card px-4 py-3 focus:border-acts focus:outline-none" />
-              <input required type="email" data-testid="input-email" placeholder="Email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full rounded-xl border-2 border-ink/20 bg-card px-4 py-3 focus:border-acts focus:outline-none" />
-              <select required data-testid="select-skill" value={form.skill} onChange={e => setForm({ ...form, skill: e.target.value })} className="w-full rounded-xl border-2 border-ink/20 bg-card px-4 py-3 focus:border-acts focus:outline-none">
-                <option value="">Your main skill</option>
-                {skills.map(s => <option key={s}>{s}</option>)}
-              </select>
-              <button type="submit" data-testid="button-submit-join" className="btn-3d btn-3d--orange w-full py-4 font-display font-bold">CONTINUE →</button>
-            </form>
-          )}
-        </DialogContent>
-      </Dialog>
+      <MembershipDialog open={open} onOpenChange={setOpen} />
       <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
         <DialogContent className="rounded-3xl border-0 bg-cream" data-testid="dialog-login">
           <DialogTitle className="font-display text-3xl font-extrabold uppercase">Member login is coming soon</DialogTitle>
-          <DialogDescription>Members' spaces open after launch. Join now as a founding member and we'll let you in first.</DialogDescription>
+          <DialogDescription>Members' spaces open after launch. Join now as a founding member to be part of ACTS from the start.</DialogDescription>
           <button data-testid="button-login-join" onClick={() => { setLoginOpen(false); join(); }} className="btn-3d btn-3d--orange w-full py-4 font-display font-bold">JOIN ACTS →</button>
         </DialogContent>
       </Dialog>

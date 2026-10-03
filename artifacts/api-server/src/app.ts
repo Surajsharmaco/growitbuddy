@@ -39,6 +39,8 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
+// Razorpay signs the exact request bytes. Preserve them before the JSON parser.
+app.use("/api/acts/membership/webhook", express.raw({ type: "application/json", limit: "256kb" }));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
