@@ -32,6 +32,7 @@ import {
   SITE_URL,
   BLOG_PATH,
   buildSitemapXml,
+  getSitemapPages,
   wrapUrlset,
   isBlogInSitemap,
   isPublicBlogPost,
@@ -69,7 +70,7 @@ const WP_API = "https://blog.growitbuddy.com/wp-json/wp/v2";
 
 // Bound both database and Render API waits. Dynamic responses are never cached,
 // so a timeout must fail visibly rather than serving stale/default content.
-const DATA_TIMEOUT_MS = 2500;
+const DATA_TIMEOUT_MS = 8000;
 // Render's free tier can need several seconds to wake after inactivity. Keep
 // API requests bounded, but don't turn ordinary cold starts into stale shells.
 const PUBLIC_API_TIMEOUT_MS = 20_000;
@@ -363,6 +364,13 @@ async function loadFromPublicApi(
 }
 
 async function loadPublicSections(keys: string[]): Promise<Record<string, unknown>> {
+  if (DB_URL) {
+    try {
+      return await loadDatabaseSections(keys);
+    } catch {
+      // A live API read remains a secondary source, never a default snapshot.
+    }
+  }
   const apiBase = process.env.VITE_API_URL?.replace(/\/+$/, "");
   if (!apiBase) throw new Error("VITE_API_URL is not configured for public content");
   const response = await fetch(
@@ -376,35 +384,36 @@ async function loadPublicSections(keys: string[]): Promise<Record<string, unknow
   return payload.data;
 }
 
-// Query all SEO + page content rows together when a DB URL is available. Vercel
-// currently only has VITE_API_URL, so the same authoritative values are fetched
-// from the public Render API in one bulk request there (and as a DB-error fallback).
-async function loadData(slug: string, sections: string[]): Promise<Bundle> {
-  const contentSections = Array.from(new Set(sections));
-  const keys = Array.from(new Set([`seo:${slug}`, "seo-global", ...contentSections]));
-  if (!DB_URL) return loadFromPublicApi(slug, keys, contentSections);
-
+// Missing rows are authoritative nulls, not failed reads. Parameterized queries
+// fetch only the requested content/SEO sections; credentials never enter HTML.
+async function loadDatabaseSections(keys: string[]): Promise<Record<string, unknown>> {
+  const uniqueKeys = Array.from(new Set(keys));
+  if (!uniqueKeys.length) return {};
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
   try {
     const sql = neon(DB_URL, { fetchOptions: { signal: ctrl.signal } });
     const rows = (await sql`
-      SELECT section, data FROM site_content WHERE section = ANY(${keys})
+      SELECT section, data FROM site_content WHERE section = ANY(${uniqueKeys})
     `) as Array<{ section: string; data: unknown }>;
-    return buildBundle(slug, contentSections, new Map(rows.map((row) => [row.section, row.data])));
-  } catch (dbError) {
-    try {
-      return await loadFromPublicApi(slug, keys, contentSections);
-    } catch (apiError) {
-      throw new Error("Neither direct database nor public content API is available", {
-        cause: apiError ?? dbError,
-      });
-    }
+    return Object.fromEntries([
+      ...uniqueKeys.map((key) => [key, null] as const),
+      ...rows.map((row) => [row.section, row.data] as const),
+    ]);
   } finally {
     clearTimeout(timer);
   }
 }
 
+// Both HTML and sitemaps prefer the same live database, independent of a
+// sleeping Render API. The existing public projection still applies at render.
+async function loadData(slug: string, sections: string[]): Promise<Bundle> {
+  const contentSections = Array.from(new Set(sections));
+  const keys = Array.from(new Set([`seo:${slug}`, "seo-global", ...contentSections]));
+  if (!DB_URL) return loadFromPublicApi(slug, keys, contentSections);
+  const data = await loadPublicSections(keys);
+  return buildBundle(slug, contentSections, new Map(Object.entries(data)));
+}
 /* ──────────────────────────── render ──────────────────────────────── */
 function buildHtml(
   template: string,
@@ -546,8 +555,8 @@ function sendXml(res: any, xml: string, cacheControl: string): void {
 /* ─────────────────────────────── sitemaps ──────────────────────────────────
  * Served directly from THIS function (Neon-direct, no Render cold start) so the
  * sitemaps live on the primary domain and crawlers never wait on a sleeping API.
- * Logic mirrors artifacts/api-server/src/routes/sitemap.ts. Each builder catches
- * its own failures and always returns a valid <urlset> — it never throws. */
+ * Logic mirrors artifacts/api-server/src/routes/sitemap.ts. An unavailable
+ * authoritative policy/content source must fail, not publish default URLs. */
 interface SEOFlags {
   index?: boolean;
   sitemap?: boolean;
@@ -562,48 +571,16 @@ interface WPPost {
 // flagged noindex/no-sitemap (seo:<slug>) and honoring the seo-global kill switch.
 async function buildMainSitemap(): Promise<string> {
   const today = new Date().toISOString().split("T")[0];
-  let globalIndexable = true;
   const seoMap = new Map<string, SEOFlags>();
-  let cmsPages: CmsPageSeoPost[] = [];
-  if (DB_URL) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
-    try {
-      const sql = neon(DB_URL, { fetchOptions: { signal: ctrl.signal } });
-      const rows = (await sql`
-        SELECT section, data FROM site_content
-        WHERE section = 'seo-global' OR section LIKE 'seo:%' OR section = 'cms-pages'
-      `) as Array<{ section: string; data: unknown }>;
-      for (const r of rows) {
-        if (r.section === "seo-global") {
-          const gd = r.data as { siteIndexable?: boolean } | undefined;
-          if (gd && gd.siteIndexable === false) globalIndexable = false;
-        } else if (r.section === "cms-pages") {
-          const data = r.data as { posts?: unknown } | undefined;
-          cmsPages = Array.isArray(data?.posts) ? data.posts as CmsPageSeoPost[] : [];
-        } else {
-          seoMap.set(r.section.replace(/^seo:/, ""), (r.data as SEOFlags) ?? {});
-        }
-      }
-    } catch {
-      try {
-        const data = await loadPublicSections(["seo-global", "cms-pages"]);
-        globalIndexable = (data["seo-global"] as { siteIndexable?: boolean } | null)?.siteIndexable !== false;
-        const cms = sanitizePublicContent({ "cms-pages": data["cms-pages"] });
-        const section = cms["cms-pages"] as { posts?: CmsPageSeoPost[] } | null;
-        cmsPages = Array.isArray(section?.posts) ? section.posts : [];
-      } catch { /* unavailable sources: retain indexable default */ }
-    } finally {
-      clearTimeout(timer);
-    }
-  } else {
-    try {
-      const data = await loadPublicSections(["seo-global", "cms-pages"]);
-      globalIndexable = (data["seo-global"] as { siteIndexable?: boolean } | null)?.siteIndexable !== false;
-      const cms = sanitizePublicContent({ "cms-pages": data["cms-pages"] });
-      const section = cms["cms-pages"] as { posts?: CmsPageSeoPost[] } | null;
-      cmsPages = Array.isArray(section?.posts) ? section.posts : [];
-    } catch { /* unavailable source: retain indexable default */ }
+  const pages = getSitemapPages();
+  const keys = ["seo-global", "cms-pages", ...pages.map((page) => `seo:${page.slug}`)];
+  const data = await loadPublicSections(keys);
+  const globalIndexable = (data["seo-global"] as { siteIndexable?: boolean } | null)?.siteIndexable !== false;
+  const cms = sanitizePublicContent({ "cms-pages": data["cms-pages"] });
+  const section = cms["cms-pages"] as { posts?: CmsPageSeoPost[] } | null;
+  const cmsPages = Array.isArray(section?.posts) ? section.posts : [];
+  for (const page of pages) {
+    seoMap.set(page.slug, (data[`seo:${page.slug}`] as SEOFlags) ?? {});
   }
 
   if (!globalIndexable) return wrapUrlset([]);
@@ -627,36 +604,14 @@ async function buildMainSitemap(): Promise<string> {
 }
 
 // Blog sitemap: WordPress posts (blog.growitbuddy.com) + CMS posts in the
-// site_content "blog" section. Each source is best-effort.
+// site_content "blog" section. CMS policy/content is required; WordPress is
+// optional and must not cause known live CMS URLs to disappear.
 async function buildBlogSitemap(): Promise<string> {
-  let globalIndexable = true;
-  let cmsPosts: BlogSeoPost[] = [];
-  if (DB_URL) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
-    try {
-      const sql = neon(DB_URL, { fetchOptions: { signal: ctrl.signal } });
-      const rows = (await sql`
-        SELECT data FROM site_content WHERE section = 'seo-global' LIMIT 1
-      `) as Array<{ data: unknown }>;
-      const gd = rows[0]?.data as { siteIndexable?: boolean } | undefined;
-      if (gd && gd.siteIndexable === false) globalIndexable = false;
-    } catch {
-      try {
-        const data = await loadPublicSections(["seo-global"]);
-        globalIndexable = (data["seo-global"] as { siteIndexable?: boolean } | null)?.siteIndexable !== false;
-      } catch { /* unavailable sources: retain indexable default */ }
-    } finally {
-      clearTimeout(timer);
-    }
-  } else {
-    try {
-      const data = await loadPublicSections(["seo-global", "blog"]);
-      globalIndexable = (data["seo-global"] as { siteIndexable?: boolean } | null)?.siteIndexable !== false;
-      const blog = data.blog as { posts?: BlogSeoPost[] } | null;
-      cmsPosts = Array.isArray(blog?.posts) ? blog.posts : [];
-    } catch { /* unavailable source: retain indexable default */ }
-  }
+  const data = await loadPublicSections(["seo-global", "blog"]);
+  const globalIndexable = (data["seo-global"] as { siteIndexable?: boolean } | null)?.siteIndexable !== false;
+  const content = sanitizePublicContent({ blog: data.blog });
+  const blog = content.blog as { posts?: BlogSeoPost[] } | null;
+  const cmsPosts = Array.isArray(blog?.posts) ? blog.posts : [];
   if (!globalIndexable) return wrapUrlset([]);
 
   const urls: string[] = [];
@@ -678,22 +633,6 @@ async function buildBlogSitemap(): Promise<string> {
     }
   } catch {
     /* WP unreachable — skip gracefully */
-  }
-
-  if (DB_URL) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
-    try {
-      const sql = neon(DB_URL, { fetchOptions: { signal: ctrl.signal } });
-      const rows = (await sql`
-        SELECT data FROM site_content WHERE section = 'blog' LIMIT 1
-      `) as Array<{ data: { posts?: BlogSeoPost[] } }>;
-      cmsPosts = rows[0]?.data?.posts ?? [];
-    } catch {
-      /* DB error — skip gracefully */
-    } finally {
-      clearTimeout(timer);
-    }
   }
 
   for (const post of cmsPosts) {
@@ -873,12 +812,12 @@ export default async function handler(req: any, res: any): Promise<void> {
     // serves filesystem assets before applying the catch-all rewrite).
     if (pathname === "/sitemap.xml") {
       const xml = await buildMainSitemap();
-      sendXml(res, xml, "public, max-age=600, s-maxage=600, stale-while-revalidate=3600");
+      sendXml(res, xml, "no-store");
       return;
     }
     if (pathname === "/sitemap-blog.xml") {
       const xml = await buildBlogSitemap();
-      sendXml(res, xml, "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400");
+      sendXml(res, xml, "no-store");
       return;
     }
 
