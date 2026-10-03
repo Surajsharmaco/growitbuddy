@@ -24,7 +24,114 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /acts/membership/orders:
+    post:
+      operationId: createActsMembershipOrder
+      summary: Start or resume a fixed-price ACTS membership checkout.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActsMembershipOrderInput"
+      responses:
+        "200":
+          description: Razorpay order and private checkout recovery token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActsMembershipOrder"
+        "400":
+          $ref: "#/components/responses/ActsError"
+        "401":
+          $ref: "#/components/responses/ActsError"
+        "409":
+          $ref: "#/components/responses/ActsError"
+        "429":
+          $ref: "#/components/responses/ActsError"
+        "502":
+          $ref: "#/components/responses/ActsError"
+        "503":
+          $ref: "#/components/responses/ActsError"
+  /acts/membership/verify:
+    post:
+      operationId: verifyActsMembershipPayment
+      summary: Verify a Razorpay signature and persist a captured payment.
+      security:
+        - ActsCheckoutToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActsPaymentVerificationInput"
+      responses:
+        "200":
+          description: Current verified payment and review state.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActsMembershipStatus"
+        "400":
+          $ref: "#/components/responses/ActsError"
+        "401":
+          $ref: "#/components/responses/ActsError"
+        "409":
+          $ref: "#/components/responses/ActsError"
+        "429":
+          $ref: "#/components/responses/ActsError"
+        "502":
+          $ref: "#/components/responses/ActsError"
+        "503":
+          $ref: "#/components/responses/ActsError"
+  /acts/membership/status:
+    get:
+      operationId: getActsMembershipStatus
+      summary: Recover payment confirmation using a private checkout token.
+      security:
+        - ActsCheckoutToken: []
+      responses:
+        "200":
+          description: Checkout snapshot; successful payments remain pending review.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActsMembershipStatus"
+        "401":
+          $ref: "#/components/responses/ActsError"
+        "429":
+          $ref: "#/components/responses/ActsError"
+        "502":
+          $ref: "#/components/responses/ActsError"
+        "503":
+          $ref: "#/components/responses/ActsError"
+  /acts/membership/webhook:
+    post:
+      operationId: receiveActsMembershipWebhook
+      summary: Accept signed Razorpay capture events; never trust browser success.
+      responses:
+        "200":
+          description: Signed event processed or irrelevant event acknowledged.
+        "400":
+          $ref: "#/components/responses/ActsError"
+        "401":
+          $ref: "#/components/responses/ActsError"
+        "502":
+          $ref: "#/components/responses/ActsError"
+        "503":
+          $ref: "#/components/responses/ActsError"
 components:
+  securitySchemes:
+    ActsCheckoutToken:
+      type: http
+      scheme: bearer
+  responses:
+    ActsError:
+      description: The operation failed. No membership approval is implied.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +140,122 @@ components:
           type: string
       required:
         - status
+
+
+    ActsMemberInput:
+      type: object
+      required: [fullName, contactNumber, whatsappNumber, city, primarySkill, agreesToGuidelines]
+      properties:
+        fullName:
+          type: string
+          minLength: 2
+          maxLength: 100
+        contactNumber:
+          type: string
+          minLength: 8
+          maxLength: 25
+        whatsappNumber:
+          type: string
+          minLength: 8
+          maxLength: 25
+        city:
+          type: string
+          minLength: 2
+          maxLength: 100
+        instagramId:
+          type: string
+          maxLength: 30
+        youAre:
+          type: string
+          enum: [Creator, Freelancer, Entrepreneur, Other]
+        creatorType:
+          type: string
+          enum: [Content Creator, Video Creator, UGC Creator, Influencer, Educator, Podcaster, Photographer, Other]
+        otherType:
+          type: string
+          maxLength: 100
+        primarySkill:
+          type: string
+          enum: [Video Editing, Content Creation, Graphic Design, Photography, Copywriting, Social Media, Web Development, Marketing, Other]
+        otherSkill:
+          type: string
+          maxLength: 100
+        lookingFor:
+          type: string
+          enum: [Projects & Opportunities, Collaborations, Networking, Learning, All of the above]
+        agreesToGuidelines:
+          type: boolean
+          enum: [true]
+    ActsMembershipOrderInput:
+      allOf:
+        - $ref: "#/components/schemas/ActsMemberInput"
+        - type: object
+          properties:
+            checkoutToken:
+              type: string
+              pattern: "^[a-f0-9]{64}$"
+    ActsMembershipOrder:
+      type: object
+      required: [orderId, keyId, amount, currency, checkoutToken]
+      properties:
+        orderId:
+          type: string
+        keyId:
+          type: string
+        amount:
+          type: integer
+          enum: [9900]
+        currency:
+          type: string
+          enum: [INR]
+        checkoutToken:
+          type: string
+    ActsPaymentVerificationInput:
+      type: object
+      required: [orderId, paymentId, signature]
+      properties:
+        orderId:
+          type: string
+          pattern: "^order_[A-Za-z0-9]+$"
+        paymentId:
+          type: string
+          pattern: "^pay_[A-Za-z0-9]+$"
+        signature:
+          type: string
+          pattern: "^[a-f0-9]{64}$"
+    ActsMembershipStatus:
+      type: object
+      required: [orderId, keyId, amount, currency, paymentStatus, reviewStatus, application]
+      properties:
+        orderId:
+          type: string
+        keyId:
+          type: string
+        amount:
+          type: integer
+          enum: [9900]
+        currency:
+          type: string
+          enum: [INR]
+        paymentStatus:
+          type: string
+          enum: [pending, successful]
+        reviewStatus:
+          type: string
+          enum: [not_submitted, pending_review]
+        application:
+          $ref: "#/components/schemas/ActsMemberInput"
+        memberId:
+          type: string
+        paymentId:
+          type: string
+        paidAt:
+          type: string
+          format: date-time
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
 

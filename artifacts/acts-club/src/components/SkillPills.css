@@ -1,0 +1,114 @@
+.skills-ribbons { min-width: 0; width: 100%; }
+.skills-ribbons-window {
+  display: grid;
+  gap: 4px;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 12px, #000 calc(100% - 12px), transparent);
+}
+.skills-ribbon-row { overflow: hidden; padding-block: 4px; }
+.skills-ribbon-track {
+  display: flex;
+  width: max-content;
+  animation: skills-pill-slide 88s linear infinite;
+  animation-play-state: paused;
+}
+.skills-ribbon-row:nth-child(2) .skills-ribbon-track { animation-duration: 96s; animation-direction: reverse; }
+.skills-ribbon-row:nth-child(3) .skills-ribbon-track { animation-duration: 92s; animation-delay: -18s; }
+.skills-ribbon-group {
+  display: flex;
+  flex-shrink: 0;
+  gap: 10px;
+  margin: 0;
+  padding: 0 10px 0 0;
+  list-style: none;
+}
+.skills-ribbon-item { flex-shrink: 0; perspective: 650px; }
+.skills-pill-orbit {
+  display: grid;
+  transform-style: preserve-3d;
+  animation: skills-pill-turn 36s ease-in-out infinite;
+  animation-delay: calc(var(--pill) * -3.1s);
+  animation-play-state: paused;
+}
+.skills-pill-face {
+  grid-area: 1 / 1;
+  display: block;
+  padding: 8px 15px;
+  border: 2px solid var(--color-ink);
+  border-radius: 999px;
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+  backface-visibility: hidden;
+  transform: translateZ(1px);
+  transition: border-color .2s ease, color .2s ease, background-color .2s ease;
+}
+.skills-pill-back { transform: rotateY(180deg) translateZ(1px); }
+.skills-pill-accent { border-color: var(--color-acts); background: var(--color-acts); color: var(--color-cream); }
+.skills-ribbon-item:hover .skills-pill-face { border-color: var(--color-acts); background: var(--color-acts); color: var(--color-cream); }
+.skills-ribbons.is-running .skills-ribbon-track,
+.skills-ribbons.is-running .skills-pill-orbit { animation-play-state: running; }
+@media (hover: hover) {
+  .skills-ribbons:hover .skills-ribbon-track,
+  .skills-ribbons:hover .skills-pill-orbit { animation-play-state: paused; }
+}
+.skills-ribbons-controls { display: flex; justify-content: flex-end; margin-top: 2px; }
+.skills-motion-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 66px;
+  min-height: 44px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: transparent;
+  color: rgb(35 31 28 / 65%);
+  font-size: 11px;
+}
+.skills-motion-toggle:hover { color: var(--color-ink); }
+.skills-motion-toggle:focus-visible { outline: 2px solid var(--color-acts); outline-offset: 2px; }
+@keyframes skills-pill-slide { to { transform: translateX(-50%); } }
+@keyframes skills-pill-turn {
+  0%, 50%, 94% { transform: translateY(0) rotateY(0deg); }
+  25% { transform: translateY(-1.5px) rotateY(-3deg); }
+  75% { transform: translateY(1px) rotateY(3deg); }
+  97% { transform: translateY(0) rotateY(180deg); }
+  100% { transform: translateY(0) rotateY(360deg); }
+}
+@media (min-width: 768px) {
+  .skills-pill-face { padding: 8px 17px; font-size: 16px; }
+}
+@media (min-width: 1024px) {
+  .skills-ribbons-window {
+    --edge-blend: clamp(72px, 8vw, 128px);
+    mask-image: linear-gradient(
+      90deg,
+      transparent,
+      rgb(0 0 0 / 8%) calc(var(--edge-blend) * .2),
+      rgb(0 0 0 / 40%) calc(var(--edge-blend) * .5),
+      rgb(0 0 0 / 82%) calc(var(--edge-blend) * .8),
+      #000 var(--edge-blend),
+      #000 calc(100% - var(--edge-blend)),
+      rgb(0 0 0 / 82%) calc(100% - var(--edge-blend) * .8),
+      rgb(0 0 0 / 40%) calc(100% - var(--edge-blend) * .5),
+      rgb(0 0 0 / 8%) calc(100% - var(--edge-blend) * .2),
+      transparent
+    );
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skills-ribbons-window { overflow: visible; mask-image: none; }
+  .skills-ribbon-row { overflow: visible; }
+  .skills-ribbon-track { width: 100%; animation: none; transform: none; }
+  .skills-ribbon-group { width: 100%; justify-content: center; flex-wrap: wrap; padding: 0; }
+  .skills-ribbon-group[aria-hidden="true"],
+  .skills-ribbon-item[aria-hidden="true"],
+  .skills-pill-back,
+  .skills-ribbons-controls { display: none; }
+  .skills-pill-orbit { animation: none; transform: none; }
+}

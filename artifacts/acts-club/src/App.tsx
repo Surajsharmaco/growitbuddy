@@ -4,6 +4,9 @@ import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import Landing from '@/pages/landing';
+import { PrivacyPolicyPage } from '@/pages/privacy-policy';
+import { TermsAndConditionsPage } from '@/pages/terms-and-conditions';
+import { CommunityGuidelinesPage } from '@/pages/community-guidelines';
 import NotFound from '@/pages/not-found';
 import {
   Route,
@@ -21,6 +24,9 @@ function Router() {
     <RoutedErrorBoundary>
       <Switch>
         <Route path="/" component={Landing} />
+        <Route path="/privacy-policy" component={PrivacyPolicyPage} />
+        <Route path="/terms-and-conditions" component={TermsAndConditionsPage} />
+        <Route path="/community-guidelines" component={CommunityGuidelinesPage} />
         <Route component={NotFound} />
       </Switch>
     </RoutedErrorBoundary>

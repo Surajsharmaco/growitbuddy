@@ -99,3 +99,350 @@ export function useHealthCheck<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+import { useMutation } from '@tanstack/react-query';
+import type { MutationFunction, UseMutationOptions, UseMutationResult } from '@tanstack/react-query';
+import type { ActsErrorResponse, ActsMembershipOrder, ActsMembershipOrderInput, ActsMembershipStatus, ActsPaymentVerificationInput } from './api.schemas';
+import type { BodyType } from '../custom-fetch';
+const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKey: K } => {
+  const result = { queryKey } as T & { queryKey: K };
+  for (const key of Object.keys(query)) {
+    // The explicit queryKey always wins, matching the previous
+    // `{ ...query, queryKey }` spread where it was set last.
+    if (key === 'queryKey') continue;
+    Object.defineProperty(result, key, {
+      enumerable: true,
+      configurable: true,
+      get: () => (query as Record<string, unknown>)[key],
+    });
+  }
+  return result;
+};
+
+export const getCreateActsMembershipOrderUrl = () => {
+
+
+
+
+  return `/api/acts/membership/orders`
+}
+
+/**
+ * @summary Start or resume a fixed-price ACTS membership checkout.
+ */
+export const createActsMembershipOrder = async (actsMembershipOrderInput: ActsMembershipOrderInput, options?: Parameters<typeof customFetch>[1]): Promise<ActsMembershipOrder> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<ActsMembershipOrder>(getCreateActsMembershipOrderUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(actsMembershipOrderInput)
+  }
+);}
+
+
+
+
+
+export const getCreateActsMembershipOrderMutationKey = () => ['createActsMembershipOrder'] as const;
+
+export const getCreateActsMembershipOrderMutationOptions = <TError = ErrorType<ActsErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createActsMembershipOrder>>, TError,CreateActsMembershipOrderMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createActsMembershipOrder>>, TError,CreateActsMembershipOrderMutationVariables, TContext> => {
+
+const mutationKey = getCreateActsMembershipOrderMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createActsMembershipOrder>>, CreateActsMembershipOrderMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createActsMembershipOrder(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateActsMembershipOrderMutationResult = NonNullable<Awaited<ReturnType<typeof createActsMembershipOrder>>>
+    export type CreateActsMembershipOrderMutationBody = BodyType<ActsMembershipOrderInput>
+    export type CreateActsMembershipOrderMutationError = ErrorType<ActsErrorResponse>
+    export type CreateActsMembershipOrderMutationVariables = {data: BodyType<ActsMembershipOrderInput>}
+
+    /**
+ * @summary Start or resume a fixed-price ACTS membership checkout.
+ */
+export const useCreateActsMembershipOrder = <TError = ErrorType<ActsErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createActsMembershipOrder>>, TError,CreateActsMembershipOrderMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createActsMembershipOrder>>,
+        TError,
+        CreateActsMembershipOrderMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateActsMembershipOrderMutationOptions(options));
+    }
+
+export const getVerifyActsMembershipPaymentUrl = () => {
+
+
+
+
+  return `/api/acts/membership/verify`
+}
+
+/**
+ * @summary Verify a Razorpay signature and persist a captured payment.
+ */
+export const verifyActsMembershipPayment = async (actsPaymentVerificationInput: ActsPaymentVerificationInput, options?: Parameters<typeof customFetch>[1]): Promise<ActsMembershipStatus> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<ActsMembershipStatus>(getVerifyActsMembershipPaymentUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(actsPaymentVerificationInput)
+  }
+);}
+
+
+
+
+
+export const getVerifyActsMembershipPaymentMutationKey = () => ['verifyActsMembershipPayment'] as const;
+
+export const getVerifyActsMembershipPaymentMutationOptions = <TError = ErrorType<ActsErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyActsMembershipPayment>>, TError,VerifyActsMembershipPaymentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof verifyActsMembershipPayment>>, TError,VerifyActsMembershipPaymentMutationVariables, TContext> => {
+
+const mutationKey = getVerifyActsMembershipPaymentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof verifyActsMembershipPayment>>, VerifyActsMembershipPaymentMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  verifyActsMembershipPayment(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VerifyActsMembershipPaymentMutationResult = NonNullable<Awaited<ReturnType<typeof verifyActsMembershipPayment>>>
+    export type VerifyActsMembershipPaymentMutationBody = BodyType<ActsPaymentVerificationInput>
+    export type VerifyActsMembershipPaymentMutationError = ErrorType<ActsErrorResponse>
+    export type VerifyActsMembershipPaymentMutationVariables = {data: BodyType<ActsPaymentVerificationInput>}
+
+    /**
+ * @summary Verify a Razorpay signature and persist a captured payment.
+ */
+export const useVerifyActsMembershipPayment = <TError = ErrorType<ActsErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyActsMembershipPayment>>, TError,VerifyActsMembershipPaymentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof verifyActsMembershipPayment>>,
+        TError,
+        VerifyActsMembershipPaymentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getVerifyActsMembershipPaymentMutationOptions(options));
+    }
+
+export const getGetActsMembershipStatusUrl = () => {
+
+
+
+
+  return `/api/acts/membership/status`
+}
+
+/**
+ * @summary Recover payment confirmation using a private checkout token.
+ */
+export const getActsMembershipStatus = async ( options?: Parameters<typeof customFetch>[1]): Promise<ActsMembershipStatus> => {
+
+  return customFetch<ActsMembershipStatus>(getGetActsMembershipStatusUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetActsMembershipStatusQueryKey = () => {
+    return [
+    `/api/acts/membership/status`
+    ] as const;
+    }
+
+
+export const getGetActsMembershipStatusQueryOptions = <TData = Awaited<ReturnType<typeof getActsMembershipStatus>>, TError = ErrorType<ActsErrorResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getActsMembershipStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetActsMembershipStatusQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getActsMembershipStatus>>> = ({ signal }) => getActsMembershipStatus({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getActsMembershipStatus>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetActsMembershipStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getActsMembershipStatus>>>
+export type GetActsMembershipStatusQueryError = ErrorType<ActsErrorResponse>
+
+
+/**
+ * @summary Recover payment confirmation using a private checkout token.
+ */
+
+export function useGetActsMembershipStatus<TData = Awaited<ReturnType<typeof getActsMembershipStatus>>, TError = ErrorType<ActsErrorResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getActsMembershipStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetActsMembershipStatusQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getReceiveActsMembershipWebhookUrl = () => {
+
+
+
+
+  return `/api/acts/membership/webhook`
+}
+
+/**
+ * @summary Accept signed Razorpay capture events; never trust browser success.
+ */
+export const receiveActsMembershipWebhook = async ( options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getReceiveActsMembershipWebhookUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getReceiveActsMembershipWebhookMutationKey = () => ['receiveActsMembershipWebhook'] as const;
+
+export const getReceiveActsMembershipWebhookMutationOptions = <TError = ErrorType<ActsErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof receiveActsMembershipWebhook>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof receiveActsMembershipWebhook>>, TError,void, TContext> => {
+
+const mutationKey = getReceiveActsMembershipWebhookMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof receiveActsMembershipWebhook>>, void> = () => {
+
+
+          return  receiveActsMembershipWebhook(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReceiveActsMembershipWebhookMutationResult = NonNullable<Awaited<ReturnType<typeof receiveActsMembershipWebhook>>>
+
+    export type ReceiveActsMembershipWebhookMutationError = ErrorType<ActsErrorResponse>
+
+
+    /**
+ * @summary Accept signed Razorpay capture events; never trust browser success.
+ */
+export const useReceiveActsMembershipWebhook = <TError = ErrorType<ActsErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof receiveActsMembershipWebhook>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof receiveActsMembershipWebhook>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getReceiveActsMembershipWebhookMutationOptions(options));
+    }
+
