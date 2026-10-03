@@ -5840,8 +5840,8 @@ import { TEMPLATE } from "./_template.js";
 // src/lib/homeDefaults.ts
 var HOME_DEFAULTS = {
   heroBadge: "700M+ views generated for our clients",
-  heroHeadline: "Personal Branding, Content & Distribution",
-  heroHeadlineItalic: "Studio",
+  heroHeadline: "We create and distribute content that builds your",
+  heroHeadlineItalic: "authority.",
   heroSubtext: "We help founders, creators, and businesses turn expertise into authority and that authority into consistent inbound demand through content strategy and distribution.",
   heroCTAPrimary: "Book a Strategy Call",
   heroCTASecondary: "See Our Work",

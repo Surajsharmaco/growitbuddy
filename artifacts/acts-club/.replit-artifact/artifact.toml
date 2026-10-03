@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/acts-club/"
+title = "ACTS Club"
+description = "A premium, conversion-focused landing page for ACTS Club, an exclusive real-world community and talent network for creators and freelancers."
+version = "1.0.0"
+id = "artifacts/acts-club"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/acts-club/" ]
+localPort = 18804
+
+[services.development]
+run = "pnpm --filter @workspace/acts-club run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/acts-club", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/acts-club/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18804"
+BASE_PATH = "/acts-club/"
