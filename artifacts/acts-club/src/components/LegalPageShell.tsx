@@ -40,13 +40,14 @@ export function LegalPageShell({ title, description, children }: LegalPageShellP
   }, [title, description]);
 
   const homeHref = import.meta.env.BASE_URL || '/';
+  const logoSrc = `${import.meta.env.BASE_URL}brand/acts-club-logo.png`;
 
   return (
     <main className="grain min-h-[100dvh] bg-cream text-ink">
       <header className="border-b border-ink/10">
         <div className="content-shell flex min-h-14 items-center justify-between gap-3 py-2 sm:min-h-20 sm:py-4">
-          <a href={homeHref} className="font-display text-xl font-extrabold tracking-tight sm:text-2xl" aria-label="ACTS Club home">
-            ACTS <span className="text-acts">CLUB</span>
+          <a href={homeHref} className="inline-flex min-h-11 items-center" aria-label="ACTS Club home">
+            <img src={logoSrc} alt="ACTS Club" className="h-[30px] w-auto sm:h-9" />
           </a>
           <a href={homeHref} className="inline-flex min-h-11 items-center rounded-full border border-ink/20 px-4 py-2 text-sm font-bold transition-colors hover:border-acts hover:text-acts focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-acts">
             Back to ACTS
@@ -68,7 +69,7 @@ export function LegalPageShell({ title, description, children }: LegalPageShellP
       <footer className="footer-texture bg-ink py-4 sm:py-5 text-cream">
         <div className="content-shell flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="font-display text-xl font-extrabold">ACTS <span className="text-acts">CLUB</span></p>
+            <img src={logoSrc} alt="ACTS Club" className="h-8 w-auto brightness-0 invert" />
             <p className="mt-1 text-xs text-cream/70">Artists. Creators. Talent. Skills.</p>
           </div>
           <p className="text-xs text-cream/65">ACTS Club is operated by GrowItBuddy.</p>

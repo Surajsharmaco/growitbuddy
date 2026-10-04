@@ -6,6 +6,7 @@ import { SkillPills } from '@/components/SkillPills';
 import { HeroTicker } from '@/components/HeroTicker';
 
 const img = (n: string) => `${import.meta.env.BASE_URL}img/${n}.jpg`;
+const brandAsset = (n: string) => `${import.meta.env.BASE_URL}brand/${n}`;
 const legalHref = (path: string) => `${import.meta.env.BASE_URL}${path}`;
 const go = (id: string) => {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -175,8 +176,8 @@ export default function Landing() {
       {/* NAV */}
       <header className="sticky top-0 z-40 border-b border-ink/10 bg-cream/90 backdrop-blur" data-testid="nav-main">
         <div className="flex w-full items-center justify-between px-3 py-2 sm:px-4 md:px-6 md:py-3 lg:px-8">
-          <button data-testid="link-logo" onClick={() => { closeMenu(false); go('top'); }} className="flex min-h-11 flex-col items-start justify-center font-display text-xl font-extrabold leading-none sm:text-2xl">
-            ACTS<span className="block text-[9px] tracking-[0.35em] text-acts">CLUB</span>
+          <button data-testid="link-logo" onClick={() => { closeMenu(false); go('top'); }} className="flex min-h-11 items-center justify-center" aria-label="ACTS Club home">
+            <img src={brandAsset('acts-club-logo.png')} alt="ACTS Club" className="h-[30px] w-auto sm:h-9" />
           </button>
           <nav className="hidden items-center gap-8 text-sm font-medium md:flex">
             {nav.map(([k, l, t]) => (
@@ -378,7 +379,7 @@ export default function Landing() {
         <div className="content-shell">
           <div className="flex w-full flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-6">
             <div>
-              <p className="font-display text-xl font-extrabold md:text-2xl">ACTS <Em>CLUB</Em></p>
+              <img src={brandAsset('acts-club-logo.png')} alt="ACTS Club" className="h-8 w-auto brightness-0 invert md:h-9" />
               <p className="mt-0.5 text-xs text-cream/65">Artists. Creators. Talent. Skills.</p>
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-0 text-xs font-medium sm:text-sm md:gap-x-5">
