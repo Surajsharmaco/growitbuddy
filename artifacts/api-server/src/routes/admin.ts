@@ -6,7 +6,7 @@ import { logger } from "../lib/logger";
 import { cloudinaryConfigured, uploadToCloudinary } from "../lib/cloudinary";
 import { convertImageBuffer, prepareUploadedImage, type ConvertFormat } from "../lib/imageConvert";
 import { buildContentSnapshot, buildHandoffDocs, assembleBackupZip, buildMasterPrompt, type BackupMeta } from "../lib/backup";
-import { buildBlogExport } from "../lib/blogExport";
+import { buildBlogExport, WordPressDisconnectedError } from "../lib/blogExport";
 import { buildContentArchive } from "../lib/contentArchive";
 import {
   DEFAULT_PUBLIC_CONTENT_SECTIONS,
@@ -2082,6 +2082,11 @@ router.get("/blog-backup", authMiddleware, superAdminOnly, async (_req, res) => 
       "blog backup generated",
     );
   } catch (err) {
+    if (err instanceof WordPressDisconnectedError) {
+      res.setHeader("Cache-Control", "no-store");
+      res.status(410).json({ error: err.message });
+      return;
+    }
     logger.error({ err }, "blog backup generation failed");
     if (!res.headersSent) {
       res.status(500).json({ error: "Blog backup ban nahi paaya. Thodi der baad dobara try karo." });

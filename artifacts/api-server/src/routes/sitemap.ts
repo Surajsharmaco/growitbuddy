@@ -17,10 +17,6 @@ import {
 const sitemapRouter: IRouter = Router();
 
 const SITE = SITE_URL;
-const WP_API = "https://blog.growitbuddy.com/wp-json/wp/v2";
-
-interface WPPost { slug: string; date: string; modified: string; }
-
 interface SEOData {
   index?: boolean;
   sitemap?: boolean;
@@ -118,22 +114,6 @@ sitemapRouter.get("/sitemap-blog.xml", async (_req: Request, res: Response) => {
   }
 
   try {
-    const wpRes = await fetch(
-      `${WP_API}/posts?per_page=100&status=publish&_fields=slug,date,modified`,
-      { signal: AbortSignal.timeout(8000) },
-    );
-    if (wpRes.ok) {
-      const wpPosts: WPPost[] = await wpRes.json() as WPPost[];
-      for (const post of wpPosts) {
-        const lastmod = post.modified?.split("T")[0] ?? post.date?.split("T")[0] ?? "";
-        urls.push(
-          `  <url>\n    <loc>${SITE}${BLOG_PATH}/wp-${post.slug}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`,
-        );
-      }
-    }
-  } catch { /* WP unreachable — skip gracefully */ }
-
-  try {
     const rows = await db
       .select({ data: siteContent.data, updatedAt: siteContent.updatedAt })
       .from(siteContent)
@@ -160,7 +140,7 @@ sitemapRouter.get("/sitemap-blog.xml", async (_req: Request, res: Response) => {
   const xml = wrapUrlset(urls);
 
   res.setHeader("Content-Type", "application/xml; charset=utf-8");
-  res.setHeader("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
+  res.setHeader("Cache-Control", "no-store");
   res.send(xml);
 });
 

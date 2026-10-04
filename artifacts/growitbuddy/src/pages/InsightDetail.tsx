@@ -676,7 +676,7 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
       ...wpPosts,
     ];
 
-  const post: BlogPost | undefined = previewPost ?? (isWp ? (wpPost ?? undefined) : allPosts.find((p) => p.slug === slug));
+  const post: BlogPost | undefined = previewPost ?? allPosts.find((p) => p.slug === slug) ?? (isWp ? (wpPost ?? undefined) : undefined);
   const related = pageMode ? [] : allPosts.filter((p) => p.slug !== (post?.slug ?? slug)).slice(0, 3);
   const globalIndexable = cachedGlobal() ?? readBootstrap(pageMode ? "cms-pages" : "insights").bootGlobal;
   const resolvedSeo = post ? (pageMode ? resolveCmsPageSeo(post, { globalIndexable }) : resolveBlogSeo(post, { globalIndexable })) : undefined;

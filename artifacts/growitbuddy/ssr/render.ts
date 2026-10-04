@@ -65,7 +65,6 @@ const SITE = SITE_URL; // https://growitbuddy.com
 const SITE_NAME = "GrowitBuddy";
 const DEFAULT_IMAGE = `${SITE}/opengraph.jpg`;
 const TWITTER_HANDLE = "@growitbuddy";
-const WP_API = "https://blog.growitbuddy.com/wp-json/wp/v2";
 
 // Bound both database and Render API waits. Dynamic responses are never cached,
 // so a timeout must fail visibly rather than serving stale/default content.
@@ -559,12 +558,6 @@ interface SEOFlags {
   index?: boolean;
   sitemap?: boolean;
 }
-interface WPPost {
-  slug: string;
-  date: string;
-  modified: string;
-}
-
 // Main sitemap from the shared @workspace/seo registry, excluding pages the admin
 // flagged noindex/no-sitemap (seo:<slug>) and honoring the seo-global kill switch.
 async function buildMainSitemap(): Promise<string> {
@@ -633,8 +626,7 @@ async function buildMainSitemap(): Promise<string> {
   return wrapUrlset([...registryUrls, ...cmsUrls]);
 }
 
-// Blog sitemap: WordPress posts (blog.growitbuddy.com) + CMS posts in the
-// site_content "blog" section. Each source is best-effort.
+// Blog sitemap uses saved CMS posts only. WordPress is disconnected.
 async function buildBlogSitemap(): Promise<string> {
   let globalIndexable = true;
   let cmsPosts: BlogSeoPost[] = [];
@@ -667,25 +659,6 @@ async function buildBlogSitemap(): Promise<string> {
   if (!globalIndexable) return wrapUrlset([]);
 
   const urls: string[] = [];
-
-  try {
-    const wpRes = await fetch(
-      `${WP_API}/posts?per_page=100&status=publish&_fields=slug,date,modified`,
-      { signal: AbortSignal.timeout(8000) },
-    );
-    if (wpRes.ok) {
-      const wpPosts = (await wpRes.json()) as WPPost[];
-      for (const post of wpPosts) {
-        const lastmod =
-          post.modified?.split("T")[0] ?? post.date?.split("T")[0] ?? "";
-        urls.push(
-          `  <url>\n    <loc>${SITE}${BLOG_PATH}/wp-${post.slug}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`,
-        );
-      }
-    }
-  } catch {
-    /* WP unreachable — skip gracefully */
-  }
 
   if (DB_URL) {
     const ctrl = new AbortController();
@@ -924,9 +897,9 @@ export default async function handler(req: any, res: any): Promise<void> {
 
     // CMS articles get a dedicated SSR path so every crawl-visible SEO field and
     // the semantic article body come from the shared @workspace/seo resolver.
-    // WordPress slugs retain their existing read-only handler below.
+    // Preserve saved CMS posts even when their historical slug has a wp- prefix.
     const blogMatch = pathname.match(/^\/blog\/([^/]+)$/);
-    if (blogMatch && !blogMatch[1].startsWith("wp-")) {
+    if (blogMatch) {
       let slug: string;
       try { slug = decodeURIComponent(blogMatch[1]); } catch { send404(res, template); return; }
       const sections = sectionsForSlug("insights");

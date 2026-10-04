@@ -5834,7 +5834,7 @@ var export_escapeIdentifier = ct.escapeIdentifier;
 var export_escapeLiteral = ct.escapeLiteral;
 var export_types = ct.types;
 
-// .local/gb-seo-fix/candidates/artifacts/growitbuddy/ssr/render.ts
+// .local/wp-disconnect/candidates/artifacts/growitbuddy/ssr/render.ts
 import { TEMPLATE } from "./_template.js";
 
 // artifacts/growitbuddy/src/lib/homeDefaults.ts
@@ -6900,13 +6900,12 @@ function sanitizePublicContent(content) {
   return out;
 }
 
-// .local/gb-seo-fix/candidates/artifacts/growitbuddy/ssr/render.ts
+// .local/wp-disconnect/candidates/artifacts/growitbuddy/ssr/render.ts
 var DB_URL = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL || "";
 var SITE = SITE_URL;
 var SITE_NAME = "GrowitBuddy";
 var DEFAULT_IMAGE = `${SITE}/opengraph.jpg`;
 var TWITTER_HANDLE = "@growitbuddy";
-var WP_API = "https://blog.growitbuddy.com/wp-json/wp/v2";
 var DATA_TIMEOUT_MS = 2500;
 var PUBLIC_API_TIMEOUT_MS = 2e4;
 function escAttr(s) {
@@ -7296,27 +7295,6 @@ async function buildBlogSitemap() {
   }
   if (!globalIndexable) return wrapUrlset([]);
   const urls = [];
-  try {
-    const wpRes = await fetch(
-      `${WP_API}/posts?per_page=100&status=publish&_fields=slug,date,modified`,
-      { signal: AbortSignal.timeout(8e3) }
-    );
-    if (wpRes.ok) {
-      const wpPosts = await wpRes.json();
-      for (const post of wpPosts) {
-        const lastmod = post.modified?.split("T")[0] ?? post.date?.split("T")[0] ?? "";
-        urls.push(
-          `  <url>
-    <loc>${SITE}${BLOG_PATH}/wp-${post.slug}</loc>${lastmod ? `
-    <lastmod>${lastmod}</lastmod>` : ""}
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>`
-        );
-      }
-    }
-  } catch {
-  }
   if (DB_URL) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
@@ -7478,7 +7456,7 @@ async function handler(req, res) {
       return;
     }
     const blogMatch = pathname.match(/^\/blog\/([^/]+)$/);
-    if (blogMatch && !blogMatch[1].startsWith("wp-")) {
+    if (blogMatch) {
       let slug;
       try {
         slug = decodeURIComponent(blogMatch[1]);

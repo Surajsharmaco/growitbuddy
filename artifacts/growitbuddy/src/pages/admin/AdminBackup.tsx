@@ -13,7 +13,6 @@ import {
   Check,
   RefreshCw,
   FileText,
-  Newspaper,
   Images,
 } from "lucide-react";
 
@@ -150,8 +149,6 @@ export default function AdminBackup() {
   const [zipError, setZipError] = useState<string | null>(null);
 
   // ── Blog backup ──
-  const [blogStatus, setBlogStatus] = useState<ZipStatus>("idle");
-  const [blogError, setBlogError] = useState<string | null>(null);
 
   // ── Content + photos backup ──
   const [contentStatus, setContentStatus] = useState<ZipStatus>("idle");
@@ -530,26 +527,9 @@ export default function AdminBackup() {
         </div>
       </div>
 
-      {/* ── Blog backup (blogs live on external WordPress, not in any other backup) ── */}
-      <DownloadCard
-        icon={<Newspaper size={17} color="#1E293B" />}
-        title="Saare blogs ka backup (ZIP)"
-        desc={
-          <>
-            Aapke <strong>saare blog posts</strong> — poora content + saari images ke saath — ek ZIP mein.
-            Har post apne alag folder mein aata hai (padhne layak HTML + images + details). Isse aap in
-            blogs ko <strong>kisi bhi doosri website ya CMS</strong> par dobara use kar sakte ho, aur agar
-            blog kabhi band bhi ho jaye to bhi sab kuch safe rahega. Images download hoti hain, isliye
-            banne mein thoda time lag sakta hai.
-          </>
-        }
-        buttonLabel="Download blogs ZIP"
-        loadingLabel="Blogs ka backup ban raha hai..."
-        doneText="Blogs ZIP download ho gaya! File aapke downloads folder mein hai."
-        status={blogStatus}
-        error={blogError}
-        onClick={() => void downloadArchive("/admin/blog-backup", "growitbuddy-blogs", setBlogStatus, setBlogError)}
-      />
+      <p className="text-sm text-gray-600">
+        Saved CMS blogs are included in the site content backup below. The external WordPress connection has been removed.
+      </p>
 
       {/* ── Site content + photos archive (content snapshot + real image files) ── */}
       <DownloadCard
