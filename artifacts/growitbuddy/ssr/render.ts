@@ -512,7 +512,14 @@ function buildHtml(
       publicContent[sec],
     );
   }
-  const bodyHtml = renderContentBody(mergedContent, bodySections, title);
+  let bodyHtml = renderContentBody(mergedContent, bodySections, title);
+  if (pathname === BLOG_PATH) {
+    const posts = (publicContent.blog as { posts?: BlogSeoPost[] } | null)?.posts;
+    const links = (Array.isArray(posts) ? posts : [])
+      .filter(post => post.slug && isPublicBlogPost(post))
+      .map(post => `<li><a href="${escAttr(`${BLOG_PATH}/${encodeURIComponent(post.slug!)}`)}">${escAttr(post.title || post.slug)}</a></li>`);
+    if (links.length) bodyHtml += `<nav aria-label="Published articles"><ul>${links.join("")}</ul></nav>`;
+  }
   return injectBody(html, bodyHtml);
 }
 
@@ -872,13 +879,22 @@ export default async function handler(req: any, res: any): Promise<void> {
     // public/sitemap.xml was removed so this route reaches the function (Vercel
     // serves filesystem assets before applying the catch-all rewrite).
     if (pathname === "/sitemap.xml") {
+      sendXml(res, `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap><loc>${SITE}/sitemap-pages.xml</loc></sitemap>
+  <sitemap><loc>${SITE}/sitemap-blog.xml</loc></sitemap>
+</sitemapindex>
+`, "no-store");
+      return;
+    }
+    if (pathname === "/sitemap-pages.xml") {
       const xml = await buildMainSitemap();
-      sendXml(res, xml, "public, max-age=600, s-maxage=600, stale-while-revalidate=3600");
+      sendXml(res, xml, "no-store");
       return;
     }
     if (pathname === "/sitemap-blog.xml") {
       const xml = await buildBlogSitemap();
-      sendXml(res, xml, "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400");
+      sendXml(res, xml, "no-store");
       return;
     }
 

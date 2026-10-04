@@ -21,7 +21,7 @@ const outPath = resolve(here, "../public/sitemap.xml");
 const lastmod = new Date().toISOString().split("T")[0];
 const body = buildSitemapXml({ lastmod });
 
-const header = `<!-- AUTO-GENERATED from @workspace/seo. Do not edit by hand. Run: pnpm --filter @workspace/growitbuddy gen:sitemap -->\n`;
+const header = `<!-- Generated from the shared SEO registry. Do not edit by hand. -->\n`;
 const xml = body.replace(/^(<\?xml[^>]*>\n)/, `$1${header}`);
 
 writeFileSync(outPath, xml, "utf8");

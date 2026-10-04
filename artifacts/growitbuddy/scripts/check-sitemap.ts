@@ -23,7 +23,7 @@ const staticPath = resolve(here, "../public/sitemap.xml");
 /** Mirror generate-sitemap.ts so the comparison matches the generator output. */
 function expectedXml(lastmod: string): string {
   const body = buildSitemapXml({ lastmod });
-  const header = `<!-- AUTO-GENERATED from @workspace/seo. Do not edit by hand. Run: pnpm --filter @workspace/growitbuddy gen:sitemap -->\n`;
+  const header = `<!-- Generated from the shared SEO registry. Do not edit by hand. -->\n`;
   return body.replace(/^(<\?xml[^>]*>\n)/, `$1${header}`);
 }
 
@@ -47,6 +47,13 @@ try {
 }
 
 const expected = expectedXml("0000-00-00");
+
+for (const comment of committed.matchAll(/<!--([\s\S]*?)-->/g)) {
+  if (comment[1].includes("--") || comment[1].endsWith("-")) {
+    console.error("✗ public/sitemap.xml contains an invalid XML comment.");
+    process.exit(1);
+  }
+}
 
 if (normalize(committed) !== normalize(expected)) {
   console.error("✗ public/sitemap.xml has drifted from the @workspace/seo page registry.");

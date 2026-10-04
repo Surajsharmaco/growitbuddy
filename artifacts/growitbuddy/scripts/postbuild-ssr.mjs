@@ -7,7 +7,7 @@
 // assets this build produced. Baking the template locally fails, because Vercel's
 // build can produce a different content hash than a local build. Generating the
 // template here, from the build's own output, makes the hash always correct.
-import { readFileSync, writeFileSync, unlinkSync } from "node:fs";
+import { readFileSync, writeFileSync, unlinkSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -29,3 +29,8 @@ console.log(`api/_template.js written (${html.length} bytes, asset ${asset})`);
 // the root, now flows through the function for correct per-page meta + bootstrap.
 unlinkSync(indexHtml);
 console.log("removed dist/public/index.html so / routes through the SSR function");
+for (const name of ["sitemap.xml", "sitemap-pages.xml", "sitemap-blog.xml"]) {
+  const staticMap = path.join(pkg, "dist/public", name);
+  if (existsSync(staticMap)) unlinkSync(staticMap);
+}
+console.log("removed static sitemaps so crawlers receive live sitemap data");
