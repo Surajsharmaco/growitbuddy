@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { Pause, Play } from 'lucide-react';
+import type { CSSProperties } from 'react';
 import './SkillPills.css';
 
 const SKILL_ROWS = [
@@ -9,29 +8,9 @@ const SKILL_ROWS = [
 ];
 
 export function SkillPills() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-  const [paused, setPaused] = useState(false);
-
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-    if (!('IntersectionObserver' in window)) {
-      setVisible(true);
-      return;
-    }
-    const observer = new IntersectionObserver(
-      ([entry]) => setVisible(entry.isIntersecting),
-      { threshold: 0.05 },
-    );
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <div
-      ref={ref}
-      className={`skills-ribbons mt-6 md:mt-8 ${visible && !paused ? 'is-running' : ''}`}
+      className="skills-ribbons mt-6 md:mt-8"
       data-testid="skills-ribbons"
     >
       <div className="skills-ribbons-window">
@@ -73,19 +52,6 @@ export function SkillPills() {
             </div>
           </div>
         ))}
-      </div>
-      <div className="skills-ribbons-controls">
-        <button
-          type="button"
-          onClick={() => setPaused(value => !value)}
-          aria-pressed={paused}
-          aria-label={paused ? 'Resume skill animations' : 'Pause skill animations'}
-          className="skills-motion-toggle"
-          data-testid="skills-motion-toggle"
-        >
-          {paused ? <Play size={12} aria-hidden="true" /> : <Pause size={12} aria-hidden="true" />}
-          {paused ? 'Play' : 'Pause'}
-        </button>
       </div>
     </div>
   );
