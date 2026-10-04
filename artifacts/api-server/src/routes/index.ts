@@ -1,6 +1,7 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import healthRouter from "./health";
 import formsRouter from "./forms";
+import actsMembershipRouter from "./acts-membership";
 import adminRouter from "./admin";
 import aiSeoRouter from "./ai-seo";
 import sitemapRouter from "./sitemap";
@@ -13,6 +14,7 @@ const router: IRouter = Router();
 router.use(healthRouter);
 router.use(sitemapRouter);
 router.use("/forms", formsRouter);
+router.use("/acts/membership", actsMembershipRouter);
 router.use("/wp", wpRouter);
 
 // ── Public media serving (no auth, serves images/videos stored in DB) ──

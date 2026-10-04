@@ -14,3 +14,171 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * @summary Start or resume a fixed-price ACTS membership checkout.
+ */
+export const createActsMembershipOrderBodyOneFullNameMin = 2;
+export const createActsMembershipOrderBodyOneFullNameMax = 100;
+
+export const createActsMembershipOrderBodyOneContactNumberMin = 8;
+export const createActsMembershipOrderBodyOneContactNumberMax = 25;
+
+export const createActsMembershipOrderBodyOneWhatsappNumberMin = 8;
+export const createActsMembershipOrderBodyOneWhatsappNumberMax = 25;
+
+export const createActsMembershipOrderBodyOneCityMin = 2;
+export const createActsMembershipOrderBodyOneCityMax = 100;
+
+export const createActsMembershipOrderBodyOneInstagramIdMax = 30;
+
+export const createActsMembershipOrderBodyOneOtherTypeMax = 100;
+
+export const createActsMembershipOrderBodyOneOtherSkillMax = 100;
+
+export const createActsMembershipOrderBodyTwoCheckoutTokenRegExp = new RegExp('^[a-f0-9]{64}$');
+
+
+export const CreateActsMembershipOrderBody = zod.object({
+  "fullName": zod.string().min(createActsMembershipOrderBodyOneFullNameMin).max(createActsMembershipOrderBodyOneFullNameMax),
+  "contactNumber": zod.string().min(createActsMembershipOrderBodyOneContactNumberMin).max(createActsMembershipOrderBodyOneContactNumberMax),
+  "whatsappNumber": zod.string().min(createActsMembershipOrderBodyOneWhatsappNumberMin).max(createActsMembershipOrderBodyOneWhatsappNumberMax),
+  "city": zod.string().min(createActsMembershipOrderBodyOneCityMin).max(createActsMembershipOrderBodyOneCityMax),
+  "instagramId": zod.string().max(createActsMembershipOrderBodyOneInstagramIdMax).optional(),
+  "youAre": zod.enum(['Creator', 'Freelancer', 'Entrepreneur', 'Other']).optional(),
+  "creatorType": zod.enum(['Content Creator', 'Video Creator', 'UGC Creator', 'Influencer', 'Educator', 'Podcaster', 'Photographer', 'Other']).optional(),
+  "otherType": zod.string().max(createActsMembershipOrderBodyOneOtherTypeMax).optional(),
+  "primarySkill": zod.enum(['Video Editing', 'Content Creation', 'Graphic Design', 'Photography', 'Copywriting', 'Social Media', 'Web Development', 'Marketing', 'Other']),
+  "otherSkill": zod.string().max(createActsMembershipOrderBodyOneOtherSkillMax).optional(),
+  "lookingFor": zod.enum(['Projects & Opportunities', 'Collaborations', 'Networking', 'Learning', 'All of the above']).optional(),
+  "agreesToGuidelines": zod.literal(true)
+}).and(zod.object({
+  "checkoutToken": zod.string().regex(createActsMembershipOrderBodyTwoCheckoutTokenRegExp).optional()
+}))
+
+export const CreateActsMembershipOrderResponse = zod.object({
+  "orderId": zod.string(),
+  "keyId": zod.string(),
+  "amount": zod.literal(9900),
+  "currency": zod.enum(['INR']),
+  "checkoutToken": zod.string()
+})
+
+
+/**
+ * @summary Verify a Razorpay signature and persist a captured payment.
+ */
+export const verifyActsMembershipPaymentBodyOrderIdRegExp = new RegExp('^order_[A-Za-z0-9]+$');
+export const verifyActsMembershipPaymentBodyPaymentIdRegExp = new RegExp('^pay_[A-Za-z0-9]+$');
+export const verifyActsMembershipPaymentBodySignatureRegExp = new RegExp('^[a-f0-9]{64}$');
+
+
+export const VerifyActsMembershipPaymentBody = zod.object({
+  "orderId": zod.string().regex(verifyActsMembershipPaymentBodyOrderIdRegExp),
+  "paymentId": zod.string().regex(verifyActsMembershipPaymentBodyPaymentIdRegExp),
+  "signature": zod.string().regex(verifyActsMembershipPaymentBodySignatureRegExp)
+})
+
+export const verifyActsMembershipPaymentResponseApplicationFullNameMin = 2;
+export const verifyActsMembershipPaymentResponseApplicationFullNameMax = 100;
+
+export const verifyActsMembershipPaymentResponseApplicationContactNumberMin = 8;
+export const verifyActsMembershipPaymentResponseApplicationContactNumberMax = 25;
+
+export const verifyActsMembershipPaymentResponseApplicationWhatsappNumberMin = 8;
+export const verifyActsMembershipPaymentResponseApplicationWhatsappNumberMax = 25;
+
+export const verifyActsMembershipPaymentResponseApplicationCityMin = 2;
+export const verifyActsMembershipPaymentResponseApplicationCityMax = 100;
+
+export const verifyActsMembershipPaymentResponseApplicationInstagramIdMax = 30;
+
+export const verifyActsMembershipPaymentResponseApplicationOtherTypeMax = 100;
+
+export const verifyActsMembershipPaymentResponseApplicationOtherSkillMax = 100;
+
+
+
+export const VerifyActsMembershipPaymentResponse = zod.object({
+  "orderId": zod.string(),
+  "keyId": zod.string(),
+  "amount": zod.literal(9900),
+  "currency": zod.enum(['INR']),
+  "paymentStatus": zod.enum(['pending', 'successful']),
+  "reviewStatus": zod.enum(['not_submitted', 'pending_review']),
+  "application": zod.object({
+  "fullName": zod.string().min(verifyActsMembershipPaymentResponseApplicationFullNameMin).max(verifyActsMembershipPaymentResponseApplicationFullNameMax),
+  "contactNumber": zod.string().min(verifyActsMembershipPaymentResponseApplicationContactNumberMin).max(verifyActsMembershipPaymentResponseApplicationContactNumberMax),
+  "whatsappNumber": zod.string().min(verifyActsMembershipPaymentResponseApplicationWhatsappNumberMin).max(verifyActsMembershipPaymentResponseApplicationWhatsappNumberMax),
+  "city": zod.string().min(verifyActsMembershipPaymentResponseApplicationCityMin).max(verifyActsMembershipPaymentResponseApplicationCityMax),
+  "instagramId": zod.string().max(verifyActsMembershipPaymentResponseApplicationInstagramIdMax).optional(),
+  "youAre": zod.enum(['Creator', 'Freelancer', 'Entrepreneur', 'Other']).optional(),
+  "creatorType": zod.enum(['Content Creator', 'Video Creator', 'UGC Creator', 'Influencer', 'Educator', 'Podcaster', 'Photographer', 'Other']).optional(),
+  "otherType": zod.string().max(verifyActsMembershipPaymentResponseApplicationOtherTypeMax).optional(),
+  "primarySkill": zod.enum(['Video Editing', 'Content Creation', 'Graphic Design', 'Photography', 'Copywriting', 'Social Media', 'Web Development', 'Marketing', 'Other']),
+  "otherSkill": zod.string().max(verifyActsMembershipPaymentResponseApplicationOtherSkillMax).optional(),
+  "lookingFor": zod.enum(['Projects & Opportunities', 'Collaborations', 'Networking', 'Learning', 'All of the above']).optional(),
+  "agreesToGuidelines": zod.literal(true)
+}),
+  "memberId": zod.string().optional(),
+  "paymentId": zod.string().optional(),
+  "paidAt": zod.coerce.date().optional()
+})
+
+
+/**
+ * @summary Recover payment confirmation using a private checkout token.
+ */
+export const getActsMembershipStatusResponseApplicationFullNameMin = 2;
+export const getActsMembershipStatusResponseApplicationFullNameMax = 100;
+
+export const getActsMembershipStatusResponseApplicationContactNumberMin = 8;
+export const getActsMembershipStatusResponseApplicationContactNumberMax = 25;
+
+export const getActsMembershipStatusResponseApplicationWhatsappNumberMin = 8;
+export const getActsMembershipStatusResponseApplicationWhatsappNumberMax = 25;
+
+export const getActsMembershipStatusResponseApplicationCityMin = 2;
+export const getActsMembershipStatusResponseApplicationCityMax = 100;
+
+export const getActsMembershipStatusResponseApplicationInstagramIdMax = 30;
+
+export const getActsMembershipStatusResponseApplicationOtherTypeMax = 100;
+
+export const getActsMembershipStatusResponseApplicationOtherSkillMax = 100;
+
+
+
+export const GetActsMembershipStatusResponse = zod.object({
+  "orderId": zod.string(),
+  "keyId": zod.string(),
+  "amount": zod.literal(9900),
+  "currency": zod.enum(['INR']),
+  "paymentStatus": zod.enum(['pending', 'successful']),
+  "reviewStatus": zod.enum(['not_submitted', 'pending_review']),
+  "application": zod.object({
+  "fullName": zod.string().min(getActsMembershipStatusResponseApplicationFullNameMin).max(getActsMembershipStatusResponseApplicationFullNameMax),
+  "contactNumber": zod.string().min(getActsMembershipStatusResponseApplicationContactNumberMin).max(getActsMembershipStatusResponseApplicationContactNumberMax),
+  "whatsappNumber": zod.string().min(getActsMembershipStatusResponseApplicationWhatsappNumberMin).max(getActsMembershipStatusResponseApplicationWhatsappNumberMax),
+  "city": zod.string().min(getActsMembershipStatusResponseApplicationCityMin).max(getActsMembershipStatusResponseApplicationCityMax),
+  "instagramId": zod.string().max(getActsMembershipStatusResponseApplicationInstagramIdMax).optional(),
+  "youAre": zod.enum(['Creator', 'Freelancer', 'Entrepreneur', 'Other']).optional(),
+  "creatorType": zod.enum(['Content Creator', 'Video Creator', 'UGC Creator', 'Influencer', 'Educator', 'Podcaster', 'Photographer', 'Other']).optional(),
+  "otherType": zod.string().max(getActsMembershipStatusResponseApplicationOtherTypeMax).optional(),
+  "primarySkill": zod.enum(['Video Editing', 'Content Creation', 'Graphic Design', 'Photography', 'Copywriting', 'Social Media', 'Web Development', 'Marketing', 'Other']),
+  "otherSkill": zod.string().max(getActsMembershipStatusResponseApplicationOtherSkillMax).optional(),
+  "lookingFor": zod.enum(['Projects & Opportunities', 'Collaborations', 'Networking', 'Learning', 'All of the above']).optional(),
+  "agreesToGuidelines": zod.literal(true)
+}),
+  "memberId": zod.string().optional(),
+  "paymentId": zod.string().optional(),
+  "paidAt": zod.coerce.date().optional()
+})
+
+
+/**
+ * @summary Accept signed Razorpay capture events; never trust browser success.
+ */
+export const ReceiveActsMembershipWebhookResponse = zod.unknown()
+
+

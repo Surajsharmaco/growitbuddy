@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:acts": "node ./tests/run-acts.mjs",
     "dev": "export NODE_ENV=development && node kill-port.mjs; pnpm run build && node --enable-source-maps ./dist/index.mjs",
     "build": "node ./build.mjs",
     "start": "node --enable-source-maps ./dist/index.mjs",
