@@ -70,7 +70,6 @@ export function LegalPageShell({ title, description, children }: LegalPageShellP
         <div className="content-shell flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <img src={logoSrc} alt="ACTS Club" className="h-8 w-auto brightness-0 invert" />
-            <p className="mt-1 text-xs text-cream/70">Artists. Creators. Talent. Skills.</p>
           </div>
           <p className="text-xs text-cream/65">ACTS Club is operated by GrowItBuddy.</p>
         </div>

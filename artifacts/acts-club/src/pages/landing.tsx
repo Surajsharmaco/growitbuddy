@@ -380,7 +380,6 @@ export default function Landing() {
           <div className="flex w-full flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-6">
             <div>
               <img src={brandAsset('acts-club-logo.png')} alt="ACTS Club" className="h-8 w-auto brightness-0 invert md:h-9" />
-              <p className="mt-0.5 text-xs text-cream/65">Artists. Creators. Talent. Skills.</p>
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-0 text-xs font-medium sm:text-sm md:gap-x-5">
               {[['Community', 'community'], ['Opportunities', 'skills'], ['Events', 'inside'], ['About', 'about']].map(([l, t]) => <button key={l} data-testid={`link-footer-${l.toLowerCase()}`} onClick={() => go(t)} className="inline-flex min-h-9 items-center hover:text-acts">{l}</button>)}
