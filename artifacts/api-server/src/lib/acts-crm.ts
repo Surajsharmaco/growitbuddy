@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { and, eq, sql, desc, inArray } from "drizzle-orm";
 import { db, actsCrmRecords, actsMembershipCheckouts, actsMembers } from "@workspace/db";
 import { ActsPaymentError } from "./acts-razorpay";
+import { actsDateRange } from "./acts-date-range";
 
 export const actsCrmEvents = new EventEmitter();
 actsCrmEvents.setMaxListeners(200);
@@ -61,6 +62,8 @@ export function crmWhere(query: Record<string, unknown>) {
   if (query.paymentStatus === "successful") filters.push(sql`${actsMembers.id} IS NOT NULL`);
   if (query.paymentStatus === "pending") filters.push(sql`${actsMembers.id} IS NULL AND ${actsMembershipCheckouts.id} IS NOT NULL`);
   if (query.paymentStatus === "form_submitted") filters.push(sql`${actsMembershipCheckouts.id} IS NULL`);
+  const range = actsDateRange(query.fromDate, query.toDate);
+  if (range) filters.push(sql`${actsCrmRecords.createdAt} >= ${range.start} AND ${actsCrmRecords.createdAt} < ${range.end}`);
   return and(...filters);
 }
 

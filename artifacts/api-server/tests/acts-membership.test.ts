@@ -7,11 +7,36 @@ import { eq, inArray } from "drizzle-orm";
 import { db, pool, actsMembers, actsMembershipCheckouts, actsCrmRecords } from "@workspace/db";
 import membershipRouter from "../src/routes/acts-membership";
 import actsAdminRouter from "../src/routes/acts-admin";
+import { actsDateRange } from "../src/lib/acts-date-range";
+import { indiaToday, isCalendarDate, presetDates } from "../../acts-club/src/admin/date-filter";
 import { ActsApplicationInput } from "../src/lib/acts-membership";
 
 // Synthetic credentials exist only in this isolated test process. Every provider
 // request is intercepted; these tests cannot charge a card or use live Razorpay.
 const keySecret = `fixture-${randomUUID()}`;
+test("ACTS date presets use IST calendar days and seven inclusive days", () => {
+  assert.equal(indiaToday(new Date("2026-10-04T18:29:59Z")), "2026-10-04");
+  assert.equal(indiaToday(new Date("2026-10-04T18:30:00Z")), "2026-10-05");
+  assert.deepEqual(presetDates("today", "2026-10-05"), { fromDate: "2026-10-05", toDate: "2026-10-05" });
+  assert.deepEqual(presetDates("tomorrow", "2026-12-31"), { fromDate: "2027-01-01", toDate: "2027-01-01" });
+  assert.deepEqual(presetDates("yesterday", "2026-01-01"), { fromDate: "2025-12-31", toDate: "2025-12-31" });
+  assert.deepEqual(presetDates("last7", "2026-10-05"), { fromDate: "2026-09-29", toDate: "2026-10-05" });
+  assert.deepEqual(presetDates("all", "2026-10-05"), { fromDate: "", toDate: "" });
+});
+test("ACTS custom date boundaries include the entire IST end day and reject invalid ranges", () => {
+  assert.equal(isCalendarDate("61004-02-02"), false);
+  assert.equal(isCalendarDate(""), false);
+  assert.equal(isCalendarDate("2026-02-30"), false);
+  assert.equal(isCalendarDate("2026-10-04"), true);
+  const range = actsDateRange("2026-10-05", "2026-10-05")!;
+  assert.equal(range.start.toISOString(), "2026-10-04T18:30:00.000Z");
+  assert.equal(range.end.toISOString(), "2026-10-05T18:30:00.000Z");
+  assert.ok(actsDateRange("2024-02-29", "2024-02-29"));
+  assert.equal(actsDateRange(undefined, undefined), null);
+  for (const [from, to] of [["2026-02-30", "2026-03-01"], ["2026-10-06", "2026-10-05"], ["0000-01-01", "0000-01-01"], ["", ""], ["2026-10-05", undefined]]) {
+    assert.throws(() => actsDateRange(from, to), /valid From and To/);
+  }
+});
 const webhookSecret = `fixture-webhook-${randomUUID()}`;
 process.env.RAZORPAY_KEY_ID = "rzp_test_fixture";
 process.env.RAZORPAY_KEY_SECRET = keySecret;
@@ -173,6 +198,12 @@ test("ACTS admin isolation, CRM persistence and live changes", async t => {
     assert.equal(row.paymentStatus, "form_submitted"); assert.equal(row.orderId, null);
     assert.equal(row.application.whatsappNumber, "+919876543210");
     assert.equal(row.application.otherSkill, "Test skill"); assert.equal(row.application.agreesToGuidelines, true);
+    const submittedDay = indiaToday(new Date(row.createdAt));
+    const dateQuery = "/crm?search=" + encodeURIComponent(name) + "&fromDate=" + submittedDay + "&toDate=" + submittedDay;
+    assert.equal((await admin(dateQuery, "GET", undefined, token)).body!.total, 1);
+    const nextDay = presetDates("tomorrow", submittedDay).fromDate;
+    assert.equal((await admin("/crm?search=" + encodeURIComponent(name) + "&fromDate=" + nextDay + "&toDate=" + nextDay, "GET", undefined, token)).body!.total, 0);
+    assert.equal((await admin("/crm?fromDate=2026-02-30&toDate=2026-03-01", "GET", undefined, token)).status, 400);
     assert.equal((await admin("/crm/" + row.id, "PATCH", { paymentStatus: "successful" }, token)).status, 400);
     assert.equal((await admin("/crm/" + row.id, "PATCH", { followUpAt: true }, token)).status, 400);
     const edit = await admin("/crm/" + row.id, "PATCH", { stage: "contacted", notes: "Synthetic follow-up", followUpAt: "2026-10-06T03:30:00.000Z" }, token);

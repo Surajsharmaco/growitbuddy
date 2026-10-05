@@ -251,6 +251,8 @@ export const ListActsCrmQueryParams = zod.object({
   "stage": zod.coerce.string().optional(),
   "paymentStatus": zod.coerce.string().optional(),
   "includeArchived": zod.coerce.boolean().optional(),
+  "fromDate": zod.date().optional().describe('Inclusive submission date in IST; requires toDate.'),
+  "toDate": zod.date().optional().describe('Inclusive submission date in IST; requires fromDate.'),
   "page": zod.coerce.number().int().min(1).optional(),
   "limit": zod.coerce.number().int().min(1).max(listActsCrmQueryLimitMax).optional()
 })

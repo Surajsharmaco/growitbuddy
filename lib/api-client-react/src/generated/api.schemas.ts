@@ -374,6 +374,14 @@ stage?: string;
 paymentStatus?: string;
 includeArchived?: boolean;
 /**
+ * Inclusive submission date in IST; requires toDate.
+ */
+fromDate?: string;
+/**
+ * Inclusive submission date in IST; requires fromDate.
+ */
+toDate?: string;
+/**
  * @minimum 1
  */
 page?: number;

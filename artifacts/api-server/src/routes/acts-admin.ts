@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { actsAdminAuth, actsOwnerPassword, ownerPasswordMatches, createActsSession, revokeActsSession } from "../lib/acts-admin-auth";
 import { actsCrmEvents, listCrm, crmStats, getCrmRecord, updateCrm } from "../lib/acts-crm";
 import { backupSettings, syncActsSheets } from "../lib/acts-sheets";
+import { ActsPaymentError } from "../lib/acts-razorpay";
 
 const router = Router();
 const loginAttempts = new Map<string, { count: number; expires: number }>();
@@ -23,7 +24,12 @@ function validDateInput(body: unknown) {
 function guarded(fn: (req: Request, res: Response) => Promise<unknown>) {
   return async (req: Request, res: Response) => {
     try { await fn(req, res); }
-    catch { res.status(503).json({ error: "ACTS CRM storage is temporarily unavailable. Your saved records have not been deleted." }); }
+    catch (error) {
+      if (error instanceof ActsPaymentError && error.status === 400) {
+        res.status(400).json({ error: error.message }); return;
+      }
+      res.status(503).json({ error: "ACTS CRM storage is temporarily unavailable. Your saved records have not been deleted." });
+    }
   };
 }
 

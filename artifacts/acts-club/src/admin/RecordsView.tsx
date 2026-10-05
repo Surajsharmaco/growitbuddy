@@ -6,6 +6,7 @@ import {
 } from '@workspace/api-client-react';
 import { ChevronLeft, ChevronRight, Download, RefreshCw, Search, X, Archive, ArchiveRestore } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { DATE_PRESETS, indiaToday, isCalendarDate, presetDates, type DatePreset } from './date-filter';
 import {
   POLL_MS, csvCell, errMsg, fmtDate, fromDateInput, rupees, toDateInput, useAdmin,
 } from './admin-api';
@@ -123,6 +124,13 @@ export default function RecordsView({ mode }: { mode: Mode }) {
   const [stage, setStage] = useState('');
   const [pay, setPay] = useState(mode === 'payments' ? 'successful' : '');
   const [archived, setArchived] = useState(false);
+  const [datePreset, setDatePreset] = useState<DatePreset>('all');
+  const [today, setToday] = useState(indiaToday);
+  const [customFrom, setCustomFrom] = useState(today);
+  const [customTo, setCustomTo] = useState(today);
+  const dates = datePreset === 'custom' ? { fromDate: customFrom, toDate: customTo } : presetDates(datePreset, today);
+  const dateError = datePreset === 'custom' && (!isCalendarDate(customFrom) || !isCalendarDate(customTo) || customFrom > customTo)
+    ? 'Choose two valid dates. From must not be after To.' : '';
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [openId, setOpenId] = useState<string | null>(null);
@@ -130,14 +138,16 @@ export default function RecordsView({ mode }: { mode: Mode }) {
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => { const t = setTimeout(() => setQ(search.trim()), 300); return () => clearTimeout(t); }, [search]);
-  useEffect(() => { setPage(1); setSelected(new Set()); }, [q, stage, pay, archived]);
+  useEffect(() => { const timer = setInterval(() => setToday(indiaToday()), 60_000); return () => clearInterval(timer); }, []);
+  useEffect(() => { setPage(1); setSelected(new Set()); setOpenId(null); }, [q, stage, pay, archived, dates.fromDate, dates.toDate]);
 
   const params: ListActsCrmParams = {
     page, limit: LIMIT, includeArchived: archived,
     ...(q ? { search: q } : {}), ...(stage ? { stage } : {}), ...(pay ? { paymentStatus: pay } : {}),
+    ...(dates.fromDate && dates.toDate ? dates : {}),
   };
   const { data, isLoading, error, refetch, isFetching } = useListActsCrm(params, {
-    query: { queryKey: ['/api/acts/admin/crm', params], refetchInterval: POLL_MS, placeholderData: (p) => p },
+    query: { queryKey: ['/api/acts/admin/crm', params], enabled: !dateError, refetchInterval: POLL_MS },
     request: { headers },
   });
   const items = data?.items ?? [];
@@ -194,9 +204,9 @@ export default function RecordsView({ mode }: { mode: Mode }) {
 
   return (
     <div>
-      <PageHead title={titles[0]} sub={`${titles[1]} ${data ? `${total} match${total === 1 ? '' : 'es'}.` : ''}`}>
-        <button className={btn} onClick={() => void refetch()} aria-label="Refresh" data-testid="button-refresh"><RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} /></button>
-        <button className={btnDark} onClick={exportCsv} disabled={exporting || total === 0} data-testid="button-export-csv"><Download size={14} />{exporting ? 'Exporting...' : 'Export CSV'}</button>
+      <PageHead title={titles[0]} sub={`${titles[1]} ${data && !dateError ? `${total} match${total === 1 ? '' : 'es'}.` : ''}`}>
+        <button className={btn} disabled={!!dateError} onClick={() => void refetch()} aria-label="Refresh" data-testid="button-refresh"><RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} /></button>
+        <button className={btnDark} onClick={exportCsv} disabled={exporting || total === 0 || !!dateError || isFetching || !!error} data-testid="button-export-csv"><Download size={14} />{exporting ? 'Exporting...' : 'Export CSV'}</button>
       </PageHead>
 
       <div className="mb-3 flex flex-wrap gap-2">
@@ -219,6 +229,25 @@ export default function RecordsView({ mode }: { mode: Mode }) {
           <input type="checkbox" checked={archived} onChange={(e) => setArchived(e.target.checked)} data-testid="checkbox-archived" /> Include archived</label>
       </div>
 
+      <div className="mb-5 rounded-xl border border-ink/10 bg-card p-4">
+        <div className="grid grid-cols-1 items-end gap-3 sm:flex sm:flex-wrap">
+          <label className="min-w-0 flex-1 sm:max-w-52">
+            <span className="mb-1.5 block text-[12px] font-semibold">Date filter</span>
+            <select className={field} value={datePreset} onChange={(e) => setDatePreset(e.target.value as DatePreset)} data-testid="select-date-filter">
+              {DATE_PRESETS.map((preset) => <option key={preset.value} value={preset.value}>{preset.label}</option>)}
+            </select>
+          </label>
+          {datePreset === 'custom' && <>
+            <label className="min-w-0 flex-1 sm:max-w-48"><span className="mb-1.5 block text-[12px] font-semibold">From</span>
+              <input type="date" className={field} value={customFrom} max={customTo || undefined} onChange={(e) => setCustomFrom(e.target.value)} data-testid="input-date-from" /></label>
+            <label className="min-w-0 flex-1 sm:max-w-48"><span className="mb-1.5 block text-[12px] font-semibold">To</span>
+              <input type="date" className={field} value={customTo} min={customFrom || undefined} onChange={(e) => setCustomTo(e.target.value)} data-testid="input-date-to" /></label>
+          </>}
+          {datePreset !== 'all' && <button className={btn} onClick={() => setDatePreset('all')} data-testid="button-clear-date">Clear dates</button>}
+        </div>
+        <p className="mt-2 text-[11px] text-ink/55">By submission date · India Standard Time (IST) · Both dates included.{dates.fromDate && dates.toDate ? ` ${dates.fromDate} to ${dates.toDate}.` : ''}</p>
+        {dateError && <p role="alert" className="mt-2 text-sm text-red-700">{dateError}</p>}
+      </div>
       {mode === 'crm' && selected.size > 0 && (
         <div className="sticky top-[60px] z-20 mb-3 flex flex-wrap items-center gap-2 rounded-xl bg-ink px-4 py-3 text-cream" data-testid="bar-bulk">
           <span className="text-[13px] font-semibold">{selected.size} selected</span>
@@ -232,11 +261,12 @@ export default function RecordsView({ mode }: { mode: Mode }) {
       )}
 
       {error ? <ErrorBox message={errMsg(error)} onRetry={() => void refetch()} />
+        : dateError ? <p className="text-sm text-ink/60">Choose a valid date range to view records.</p>
         : isLoading ? <div className="space-y-2">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-16" />)}</div>
         : items.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-ink/20 px-6 py-14 text-center" data-testid="empty-records">
             <p className="font-display text-xl font-bold">Nothing here yet</p>
-            <p className="mx-auto mt-1 max-w-sm text-sm text-ink/55">{q || stage || pay ? 'No records match these filters. Try clearing them.' : 'New membership submissions appear here the moment they arrive.'}</p>
+            <p className="mx-auto mt-1 max-w-sm text-sm text-ink/55">{q || stage || pay || datePreset !== 'all' ? 'No records match these filters. Try clearing them.' : 'New membership submissions appear here the moment they arrive.'}</p>
           </div>
         ) : (
           <div className="overflow-hidden rounded-2xl border border-ink/10 bg-card">
@@ -268,7 +298,7 @@ export default function RecordsView({ mode }: { mode: Mode }) {
           </div>
         )}
 
-      {total > 0 && (
+      {total > 0 && !dateError && (
         <div className="mt-4 flex items-center justify-between text-[13px] text-ink/60">
           <span>Page {page} of {pages}</span>
           <div className="flex gap-2">
