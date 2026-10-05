@@ -1,6 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Instagram, Linkedin } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { MembershipDialog } from '@/components/MembershipDialog';
 import { SkillPills } from '@/components/SkillPills';
 import { HeroTicker } from '@/components/HeroTicker';
@@ -127,7 +126,6 @@ function PriceOffer({
 
 export default function Landing() {
   const [open, setOpen] = useState(false);
-  const [loginOpen, setLoginOpen] = useState(false);
   const [menu, setMenu] = useState(false);
   const [heroPassed, setHeroPassed] = useState(false);
   const menuBtn = useRef<HTMLButtonElement>(null);
@@ -186,7 +184,6 @@ export default function Landing() {
             ))}
           </nav>
           <div className="flex items-center gap-2 sm:gap-3">
-            <button data-testid="button-login" onClick={() => { setMenu(false); setLoginOpen(true); }} className="btn-3d btn-3d--cream btn-3d--compact min-h-11 px-3.5 py-2 text-sm font-bold sm:px-4">Login</button>
             <button data-testid="button-join-nav" onClick={join} className="btn-3d btn-3d--orange btn-3d--compact hidden min-h-11 px-4 py-2.5 text-xs font-bold min-[400px]:inline-flex sm:text-sm">JOIN ACTS →</button>
             <button ref={menuBtn} data-testid="button-menu" type="button" aria-label={menu ? 'Close menu' : 'Open menu'} aria-expanded={menu} aria-controls="mobile-menu" onClick={() => setMenu(m => !m)} className="flex h-11 w-11 items-center justify-center rounded-full border border-ink/20 md:hidden">
               <span aria-hidden className="relative block h-3.5 w-5">
@@ -414,13 +411,6 @@ export default function Landing() {
 
       {/* dialogs */}
       <MembershipDialog open={open} onOpenChange={setOpen} />
-      <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
-        <DialogContent className="max-h-[90dvh] w-[calc(100%-1.5rem)] overflow-y-auto rounded-3xl border-0 bg-cream p-5" data-testid="dialog-login">
-          <DialogTitle className="font-display text-2xl font-extrabold uppercase sm:text-3xl">Member login is coming soon</DialogTitle>
-          <DialogDescription>Members' spaces open after launch. Join now as a founding member to be part of ACTS from the start.</DialogDescription>
-          <button data-testid="button-login-join" onClick={() => { setLoginOpen(false); join(); }} className="btn-3d btn-3d--orange w-full py-4 font-display font-bold">JOIN ACTS →</button>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
