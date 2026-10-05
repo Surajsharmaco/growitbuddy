@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "test:acts": "node ./tests/run-acts.mjs",
+    "test:acts-backup": "node --test ./tests/acts-backup-script.test.mjs",
     "dev": "export NODE_ENV=development && node kill-port.mjs; pnpm run build && node --enable-source-maps ./dist/index.mjs",
     "build": "node ./build.mjs",
-    "start": "node --enable-source-maps ./dist/index.mjs",
+    "start": "pnpm --filter @workspace/db run migrate:acts-crm && node --enable-source-maps ./dist/index.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

@@ -10,6 +10,17 @@
     { "source": "/acts-club/privacy-policy", "destination": "/acts-club/index.html" },
     { "source": "/acts-club/terms-and-conditions", "destination": "/acts-club/index.html" },
     { "source": "/acts-club/community-guidelines", "destination": "/acts-club/index.html" },
+    { "source": "/acts-club/admin", "destination": "/acts-club/index.html" },
+    { "source": "/acts-club/admin/:path*", "destination": "/acts-club/index.html" },
     { "source": "/(.*)", "destination": "/api/render?path=/$1" }
+  ],
+  "headers": [
+    {
+      "source": "/acts-club/admin/:path*",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
   ]
 }

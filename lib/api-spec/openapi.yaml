@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: admin
+    description: Authenticated admin operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,43 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /admin/leads/sheets-sync:
+    post:
+      operationId: syncGoogleSheetsLeads
+      tags: [admin]
+      summary: Sync CRM leads to the Google Sheets backup
+      description: Starts the validated Apps Script sync for an authenticated admin with Leads permission.
+      responses:
+        "200":
+          description: The spreadsheet sync completed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoogleSheetsLeadSyncResult"
+        "401":
+          description: Admin authentication is required.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: The admin does not have Leads permission.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "502":
+          description: The Apps Script sync failed or returned an invalid result.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "503":
+          description: The Apps Script bridge is not configured.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /acts/membership/orders:
     post:
       operationId: createActsMembershipOrder
@@ -120,6 +159,129 @@ paths:
           $ref: "#/components/responses/ActsError"
         "503":
           $ref: "#/components/responses/ActsError"
+  /acts/admin/login:
+    post:
+      operationId: loginActsAdmin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ActsAdminLoginInput" }
+      responses:
+        "200":
+          description: Product-scoped admin session.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActsAdminSession" }
+  /acts/admin/session:
+    get:
+      operationId: getActsAdminSession
+      responses:
+        "200":
+          description: Current authenticated ACTS admin.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActsAdminIdentity" }
+    delete:
+      operationId: logoutActsAdmin
+      responses:
+        "204": { description: Session revoked. }
+  /acts/admin/crm:
+    get:
+      operationId: listActsCrm
+      parameters:
+        - { name: search, in: query, schema: { type: string } }
+        - { name: stage, in: query, schema: { type: string } }
+        - { name: paymentStatus, in: query, schema: { type: string } }
+        - { name: includeArchived, in: query, schema: { type: boolean } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1 } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100 } }
+      responses:
+        "200":
+          description: Paginated ACTS-only submissions and captured payments.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActsCrmList" }
+  /acts/admin/crm/{id}:
+    patch:
+      operationId: updateActsCrm
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ActsCrmUpdateInput" }
+      responses:
+        "200":
+          description: Updated submission.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActsCrmRecord" }
+  /acts/admin/crm/bulk:
+    post:
+      operationId: bulkUpdateActsCrm
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ActsCrmBulkInput" }
+      responses:
+        "200":
+          description: Number of changed records.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActsCrmBulkResult" }
+  /acts/admin/stats:
+    get:
+      operationId: getActsCrmStats
+      responses:
+        "200":
+          description: Authoritative counts and captured revenue.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActsCrmStats" }
+  /acts/admin/backup:
+    get:
+      operationId: getActsBackupSettings
+      responses:
+        "200":
+          description: Backup health and non-secret portable configuration.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActsBackupSettings" }
+    patch:
+      operationId: updateActsBackupSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ActsBackupSettingsInput" }
+      responses:
+        "200":
+          description: Saved backup settings.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActsBackupSettings" }
+  /acts/admin/backup/sync:
+    post:
+      operationId: syncActsBackup
+      responses:
+        "200":
+          description: Google-hosted backup completed.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActsBackupSyncResult" }
+  /acts/admin/backup/report:
+    post:
+      operationId: reportActsBackup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ActsBackupReportInput" }
+      responses:
+        "204": { description: Authenticated Apps Script sync recorded. }
 components:
   securitySchemes:
     ActsCheckoutToken:
@@ -133,15 +295,6 @@ components:
           schema:
             $ref: "#/components/schemas/ApiError"
   schemas:
-    HealthStatus:
-      type: object
-      properties:
-        status:
-          type: string
-      required:
-        - status
-
-
     ActsMemberInput:
       type: object
       required: [fullName, contactNumber, whatsappNumber, city, primarySkill, agreesToGuidelines]
@@ -194,6 +347,9 @@ components:
             checkoutToken:
               type: string
               pattern: "^[a-f0-9]{64}$"
+            submissionKey:
+              type: string
+              format: uuid
     ActsMembershipOrder:
       type: object
       required: [orderId, keyId, amount, currency, checkoutToken]
@@ -250,6 +406,157 @@ components:
         paymentId:
           type: string
         paidAt:
+          type: string
+          format: date-time
+    ActsAdminLoginInput:
+      type: object
+      required: [password]
+      properties:
+        password: { type: string, minLength: 1, maxLength: 500 }
+    ActsAdminSession:
+      type: object
+      required: [token, expiresAt]
+      properties:
+        token: { type: string }
+        expiresAt: { type: string, format: date-time }
+    ActsAdminIdentity:
+      type: object
+      required: [product, expiresAt]
+      properties:
+        product: { type: string, enum: [acts] }
+        expiresAt: { type: string, format: date-time }
+    ActsCrmUpdateInput:
+      type: object
+      properties:
+        stage: { type: string, enum: [new, contacted, qualified, closed] }
+        notes: { type: string, maxLength: 10000 }
+        followUpAt: { type: [string, "null"], format: date-time }
+        archived: { type: boolean }
+    ActsCrmBulkInput:
+      type: object
+      required: [ids, changes]
+      properties:
+        ids:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items: { type: string, format: uuid }
+        changes: { $ref: "#/components/schemas/ActsCrmUpdateInput" }
+    ActsCrmBulkResult:
+      type: object
+      required: [updated]
+      properties:
+        updated: { type: integer }
+    ActsCrmRecord:
+      type: object
+      required: [id, application, stage, notes, followUpAt, archived, createdAt, updatedAt, paymentStatus, amount, currency, orderId, paymentId, paidAt, reviewStatus]
+      properties:
+        id: { type: string }
+        application: { $ref: "#/components/schemas/ActsMemberInput" }
+        stage: { type: string, enum: [new, contacted, qualified, closed] }
+        notes: { type: string }
+        followUpAt: { type: [string, "null"], format: date-time }
+        archived: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        paymentStatus: { type: string, enum: [form_submitted, pending, successful] }
+        amount: { type: integer }
+        currency: { type: string, enum: [INR] }
+        orderId: { type: [string, "null"] }
+        paymentId: { type: [string, "null"] }
+        paidAt: { type: [string, "null"], format: date-time }
+        reviewStatus: { type: string, enum: [not_submitted, pending_review] }
+    ActsCrmList:
+      type: object
+      required: [items, total, page, limit]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/ActsCrmRecord" } }
+        total: { type: integer }
+        page: { type: integer }
+        limit: { type: integer }
+    ActsCrmStats:
+      type: object
+      required: [total, paid, pending, submitted, archived, followUpsDue, capturedAmount]
+      properties:
+        total: { type: integer }
+        paid: { type: integer }
+        pending: { type: integer }
+        submitted: { type: integer }
+        archived: { type: integer }
+        followUpsDue: { type: integer }
+        capturedAmount: { type: integer, description: INR paise, captured only. }
+    ActsBackupSettingsInput:
+      type: object
+      required: [workbookId]
+      properties:
+        workbookId: { type: string, pattern: "^[A-Za-z0-9_-]{20,100}$" }
+    ActsBackupSettings:
+      type: object
+      required: [workbookId, workbookUrl, configured, lastSyncAt, lastSyncError, credentialSource]
+      properties:
+        workbookId: { type: string }
+        workbookUrl: { type: string }
+        configured: { type: boolean }
+        lastSyncAt: { type: [string, "null"], format: date-time }
+        lastSyncError: { type: string }
+        credentialSource: { type: string, enum: [dedicated, shared_owner] }
+    ActsBackupSyncResult:
+      type: object
+      required: [synced, workbookId]
+      properties:
+        synced: { type: integer }
+        workbookId: { type: string }
+    ActsBackupReportInput:
+      type: object
+      required: [workbookId, synced, startedAt]
+      properties:
+        workbookId: { type: string, pattern: "^[A-Za-z0-9_-]{20,100}$" }
+        synced: { type: integer, minimum: 0 }
+        startedAt: { type: string, format: date-time }
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    GoogleSheetsLeadSyncResult:
+      type: object
+      required:
+        - success
+        - leadCount
+        - groupTabCount
+        - formTypeTabCount
+        - insertedMaster
+        - refreshedMaster
+        - insertedSource
+        - refreshedSource
+        - syncedAt
+      properties:
+        success:
+          type: boolean
+        leadCount:
+          type: number
+          minimum: 0
+        groupTabCount:
+          type: number
+          minimum: 0
+        formTypeTabCount:
+          type: number
+          minimum: 0
+        insertedMaster:
+          type: number
+          minimum: 0
+        refreshedMaster:
+          type: number
+          minimum: 0
+        insertedSource:
+          type: number
+          minimum: 0
+        refreshedSource:
+          type: number
+          minimum: 0
+        syncedAt:
           type: string
           format: date-time
     ApiError:

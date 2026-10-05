@@ -38,6 +38,7 @@ export function useActsMembership(open: boolean) {
   const openRef = useRef(open);
   openRef.current = open;
   const actionRef = useRef(false);
+  const submissionRef = useRef<{ key: string; fingerprint: string } | null>(null);
   const mounted = useRef(true);
   const orderMutation = useCreateActsMembershipOrder({ mutation: { retry: false } });
 
@@ -133,8 +134,13 @@ export function useActsMembership(open: boolean) {
         if (current.paymentStatus === "successful") { actionRef.current = false; return; }
         application = current.application;
       }
+      const fingerprint = JSON.stringify(application);
+      if (!submissionRef.current || submissionRef.current.fingerprint !== fingerprint) {
+        submissionRef.current = { key: crypto.randomUUID(), fingerprint };
+      }
       const order = await orderMutation.mutateAsync({
-        data: { ...application, ...(tokenRef.current ? { checkoutToken: tokenRef.current } : {}) },
+        data: { ...application, submissionKey: submissionRef.current.key,
+          ...(tokenRef.current ? { checkoutToken: tokenRef.current } : {}) },
       });
       tokenRef.current = order.checkoutToken;
       setHasCheckout(true);

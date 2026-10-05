@@ -1,11 +1,12 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
-import { db, actsMembershipCheckouts, actsMembers, type ActsCheckout } from "@workspace/db";
+import { db, actsMembershipCheckouts, actsMembers, actsCrmRecords, type ActsCheckout } from "@workspace/db";
 import { CreateActsMembershipOrderBody, GetActsMembershipStatusResponse } from "@workspace/api-zod";
 import {
   ACTS_AMOUNT, ACTS_CURRENCY, ActsPaymentError, assertPaymentMatches,
   isCaptured, razorpayKeys, razorpayRequest, type RazorpayPayment,
 } from "./acts-razorpay";
+import { crmChanged, recordActsSubmission } from "./acts-crm";
 
 export const ActsApplicationInput = CreateActsMembershipOrderBody.superRefine((input, context) => {
   const issue = (field: string, message: string) => context.addIssue({ code: "custom", path: [field], message });
@@ -62,7 +63,18 @@ export async function saveCapturedMembership(payment: RazorpayPayment): Promise<
   if (!payment?.order_id || !/^order_[A-Za-z0-9]+$/.test(payment.order_id)) {
     throw new ActsPaymentError(409, "The payment has no valid membership order.");
   }
+  const [candidate] = await db.select().from(actsMembershipCheckouts)
+    .where(eq(actsMembershipCheckouts.orderId, payment.order_id)).limit(1);
+  if (!candidate) throw new ActsPaymentError(409, "The ACTS checkout could not be found.");
+  // Also index a checkout made by the previous backend during a rolling release.
+  await db.insert(actsCrmRecords).values({
+    id: randomUUID(), submissionKey: candidate.id, checkoutId: candidate.id,
+    application: candidate.application, createdAt: candidate.createdAt,
+  }).onConflictDoNothing();
   await db.transaction(async transaction => {
+    // Order creation/recovery locks CRM first; capture must use that same order.
+    await transaction.select({ id: actsCrmRecords.id }).from(actsCrmRecords)
+      .where(eq(actsCrmRecords.checkoutId, candidate.id)).for("update");
     const [checkout] = await transaction.select().from(actsMembershipCheckouts)
       .where(eq(actsMembershipCheckouts.orderId, payment.order_id)).limit(1).for("update");
     if (!checkout) throw new ActsPaymentError(409, "The ACTS checkout could not be found.");
@@ -82,7 +94,10 @@ export async function saveCapturedMembership(payment: RazorpayPayment): Promise<
     }
     await transaction.update(actsMembershipCheckouts).set({ paymentStatus: "successful" })
       .where(eq(actsMembershipCheckouts.id, checkout.id));
+    await transaction.update(actsCrmRecords).set({ updatedAt: new Date() })
+      .where(eq(actsCrmRecords.checkoutId, checkout.id));
   });
+  crmChanged();
 }
 
 export async function reconcileCheckout(checkout: ActsCheckout): Promise<void> {
@@ -110,7 +125,6 @@ export async function membershipStatus(checkout: ActsCheckout, reconcile = true)
 
 export async function createMembershipOrder(input: ReturnType<typeof ActsApplicationInput.parse>) {
   const application = normalizeActsApplication(input);
-  const { keyId } = razorpayKeys();
   if (input.checkoutToken) {
     const checkout = await checkoutForToken(input.checkoutToken);
     const status = await membershipStatus(checkout);
@@ -120,20 +134,37 @@ export async function createMembershipOrder(input: ReturnType<typeof ActsApplica
     }
     return { orderId: checkout.orderId, keyId: checkout.keyId, amount: ACTS_AMOUNT, currency: ACTS_CURRENCY, checkoutToken: input.checkoutToken };
   }
-  const id = randomUUID();
-  const order = await razorpayRequest<{ id: string; amount: number; currency: string }>("/orders", {
-    amount: ACTS_AMOUNT, currency: ACTS_CURRENCY,
-    receipt: `acts_${id.replace(/-/g, "")}`,
-    notes: { product: "acts_membership", checkout_id: id },
+  // Save a submitted form even if credentials/provider/order creation fail.
+  const crm = await recordActsSubmission(application, input.submissionKey);
+  const { keyId } = razorpayKeys();
+  const result = await db.transaction(async transaction => {
+    // Serialise retries for this submission, including a lost order response.
+    const [locked] = await transaction.select().from(actsCrmRecords).where(eq(actsCrmRecords.id, crm.id)).for("update");
+    if (locked.checkoutId) {
+      const [previous] = await transaction.select().from(actsMembershipCheckouts).where(eq(actsMembershipCheckouts.id, locked.checkoutId));
+      if (!previous || previous.keyId !== keyId) throw new ActsPaymentError(409, "This submission has an earlier payment configuration. Contact ACTS before paying again.");
+      if (previous.paymentStatus === "successful") throw new ActsPaymentError(409, "Payment is already confirmed for this submission. Do not pay again.");
+      const checkoutToken = randomBytes(32).toString("hex");
+      await transaction.update(actsMembershipCheckouts).set({ tokenHash: tokenHash(checkoutToken) }).where(eq(actsMembershipCheckouts.id, previous.id));
+      return { orderId: previous.orderId, keyId, amount: ACTS_AMOUNT, currency: ACTS_CURRENCY, checkoutToken };
+    }
+    const id = randomUUID();
+    const order = await razorpayRequest<{ id: string; amount: number; currency: string }>("/orders", {
+      amount: ACTS_AMOUNT, currency: ACTS_CURRENCY,
+      receipt: `acts_${id.replace(/-/g, "")}`,
+      notes: { product: "acts_membership", checkout_id: id },
+    });
+    if (!/^order_[A-Za-z0-9]+$/.test(order.id) || order.amount !== ACTS_AMOUNT || order.currency !== ACTS_CURRENCY) {
+      throw new ActsPaymentError(502, "Razorpay returned an unexpected order. No payment was started.");
+    }
+    const checkoutToken = randomBytes(32).toString("hex");
+    await transaction.insert(actsMembershipCheckouts).values({
+      id, orderId: order.id, tokenHash: tokenHash(checkoutToken), keyId,
+      application, amount: ACTS_AMOUNT, currency: ACTS_CURRENCY,
+    });
+    await transaction.update(actsCrmRecords).set({ checkoutId: id, updatedAt: new Date() }).where(eq(actsCrmRecords.id, crm.id));
+    return { orderId: order.id, keyId, amount: ACTS_AMOUNT, currency: ACTS_CURRENCY, checkoutToken };
   });
-  if (!/^order_[A-Za-z0-9]+$/.test(order.id) || order.amount !== ACTS_AMOUNT || order.currency !== ACTS_CURRENCY) {
-    throw new ActsPaymentError(502, "Razorpay returned an unexpected order. No payment was started.");
-  }
-  const checkoutToken = randomBytes(32).toString("hex");
-  // This is a checkout draft, NOT a paid/approved member record.
-  await db.insert(actsMembershipCheckouts).values({
-    id, orderId: order.id, tokenHash: tokenHash(checkoutToken), keyId,
-    application, amount: ACTS_AMOUNT, currency: ACTS_CURRENCY,
-  });
-  return { orderId: order.id, keyId, amount: ACTS_AMOUNT, currency: ACTS_CURRENCY, checkoutToken };
+  crmChanged();
+  return result;
 }

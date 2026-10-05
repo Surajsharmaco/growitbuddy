@@ -4,8 +4,9 @@ import { createHmac, randomUUID } from "node:crypto";
 import { once } from "node:events";
 import express from "express";
 import { eq, inArray } from "drizzle-orm";
-import { db, pool, actsMembers, actsMembershipCheckouts } from "@workspace/db";
+import { db, pool, actsMembers, actsMembershipCheckouts, actsCrmRecords } from "@workspace/db";
 import membershipRouter from "../src/routes/acts-membership";
+import actsAdminRouter from "../src/routes/acts-admin";
 import { ActsApplicationInput } from "../src/lib/acts-membership";
 
 // Synthetic credentials exist only in this isolated test process. Every provider
@@ -17,6 +18,13 @@ process.env.RAZORPAY_KEY_SECRET = keySecret;
 process.env.RAZORPAY_WEBHOOK_SECRET = webhookSecret;
 const realFetch = globalThis.fetch;
 const orders: string[] = [];
+const submissionKeys: string[] = [];
+const adminPassword = `synthetic-owner-${randomUUID()}`;
+process.env.ADMIN_PASSWORD = adminPassword;
+process.env.ACTS_ADMIN_PASSWORD = `synthetic-ignored-${randomUUID()}`;
+delete process.env.GROWITBUDDY_LIVE_ADMIN_PASSWORD;
+delete process.env.ACTS_SHEETS_SYNC_URL;
+delete process.env.ACTS_SHEETS_SYNC_TOKEN;
 const payments = new Map<string, Record<string, unknown>>();
 let unavailable = false;
 globalThis.fetch = async (input, init) => {
@@ -48,6 +56,7 @@ app.use("/api/acts/membership/webhook", express.raw({ type: "application/json" }
 app.use(express.json());
 app.use((req, _res, next) => { req.log = { warn() {} } as typeof req.log; next(); });
 app.use("/api/acts/membership", membershipRouter);
+app.use("/api/acts/admin", actsAdminRouter);
 const server = app.listen(0, "127.0.0.1");
 await once(server, "listening");
 const base = `http://127.0.0.1:${(server.address() as { port: number }).port}/api/acts/membership`;
@@ -63,6 +72,11 @@ const application = {
   lookingFor: "All of the above", agreesToGuidelines: true,
 };
 async function request(path: string, body?: unknown, token?: string, headers: Record<string, string> = {}) {
+  if (path === "/orders" && body && typeof body === "object" && !(body as { checkoutToken?: string }).checkoutToken) {
+    const submissionKey = (body as { submissionKey?: string }).submissionKey ?? randomUUID();
+    submissionKeys.push(submissionKey);
+    body = { ...body, submissionKey };
+  }
   const response = await realFetch(`${base}${path}`, {
     method: body === undefined ? "GET" : "POST",
     headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}), ...headers },
@@ -97,6 +111,8 @@ function signedEvent(orderId: string, paymentId: string) {
 
 after(async () => {
   globalThis.fetch = realFetch;
+  // Remove only submissions created by this test, including provider-failure forms.
+  if (submissionKeys.length) await db.delete(actsCrmRecords).where(inArray(actsCrmRecords.submissionKey, submissionKeys));
   const checkouts = orders.length ? await db.select().from(actsMembershipCheckouts).where(inArray(actsMembershipCheckouts.orderId, orders)) : [];
   if (checkouts.length) {
     const ids = checkouts.map(checkout => checkout.id);
@@ -105,6 +121,103 @@ after(async () => {
   }
   await new Promise<void>(resolve => server.close(() => resolve()));
   await pool.end();
+});
+
+test("ACTS admin isolation, CRM persistence and live changes", async t => {
+  const adminBase = base.replace("/membership", "/admin");
+  async function admin(path: string, method = "GET", body?: unknown, token?: string) {
+    const response = await realFetch(adminBase + path, {
+      method, headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    });
+    return { status: response.status, cache: response.headers.get("cache-control"),
+      body: response.status === 204 ? null : await response.json() as Record<string, any> };
+  }
+  let token = "";
+  await t.test("ACTS-only login rejects unauthenticated requests and checkout/GB tokens", async () => {
+    assert.equal((await admin("/crm")).status, 401);
+    assert.equal((await admin("/crm", "GET", undefined, "1.nonce.super.WyJhbGwiXQ.fake")).status, 401);
+    const order = await start();
+    assert.equal((await admin("/crm", "GET", undefined, order.checkoutToken)).status, 401);
+    assert.equal((await admin("/login", "POST", { password: "synthetic-wrong" })).status, 401);
+    assert.equal((await admin("/login", "POST", { password: process.env.ACTS_ADMIN_PASSWORD })).status, 401);
+    const login = await admin("/login", "POST", { password: adminPassword });
+    assert.equal(login.status, 200);
+    token = login.body!.token;
+    assert.match(token, /^[a-f0-9]{64}$/);
+    assert.equal((await admin("/session", "GET", undefined, token)).body!.product, "acts");
+  });
+  await t.test("configured live GrowitBuddy password works instead of a separate ACTS password", async () => {
+    const livePassword = `synthetic-live-owner-${randomUUID()}`;
+    process.env.GROWITBUDDY_LIVE_ADMIN_PASSWORD = livePassword;
+    try {
+      assert.equal((await admin("/login", "POST", { password: adminPassword })).status, 401);
+      const login = await admin("/login", "POST", { password: livePassword });
+      assert.equal(login.status, 200);
+      const sharedSession = login.body!.token;
+      assert.equal((await admin("/session", "GET", undefined, sharedSession)).status, 200);
+      assert.equal((await admin("/backup", "GET", undefined, sharedSession)).body!.credentialSource, "shared_owner");
+      assert.equal((await admin("/session", "DELETE", undefined, sharedSession)).status, 204);
+    } finally { delete process.env.GROWITBUDDY_LIVE_ADMIN_PASSWORD; }
+  });
+  await t.test("failed checkout preserves the entire submitted form; safe edits/archive/restore persist", async () => {
+    const name = `ACTS CRM Failure ${randomUUID()}`;
+    const submissionKey = randomUUID();
+    unavailable = true;
+    try { assert.equal((await request("/orders", { ...application, fullName: name, submissionKey })).status, 502); }
+    finally { unavailable = false; }
+    let found = await admin("/crm?search=" + encodeURIComponent(name), "GET", undefined, token);
+    assert.equal(found.status, 200); assert.equal(found.cache, "no-store");
+    assert.equal(found.body!.total, 1);
+    const row = found.body!.items[0];
+    assert.equal(row.paymentStatus, "form_submitted"); assert.equal(row.orderId, null);
+    assert.equal(row.application.whatsappNumber, "+919876543210");
+    assert.equal(row.application.otherSkill, "Test skill"); assert.equal(row.application.agreesToGuidelines, true);
+    assert.equal((await admin("/crm/" + row.id, "PATCH", { paymentStatus: "successful" }, token)).status, 400);
+    assert.equal((await admin("/crm/" + row.id, "PATCH", { followUpAt: true }, token)).status, 400);
+    const edit = await admin("/crm/" + row.id, "PATCH", { stage: "contacted", notes: "Synthetic follow-up", followUpAt: "2026-10-06T03:30:00.000Z" }, token);
+    assert.equal(edit.status, 200); assert.equal(edit.body!.notes, "Synthetic follow-up");
+    assert.equal(edit.body!.followUpAt, "2026-10-06T03:30:00.000Z");
+    assert.equal((await admin("/crm/bulk", "POST", { ids: [row.id], changes: { archived: true } }, token)).body!.updated, 1);
+    assert.equal((await admin("/crm?search=" + encodeURIComponent(name), "GET", undefined, token)).body!.total, 0);
+    assert.equal((await admin("/crm?includeArchived=true&search=" + encodeURIComponent(name), "GET", undefined, token)).body!.items[0].archived, true);
+    assert.equal((await admin("/crm/bulk", "POST", { ids: [row.id], changes: { archived: false } }, token)).body!.updated, 1);
+    found = await admin("/crm?search=" + encodeURIComponent(name), "GET", undefined, token);
+    assert.equal(found.body!.items[0].notes, "Synthetic follow-up");
+  });
+  await t.test("captured payment updates the same CRM entry, stats and event stream", async () => {
+    const controller = new AbortController();
+    const stream = await realFetch(adminBase + "/events", { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal });
+    const reader = stream.body!.getReader();
+    assert.match(new TextDecoder().decode((await reader.read()).value), /connected/);
+    const before = (await admin("/stats", "GET", undefined, token)).body!;
+    const order = await start();
+    const changed = await reader.read();
+    assert.match(new TextDecoder().decode(changed.value), /changed/);
+    controller.abort();
+    await reader.cancel().catch(() => {});
+    const captured = payment(order.orderId, true);
+    const body = JSON.stringify({ event: "payment.captured", payload: { payment: { entity: captured } } });
+    const signature = createHmac("sha256", webhookSecret).update(body).digest("hex");
+    assert.equal((await request("/webhook", body, undefined, { "x-razorpay-signature": signature })).status, 200);
+    const found = await admin("/crm?search=" + order.orderId, "GET", undefined, token);
+    assert.equal(found.body!.total, 1);
+    assert.equal(found.body!.items[0].paymentStatus, "successful");
+    assert.equal(found.body!.items[0].paymentId, captured.id);
+    assert.equal(found.body!.items[0].reviewStatus, "pending_review");
+    const after = (await admin("/stats", "GET", undefined, token)).body!;
+    assert.equal(after.paid, before.paid + 1); assert.equal(after.capturedAmount, before.capturedAmount + 9900);
+    // Lost order responses retry the original order rather than create a second one.
+    const key = submissionKeys[submissionKeys.length - 1];
+    assert.equal((await request("/orders", { ...application, submissionKey: key })).status, 409);
+  });
+  await t.test("backup is honestly unconfigured and logout revokes server-side", async () => {
+    const settings = await admin("/backup", "GET", undefined, token);
+    assert.equal(settings.body!.configured, false);
+    assert.equal((await admin("/backup/report", "POST", { workbookId: settings.body!.workbookId, synced: 0, startedAt: "2099-01-01T00:00:00Z" }, token)).status, 400);
+    assert.equal((await admin("/session", "DELETE", undefined, token)).status, 204);
+    assert.equal((await admin("/crm", "GET", undefined, token)).status, 401);
+  });
 });
 
 test("ACTS payment safety and persisted membership flow", async t => {
@@ -121,6 +234,7 @@ test("ACTS payment safety and persisted membership flow", async t => {
     assert.equal(ActsApplicationInput.safeParse({ ...application, youAre: "Freelancer", creatorType: undefined }).success, true);
   });
 
+  const initialOrderCount = orders.length;
   const order = await start();
   const pay = payment(order.orderId);
   await t.test("order creation uses ₹99 INR and stores no paid member", async () => {
@@ -131,7 +245,7 @@ test("ACTS payment safety and persisted membership flow", async t => {
     assert.equal(resumed.status, 200, "JSONB key ordering must not break checkout resumption");
     assert.equal(resumed.body.orderId, order.orderId);
     assert.equal(resumed.body.amount, 9900);
-    assert.equal(orders.length, 1);
+    assert.equal(orders.length, initialOrderCount + 1);
   });
 
   await t.test("private tokens, signatures and order binding are enforced", async () => {
