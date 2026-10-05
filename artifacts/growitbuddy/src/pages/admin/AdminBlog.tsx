@@ -10,7 +10,7 @@ import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
 import { BulkSelectionBar, CollectionSelectionCheckbox } from "@/components/admin/BulkSelectionBar";
 import { KeywordUsageGuide } from "@/components/admin/KeywordUsageGuide";
 import { classifyArticleLink, getArticleLinks } from "@/lib/blogLinks";
-import { analyzeKeywordSet, needsCombinedReview, needsRepetitionReview, countArticleWords as wordCount } from "@/lib/keywordUsage";
+import { analyzeKeywordSet, needsCombinedReview, needsRepetitionReview, countArticleWords as wordCount, countArticleCharacters } from "@/lib/keywordUsage";
 import { formatPastedBlog, optimizeBlogContent } from "@/lib/pasteBlogContent";
 import { DEFAULT_TOC_VISIBLE, tocVisibleCount } from "@/lib/blogToc";
 import { analyzeBlogSeo } from "@/lib/blogSeoAudit";
@@ -1437,7 +1437,8 @@ function PostEditor({
   const liveContent = mode === "visual" && editorRef.current ? editorRef.current.innerHTML : data.content;
   const { score, issues } = computeSeoScore({ ...data }, liveContent, seo);
   const readability = readabilityAnalysis(liveContent);
-  const wc = wordCount(liveContent);
+  const wc = wordCount(data.content);
+  const characters = countArticleCharacters(data.content);
   const internalLinks = getInternalLinkSuggestions(data.slug, liveContent, allPosts);
   const seoTitleDisplay = seo.seoTitle || data.title;
   const metaDescDisplay = seo.metaDescription || data.excerpt;
@@ -1914,9 +1915,14 @@ function PostEditor({
                     className="w-full h-[65vh] min-h-[300px] max-h-[calc(100vh-300px)] overflow-y-auto overscroll-contain px-7 py-6 text-[13px] text-[#0B0B0B]/65 font-mono leading-relaxed outline-none resize-none bg-[#fafafa]"
                     placeholder="Write your post content..." spellCheck={false} />
                 )}
-                <div className="flex items-center justify-between px-5 py-2.5 border-t border-[#0B0B0B]/6 bg-[#fafafa] rounded-b-2xl">
-                  <div className="flex items-center gap-4">
-                    <span className="text-[11px] text-[#0B0B0B]/30">Words: {wc}</span>
+                <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-2.5 border-t border-[#0B0B0B]/6 bg-[#fafafa] rounded-b-2xl">
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
+                    <div role="group" aria-label={`${pageMode ? "Page" : "Blog"} content statistics`}
+                      title="Visible body content only. Characters include spaces; HTML tags and image attributes are not counted."
+                      className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] font-semibold text-[#0B0B0B]/70">
+                      <span data-testid="editor-word-count">Words: {wc.toLocaleString("en-IN")}</span>
+                      <span data-testid="editor-character-count">Characters (incl. spaces): {characters.toLocaleString("en-IN")}</span>
+                    </div>
                     <span className={`text-[11px] font-medium ${readability.score >= 80 ? "text-emerald-600" : readability.score >= 60 ? "text-amber-600" : "text-red-500"}`}>
                       {readability.label} (avg {readability.avgWords} words/sentence)
                     </span>

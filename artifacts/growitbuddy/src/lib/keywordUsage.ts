@@ -16,6 +16,7 @@ const BLOCKS = new Set([
 const SKIP = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "TEMPLATE", "SVG", "MATH"]);
 let lastContent: string | undefined;
 let lastSegments: string[][] = [];
+let lastVisibleText = "";
 
 function words(text: string): string[] {
   return text.normalize("NFKC").toLowerCase().match(
@@ -25,17 +26,25 @@ function words(text: string): string[] {
 
 function articleSegments(content: string): string[][] {
   if (content === lastContent) return lastSegments;
-  if (!content.trim()) return [];
+  if (!content.trim()) {
+    lastContent = content;
+    lastSegments = [];
+    lastVisibleText = "";
+    return lastSegments;
+  }
   // Legacy posts can contain Markdown; parsing it first removes link destinations,
   // image syntax and heading markers from the visible word count.
   const isHtml = /<(?:p|div|h[1-6]|ul|ol|li|blockquote|table|tr|td|th|section|article|pre|br|hr|figure)\b/i.test(content);
   const html = isHtml ? content : marked.parse(content, { gfm: true, async: false }) as string;
   const doc = new DOMParser().parseFromString(html, "text/html");
   const segments: string[][] = [];
+  const visibleSegments: string[] = [];
   let text = "";
   const flush = () => {
     const tokens = words(text);
     if (tokens.length) segments.push(tokens);
+    const visible = text.replace(/\s+/gu, " ").trim();
+    if (visible) visibleSegments.push(visible);
     text = "";
   };
   const visit = (node: Node) => {
@@ -57,6 +66,7 @@ function articleSegments(content: string): string[][] {
   flush();
   lastContent = content;
   lastSegments = segments;
+  lastVisibleText = visibleSegments.join(" ");
   return segments;
 }
 
@@ -87,6 +97,12 @@ export function needsRepetitionReview(usage: KeywordUsage, keyword: string): boo
 
 export function countArticleWords(content: string): number {
   return articleSegments(content).reduce((count, segment) => count + segment.length, 0);
+}
+
+/** Unicode code points in visible body text, including normalized spaces, not HTML markup. */
+export function countArticleCharacters(content: string): number {
+  articleSegments(content);
+  return Array.from(lastVisibleText).length;
 }
 
 export function analyzeKeywordUsage(content: string, keyword: string): KeywordUsage {
