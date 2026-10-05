@@ -504,6 +504,62 @@ function resolveCmsPageSeo(page, options = {}) {
   };
 }
 
+// lib/seo/src/liveSitemap.ts
+function escape(value) {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+}
+function canonicalMatches(value, expected) {
+  const canonical = value?.trim();
+  if (!canonical) return true;
+  const absolute = canonical.startsWith("//") ? `https:${canonical}` : /^https?:\/\//i.test(canonical) ? canonical : `${SITE_URL}${canonical.startsWith("/") ? "" : "/"}${canonical}`;
+  return absolute === expected;
+}
+function entry(url, lastmod, priority = 0.7, changefreq = "monthly") {
+  return `  <url>
+    <loc>${escape(url)}</loc>${lastmod ? `
+    <lastmod>${escape(lastmod)}</lastmod>` : ""}
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>
+  </url>`;
+}
+function buildLivePageSitemapEntries(registry, policy) {
+  if (!policy.globalIndexable) return [];
+  const urls = /* @__PURE__ */ new Map();
+  for (const page of registry) {
+    const seo = policy.seo[page.slug] ?? {};
+    const url = SITE_URL + page.path;
+    if (page.path.includes(":") || policy.visibility[page.slug]?.hidden || (seo.index ?? page.defaults.index ?? true) === false || (seo.sitemap ?? page.defaults.sitemap ?? true) === false || !canonicalMatches(seo.canonical, url)) continue;
+    urls.set(url, entry(url, null, page.priority, page.changefreq));
+  }
+  for (const page of policy.cmsPages) {
+    if (!page || !page.slug || policy.visibility[page.slug]?.hidden || !isCmsPageInSitemap(page)) continue;
+    const seo = policy.seo[page.slug];
+    const resolved = resolveCmsPageSeo(page);
+    if (seo?.index === false || seo?.sitemap === false || !canonicalMatches(seo?.canonical, resolved.sitemap.url)) continue;
+    urls.set(resolved.sitemap.url, entry(resolved.sitemap.url, resolved.sitemap.lastmod));
+  }
+  for (const variant of policy.variants) {
+    if (!variant || variant.isLive === false || !validateCmsPageSlug(variant.slug).valid || policy.cmsPages.some((page) => page.slug === variant.slug) || policy.visibility[variant.slug]?.hidden || policy.visibility[variant.sourceKey]?.hidden) continue;
+    const source = registry.find((page) => page.slug === variant.sourceKey);
+    if (!source) continue;
+    const seo = { ...policy.seo[variant.sourceKey], ...policy.seo[variant.slug], canonical: policy.seo[variant.slug]?.canonical };
+    const url = SITE_URL + "/" + variant.slug;
+    if ((seo.index ?? source.defaults.index ?? true) === false || (seo.sitemap ?? source.defaults.sitemap ?? true) === false || !canonicalMatches(seo.canonical, url)) continue;
+    urls.set(url, entry(url));
+  }
+  return [...urls.values()];
+}
+function buildLiveBlogSitemapEntries(policy) {
+  if (!policy.globalIndexable || policy.visibility.insights?.hidden) return [];
+  const urls = /* @__PURE__ */ new Map();
+  for (const post of policy.posts) {
+    if (!post || !post.slug || !isBlogInSitemap(post)) continue;
+    const resolved = resolveBlogSeo(post);
+    urls.set(resolved.sitemap.url, entry(resolved.sitemap.url, resolved.sitemap.lastmod, 0.8));
+  }
+  return [...urls.values()];
+}
+
 // lib/seo/src/index.ts
 var PAGE_REGISTRY = [
   // Core
@@ -565,39 +621,12 @@ function findEntryByPath(pathname) {
   if (/^\/verify\/[^/]+$/.test(pathname)) return PAGE_REGISTRY.find((p2) => p2.slug === "verify-id") ?? null;
   return null;
 }
-var DEFAULT_SITEMAP_PRIORITY = 0.7;
-var DEFAULT_SITEMAP_CHANGEFREQ = "monthly";
-function getSitemapPages() {
-  return PAGE_REGISTRY.filter(
-    (p2) => p2.defaults.index !== false && p2.defaults.sitemap !== false && !p2.path.includes(":")
-  );
-}
-function sitemapUrl(loc, lastmod, changefreq, priority) {
-  return `  <url>
-    <loc>${loc}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>${changefreq}</changefreq>
-    <priority>${priority.toFixed(1)}</priority>
-  </url>`;
-}
 function wrapUrlset(urls) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.join("\n")}
 </urlset>
 `;
-}
-function buildSitemapXml(params) {
-  const site = params.siteUrl ?? SITE_URL;
-  const urls = getSitemapPages().filter((p2) => params.include ? params.include(p2) : true).map(
-    (p2) => sitemapUrl(
-      `${site}${p2.path}`,
-      params.lastmod,
-      p2.changefreq ?? DEFAULT_SITEMAP_CHANGEFREQ,
-      p2.priority ?? DEFAULT_SITEMAP_PRIORITY
-    )
-  );
-  return wrapUrlset(urls);
 }
 
 // node_modules/.pnpm/@neondatabase+serverless@1.1.0/node_modules/@neondatabase/serverless/index.mjs
@@ -5834,6 +5863,57 @@ var export_escapeIdentifier = ct.escapeIdentifier;
 var export_escapeLiteral = ct.escapeLiteral;
 var export_types = ct.types;
 
+// artifacts/growitbuddy/ssr/liveSitemap.ts
+function posts(value) {
+  const data = value;
+  return Array.isArray(data?.posts) ? data.posts : [];
+}
+async function loadLiveSitemapPolicy(dbUrl, apiBase) {
+  if (dbUrl) {
+    try {
+      const sql = cs(dbUrl, { fetchOptions: { signal: AbortSignal.timeout(2e4) } });
+      const rows = await sql`
+        SELECT section, data FROM site_content
+        WHERE section IN ('seo-global', 'page_visibility', 'blog', 'cms-pages') OR section LIKE 'seo:%'
+      `;
+      const variants = await sql`SELECT slug, source_key AS "sourceKey" FROM page_variants WHERE is_live = true`;
+      const data = Object.fromEntries(rows.map((row) => [row.section, row.data]));
+      return {
+        globalIndexable: data["seo-global"]?.siteIndexable !== false,
+        seo: Object.fromEntries(rows.filter((row) => row.section.startsWith("seo:")).map((row) => [row.section.slice(4), row.data])),
+        visibility: data.page_visibility ?? {},
+        posts: posts(data.blog),
+        cmsPages: posts(data["cms-pages"]),
+        variants
+      };
+    } catch {
+    }
+  }
+  if (!apiBase) throw new Error("No authoritative sitemap data source is configured");
+  const base = apiBase.replace(/\/+$/, "");
+  async function get(path) {
+    const response = await fetch(base + path, { cache: "no-store", signal: AbortSignal.timeout(2e4) });
+    if (!response.ok) throw new Error(`Sitemap source HTTP ${response.status}`);
+    return response.json();
+  }
+  const [rawSeo, rawContent, rawVariants] = await Promise.all([
+    get("/seo"),
+    get("/admin/public/content-bulk?sections=page_visibility,blog,cms-pages"),
+    get("/admin/public/variants")
+  ]);
+  const seo = rawSeo;
+  const content = rawContent;
+  if (typeof seo.global?.siteIndexable !== "boolean" || !seo.pages || !content.data || ["page_visibility", "blog", "cms-pages"].some((key) => !Object.prototype.hasOwnProperty.call(content.data, key)) || !Array.isArray(rawVariants)) throw new Error("Incomplete authoritative sitemap policy");
+  return {
+    globalIndexable: seo.global.siteIndexable,
+    seo: seo.pages,
+    visibility: content.data.page_visibility ?? {},
+    posts: posts(content.data.blog),
+    cmsPages: posts(content.data["cms-pages"]),
+    variants: rawVariants
+  };
+}
+
 // .local/wp-disconnect/candidates/artifacts/growitbuddy/ssr/render.ts
 import { TEMPLATE } from "./_template.js";
 
@@ -7064,19 +7144,6 @@ async function loadFromPublicApi(slug, keys, contentSections) {
   }
   return buildBundle(slug, contentSections, new Map(Object.entries(responseData)));
 }
-async function loadPublicSections(keys) {
-  const apiBase = process.env.VITE_API_URL?.replace(/\/+$/, "");
-  if (!apiBase) throw new Error("VITE_API_URL is not configured for public content");
-  const response = await fetch(
-    `${apiBase}/admin/public/content-bulk?sections=${encodeURIComponent(keys.join(","))}`,
-    { cache: "no-store", signal: AbortSignal.timeout(PUBLIC_API_TIMEOUT_MS) }
-  );
-  if (!response.ok) throw new Error(`Public content API returned HTTP ${response.status}`);
-  const payload = await response.json();
-  if (!payload.data || keys.some((key) => !Object.prototype.hasOwnProperty.call(payload.data, key)))
-    throw new Error("Public content API returned an incomplete section response");
-  return payload.data;
-}
 async function loadData(slug, sections) {
   const contentSections = Array.from(new Set(sections));
   const keys = Array.from(/* @__PURE__ */ new Set([`seo:${slug}`, "seo-global", ...contentSections]));
@@ -7101,11 +7168,12 @@ async function loadData(slug, sections) {
     clearTimeout(timer);
   }
 }
-function buildHtml(template, entry, pathname, b2, options = {}) {
+function buildHtml(template, entry2, pathname, b2, options = {}) {
   const seo = b2.seo;
-  const title = seo.title ?? entry.defaults.title;
-  const description = seo.description ?? entry.defaults.description;
-  const indexResolved = b2.globalIndexable ? seo.index ?? entry.defaults.index ?? true : false;
+  const title = seo.title ?? entry2.defaults.title;
+  const description = seo.description ?? entry2.defaults.description;
+  const visibility = b2.content.page_visibility;
+  const indexResolved = b2.globalIndexable && !visibility?.[entry2.slug]?.hidden ? seo.index ?? entry2.defaults.index ?? true : false;
   const followResolved = b2.globalIndexable ? seo.follow ?? true : false;
   const robots = `${indexResolved ? "index" : "noindex"},${followResolved ? "follow" : "nofollow"}`;
   const canonical = seo.canonical ? seo.canonical.startsWith("http") ? seo.canonical : `${SITE}${seo.canonical}` : `${SITE}${pathname}`;
@@ -7139,7 +7207,7 @@ function buildHtml(template, entry, pathname, b2, options = {}) {
   }
   const publicContent = sanitizePublicContent(b2.content);
   const bootstrap = `<script>window.__GB_PUBLIC_CONTENT__=${safeJson3(publicContent)};window.__GB_CONTENT_SECTIONS__=${safeJson3(b2.contentSections)};window.__GB_SEO__=${safeJson3({
-    slug: options.seoSlug ?? entry.slug,
+    slug: options.seoSlug ?? entry2.slug,
     path: pathname,
     data: seo,
     globalIndexable: b2.globalIndexable
@@ -7151,7 +7219,7 @@ function buildHtml(template, entry, pathname, b2, options = {}) {
   </head>`
   );
   const shared = new Set(SHARED_CONTENT_SECTIONS);
-  const bodySections = options.bodySections ?? sectionsForSlug(entry.slug).filter((section) => !shared.has(section));
+  const bodySections = options.bodySections ?? sectionsForSlug(entry2.slug).filter((section) => !shared.has(section));
   const mergedContent = {};
   for (const sec of bodySections) {
     mergedContent[sec] = mergeForBody(
@@ -7161,8 +7229,8 @@ function buildHtml(template, entry, pathname, b2, options = {}) {
   }
   let bodyHtml = renderContentBody(mergedContent, bodySections, title);
   if (pathname === BLOG_PATH) {
-    const posts = publicContent.blog?.posts;
-    const links = (Array.isArray(posts) ? posts : []).filter((post) => post.slug && isPublicBlogPost(post)).map((post) => `<li><a href="${escAttr(`${BLOG_PATH}/${encodeURIComponent(post.slug)}`)}">${escAttr(post.title || post.slug)}</a></li>`);
+    const posts2 = publicContent.blog?.posts;
+    const links = (Array.isArray(posts2) ? posts2 : []).filter((post) => post.slug && isPublicBlogPost(post)).map((post) => `<li><a href="${escAttr(`${BLOG_PATH}/${encodeURIComponent(post.slug)}`)}">${escAttr(post.title || post.slug)}</a></li>`);
     if (links.length) bodyHtml += `<nav aria-label="Published articles"><ul>${links.join("")}</ul></nav>`;
   }
   return injectBody(html, bodyHtml);
@@ -7192,138 +7260,12 @@ function sendXml(res, xml, cacheControl) {
   res.end(xml);
 }
 async function buildMainSitemap() {
-  const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
-  let globalIndexable = true;
-  const seoMap = /* @__PURE__ */ new Map();
-  let cmsPages = [];
-  if (DB_URL) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
-    try {
-      const sql = cs(DB_URL, { fetchOptions: { signal: ctrl.signal } });
-      const rows = await sql`
-        SELECT section, data FROM site_content
-        WHERE section = 'seo-global' OR section LIKE 'seo:%' OR section = 'cms-pages'
-      `;
-      for (const r of rows) {
-        if (r.section === "seo-global") {
-          const gd = r.data;
-          if (gd && gd.siteIndexable === false) globalIndexable = false;
-        } else if (r.section === "cms-pages") {
-          const data = r.data;
-          cmsPages = Array.isArray(data?.posts) ? data.posts : [];
-        } else {
-          seoMap.set(r.section.replace(/^seo:/, ""), r.data ?? {});
-        }
-      }
-    } catch {
-      try {
-        const data = await loadPublicSections(["seo-global", "cms-pages"]);
-        globalIndexable = data["seo-global"]?.siteIndexable !== false;
-        const cms = sanitizePublicContent({ "cms-pages": data["cms-pages"] });
-        const section = cms["cms-pages"];
-        cmsPages = Array.isArray(section?.posts) ? section.posts : [];
-      } catch {
-      }
-    } finally {
-      clearTimeout(timer);
-    }
-  } else {
-    try {
-      const data = await loadPublicSections(["seo-global", "cms-pages"]);
-      globalIndexable = data["seo-global"]?.siteIndexable !== false;
-      const cms = sanitizePublicContent({ "cms-pages": data["cms-pages"] });
-      const section = cms["cms-pages"];
-      cmsPages = Array.isArray(section?.posts) ? section.posts : [];
-    } catch {
-    }
-  }
-  if (!globalIndexable) return wrapUrlset([]);
-  const registryXml = buildSitemapXml({
-    lastmod: today,
-    siteUrl: SITE,
-    include: (page) => {
-      const seo = seoMap.get(page.slug);
-      return !(seo && (seo.index === false || seo.sitemap === false));
-    }
-  });
-  const registryUrls = [...registryXml.matchAll(/  <url>[\s\S]*?<\/url>/g)].map((match) => match[0]);
-  const cmsUrls = cmsPages.flatMap((page) => {
-    if (!isCmsPageInSitemap(page, globalIndexable)) return [];
-    const resolved = resolveCmsPageSeo(page, { globalIndexable });
-    const loc = resolved.sitemap.url.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    const lastmod = resolved.sitemap.lastmod;
-    return [`  <url>
-    <loc>${loc}</loc>${lastmod ? `
-    <lastmod>${lastmod}</lastmod>` : ""}
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>`];
-  });
-  return wrapUrlset([...registryUrls, ...cmsUrls]);
+  const policy = await loadLiveSitemapPolicy(DB_URL, process.env.VITE_API_URL);
+  return wrapUrlset(buildLivePageSitemapEntries(PAGE_REGISTRY, policy));
 }
 async function buildBlogSitemap() {
-  let globalIndexable = true;
-  let cmsPosts = [];
-  if (DB_URL) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
-    try {
-      const sql = cs(DB_URL, { fetchOptions: { signal: ctrl.signal } });
-      const rows = await sql`
-        SELECT data FROM site_content WHERE section = 'seo-global' LIMIT 1
-      `;
-      const gd = rows[0]?.data;
-      if (gd && gd.siteIndexable === false) globalIndexable = false;
-    } catch {
-      try {
-        const data = await loadPublicSections(["seo-global"]);
-        globalIndexable = data["seo-global"]?.siteIndexable !== false;
-      } catch {
-      }
-    } finally {
-      clearTimeout(timer);
-    }
-  } else {
-    try {
-      const data = await loadPublicSections(["seo-global", "blog"]);
-      globalIndexable = data["seo-global"]?.siteIndexable !== false;
-      const blog = data.blog;
-      cmsPosts = Array.isArray(blog?.posts) ? blog.posts : [];
-    } catch {
-    }
-  }
-  if (!globalIndexable) return wrapUrlset([]);
-  const urls = [];
-  if (DB_URL) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
-    try {
-      const sql = cs(DB_URL, { fetchOptions: { signal: ctrl.signal } });
-      const rows = await sql`
-        SELECT data FROM site_content WHERE section = 'blog' LIMIT 1
-      `;
-      cmsPosts = rows[0]?.data?.posts ?? [];
-    } catch {
-    } finally {
-      clearTimeout(timer);
-    }
-  }
-  for (const post of cmsPosts) {
-    if (!post.slug || !isBlogInSitemap(post, globalIndexable)) continue;
-    const resolved = resolveBlogSeo(post, { globalIndexable });
-    const lastmod = resolved.sitemap.lastmod;
-    const escapedUrl = resolved.sitemap.url.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    urls.push(
-      `  <url>
-    <loc>${escapedUrl}</loc>${lastmod ? `
-    <lastmod>${lastmod}</lastmod>` : ""}
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>`
-    );
-  }
-  return wrapUrlset(urls);
+  const policy = await loadLiveSitemapPolicy(DB_URL, process.env.VITE_API_URL);
+  return wrapUrlset(buildLiveBlogSitemapEntries(policy));
 }
 var LEGACY_GONE_PATHS = [
   /^\/products?(?:\/|$)/i,
@@ -7472,10 +7414,10 @@ async function handler(req, res) {
         send404(res, template);
         return;
       }
-      const resolved = resolveBlogSeo(post, { globalIndexable: bundle2.globalIndexable });
-      const entry2 = findEntryByPath("/blog");
-      if (!entry2) throw new Error("Insights registry entry is missing");
-      const page = buildHtml(template, entry2, pathname, bundle2, {
+      const resolved = resolveBlogSeo(post, { globalIndexable: bundle2.globalIndexable && !bundle2.content.page_visibility?.insights?.hidden });
+      const entry3 = findEntryByPath("/blog");
+      if (!entry3) throw new Error("Insights registry entry is missing");
+      const page = buildHtml(template, entry3, pathname, bundle2, {
         bodySections: [],
         seoSlug: "insights"
       });
@@ -7487,8 +7429,8 @@ async function handler(req, res) {
       sendHtml(res, articleHtml, "no-store");
       return;
     }
-    const entry = findEntryByPath(pathname);
-    if (!entry) {
+    const entry2 = findEntryByPath(pathname);
+    if (!entry2) {
       if (isKnownNonRegistryRoute(pathname)) {
         const shell = setMeta(template, "name", "robots", "noindex,follow");
         res.setHeader("x-robots-tag", "noindex, follow");
@@ -7540,6 +7482,8 @@ async function handler(req, res) {
           ...SHARED_CONTENT_SECTIONS
         ];
         const bundle2 = await loadData(variant.slug, contentSections);
+        const inherited = await loadData(variant.sourceKey, []);
+        bundle2.seo = { ...inherited.seo, ...bundle2.seo, canonical: bundle2.seo.canonical };
         const html2 = buildHtml(template, sourceEntry, pathname, bundle2, {
           seoSlug: variant.slug,
           bodySections: [variantSection],
@@ -7551,9 +7495,9 @@ async function handler(req, res) {
       send404(res, template);
       return;
     }
-    const sections = sectionsForSlug(entry.slug);
-    const bundle = await loadData(entry.slug, sections);
-    const html = buildHtml(template, entry, pathname, bundle);
+    const sections = sectionsForSlug(entry2.slug);
+    const bundle = await loadData(entry2.slug, sections);
+    const html = buildHtml(template, entry2, pathname, bundle);
     sendHtml(res, html, "no-store");
   } catch {
     sendContentFailure(res, template);

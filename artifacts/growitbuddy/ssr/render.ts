@@ -1,3 +1,5 @@
+import { PAGE_REGISTRY, buildLivePageSitemapEntries, buildLiveBlogSitemapEntries } from "@workspace/seo";
+import { loadLiveSitemapPolicy } from "./liveSitemap";
 /**
  * Vercel Node serverless renderer for GrowitBuddy (a Vite client-only SPA).
  *
@@ -420,7 +422,8 @@ function buildHtml(
   const title = seo.title ?? entry.defaults.title;
   const description = seo.description ?? entry.defaults.description;
 
-  const indexResolved = b.globalIndexable
+  const visibility = b.content.page_visibility as Record<string, { hidden?: boolean }> | null;
+  const indexResolved = b.globalIndexable && !visibility?.[entry.slug]?.hidden
     ? seo.index ?? entry.defaults.index ?? true
     : false;
   const followResolved = b.globalIndexable ? seo.follow ?? true : false;
@@ -558,135 +561,15 @@ interface SEOFlags {
   index?: boolean;
   sitemap?: boolean;
 }
-// Main sitemap from the shared @workspace/seo registry, excluding pages the admin
-// flagged noindex/no-sitemap (seo:<slug>) and honoring the seo-global kill switch.
+// Both sitemap children use the same live permission policy as the API.
 async function buildMainSitemap(): Promise<string> {
-  const today = new Date().toISOString().split("T")[0];
-  let globalIndexable = true;
-  const seoMap = new Map<string, SEOFlags>();
-  let cmsPages: CmsPageSeoPost[] = [];
-  if (DB_URL) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
-    try {
-      const sql = neon(DB_URL, { fetchOptions: { signal: ctrl.signal } });
-      const rows = (await sql`
-        SELECT section, data FROM site_content
-        WHERE section = 'seo-global' OR section LIKE 'seo:%' OR section = 'cms-pages'
-      `) as Array<{ section: string; data: unknown }>;
-      for (const r of rows) {
-        if (r.section === "seo-global") {
-          const gd = r.data as { siteIndexable?: boolean } | undefined;
-          if (gd && gd.siteIndexable === false) globalIndexable = false;
-        } else if (r.section === "cms-pages") {
-          const data = r.data as { posts?: unknown } | undefined;
-          cmsPages = Array.isArray(data?.posts) ? data.posts as CmsPageSeoPost[] : [];
-        } else {
-          seoMap.set(r.section.replace(/^seo:/, ""), (r.data as SEOFlags) ?? {});
-        }
-      }
-    } catch {
-      try {
-        const data = await loadPublicSections(["seo-global", "cms-pages"]);
-        globalIndexable = (data["seo-global"] as { siteIndexable?: boolean } | null)?.siteIndexable !== false;
-        const cms = sanitizePublicContent({ "cms-pages": data["cms-pages"] });
-        const section = cms["cms-pages"] as { posts?: CmsPageSeoPost[] } | null;
-        cmsPages = Array.isArray(section?.posts) ? section.posts : [];
-      } catch { /* unavailable sources: retain indexable default */ }
-    } finally {
-      clearTimeout(timer);
-    }
-  } else {
-    try {
-      const data = await loadPublicSections(["seo-global", "cms-pages"]);
-      globalIndexable = (data["seo-global"] as { siteIndexable?: boolean } | null)?.siteIndexable !== false;
-      const cms = sanitizePublicContent({ "cms-pages": data["cms-pages"] });
-      const section = cms["cms-pages"] as { posts?: CmsPageSeoPost[] } | null;
-      cmsPages = Array.isArray(section?.posts) ? section.posts : [];
-    } catch { /* unavailable source: retain indexable default */ }
-  }
-
-  if (!globalIndexable) return wrapUrlset([]);
-  const registryXml = buildSitemapXml({
-    lastmod: today,
-    siteUrl: SITE,
-    include: (page) => {
-      const seo = seoMap.get(page.slug);
-      return !(seo && (seo.index === false || seo.sitemap === false));
-    },
-  });
-  const registryUrls = [...registryXml.matchAll(/  <url>[\s\S]*?<\/url>/g)].map((match) => match[0]);
-  const cmsUrls = cmsPages.flatMap((page) => {
-    if (!isCmsPageInSitemap(page, globalIndexable)) return [];
-    const resolved = resolveCmsPageSeo(page, { globalIndexable });
-    const loc = resolved.sitemap.url.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    const lastmod = resolved.sitemap.lastmod;
-    return [`  <url>\n    <loc>${loc}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>`];
-  });
-  return wrapUrlset([...registryUrls, ...cmsUrls]);
+  const policy = await loadLiveSitemapPolicy(DB_URL, process.env.VITE_API_URL);
+  return wrapUrlset(buildLivePageSitemapEntries(PAGE_REGISTRY, policy));
 }
 
-// Blog sitemap uses saved CMS posts only. WordPress is disconnected.
 async function buildBlogSitemap(): Promise<string> {
-  let globalIndexable = true;
-  let cmsPosts: BlogSeoPost[] = [];
-  if (DB_URL) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
-    try {
-      const sql = neon(DB_URL, { fetchOptions: { signal: ctrl.signal } });
-      const rows = (await sql`
-        SELECT data FROM site_content WHERE section = 'seo-global' LIMIT 1
-      `) as Array<{ data: unknown }>;
-      const gd = rows[0]?.data as { siteIndexable?: boolean } | undefined;
-      if (gd && gd.siteIndexable === false) globalIndexable = false;
-    } catch {
-      try {
-        const data = await loadPublicSections(["seo-global"]);
-        globalIndexable = (data["seo-global"] as { siteIndexable?: boolean } | null)?.siteIndexable !== false;
-      } catch { /* unavailable sources: retain indexable default */ }
-    } finally {
-      clearTimeout(timer);
-    }
-  } else {
-    try {
-      const data = await loadPublicSections(["seo-global", "blog"]);
-      globalIndexable = (data["seo-global"] as { siteIndexable?: boolean } | null)?.siteIndexable !== false;
-      const blog = data.blog as { posts?: BlogSeoPost[] } | null;
-      cmsPosts = Array.isArray(blog?.posts) ? blog.posts : [];
-    } catch { /* unavailable source: retain indexable default */ }
-  }
-  if (!globalIndexable) return wrapUrlset([]);
-
-  const urls: string[] = [];
-
-  if (DB_URL) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), DATA_TIMEOUT_MS);
-    try {
-      const sql = neon(DB_URL, { fetchOptions: { signal: ctrl.signal } });
-      const rows = (await sql`
-        SELECT data FROM site_content WHERE section = 'blog' LIMIT 1
-      `) as Array<{ data: { posts?: BlogSeoPost[] } }>;
-      cmsPosts = rows[0]?.data?.posts ?? [];
-    } catch {
-      /* DB error — skip gracefully */
-    } finally {
-      clearTimeout(timer);
-    }
-  }
-
-  for (const post of cmsPosts) {
-    if (!post.slug || !isBlogInSitemap(post, globalIndexable)) continue;
-    const resolved = resolveBlogSeo(post, { globalIndexable });
-    const lastmod = resolved.sitemap.lastmod;
-    const escapedUrl = resolved.sitemap.url.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    urls.push(
-      `  <url>\n    <loc>${escapedUrl}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`,
-    );
-  }
-
-  return wrapUrlset(urls);
+  const policy = await loadLiveSitemapPolicy(DB_URL, process.env.VITE_API_URL);
+  return wrapUrlset(buildLiveBlogSitemapEntries(policy));
 }
 
 /* ──────────────────────── legacy "gone" URLs ───────────────────────────────
@@ -910,7 +793,7 @@ export default async function handler(req: any, res: any): Promise<void> {
         send404(res, template);
         return;
       }
-      const resolved = resolveBlogSeo(post, { globalIndexable: bundle.globalIndexable });
+      const resolved = resolveBlogSeo(post, { globalIndexable: bundle.globalIndexable && !(bundle.content.page_visibility as Record<string, { hidden?: boolean }> | null)?.insights?.hidden });
       const entry = findEntryByPath("/blog");
       if (!entry) throw new Error("Insights registry entry is missing");
       const page = buildHtml(template, entry, pathname, bundle, {
@@ -991,6 +874,8 @@ export default async function handler(req: any, res: any): Promise<void> {
           ...SHARED_CONTENT_SECTIONS,
         ];
         const bundle = await loadData(variant.slug, contentSections);
+        const inherited = await loadData(variant.sourceKey, []);
+        bundle.seo = { ...inherited.seo, ...bundle.seo, canonical: bundle.seo.canonical };
         const html = buildHtml(template, sourceEntry, pathname, bundle, {
           seoSlug: variant.slug,
           bodySections: [variantSection],

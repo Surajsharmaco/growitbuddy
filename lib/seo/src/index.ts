@@ -20,6 +20,7 @@
  * ──────────────────────────────────────────────────────────────────────────── */
 
 import { BRAND, SITE_URL } from "./constants";
+export { buildLivePageSitemapEntries, buildLiveBlogSitemapEntries, buildLiveSitemapIndex, type LiveSitemapPolicy } from "./liveSitemap";
 export { API_URL, BLOG_PATH, BRAND, SITE_URL } from "./constants";
 
 /* ────────────────────────────────────────────────────────────────────────────

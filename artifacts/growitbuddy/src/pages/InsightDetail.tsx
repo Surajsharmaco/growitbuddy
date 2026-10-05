@@ -634,6 +634,7 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
   const { posts: cmsPosts, tocInitialVisible } = usePublicContent<{ posts: BlogPost[]; tocInitialVisible?: number }>(
     pageMode ? "cms-pages" : "blog", { posts: [], tocInitialVisible: DEFAULT_TOC_VISIBLE },
   );
+  const pageVisibility = usePublicContent<Record<string, { hidden?: boolean }>>("page_visibility", {});
   const visibleCount = tocVisibleCount(tocInitialVisible);
   const [expandedSlug, setExpandedSlug] = useState("");
   const tocExpanded = expandedSlug === slug;
@@ -678,7 +679,7 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
 
   const post: BlogPost | undefined = previewPost ?? allPosts.find((p) => p.slug === slug) ?? (isWp ? (wpPost ?? undefined) : undefined);
   const related = pageMode ? [] : allPosts.filter((p) => p.slug !== (post?.slug ?? slug)).slice(0, 3);
-  const globalIndexable = cachedGlobal() ?? readBootstrap(pageMode ? "cms-pages" : "insights").bootGlobal;
+  const globalIndexable = (cachedGlobal() ?? readBootstrap(pageMode ? "cms-pages" : "insights").bootGlobal) && !pageVisibility[pageMode ? slug : "insights"]?.hidden;
   const resolvedSeo = post ? (pageMode ? resolveCmsPageSeo(post, { globalIndexable }) : resolveBlogSeo(post, { globalIndexable })) : undefined;
 
   // Pre-compute heavy derived values once per post change.

@@ -1,147 +1,53 @@
-import { Router, type Request, type Response, type IRouter } from "express";
-import { db, siteContent } from "@workspace/db";
-import { eq, like } from "drizzle-orm";
+import { Router, type IRouter } from "express";
+import { db, siteContent, pageVariants } from "@workspace/db";
+import { eq, like, or } from "drizzle-orm";
 import {
-  SITE_URL,
-  BLOG_PATH,
-  buildSitemapXml,
-  wrapUrlset,
-  isBlogInSitemap,
-  resolveBlogSeo,
-  isCmsPageInSitemap,
-  resolveCmsPageSeo,
-  type BlogSeoPost,
-  type CmsPageSeoPost,
+  PAGE_REGISTRY, wrapUrlset, buildLiveSitemapIndex,
+  buildLivePageSitemapEntries, buildLiveBlogSitemapEntries, type LiveSitemapPolicy,
 } from "@workspace/seo";
+import { logger } from "../lib/logger";
 
 const sitemapRouter: IRouter = Router();
 
-const SITE = SITE_URL;
-interface SEOData {
-  index?: boolean;
-  sitemap?: boolean;
+async function readPolicy(): Promise<LiveSitemapPolicy> {
+  const [rows, variants] = await Promise.all([
+    db.select({ section: siteContent.section, data: siteContent.data }).from(siteContent).where(or(
+      like(siteContent.section, "seo:%"),
+      eq(siteContent.section, "seo-global"), eq(siteContent.section, "page_visibility"),
+      eq(siteContent.section, "blog"), eq(siteContent.section, "cms-pages"),
+    )),
+    db.select({ slug: pageVariants.slug, sourceKey: pageVariants.sourceKey }).from(pageVariants).where(eq(pageVariants.isLive, true)),
+  ]);
+  const data = Object.fromEntries(rows.map(row => [row.section, row.data]));
+  const blog = data.blog as { posts?: LiveSitemapPolicy["posts"] } | null;
+  const pages = data["cms-pages"] as { posts?: LiveSitemapPolicy["cmsPages"] } | null;
+  return {
+    globalIndexable: (data["seo-global"] as { siteIndexable?: boolean } | null)?.siteIndexable !== false,
+    seo: Object.fromEntries(rows.filter(row => row.section.startsWith("seo:")).map(row => [row.section.slice(4), row.data])) as LiveSitemapPolicy["seo"],
+    visibility: (data.page_visibility ?? {}) as LiveSitemapPolicy["visibility"],
+    posts: Array.isArray(blog?.posts) ? blog.posts : [],
+    cmsPages: Array.isArray(pages?.posts) ? pages.posts : [],
+    variants,
+  };
 }
 
-/**
- * Main sitemap.xml — pulls per-page SEO overrides from siteContent (section "seo:<slug>")
- * and excludes pages where index=false or sitemap=false.
- */
-sitemapRouter.get("/sitemap.xml", async (_req: Request, res: Response) => {
-  // Master global switch: if siteIndexable === false, return empty sitemap
-  // so search engines have nothing to discover.
-  let globalIndexable = true;
-  try {
-    const g = await db
-      .select({ data: siteContent.data })
-      .from(siteContent)
-      .where(eq(siteContent.section, "seo-global"))
-      .limit(1);
-    const gd = g[0]?.data as { siteIndexable?: boolean } | undefined;
-    if (gd && gd.siteIndexable === false) globalIndexable = false;
-  } catch { /* ignore — default to allowed */ }
-
-  // Fetch ALL seo:* rows in one query
-  let seoMap = new Map<string, SEOData>();
-  let cmsPages: CmsPageSeoPost[] = [];
-  try {
-    const rows = await db
-      .select({ section: siteContent.section, data: siteContent.data, updatedAt: siteContent.updatedAt })
-      .from(siteContent)
-      .where(like(siteContent.section, "seo:%"));
-    seoMap = new Map(rows.map((r: { section: string; data: unknown }) => [r.section.replace(/^seo:/, ""), r.data as SEOData]));
-  } catch { /* DB down — fall through with empty map (all pages included by default) */ }
-
-  try {
-    const rows = await db
-      .select({ data: siteContent.data })
-      .from(siteContent)
-      .where(eq(siteContent.section, "cms-pages"))
-      .limit(1);
-    const data = rows[0]?.data as { posts?: unknown } | undefined;
-    cmsPages = Array.isArray(data?.posts) ? data.posts as CmsPageSeoPost[] : [];
-  } catch { /* Ignore this dynamic source without breaking registry sitemap URLs. */ }
-
-  const today = new Date().toISOString().split("T")[0];
-  // Built from the shared @workspace/seo registry so this sitemap can never
-  // drift from the frontend page list or the static fallback sitemap.
-  const xml = globalIndexable
-    ? (() => {
-        const registryXml = buildSitemapXml({
-        lastmod: today,
-        siteUrl: SITE,
-        include: (page) => {
-          const seo = seoMap.get(page.slug);
-          return !(seo && (seo.index === false || seo.sitemap === false));
-        },
-        });
-        const cmsUrls = cmsPages.flatMap((page) => {
-          if (!page || !isCmsPageInSitemap(page, globalIndexable)) return [];
-          const resolved = resolveCmsPageSeo(page, { globalIndexable });
-          const loc = resolved.sitemap.url.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-          const lastmod = resolved.sitemap.lastmod;
-          return [`  <url>\n    <loc>${loc}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>`];
-        });
-        const registryUrls = [...registryXml.matchAll(/  <url>[\s\S]*?<\/url>/g)].map((match) => match[0]);
-        return wrapUrlset([...registryUrls, ...cmsUrls]);
-      })()
-    : wrapUrlset([]);
-  res.setHeader("Content-Type", "application/xml; charset=utf-8");
-  res.setHeader("Cache-Control", "public, max-age=600, stale-while-revalidate=3600");
-  res.send(xml);
-});
-
-sitemapRouter.get("/sitemap-blog.xml", async (_req: Request, res: Response) => {
-  const urls: string[] = [];
-
-  // Master global switch — return empty blog sitemap when site is hidden.
-  let globalIndexable = true;
-  try {
-    const g = await db
-      .select({ data: siteContent.data })
-      .from(siteContent)
-      .where(eq(siteContent.section, "seo-global"))
-      .limit(1);
-    const gd = g[0]?.data as { siteIndexable?: boolean } | undefined;
-    if (gd && gd.siteIndexable === false) globalIndexable = false;
-  } catch { /* ignore */ }
-
-  if (!globalIndexable) {
-    const xml = wrapUrlset([]);
-    res.setHeader("Content-Type", "application/xml; charset=utf-8");
-    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-    res.send(xml);
-    return;
-  }
-
-  try {
-    const rows = await db
-      .select({ data: siteContent.data, updatedAt: siteContent.updatedAt })
-      .from(siteContent)
-      .where(eq(siteContent.section, "blog"))
-      .limit(1);
-
-    const posts = (rows[0]?.data?.posts ?? []) as BlogSeoPost[];
-
-    for (const post of posts) {
-      if (!post.slug) continue;
-      if (!isBlogInSitemap(post, globalIndexable)) continue;
-      const resolved = resolveBlogSeo(post, { globalIndexable });
-      const escapedUrl = resolved.sitemap.url
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-      const lastmod = resolved.sitemap.lastmod;
-      urls.push(
-        `  <url>\n    <loc>${escapedUrl}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`,
+// Generate on every request: saves/publishing/deletion need no deployment, cron,
+// stale snapshot, or obsolete Google ping. Fail closed if authoritative reads fail.
+for (const path of ["/sitemap.xml", "/sitemap-pages.xml", "/sitemap-blog.xml"]) {
+  sitemapRouter.get(path, async (_req, res) => {
+    res.setHeader("Cache-Control", "no-store");
+    try {
+      const policy = await readPolicy();
+      const xml = path === "/sitemap.xml" ? buildLiveSitemapIndex() : wrapUrlset(
+        path === "/sitemap-blog.xml" ? buildLiveBlogSitemapEntries(policy) : buildLivePageSitemapEntries(PAGE_REGISTRY, policy),
       );
+      res.setHeader("Content-Type", "application/xml; charset=utf-8");
+      res.send(xml);
+    } catch (error) {
+      logger.error({ error }, "Authoritative sitemap read failed");
+      res.status(503).setHeader("Retry-After", "60");
+      res.type("text/plain").send("Sitemap is temporarily unavailable. Please retry.");
     }
-  } catch { /* DB error — skip gracefully */ }
-
-  const xml = wrapUrlset(urls);
-
-  res.setHeader("Content-Type", "application/xml; charset=utf-8");
-  res.setHeader("Cache-Control", "no-store");
-  res.send(xml);
-});
-
+  });
+}
 export default sitemapRouter;

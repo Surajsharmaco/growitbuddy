@@ -1,3 +1,4 @@
+import { usePublicContent } from "@/hooks/usePublicContent";
 /**
  * Mounted ONCE at app root. Watches location changes, fetches the admin-
  * managed SEO record for the current page (via public GET /api/seo/:slug),
@@ -162,6 +163,11 @@ function releaseSeoOwnership(): void {
 
 export default function DynamicPageSEO() {
   const [location] = useLocation();
+  const visibility = usePublicContent<Record<string, { hidden?: boolean }>>("page_visibility", {});
+  const hidden = visibility[findEntryByPath(location)?.slug ?? location.slice(1)]?.hidden === true;
+  function applyPageSEO(entry: PageRegistryEntry, seo: PageSEOData, path: string, global: boolean) {
+    applySEO(entry, hidden ? { ...seo, index: false } : seo, path, global);
+  }
   // Article SEO is resolved from the live public CMS record in InsightDetail.
   // Applying the generic Insights registry entry here would overwrite it.
   const isBlogArticle = /^\/blog\/[^/]+$/.test(location);
@@ -187,8 +193,8 @@ export default function DynamicPageSEO() {
       return;
     }
     const { data, global } = syncSeoFor(entry.slug);
-    applySEO(entry, data, location, global);
-  }, [location, isBlogArticle]);
+    applyPageSEO(entry, data, location, global);
+  }, [location, isBlogArticle, hidden]);
 
   useEffect(() => {
     if (isBlogArticle) return;
@@ -228,15 +234,15 @@ export default function DynamicPageSEO() {
         clearTimeout(timer);
         if (cancelled || myId !== loadId) return;
         recordGlobal(globalIndexable);
-        if (!r.ok) { applySEO(entry!, cachedSEO(entry!.slug) ?? boot, location, globalIndexable); return; }
+        if (!r.ok) { applyPageSEO(entry!, cachedSEO(entry!.slug) ?? boot, location, globalIndexable); return; }
         const body = (await r.json()) as { data: PageSEOData | null };
         if (cancelled || myId !== loadId) return;
         const resolved = body.data ?? boot;
         recordSEO(entry!.slug, resolved);
-        applySEO(entry!, resolved, location, globalIndexable);
+        applyPageSEO(entry!, resolved, location, globalIndexable);
       } catch {
         if (!cancelled && myId === loadId) {
-          applySEO(entry!, cachedSEO(entry!.slug) ?? boot, location, cachedGlobal() ?? bootGlobal);
+          applyPageSEO(entry!, cachedSEO(entry!.slug) ?? boot, location, cachedGlobal() ?? bootGlobal);
         }
       }
     }
@@ -268,7 +274,7 @@ export default function DynamicPageSEO() {
       window.removeEventListener("storage", onStorage);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [location, isBlogArticle]);
+  }, [location, isBlogArticle, hidden]);
 
   return null;
 }
