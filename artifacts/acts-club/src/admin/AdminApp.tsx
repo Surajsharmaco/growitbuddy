@@ -1,6 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { Link, Redirect, Route, Switch, useLocation } from 'wouter';
-import { CreditCard, DatabaseBackup, FileText, LayoutDashboard, LogOut, Users } from 'lucide-react';
+import { CalendarClock, CreditCard, DatabaseBackup, FileText, LayoutDashboard, LogOut, Users } from 'lucide-react';
 import { AdminProvider, errMsg, useAdmin } from './admin-api';
 import { btnDark, field, Skeleton } from './admin-ui';
 import Dashboard from './Dashboard';
@@ -33,6 +33,7 @@ function Login() {
 
 const NAV = [
   ['/admin', 'Dashboard', LayoutDashboard], ['/admin/crm', 'CRM', Users], ['/admin/forms', 'Forms', FileText],
+  ['/admin/follow-ups', 'Follow-ups', CalendarClock],
   ['/admin/payments', 'Payments', CreditCard], ['/admin/settings', 'Backup', DatabaseBackup],
 ] as const;
 
@@ -70,6 +71,7 @@ export default function AdminApp() {
             <Switch>
               <Route path="/admin" component={Dashboard} />
               <Route path="/admin/crm"><RecordsView mode="crm" /></Route>
+              <Route path="/admin/follow-ups"><RecordsView mode="followups" /></Route>
               <Route path="/admin/forms"><RecordsView mode="forms" /></Route>
               <Route path="/admin/payments"><RecordsView mode="payments" /></Route>
               <Route path="/admin/settings" component={Settings} />

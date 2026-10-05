@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/compone
 import { MembershipDialog } from '@/components/MembershipDialog';
 import { SkillPills } from '@/components/SkillPills';
 import { HeroTicker } from '@/components/HeroTicker';
+import { ACTS_CONTACT } from '@/lib/contact';
 
 const img = (n: string) => `${import.meta.env.BASE_URL}img/${n}.jpg`;
 const brandAsset = (n: string) => `${import.meta.env.BASE_URL}brand/${n}`;
@@ -339,7 +340,7 @@ export default function Landing() {
             <h2 className="h-sec mt-2 font-extrabold uppercase">Looking for talent?</h2>
              <p className="mt-3 max-w-md text-ink/70">Find skilled freelancers and creators for your next project through the ACTS network.</p>
           </div>
-          <a data-testid="button-find-talent" href="mailto:hello@actsclub.in?subject=Looking%20for%20talent" className="btn-3d btn-3d--ink min-h-11 px-5 py-3 text-sm font-display font-bold sm:px-7 sm:py-4 sm:text-base">FIND TALENT →</a>
+          <a data-testid="button-find-talent" href={`mailto:${ACTS_CONTACT.email}?subject=Looking%20for%20talent`} className="btn-3d btn-3d--ink min-h-11 px-5 py-3 text-sm font-display font-bold sm:px-7 sm:py-4 sm:text-base">FIND TALENT →</a>
         </div>
         </Reveal>
       </section>
@@ -383,7 +384,8 @@ export default function Landing() {
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-0 text-xs font-medium sm:text-sm md:gap-x-5">
               {[['Community', 'community'], ['Opportunities', 'skills'], ['Events', 'inside'], ['About', 'about']].map(([l, t]) => <button key={l} data-testid={`link-footer-${l.toLowerCase()}`} onClick={() => go(t)} className="inline-flex min-h-9 items-center hover:text-acts">{l}</button>)}
-              <a data-testid="link-footer-contact" href="mailto:hello@actsclub.in" className="inline-flex min-h-9 items-center hover:text-acts">Contact</a>
+              <a data-testid="link-footer-contact" href={`mailto:${ACTS_CONTACT.email}`} className="inline-flex min-h-9 items-center hover:text-acts">{ACTS_CONTACT.email}</a>
+              <a data-testid="link-footer-phone" href={ACTS_CONTACT.phoneHref} className="inline-flex min-h-9 items-center hover:text-acts">{ACTS_CONTACT.phone}</a>
             </div>
             <div className="flex items-center gap-3" aria-label="Social platforms">
               <span data-testid="link-social-instagram" role="img" aria-label="Instagram" className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-cream/25 text-cream/80"><Instagram size={17} aria-hidden="true" /></span>

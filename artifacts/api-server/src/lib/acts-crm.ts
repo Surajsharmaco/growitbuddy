@@ -1,6 +1,6 @@
 import { EventEmitter } from "node:events";
 import { randomUUID } from "node:crypto";
-import { and, eq, sql, desc, inArray } from "drizzle-orm";
+import { and, eq, sql, desc, asc, inArray } from "drizzle-orm";
 import { db, actsCrmRecords, actsMembershipCheckouts, actsMembers } from "@workspace/db";
 import { ActsPaymentError } from "./acts-razorpay";
 import { actsDateRange } from "./acts-date-range";
@@ -50,6 +50,17 @@ export const crmSelection = {
 
 export function crmWhere(query: Record<string, unknown>) {
   const filters = [];
+  if (query.followUps !== undefined) {
+    if (!["all", "due", "overdue", "upcoming"].includes(String(query.followUps))) {
+      throw new ActsPaymentError(400, "Choose a valid follow-up filter.");
+    }
+    filters.push(sql`${actsCrmRecords.followUpAt} IS NOT NULL`, sql`${actsCrmRecords.stage} <> 'closed'`);
+    const today = new Date(Date.now() + 330 * 60_000).toISOString().slice(0, 10);
+    const day = actsDateRange(today, today)!;
+    if (query.followUps === "due") filters.push(sql`${actsCrmRecords.followUpAt} < ${day.end}`);
+    if (query.followUps === "overdue") filters.push(sql`${actsCrmRecords.followUpAt} < ${day.start}`);
+    if (query.followUps === "upcoming") filters.push(sql`${actsCrmRecords.followUpAt} >= ${day.end}`);
+  }
   if (query.includeArchived !== "true" && query.includeArchived !== true) filters.push(eq(actsCrmRecords.archived, false));
   if (["new", "contacted", "qualified", "closed"].includes(String(query.stage))) {
     filters.push(eq(actsCrmRecords.stage, String(query.stage)));
@@ -63,7 +74,8 @@ export function crmWhere(query: Record<string, unknown>) {
   if (query.paymentStatus === "pending") filters.push(sql`${actsMembers.id} IS NULL AND ${actsMembershipCheckouts.id} IS NOT NULL`);
   if (query.paymentStatus === "form_submitted") filters.push(sql`${actsMembershipCheckouts.id} IS NULL`);
   const range = actsDateRange(query.fromDate, query.toDate);
-  if (range) filters.push(sql`${actsCrmRecords.createdAt} >= ${range.start} AND ${actsCrmRecords.createdAt} < ${range.end}`);
+  const dateColumn = query.followUps !== undefined ? actsCrmRecords.followUpAt : actsCrmRecords.createdAt;
+  if (range) filters.push(sql`${dateColumn} >= ${range.start} AND ${dateColumn} < ${range.end}`);
   return and(...filters);
 }
 
@@ -75,7 +87,10 @@ export async function listCrm(query: Record<string, unknown>) {
   const from = () => db.select(crmSelection).from(actsCrmRecords)
     .leftJoin(actsMembershipCheckouts, eq(actsCrmRecords.checkoutId, actsMembershipCheckouts.id))
     .leftJoin(actsMembers, eq(actsMembershipCheckouts.id, actsMembers.checkoutId));
-  const items = await from().where(where).orderBy(desc(actsCrmRecords.createdAt), desc(actsCrmRecords.id)).limit(limit).offset((page - 1) * limit);
+  const items = await from().where(where).orderBy(
+    query.followUps !== undefined ? asc(actsCrmRecords.followUpAt) : desc(actsCrmRecords.createdAt),
+    desc(actsCrmRecords.id),
+  ).limit(limit).offset((page - 1) * limit);
   const [result] = await db.select({ total: sql<number>`count(*)::int` }).from(actsCrmRecords)
     .leftJoin(actsMembershipCheckouts, eq(actsCrmRecords.checkoutId, actsMembershipCheckouts.id))
     .leftJoin(actsMembers, eq(actsMembershipCheckouts.id, actsMembers.checkoutId)).where(where);

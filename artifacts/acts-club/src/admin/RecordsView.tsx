@@ -14,7 +14,7 @@ import {
   Confirm, ErrorBox, PageHead, PayPill, Skeleton, StagePill, STAGES, applicationRows, btn, btnDark, field,
 } from './admin-ui';
 
-export type Mode = 'crm' | 'forms' | 'payments';
+export type Mode = 'crm' | 'forms' | 'payments' | 'followups';
 const LIMIT = 25;
 
 function Drawer({ rec, mode, onClose }: { rec: ActsCrmRecord; mode: Mode; onClose: () => void }) {
@@ -25,7 +25,7 @@ function Drawer({ rec, mode, onClose }: { rec: ActsCrmRecord; mode: Mode; onClos
   const [follow, setFollow] = useState(toDateInput(rec.followUpAt));
   const [busy, setBusy] = useState(false);
   const [askArchive, setAskArchive] = useState(false);
-  const editable = mode === 'crm';
+  const editable = mode === 'crm' || mode === 'followups';
 
   useEffect(() => { setNotes(rec.notes); setFollow(toDateInput(rec.followUpAt)); }, [rec.id, rec.notes, rec.followUpAt]);
 
@@ -91,9 +91,13 @@ function Drawer({ rec, mode, onClose }: { rec: ActsCrmRecord; mode: Mode; onClos
                   <textarea rows={5} maxLength={10000} value={notes} onChange={(e) => setNotes(e.target.value)} className={`${field} resize-none`} placeholder="Notes about this member" data-testid="input-notes" /></label>
                 <div className="flex justify-end gap-2">
                   {follow && <button className={btn} disabled={busy} onClick={() => setFollow('')}>Clear date</button>}
-                  <button className={btnDark} disabled={busy || !dirty} data-testid="button-save-record"
+                  <button className={btnDark} disabled={busy || !dirty || (!!follow && !isCalendarDate(follow))} data-testid="button-save-record"
                     onClick={() => save({ notes, followUpAt: fromDateInput(follow) }, 'Saved')}>{busy ? 'Saving...' : 'Save changes'}</button>
                 </div>
+                {mode === 'followups' && rec.followUpAt && <button className={btn} disabled={busy || dirty}
+                  data-testid="button-complete-followup" onClick={() => save({ followUpAt: null }, 'Follow-up completed')}>
+                  Mark follow-up done
+                </button>}
               </section>
               <section className="border-t border-ink/10 pt-4">
                 {rec.archived
@@ -124,6 +128,7 @@ export default function RecordsView({ mode }: { mode: Mode }) {
   const [stage, setStage] = useState('');
   const [pay, setPay] = useState(mode === 'payments' ? 'successful' : '');
   const [archived, setArchived] = useState(false);
+  const [followFilter, setFollowFilter] = useState<'all' | 'due' | 'overdue' | 'upcoming'>('all');
   const [datePreset, setDatePreset] = useState<DatePreset>('all');
   const [today, setToday] = useState(indiaToday);
   const [customFrom, setCustomFrom] = useState(today);
@@ -139,12 +144,13 @@ export default function RecordsView({ mode }: { mode: Mode }) {
 
   useEffect(() => { const t = setTimeout(() => setQ(search.trim()), 300); return () => clearTimeout(t); }, [search]);
   useEffect(() => { const timer = setInterval(() => setToday(indiaToday()), 60_000); return () => clearInterval(timer); }, []);
-  useEffect(() => { setPage(1); setSelected(new Set()); setOpenId(null); }, [q, stage, pay, archived, dates.fromDate, dates.toDate]);
+  useEffect(() => { setPage(1); setSelected(new Set()); setOpenId(null); }, [q, stage, pay, archived, followFilter, dates.fromDate, dates.toDate]);
 
   const params: ListActsCrmParams = {
     page, limit: LIMIT, includeArchived: archived,
     ...(q ? { search: q } : {}), ...(stage ? { stage } : {}), ...(pay ? { paymentStatus: pay } : {}),
     ...(dates.fromDate && dates.toDate ? dates : {}),
+    ...(mode === 'followups' ? { followUps: followFilter } : {}),
   };
   const { data, isLoading, error, refetch, isFetching } = useListActsCrm(params, {
     query: { queryKey: ['/api/acts/admin/crm', params], enabled: !dateError, refetchInterval: POLL_MS },
@@ -199,6 +205,7 @@ export default function RecordsView({ mode }: { mode: Mode }) {
     crm: ['CRM', 'Every applicant, their stage and your follow-ups.'],
     forms: ['Form submissions', 'Real membership applications exactly as submitted.'],
     payments: ['Payments', 'Razorpay-captured and pending membership payments. Read only.'],
+    followups: ['Follow-ups', 'Scheduled open follow-ups, earliest date first. Closed records are excluded.'],
   }[mode];
   const chip = (on: boolean) => `rounded-full border px-3 py-1.5 text-[12px] font-semibold transition ${on ? 'border-ink bg-ink text-cream' : 'border-ink/15 text-ink/60 hover:border-ink/35'}`;
 
@@ -215,10 +222,17 @@ export default function RecordsView({ mode }: { mode: Mode }) {
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name, city, number, Instagram..." className={`${field} pl-9`} data-testid="input-search" />
         </div>
       </div>
+      {mode === 'followups' && <div className="mb-3 flex flex-wrap gap-2">
+        {(['all', 'due', 'overdue', 'upcoming'] as const).map((value) => <button key={value}
+          className={chip(followFilter === value)} data-testid={`filter-followup-${value}`}
+          onClick={() => { setFollowFilter(value); setDatePreset('all'); }}>
+          {{ all: 'All scheduled', due: 'Today & overdue', overdue: 'Overdue', upcoming: 'Upcoming' }[value]}
+        </button>)}
+      </div>}
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {mode !== 'payments' && <>
           <button className={chip(stage === '')} onClick={() => setStage('')}>All stages</button>
-          {STAGES.map((s) => <button key={s} className={`${chip(stage === s)} capitalize`} onClick={() => setStage(s)} data-testid={`filter-stage-${s}`}>{s}</button>)}
+          {STAGES.filter(s => mode !== 'followups' || s !== 'closed').map((s) => <button key={s} className={`${chip(stage === s)} capitalize`} onClick={() => setStage(s)} data-testid={`filter-stage-${s}`}>{s}</button>)}
           <span className="mx-1 h-5 w-px bg-ink/15" />
         </>}
         {mode === 'payments'
@@ -232,7 +246,7 @@ export default function RecordsView({ mode }: { mode: Mode }) {
       <div className="mb-5 rounded-xl border border-ink/10 bg-card p-4">
         <div className="grid grid-cols-1 items-end gap-3 sm:flex sm:flex-wrap">
           <label className="min-w-0 flex-1 sm:max-w-52">
-            <span className="mb-1.5 block text-[12px] font-semibold">Date filter</span>
+            <span className="mb-1.5 block text-[12px] font-semibold">{mode === 'followups' ? 'Follow-up date filter' : 'Date filter'}</span>
             <select className={field} value={datePreset} onChange={(e) => setDatePreset(e.target.value as DatePreset)} data-testid="select-date-filter">
               {DATE_PRESETS.map((preset) => <option key={preset.value} value={preset.value}>{preset.label}</option>)}
             </select>
@@ -245,7 +259,7 @@ export default function RecordsView({ mode }: { mode: Mode }) {
           </>}
           {datePreset !== 'all' && <button className={btn} onClick={() => setDatePreset('all')} data-testid="button-clear-date">Clear dates</button>}
         </div>
-        <p className="mt-2 text-[11px] text-ink/55">By submission date · India Standard Time (IST) · Both dates included.{dates.fromDate && dates.toDate ? ` ${dates.fromDate} to ${dates.toDate}.` : ''}</p>
+        <p className="mt-2 text-[11px] text-ink/55">By {mode === 'followups' ? 'follow-up' : 'submission'} date · India Standard Time (IST) · Both dates included.{dates.fromDate && dates.toDate ? ` ${dates.fromDate} to ${dates.toDate}.` : ''}</p>
         {dateError && <p role="alert" className="mt-2 text-sm text-red-700">{dateError}</p>}
       </div>
       {mode === 'crm' && selected.size > 0 && (
@@ -265,8 +279,8 @@ export default function RecordsView({ mode }: { mode: Mode }) {
         : isLoading ? <div className="space-y-2">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-16" />)}</div>
         : items.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-ink/20 px-6 py-14 text-center" data-testid="empty-records">
-            <p className="font-display text-xl font-bold">Nothing here yet</p>
-            <p className="mx-auto mt-1 max-w-sm text-sm text-ink/55">{q || stage || pay || datePreset !== 'all' ? 'No records match these filters. Try clearing them.' : 'New membership submissions appear here the moment they arrive.'}</p>
+            <p className="font-display text-xl font-bold">{mode === 'followups' ? 'No scheduled follow-ups here' : 'Nothing here yet'}</p>
+            <p className="mx-auto mt-1 max-w-sm text-sm text-ink/55">{q || stage || pay || datePreset !== 'all' || followFilter !== 'all' ? 'No records match these filters. Try clearing them.' : mode === 'followups' ? 'Set a follow-up date in CRM and save it. It will appear here automatically.' : 'New membership submissions appear here the moment they arrive.'}</p>
           </div>
         ) : (
           <div className="overflow-hidden rounded-2xl border border-ink/10 bg-card">
@@ -286,7 +300,7 @@ export default function RecordsView({ mode }: { mode: Mode }) {
                     <p className="truncate text-[12px] text-ink/55">{r.application.city} · {r.application.primarySkill} · {r.application.contactNumber}</p>
                     {mode === 'payments'
                       ? <p className="mt-0.5 truncate font-mono text-[11px] text-ink/45">{r.paymentId ?? r.orderId ?? '—'}</p>
-                      : <p className="mt-0.5 text-[11px] text-ink/40">Submitted {fmtDate(r.createdAt)}{r.followUpAt ? ` · follow up ${fmtDate(r.followUpAt)}` : ''}</p>}
+                      : <p className="mt-0.5 text-[11px] text-ink/40">{mode === 'followups' ? `Follow up ${fmtDate(r.followUpAt)} · ${toDateInput(r.followUpAt) < today ? 'Overdue' : toDateInput(r.followUpAt) === today ? 'Today' : 'Upcoming'}` : `Submitted ${fmtDate(r.createdAt)}${r.followUpAt ? ` · follow up ${fmtDate(r.followUpAt)}` : ''}`}</p>}
                   </button>
                   <div className="flex shrink-0 flex-col items-end gap-1.5">
                     {mode === 'payments' ? <span className="text-[13px] font-bold">{rupees(r.amount)}</span> : <StagePill s={r.stage} />}

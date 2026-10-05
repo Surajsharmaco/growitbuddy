@@ -374,6 +374,10 @@ stage?: string;
 paymentStatus?: string;
 includeArchived?: boolean;
 /**
+ * Scheduled open follow-ups, ordered by follow-up date. Date bounds apply to follow-up dates instead of submission dates.
+ */
+followUps?: ListActsCrmFollowUps;
+/**
  * Inclusive submission date in IST; requires toDate.
  */
 fromDate?: string;
@@ -391,4 +395,14 @@ page?: number;
  */
 limit?: number;
 };
+
+export type ListActsCrmFollowUps = typeof ListActsCrmFollowUps[keyof typeof ListActsCrmFollowUps];
+
+
+export const ListActsCrmFollowUps = {
+  all: 'all',
+  due: 'due',
+  overdue: 'overdue',
+  upcoming: 'upcoming',
+} as const;
 

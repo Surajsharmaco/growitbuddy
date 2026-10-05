@@ -215,6 +215,16 @@ test("ACTS admin isolation, CRM persistence and live changes", async t => {
     assert.equal((await admin("/crm/bulk", "POST", { ids: [row.id], changes: { archived: false } }, token)).body!.updated, 1);
     found = await admin("/crm?search=" + encodeURIComponent(name), "GET", undefined, token);
     assert.equal(found.body!.items[0].notes, "Synthetic follow-up");
+    const search = "&search=" + encodeURIComponent(name);
+    assert.equal((await admin("/crm?followUps=all" + search, "GET", undefined, token)).body!.total, 1);
+    assert.equal((await admin("/crm?followUps=all&fromDate=2026-10-06&toDate=2026-10-06" + search, "GET", undefined, token)).body!.total, 1);
+    assert.equal((await admin("/crm?followUps=all&fromDate=2026-10-07&toDate=2026-10-07" + search, "GET", undefined, token)).body!.total, 0);
+    assert.equal((await admin("/crm?followUps=invalid", "GET", undefined, token)).status, 400);
+    await admin("/crm/" + row.id, "PATCH", { stage: "closed" }, token);
+    assert.equal((await admin("/crm?followUps=all" + search, "GET", undefined, token)).body!.total, 0);
+    await admin("/crm/" + row.id, "PATCH", { stage: "contacted", followUpAt: null }, token);
+    assert.equal((await admin("/crm?followUps=all" + search, "GET", undefined, token)).body!.total, 0);
+    assert.equal((await admin("/crm?" + search.slice(1), "GET", undefined, token)).body!.total, 1);
   });
   await t.test("captured payment updates the same CRM entry, stats and event stream", async () => {
     const controller = new AbortController();
@@ -241,6 +251,36 @@ test("ACTS admin isolation, CRM persistence and live changes", async t => {
     // Lost order responses retry the original order rather than create a second one.
     const key = submissionKeys[submissionKeys.length - 1];
     assert.equal((await request("/orders", { ...application, submissionKey: key })).status, 409);
+  });
+  await t.test("follow-up queue filters IST days, sorts earliest first and excludes unscheduled, closed and archived records", async () => {
+    const today = indiaToday();
+    const yesterday = presetDates("yesterday", today).fromDate;
+    const tomorrow = presetDates("tomorrow", today).fromDate;
+    const marker = `Follow-up fixture ${randomUUID()}`;
+    const fixtures = [
+      { day: tomorrow }, { day: yesterday }, { day: today },
+      { day: today, archived: true }, { day: today, stage: "closed" }, { day: null },
+    ];
+    const ids: string[] = [];
+    for (const fixture of fixtures) {
+      const submissionKey = randomUUID(); submissionKeys.push(submissionKey);
+      const id = randomUUID(); ids.push(id);
+      await db.insert(actsCrmRecords).values({
+        id, submissionKey, application: { ...application, fullName: marker },
+        createdAt: new Date("2020-01-01T00:00:00Z"),
+        followUpAt: fixture.day ? new Date(fixture.day + "T09:00:00+05:30") : null,
+        stage: fixture.stage ?? "new", archived: fixture.archived ?? false,
+      });
+    }
+    const queue = async (filter: string, more = "") =>
+      (await admin("/crm?followUps=" + filter + "&search=" + encodeURIComponent(marker) + more, "GET", undefined, token)).body!;
+    assert.deepEqual((await queue("all")).items.map((r: { id: string }) => r.id), [ids[1], ids[2], ids[0]]);
+    assert.equal((await queue("due")).total, 2);
+    assert.equal((await queue("overdue")).items[0].id, ids[1]);
+    assert.equal((await queue("upcoming")).items[0].id, ids[0]);
+    assert.equal((await queue("all", "&fromDate=" + today + "&toDate=" + today)).items[0].id, ids[2]);
+    assert.equal((await queue("all", "&includeArchived=true")).total, 4);
+    assert.equal((await queue("all", "&limit=1&page=2")).items[0].id, ids[2]);
   });
   await t.test("backup is honestly unconfigured and logout revokes server-side", async () => {
     const settings = await admin("/backup", "GET", undefined, token);

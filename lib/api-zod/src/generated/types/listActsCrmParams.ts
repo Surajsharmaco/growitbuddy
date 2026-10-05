@@ -5,12 +5,17 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { ListActsCrmFollowUps } from './listActsCrmFollowUps';
 
 export type ListActsCrmParams = {
 search?: string;
 stage?: string;
 paymentStatus?: string;
 includeArchived?: boolean;
+/**
+ * Scheduled open follow-ups, ordered by follow-up date. Date bounds apply to follow-up dates instead of submission dates.
+ */
+followUps?: ListActsCrmFollowUps;
 /**
  * Inclusive submission date in IST; requires toDate.
  */

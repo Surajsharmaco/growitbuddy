@@ -1,4 +1,5 @@
 import { LegalList, LegalPageShell, LegalPlaceholder, LegalSection } from '@/components/LegalPageShell';
+import { ActsContactLinks } from '@/components/ActsContactLinks';
 
 export function TermsAndConditionsPage() {
   return (
@@ -96,7 +97,7 @@ export function TermsAndConditionsPage() {
 
       <LegalSection title="15. Contact">
         <p>For questions regarding these Terms:</p>
-        <p>Email: <LegalPlaceholder>[INSERT OFFICIAL EMAIL]</LegalPlaceholder><br />Website: <LegalPlaceholder>[INSERT WEBSITE]</LegalPlaceholder></p>
+        <p><ActsContactLinks /><br />Website: <LegalPlaceholder>[INSERT WEBSITE]</LegalPlaceholder></p>
       </LegalSection>
     </LegalPageShell>
   );

@@ -131,15 +131,14 @@ export const rupees = (paise: number) =>
 export const fmtDate = (iso: string | null | undefined, time = false) =>
   iso
     ? new Date(iso).toLocaleString('en-IN', time
-      ? { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }
-      : { day: 'numeric', month: 'short', year: 'numeric' })
+      ? { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' }
+      : { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })
     : '—';
 export const toDateInput = (iso: string | null) => {
   if (!iso) return '';
-  const d = new Date(iso);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return new Date(new Date(iso).getTime() + 330 * 60000).toISOString().slice(0, 10);
 };
-export const fromDateInput = (v: string) => (v ? new Date(`${v}T09:00:00`).toISOString() : null);
+export const fromDateInput = (v: string) => (v ? new Date(`${v}T09:00:00+05:30`).toISOString() : null);
 export const errMsg = (e: unknown) => (e instanceof Error ? e.message : 'Something went wrong');
 export const isAuthError = (e: unknown) => (e as { status?: number })?.status === 401;
 

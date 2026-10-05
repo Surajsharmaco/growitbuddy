@@ -1,4 +1,5 @@
 import { LegalList, LegalPageShell, LegalPlaceholder, LegalSection } from '@/components/LegalPageShell';
+import { ActsContactLinks } from '@/components/ActsContactLinks';
 
 export function PrivacyPolicyPage() {
   return (
@@ -56,7 +57,7 @@ export function PrivacyPolicyPage() {
         <p>Subject to applicable law, you may request:</p>
         <LegalList items={['Access to your personal information', 'Correction of inaccurate information', 'Deletion of information where legally applicable', 'Information about how your data is being used', 'Withdrawal of certain permissions where applicable']} />
         <p>For privacy-related requests, contact:</p>
-        <p>EMAIL: <LegalPlaceholder>[INSERT OFFICIAL PRIVACY EMAIL]</LegalPlaceholder></p>
+        <p><ActsContactLinks /></p>
       </LegalSection>
 
       <LegalSection title="10. Children's Privacy">
@@ -71,7 +72,7 @@ export function PrivacyPolicyPage() {
 
       <LegalSection title="12. Contact">
         <p>For privacy-related questions or requests:</p>
-        <p>Email: <LegalPlaceholder>[INSERT OFFICIAL EMAIL]</LegalPlaceholder><br />Website: <LegalPlaceholder>[INSERT WEBSITE]</LegalPlaceholder></p>
+        <p><ActsContactLinks /><br />Website: <LegalPlaceholder>[INSERT WEBSITE]</LegalPlaceholder></p>
       </LegalSection>
     </LegalPageShell>
   );

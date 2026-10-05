@@ -194,6 +194,7 @@ paths:
         - { name: stage, in: query, schema: { type: string } }
         - { name: paymentStatus, in: query, schema: { type: string } }
         - { name: includeArchived, in: query, schema: { type: boolean } }
+        - { name: followUps, in: query, description: "Scheduled open follow-ups, ordered by follow-up date. Date bounds apply to follow-up dates instead of submission dates.", schema: { type: string, enum: [all, due, overdue, upcoming] } }
         - { name: fromDate, in: query, description: "Inclusive submission date in IST; requires toDate.", schema: { type: string, format: date } }
         - { name: toDate, in: query, description: "Inclusive submission date in IST; requires fromDate.", schema: { type: string, format: date } }
         - { name: page, in: query, schema: { type: integer, minimum: 1 } }

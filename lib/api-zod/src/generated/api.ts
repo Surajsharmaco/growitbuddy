@@ -251,6 +251,7 @@ export const ListActsCrmQueryParams = zod.object({
   "stage": zod.coerce.string().optional(),
   "paymentStatus": zod.coerce.string().optional(),
   "includeArchived": zod.coerce.boolean().optional(),
+  "followUps": zod.enum(['all', 'due', 'overdue', 'upcoming']).optional().describe('Scheduled open follow-ups, ordered by follow-up date. Date bounds apply to follow-up dates instead of submission dates.'),
   "fromDate": zod.date().optional().describe('Inclusive submission date in IST; requires toDate.'),
   "toDate": zod.date().optional().describe('Inclusive submission date in IST; requires fromDate.'),
   "page": zod.coerce.number().int().min(1).optional(),

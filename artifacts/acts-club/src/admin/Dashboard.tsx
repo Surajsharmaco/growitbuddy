@@ -11,7 +11,7 @@ export default function Dashboard() {
     ['Paid members', String(data.paid), '/admin/payments'],
     ['Payment pending', String(data.pending), '/admin/payments'],
     ['Form only', String(data.submitted), '/admin/forms'],
-    ['Follow-ups due', String(data.followUpsDue), '/admin/crm'],
+    ['Follow-ups due', String(data.followUpsDue), '/admin/follow-ups'],
     ['Archived', String(data.archived), '/admin/crm'],
   ] : [];
   return (

@@ -1,4 +1,5 @@
 import { LegalList, LegalPageShell, LegalPlaceholder, LegalSection } from '@/components/LegalPageShell';
+import { ActsContactLinks } from '@/components/ActsContactLinks';
 
 export function CommunityGuidelinesPage() {
   return (
@@ -61,7 +62,7 @@ export function CommunityGuidelinesPage() {
       <LegalSection title="10. Report Problems">
         <p>If you experience harassment, scams, inappropriate behaviour or another serious community issue, report it to the ACTS administration team.</p>
         <p>Contact:</p>
-        <p><LegalPlaceholder>[INSERT OFFICIAL EMAIL / ADMIN CONTACT]</LegalPlaceholder></p>
+        <p><ActsContactLinks /></p>
       </LegalSection>
 
       <LegalSection title="11. Enforcement">
