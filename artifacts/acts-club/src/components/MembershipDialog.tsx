@@ -129,12 +129,18 @@ export function MembershipDialog({ open, onOpenChange }: { open: boolean; onOpen
             <p className="text-xs font-bold tracking-widest text-acts">PAYMENT SUCCESSFUL</p>
             <DialogTitle className="font-display text-3xl font-extrabold uppercase">Payment received</DialogTitle>
             <DialogDescription className="text-ink/75">
-              Thank you for joining ACTS. Your membership information has been received. Our team may review your profile before granting full community access. ₹99 one-time payment for ACTS Membership was successful. Approval is not automatic.
+              Thank you! Your ₹99 one-time payment for ACTS Membership was successful, and your membership application has been received. Community access is subject to verification and approval.
             </DialogDescription>
             <dl className="rounded-2xl bg-card p-4 text-sm ring-1 ring-ink/10">
               <div className="flex justify-between gap-4"><dt className="text-ink/60">Name</dt><dd className="font-bold" data-testid="text-success-name">{m.snapshot.application.fullName}</dd></div>
               <div className="mt-2 flex justify-between gap-4"><dt className="text-ink/60">Reference</dt><dd className="break-all text-right font-bold" data-testid="text-success-ref">{m.snapshot.memberId}</dd></div>
             </dl>
+            <div role="status" className="rounded-2xl bg-acts/10 p-4 ring-1 ring-acts/20" data-testid="text-success-next-steps">
+              <p className="mb-1 text-sm font-bold">What happens next?</p>
+              <p className="text-sm leading-relaxed text-ink/80">
+                Our team will get in touch with you for verification. Once your profile is verified and approved, we will share your joining links and all the details you need to get started with ACTS Club.
+              </p>
+            </div>
             <button type="button" onClick={() => onOpenChange(false)} data-testid="button-success-close" className="btn-3d btn-3d--ink w-full min-h-11 py-3 font-display font-bold">DONE</button>
           </div>
         ) : m.phase === 'verifying' || m.phase === 'pending' ? (
