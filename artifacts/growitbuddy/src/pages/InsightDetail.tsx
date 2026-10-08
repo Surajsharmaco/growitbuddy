@@ -10,10 +10,16 @@ import { resolveMediaUrl } from "@/lib/api";
 import { DEFAULT_TOC_VISIBLE, limitInlineToc, tocVisibleCount } from "@/lib/blogToc";
 import SEOMeta from "@/components/SEOMeta";
 import { cachedGlobal, readBootstrap } from "@/lib/seoCache";
+import { ARTICLE_PARAGRAPH_CSS } from "@/lib/articleTypography";
 
 const ARTICLE_CSS = `
+${ARTICLE_PARAGRAPH_CSS}
 /* ── Base ── */
-.article-body { font-family: Inter, sans-serif; }
+.article-body, .article-excerpt { font-family: Inter, sans-serif; }
+.article-heading, .article-meta { overflow-wrap: anywhere; }
+.article-meta > span { min-width: 0; max-width: 100%; }
+.article-meta svg { flex-shrink: 0; }
+.article-body { min-width: 0; max-width: 100%; }
 
 /* ── First & last child margin reset (kills phantom whitespace at top/bottom) ── */
 .article-body > *:first-child,
@@ -21,12 +27,10 @@ const ARTICLE_CSS = `
 .article-body > *:last-child { margin-bottom: 0 !important; }
 
 /* ── Paragraphs ── */
-.article-body p,
-.article-body .wp-block-paragraph { font-size: 17px; color: rgba(11,11,11,0.78); line-height: 1.85; margin: 0 0 22px; }
 .article-body p:empty,
 .article-body p:has(br:only-child) { display: none; }
 /* WP often wraps a lone image in a <p> - strip its bottom margin so it sits flush */
-.article-body p:has(> img:only-child) { margin: 0; }
+.article-body p:has(> img:only-child) { margin: 0 !important; }
 
 /* ── Headings ── */
 .article-body h1,
@@ -311,8 +315,16 @@ const ARTICLE_CSS = `
 
 /* ── Mobile tightening ── most users read here ── */
 @media (max-width: 640px) {
-  .article-body p, .article-body li { font-size: 16px; line-height: 1.72; color: rgba(11,11,11,0.82); }
-  .article-body p, .article-body .wp-block-paragraph { margin-bottom: 14px; }
+  .article-body p, .article-body li, .article-excerpt { color: rgba(11,11,11,0.82); }
+  .article-meta { column-gap: 8px !important; row-gap: 8px !important; }
+  .article-meta > span { line-height: 1.5; }
+  .article-body .alignwide, .article-body .alignfull,
+  .article-body .alignleft, .article-body .alignright {
+    float: none; margin-left: 0; margin-right: 0; max-width: 100%;
+  }
+  .article-body .wp-block-columns { flex-direction: column; }
+  .article-body .wp-block-column { min-width: 0; width: 100%; }
+  .article-body .wp-block-gallery { grid-template-columns: minmax(0, 1fr); }
   .article-body figure, .article-body .wp-block-image, .article-body .wp-block-embed { margin: 18px 0; }
   /* Edge-to-edge images on phones for max impact */
   .article-body figure img, .article-body .wp-block-image img, .article-body img { border-radius: 12px; }
@@ -347,10 +359,10 @@ const ARTICLE_CSS = `
   .article-body .toc_list li { font-size: 13px !important; }
 }
 
-/* ── Hero image on phones: edge-to-edge & taller for more impact ── */
+/* Keep the featured image inside the same phone gutters as the article. */
 @media (max-width: 640px) {
-  .gb-hero-img { padding: 0 !important; }
-  .gb-hero-img > div { border-radius: 0 !important; box-shadow: none !important; }
+  .gb-hero-img { padding: 0 18px !important; }
+  .gb-hero-img > div { border-radius: 12px !important; box-shadow: none !important; }
 }
 
 /* Give the fixed contact CTA space at the end of the article. */
@@ -459,7 +471,7 @@ function renderMarkdown(text: string): React.ReactElement[] {
     }
 
     elements.push(
-      <p key={key++} style={{ fontSize: 17, color: "#5F5F5F", lineHeight: "1.9", marginBottom: 20 }}>
+      <p key={key++}>
         {parseInline(trimmed)}
       </p>
     );
@@ -746,12 +758,12 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
             </span>
           </Link>}
 
-          <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 16 }}>
+          <div className="article-meta" style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 16 }}>
             <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", padding: "5px 13px", borderRadius: 100, background: "rgba(30,41,59,0.12)", border: "1px solid rgba(30,41,59,0.25)", color: "var(--gb-accent)" }}>
               {post.tag}
             </span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, color: "#7A7A85", fontWeight: 500 }}>
-              <Calendar className="w-3 h-3" /> {post.date}
+              <Calendar className="w-3 h-3" /> <span style={{ minWidth: 0 }}>{post.date}</span>
             </span>
             {post.modifiedIsoDate && !Number.isNaN(new Date(post.modifiedIsoDate).getTime()) && (
               <span style={{ fontSize: 12, color: "#7A7A85", fontWeight: 500 }}>
@@ -770,20 +782,21 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
           </div>
 
           <motion.h1
+            className="article-heading"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            style={{ fontWeight: 900, fontSize: "clamp(22px, 5vw, 52px)", letterSpacing: "-0.04em", lineHeight: "1.1", color: "#0A0A0A", marginBottom: 14 }}
+            style={{ fontWeight: 900, fontSize: "clamp(22px, 5vw, 52px)", letterSpacing: "-0.04em", lineHeight: "1.1", color: "#0A0A0A", marginBottom: post.excerpt ? 0 : 14 }}
           >
             {post.title}
           </motion.h1>
 
           {post.excerpt && (
             <motion.p
+              className="article-excerpt"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              style={{ fontSize: 19, color: "#5F5F5F", lineHeight: "1.7", marginBottom: 24, fontWeight: 400 }}
             >
               {post.excerpt}
             </motion.p>

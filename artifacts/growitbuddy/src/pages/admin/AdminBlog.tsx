@@ -14,6 +14,7 @@ import { analyzeKeywordSet, needsCombinedReview, needsRepetitionReview, countArt
 import { formatPastedBlog, optimizeBlogContent } from "@/lib/pasteBlogContent";
 import { DEFAULT_TOC_VISIBLE, tocVisibleCount } from "@/lib/blogToc";
 import { analyzeBlogSeo } from "@/lib/blogSeoAudit";
+import { ARTICLE_PARAGRAPH_CSS } from "@/lib/articleTypography";
 import { resolveBlogSeo, resolveCmsPageSeo, isReservedCmsPageSlug } from "@workspace/seo";
 
 export type CmsMode = "blog" | "page";
@@ -715,8 +716,8 @@ function shortSummary(text: string, maxLength: number): string {
 }
 
 const EDITOR_CSS = `
+${ARTICLE_PARAGRAPH_CSS}
 .blog-editor { font-family: Inter, sans-serif; }
-.blog-editor p { font-size: 17px; color: rgba(11,11,11,0.68); line-height: 1.9; margin: 0 0 18px 0; }
 .blog-editor h1 { font-weight: 900; font-size: 36px; letter-spacing: -0.04em; color: #0B0B0B; margin: 0 0 16px 0; line-height: 1.1; }
 .blog-editor h2 { font-weight: 800; font-size: 26px; letter-spacing: -0.03em; color: #0B0B0B; margin: 0 0 18px 0; line-height: 1.25; }
 .blog-editor h3 { font-weight: 700; font-size: 20px; letter-spacing: -0.02em; color: #0B0B0B; margin: 0 0 12px 0; line-height: 1.35; }
@@ -1743,7 +1744,7 @@ function PostEditor({
                   onChange={(e) => setField("excerpt", e.target.value)}
                   placeholder={pageMode ? "Write the overview readers will see below this page title..." : "Write the overview readers will see below this post title..."}
                   rows={3}
-                  className="w-full resize-y border border-[#0B0B0B]/12 rounded-xl px-3.5 py-2.5 text-[13px] leading-relaxed text-[#0B0B0B] placeholder-[#0B0B0B]/30 outline-none focus:border-[#0B0B0B]/30 bg-white"
+                  className="w-full resize-y border border-[#0B0B0B]/12 rounded-xl px-3.5 py-2.5 text-[15px] leading-[1.6] sm:text-[16px] sm:leading-[1.7] font-normal text-[#0B0B0B] placeholder-[#0B0B0B]/30 outline-none focus:border-[#0B0B0B]/30 bg-white"
                 />
                 <p className="mt-2 text-[11px] leading-relaxed text-[#0B0B0B]/45">
                   This text appears directly under the title and before the main content. It is separate from the SEO meta description.
