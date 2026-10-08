@@ -20,6 +20,7 @@ ${ARTICLE_PARAGRAPH_CSS}
 .article-meta > span { min-width: 0; max-width: 100%; }
 .article-meta svg { flex-shrink: 0; }
 .article-body { min-width: 0; max-width: 100%; }
+.article-body [id] { scroll-margin-top: 88px; }
 
 /* ── First & last child margin reset (kills phantom whitespace at top/bottom) ── */
 .article-body > *:first-child,
@@ -749,8 +750,8 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
         schema={resolvedSeo.jsonLd["@graph"]}
       />}
 
-      {/* Hero - tight vertical rhythm, white space minimized */}
-      <section style={{ paddingTop: "clamp(56px, 9vw, 80px)", paddingBottom: 0, background: "#FFFFFF" }}>
+      {/* The fixed site header is 72px tall; keep the first row below it. */}
+      <section style={{ paddingTop: "calc(72px + clamp(16px, 3vw, 24px))", paddingBottom: 0, background: "#FFFFFF" }}>
         <div className="max-w-[760px] mx-auto" style={{ padding: "0 18px" }}>
           {!pageMode && <Link href="/blog">
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "#7A7A85", cursor: "pointer", marginBottom: 18, letterSpacing: "0.01em" }}>
