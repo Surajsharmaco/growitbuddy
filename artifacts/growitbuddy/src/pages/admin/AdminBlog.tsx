@@ -13,6 +13,7 @@ import { classifyArticleLink, getArticleLinks } from "@/lib/blogLinks";
 import { analyzeKeywordSet, needsCombinedReview, needsRepetitionReview, countArticleWords as wordCount, countArticleCharacters } from "@/lib/keywordUsage";
 import { formatPastedBlog, optimizeBlogContent } from "@/lib/pasteBlogContent";
 import { DEFAULT_TOC_VISIBLE, tocVisibleCount } from "@/lib/blogToc";
+import { ArticleTocEditor } from "@/components/admin/ArticleTocEditor";
 import { analyzeBlogSeo } from "@/lib/blogSeoAudit";
 import { ARTICLE_PARAGRAPH_CSS } from "@/lib/articleTypography";
 import { resolveBlogSeo, resolveCmsPageSeo, isReservedCmsPageSlug } from "@workspace/seo";
@@ -32,6 +33,14 @@ import {
   ImagePlus, Table2, X as XIcon, Pilcrow, MousePointerClick,
   Sparkles, Zap, TrendingUp, RefreshCw, Layers, RotateCcw,
 } from "lucide-react";
+
+function escapeHtmlAttribute(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
 
 // ─────────────────────────────────────
 // SEO ANALYSIS ENGINE
@@ -790,7 +799,7 @@ function PostEditor({
   const [saved, setSaved] = useState(false);
   const [optimizationUndo, setOptimizationUndo] = useState<{ data: BlogPost; seo: PostSeo; mode: "visual" | "text" } | null>(null);
   const [optimizationNotice, setOptimizationNotice] = useState("");
-  const [status, setStatus] = useState<"draft" | "published">(post.status ?? "published");
+  const [status, setStatus] = useState<"draft" | "published">(post.status ?? (isNew ? "draft" : "published"));
   const resolveSeo = (p: BlogPost, o?: { globalIndexable?: boolean }) => pageMode ? resolveCmsPageSeo(p, o) : resolveBlogSeo(p, o);
   const [visibility, setVisibility] = useState<"public" | "private">(post.visibility === "private" ? "private" : "public");
   const [toasts, setToasts] = useState<{ id: number; msg: string; type: "success" | "error" | "info" }[]>([]);
@@ -827,7 +836,7 @@ function PostEditor({
       setLinkPreview(null);
       return;
     }
-    if (!anchor || !editorRef.current?.contains(anchor)) {
+    if (!anchor || !editorOf(anchor)) {
       setLinkPreview(null);
       return;
     }
@@ -845,7 +854,7 @@ function PostEditor({
   }
 
   function openLinkEditor(anchor: HTMLAnchorElement) {
-    if (!editorRef.current?.contains(anchor)) return;
+    if (!editorOf(anchor)) return;
     const rect = anchor.getBoundingClientRect();
     editingAnchorRef.current = anchor;
     setLinkPreview(null);
@@ -865,7 +874,7 @@ function PostEditor({
   function updateLink() {
     const anchor = editingAnchorRef.current;
     const href = editingLink?.href.trim();
-    if (!anchor || !editorRef.current?.contains(anchor) || !href) {
+    if (!anchor || !editorOf(anchor) || !href) {
       showToast("Enter a link URL before saving.", "error");
       return;
     }
@@ -877,16 +886,17 @@ function PostEditor({
       return;
     }
     anchor.setAttribute("href", href);
-    setField("content", editorRef.current.innerHTML);
+    commitEditor(editorOf(anchor));
     closeLinkEditor();
     showToast("Link updated.", "success");
   }
 
   function removeLink() {
     const anchor = editingAnchorRef.current;
-    if (!anchor || !editorRef.current?.contains(anchor)) return;
+    const owner = anchor ? editorOf(anchor) : null;
+    if (!anchor || !owner) return;
     anchor.replaceWith(...Array.from(anchor.childNodes));
-    setField("content", editorRef.current.innerHTML);
+    commitEditor(owner);
     closeLinkEditor();
     showToast("Link removed; text kept.", "info");
   }
@@ -910,7 +920,11 @@ function PostEditor({
   }
 
   function applyFixField(field: string, value: string) {
-    if (field === "slug") {
+    if (field === "excerpt") {
+      // Plain excerpt changed: drop stale rich HTML and re-render the overview editor.
+      setFields({ excerpt: value, excerptHtml: "" });
+      renderOverview({ ...data, excerpt: value, excerptHtml: "" });
+    } else if (field === "slug") {
       setField("slug", value);
     } else if (field === "focusKeyword") {
       setSeoField("focusKeyword", value);
@@ -940,26 +954,113 @@ function PostEditor({
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3500);
   }
   const editorRef = useRef<HTMLDivElement>(null);
+  const overviewRef = useRef<HTMLDivElement>(null);
   const savedRangeRef = useRef<Range | null>(null);
+  // Which surface the toolbar acts on. Body content capture stays separate from overview.
+  const activeTargetRef = useRef<"body" | "overview">("body");
+
+  function editorOf(node: Node | null | undefined): HTMLDivElement | null {
+    if (!node) return null;
+    if (editorRef.current?.contains(node)) return editorRef.current;
+    if (overviewRef.current?.contains(node)) return overviewRef.current;
+    return null;
+  }
+
+  function activeEditor(): HTMLDivElement | null {
+    return activeTargetRef.current === "overview" ? overviewRef.current : editorRef.current;
+  }
+
+  function commitEditor(editor: HTMLDivElement | null) {
+    if (!editor) return;
+    if (editor === overviewRef.current) syncOverview();
+    else setField("content", editor.innerHTML);
+  }
+
+  function plainFromHtml(html: string): string {
+    const box = document.createElement("div");
+    box.innerHTML = html.replace(/<\/(p|div|li|h[1-6]|blockquote|tr|pre)>|<br\s*\/?>/gi, " $&");
+    return (box.textContent ?? "").replace(/\s+/g, " ").trim();
+  }
+
+  // Legacy plain excerpts are escaped text, never interpreted as markup.
+  function overviewHtmlFor(d: BlogPost): string {
+    if (d.excerptHtml) return d.excerptHtml;
+    return (d.excerpt ?? "").split(/\n+/).filter((line) => line.trim())
+      .map((line) => "<p>" + escapeHtmlAttribute(line).replace(/&quot;/g, '"') + "</p>").join("");
+  }
+
+  function renderOverview(d: BlogPost) {
+    if (overviewRef.current) overviewRef.current.innerHTML = overviewHtmlFor(d);
+  }
+
+  function syncOverview() {
+    const el = overviewRef.current;
+    if (!el) return;
+    let html = el.innerHTML;
+    const plain = plainFromHtml(html);
+    if (!plain && !/<(img|hr|table|video|iframe)\b/i.test(html)) html = "";
+    setFields({ excerptHtml: html, excerpt: plain });
+  }
+
+  function rangeIsInsideEditor(range: Range, editor: HTMLDivElement): boolean {
+    return editor.contains(range.commonAncestorContainer);
+  }
 
   function saveSelection() {
     const sel = window.getSelection();
-    if (sel && sel.rangeCount > 0 && editorRef.current?.contains(sel.anchorNode)) {
-      savedRangeRef.current = sel.getRangeAt(0).cloneRange();
+    if (!sel || sel.rangeCount === 0) return;
+    const range = sel.getRangeAt(0);
+    const owner = editorOf(range.commonAncestorContainer);
+    if (owner) {
+      savedRangeRef.current = range.cloneRange();
+      activeTargetRef.current = owner === overviewRef.current ? "overview" : "body";
     }
   }
 
+  function restoreEditorSelection(): boolean {
+    const selection = window.getSelection();
+    const liveRange = selection?.rangeCount ? selection.getRangeAt(0) : null;
+    const saved = savedRangeRef.current;
+    const range = liveRange && editorOf(liveRange.commonAncestorContainer)
+      ? liveRange.cloneRange()
+      : saved && editorOf(saved.commonAncestorContainer) ? saved.cloneRange() : null;
+    if (!range || !selection) return false;
+    const owner = editorOf(range.commonAncestorContainer)!;
+    activeTargetRef.current = owner === overviewRef.current ? "overview" : "body";
+    owner.focus({ preventScroll: true });
+    selection.removeAllRanges();
+    selection.addRange(range);
+    savedRangeRef.current = range.cloneRange();
+    return true;
+  }
+
   function restoreSelectionAndExec(cmd: string, val?: string) {
-    editorRef.current?.focus();
-    if (savedRangeRef.current) {
-      const sel = window.getSelection();
-      if (sel) { sel.removeAllRanges(); sel.addRange(savedRangeRef.current); }
+    if (!restoreEditorSelection()) return false;
+    const owner = activeEditor();
+    const changed = document.execCommand(cmd, false, val);
+    if (changed && owner) {
+      commitEditor(owner);
+      saveSelection();
     }
-    document.execCommand(cmd, false, val);
+    return changed;
+  }
+
+  function handleOverviewPaste(event: ReactClipboardEvent<HTMLDivElement>) {
+    const html = event.clipboardData.getData("text/html");
+    const text = event.clipboardData.getData("text/plain");
+    if (!html && !text) return;
+    event.preventDefault();
+    const { html: formatted } = formatPastedBlog({ html, text });
+    const box = document.createElement("div");
+    box.innerHTML = formatted;
+    box.querySelectorAll("h1").forEach((h) => { const h2 = document.createElement("h2"); while (h.firstChild) h2.appendChild(h.firstChild); h.replaceWith(h2); });
+    if (box.innerHTML && !document.execCommand("insertHTML", false, box.innerHTML)) document.execCommand("insertText", false, text);
+    syncOverview();
   }
 
   useEffect(() => {
     if (editorRef.current) editorRef.current.innerHTML = mdToHtml(post.content ?? "");
+    if (overviewRef.current) overviewRef.current.innerHTML = overviewHtmlFor(post);
     const existing = document.getElementById("blog-editor-styles");
     if (!existing) {
       const s = document.createElement("style");
@@ -969,13 +1070,13 @@ function PostEditor({
     }
 
     function onSelectionChange() {
-      if (!editorRef.current) return;
       const sel = window.getSelection();
       if (!sel || sel.rangeCount === 0) return;
-      if (!editorRef.current.contains(sel.anchorNode)) return;
+      const owner = editorOf(sel.anchorNode);
+      if (!owner) return;
       let node: Node | null = sel.getRangeAt(0).commonAncestorContainer;
       if (node.nodeType === Node.TEXT_NODE) node = node.parentNode;
-      while (node && node !== editorRef.current) {
+      while (node && node !== owner) {
         if (node.nodeType === Node.ELEMENT_NODE) {
           const tag = (node as Element).tagName.toLowerCase();
           if (["p", "h1", "h2", "h3", "h4", "h5", "pre", "blockquote"].includes(tag)) {
@@ -1020,6 +1121,13 @@ function PostEditor({
       }
       return updated;
     });
+  }
+
+  function setFields(patch: Partial<BlogPost>) {
+    setSaved(false);
+    setOptimizationUndo(null);
+    setOptimizationNotice("");
+    setData((p) => ({ ...p, ...patch }));
   }
 
   function setSeoField<K extends keyof PostSeo>(key: K, val: PostSeo[K]) {
@@ -1106,7 +1214,7 @@ function PostEditor({
       const paragraph = Array.from(container.querySelectorAll("p"))
         .map((p) => p.textContent?.replace(/\s+/g, " ").trim() ?? "")
         .find(Boolean) ?? "";
-      const excerpt = data.excerpt.trim() || shortSummary(paragraph, 160);
+      const excerpt = data.excerptHtml?.trim() ? data.excerpt : (data.excerpt.trim() || shortSummary(paragraph, 160));
       const description = shortSummary(excerpt, 160);
       const nextSeo: PostSeo = {
         ...seo,
@@ -1124,6 +1232,7 @@ function PostEditor({
       }
       setOptimizationUndo({ data: { ...data, content: original }, seo: { ...seo }, mode });
       setData(nextData);
+      renderOverview(nextData);
       setSeo(nextSeo);
       setSaved(false);
       if (mode === "text") {
@@ -1151,6 +1260,7 @@ function PostEditor({
   function undoOptimize() {
     if (!optimizationUndo) return;
     setData(optimizationUndo.data);
+    renderOverview(optimizationUndo.data);
     setSeo(optimizationUndo.seo);
     setMode(optimizationUndo.mode);
     if (optimizationUndo.mode === "visual") {
@@ -1243,10 +1353,25 @@ function PostEditor({
   }
 
   function exec(cmd: string, val?: string): boolean {
-    const changed = document.execCommand(cmd, false, val);
-    if (changed && editorRef.current) setField("content", editorRef.current.innerHTML);
-    editorRef.current?.focus();
+    if (!restoreEditorSelection()) return false;
+    const editor = activeEditor();
+    if (!editor) return false;
+    const before = editor.innerHTML;
+    const commandSucceeded = document.execCommand(cmd, false, val);
+    const changed = commandSucceeded || editor.innerHTML !== before;
+    if (changed) {
+      commitEditor(editor);
+      saveSelection();
+    }
     return changed;
+  }
+
+  function applyBlockFormat(tag: "p" | "h1" | "h2" | "h3" | "h4" | "pre") {
+    if (!exec("formatBlock", tag)) {
+      showToast("Click inside the overview or body first, then choose a format.", "error");
+      return;
+    }
+    setCurrentBlock(tag);
   }
 
   function insertLink() {
@@ -1308,25 +1433,21 @@ function PostEditor({
     const node = selection?.anchorNode;
     const element = node instanceof Element ? node : node?.parentElement;
     const existing = element?.closest("a[href]");
-    if (existing instanceof HTMLAnchorElement && editorRef.current?.contains(existing)) {
+    if (existing instanceof HTMLAnchorElement && editorOf(existing)) {
       if (existing.classList.contains("gb-blog-button")) { openButtonDialog(existing); return; }
       openLinkEditor(existing);
       return;
     }
+    saveSelection();
     const url = prompt("Enter URL:");
     if (url) {
-      editorRef.current?.focus();
-      if (savedRangeRef.current) {
-        const selection = window.getSelection();
-        if (selection) { selection.removeAllRanges(); selection.addRange(savedRangeRef.current); }
-      }
       if (exec("createLink", url)) showToast("Link inserted.", "info");
-      else showToast("Select some text in the editor before inserting a link.", "error");
+      else showToast("Select some text in the overview or body before inserting a link.", "error");
     }
   }
 
   function openButtonDialog(anchor?: HTMLAnchorElement) {
-    if (anchor && !editorRef.current?.contains(anchor)) return;
+    if (anchor && !editorOf(anchor)) return;
     if (!anchor) saveSelection();
     editingButtonRef.current = anchor ?? null;
     const selectedText = !anchor ? window.getSelection()?.toString().trim().slice(0, 120) : "";
@@ -1338,39 +1459,34 @@ function PostEditor({
   }
 
   function saveButton(settings: BlogButtonSettings) {
-    const editor = editorRef.current;
-    if (!editor) return;
     const button = createBlogButton(settings);
     const old = editingButtonRef.current;
     const oldWrap = old?.closest(".gb-blog-button-wrap");
-    if (oldWrap && editor.contains(oldWrap)) {
+    const oldOwner = oldWrap ? editorOf(oldWrap) : null;
+    const editor = oldOwner ?? activeEditor();
+    if (!editor) { showToast("Switch to Visual mode or click in the overview first.", "error"); return; }
+    if (oldWrap && oldOwner) {
       oldWrap.replaceWith(button);
     } else {
-      editor.focus();
-      const selection = window.getSelection();
-      const range = savedRangeRef.current;
-      if (range && editor.contains(range.commonAncestorContainer) && selection) {
-        selection.removeAllRanges();
-        selection.addRange(range);
-      }
+      if (!restoreEditorSelection()) editor.focus();
       // execCommand handles splitting the current paragraph around a block insertion.
       if (!document.execCommand("insertHTML", false, button.outerHTML)) {
         editor.insertAdjacentHTML("beforeend", button.outerHTML);
       }
     }
-    setField("content", editor.innerHTML);
+    commitEditor(editor);
     editingButtonRef.current = null;
     setButtonDialog(null);
     showToast(old ? "Button updated." : "Button inserted.", "success");
   }
 
   function removeButton() {
-    const editor = editorRef.current;
     const wrapper = editingButtonRef.current?.closest(".gb-blog-button-wrap");
-    if (!editor || !wrapper || !editor.contains(wrapper)) return;
-    if (!window.confirm("Remove this button from the blog post?")) return;
+    const editor = wrapper ? editorOf(wrapper) : null;
+    if (!editor || !wrapper) return;
+    if (!window.confirm("Remove this button?")) return;
     wrapper.remove();
-    setField("content", editor.innerHTML);
+    commitEditor(editor);
     editingButtonRef.current = null;
     setButtonDialog(null);
     showToast("Button removed.", "info");
@@ -1404,6 +1520,7 @@ function PostEditor({
         form.append("file", imgUploadFile);
         const r = await authFetch(ADMIN_API + "/upload", { method: "POST", body: form });
         const json = await r.json();
+        if (!r.ok) throw new Error("Image upload failed");
         url = json.url as string;
       } catch {
         showToast("Upload failed. Try again.", "error");
@@ -1415,14 +1532,11 @@ function PostEditor({
     if (!url) { showToast("Please select or upload an image.", "error"); return; }
     const absUrl = resolveMediaUrl(url);
     setShowImgModal(false);
-    const html = `<img src="${absUrl}" alt="${imgAlt.replace(/"/g, "&quot;")}" style="max-width:100%;border-radius:12px;margin:24px 0;display:block;" />`;
-    editorRef.current?.focus();
-    if (savedRangeRef.current) {
-      const sel = window.getSelection();
-      if (sel) { sel.removeAllRanges(); sel.addRange(savedRangeRef.current); }
-    }
+    const html = `<img src="${escapeHtmlAttribute(absUrl)}" alt="${escapeHtmlAttribute(imgAlt.trim())}" style="max-width:100%;border-radius:12px;margin:24px 0;display:block;" />`;
+    if (!restoreEditorSelection()) { showToast("Click inside the overview or body first, then insert the image.", "error"); return; }
+    const target = activeEditor();
     document.execCommand("insertHTML", false, html);
-    if (editorRef.current) setField("content", editorRef.current.innerHTML);
+    commitEditor(target);
     showToast("Image inserted.", "success");
   }
 
@@ -1729,31 +1843,12 @@ function PostEditor({
                   value={data.title}
                   onChange={(e) => setField("title", e.target.value)}
                   placeholder="Add title"
+                  aria-label="Title"
                   className="w-full px-6 py-5 text-[28px] font-black tracking-tight text-[#0B0B0B] placeholder-[#0B0B0B]/18 outline-none bg-transparent"
                 />
               </div>
 
-              {/* Public overview shown directly beneath the title */}
-              <div className="bg-white border border-[#0B0B0B]/10 rounded-2xl mb-4 p-4 sm:p-5 shadow-sm">
-                <label htmlFor="content-overview" className="block text-[11px] font-bold text-[#0B0B0B]/50 uppercase tracking-widest mb-2">
-                  {pageMode ? "Page overview (shown below title)" : "Post overview (shown below title)"}
-                </label>
-                <textarea
-                  id="content-overview"
-                  value={data.excerpt}
-                  onChange={(e) => setField("excerpt", e.target.value)}
-                  placeholder={pageMode ? "Write the overview readers will see below this page title..." : "Write the overview readers will see below this post title..."}
-                  rows={3}
-                  className="w-full resize-y border border-[#0B0B0B]/12 rounded-xl px-3.5 py-2.5 text-[15px] leading-[1.6] sm:text-[16px] sm:leading-[1.7] font-normal text-[#0B0B0B] placeholder-[#0B0B0B]/30 outline-none focus:border-[#0B0B0B]/30 bg-white"
-                />
-                <p className="mt-2 text-[11px] leading-relaxed text-[#0B0B0B]/45">
-                  This text appears directly under the title and before the main content. It is separate from the SEO meta description.
-                </p>
-              </div>
-
-              {/* Editor */}
-              <div className="bg-white border border-[#0B0B0B]/10 rounded-2xl shadow-sm">
-                <div className="sticky top-[8rem] sm:top-[4.5rem] z-20 flex items-center flex-wrap gap-0.5 px-3 py-2 border-b border-[#0B0B0B]/8 bg-[#fafafa] rounded-t-2xl shadow-sm">
+                              <div role="toolbar" aria-label="Formatting toolbar for overview and body" className="sticky top-[8rem] sm:top-[4.5rem] z-20 flex items-center flex-wrap gap-0.5 px-3 py-2 mb-4 border border-[#0B0B0B]/10 bg-[#fafafa] rounded-2xl shadow-sm">
                   {/* Block format custom dropdown */}
                   <div className="relative mr-1 shrink-0">
                     <button
@@ -1777,8 +1872,7 @@ function PostEditor({
                             key={val}
                             onMouseDown={(e) => {
                               e.preventDefault();
-                              exec("formatBlock", val);
-                              setCurrentBlock(val);
+                              applyBlockFormat(val);
                               setBlockDropOpen(false);
                             }}
                             className={`w-full text-left px-3 py-2 text-[12px] transition-colors hover:bg-[#0B0B0B]/5 ${currentBlock === val ? "font-semibold text-[#0B0B0B]" : "text-[#0B0B0B]/65"}`}
@@ -1816,7 +1910,6 @@ function PostEditor({
                                 e.preventDefault();
                                 restoreSelectionAndExec("foreColor", color);
                                 setCurrentTextColor(color);
-                                if (editorRef.current) setField("content", editorRef.current.innerHTML);
                                 setShowColorPicker(false);
                               }}
                               className="w-6 h-6 rounded-md transition-transform hover:scale-110"
@@ -1837,7 +1930,6 @@ function PostEditor({
                             onChange={(e) => {
                               restoreSelectionAndExec("foreColor", e.target.value);
                               setCurrentTextColor(e.target.value);
-                              if (editorRef.current) setField("content", editorRef.current.innerHTML);
                             }}
                             className="w-8 h-6 rounded cursor-pointer border border-[#0B0B0B]/12 p-0"
                           />
@@ -1846,7 +1938,6 @@ function PostEditor({
                               e.preventDefault();
                               restoreSelectionAndExec("foreColor", "#0B0B0B");
                               setCurrentTextColor("#0B0B0B");
-                              if (editorRef.current) setField("content", editorRef.current.innerHTML);
                               setShowColorPicker(false);
                             }}
                             className="ml-auto text-[10px] text-[#0B0B0B]/45 hover:text-[#0B0B0B] font-medium transition-colors"
@@ -1868,13 +1959,13 @@ function PostEditor({
                   <ToolBtn icon={<AlignJustify size={14} />} title="Justify" onClick={() => exec("justifyFull")} />
                   <div className="w-px h-5 bg-[#0B0B0B]/10 mx-0.5" />
                   <ToolBtn icon={<Link2 size={14} />} title="Insert Link" onClick={insertLinkWithFeedback} />
-                  {mode === "visual" && <ToolBtn icon={<MousePointerClick size={14} />} title="Insert or edit button" onClick={() => {
+                  <ToolBtn icon={<MousePointerClick size={14} />} title="Insert or edit button" onClick={() => {
                     const selection = window.getSelection();
                     const node = selection?.anchorNode;
                     const element = node instanceof Element ? node : node?.parentElement;
                     const anchor = element?.closest("a.gb-blog-button");
                     openButtonDialog(anchor instanceof HTMLAnchorElement ? anchor : undefined);
-                  }} />}
+                  }} />
                   <ToolBtn icon={<ImagePlus size={14} />} title="Insert Image" onClick={insertImageWithFeedback} />
                   <ToolBtn icon={<Table2 size={14} />} title="Insert Table" onClick={insertTableWithFeedback} />
                   <ToolBtn icon={<Minus size={14} />} title="Horizontal Rule" onClick={() => exec("insertHorizontalRule")} />
@@ -1889,6 +1980,47 @@ function PostEditor({
                     ))}
                   </div>
                 </div>
+              {/* Public overview shown directly beneath the title: full toolbar, rich HTML */}
+              <div className="bg-white border border-[#0B0B0B]/10 rounded-2xl mb-4 shadow-sm">
+                <div className="px-5 pt-4">
+                  <span id="content-overview-label" className="block text-[11px] font-bold text-[#0B0B0B]/50 uppercase tracking-widest">
+                    {pageMode ? "Page overview (shown below title)" : "Post overview (shown below title)"}
+                  </span>
+                </div>
+                <div className="relative">
+                  {!data.excerpt.trim() && !data.excerptHtml && (
+                    <span className="pointer-events-none absolute left-5 top-3 text-[15px] text-[#0B0B0B]/30">
+                      {pageMode ? "Write the overview readers will see below this page title..." : "Write the overview readers will see below this post title..."}
+                    </span>
+                  )}
+                  <div ref={overviewRef} contentEditable role="textbox" aria-multiline="true"
+                    aria-labelledby="content-overview-label" data-testid="content-overview"
+                    onInput={syncOverview}
+                    onPaste={handleOverviewPaste}
+                    onFocus={saveSelection}
+                    onMouseUp={saveSelection}
+                    onKeyUp={saveSelection}
+                    onMouseOver={(e) => previewEditorLink(e.target)}
+                    onClick={(e) => {
+                      const anchor = (e.target as Element).closest?.("a[href]");
+                      if (anchor instanceof HTMLAnchorElement && overviewRef.current?.contains(anchor)) {
+                        e.preventDefault();
+                        if (anchor.classList.contains("gb-blog-button")) openButtonDialog(anchor);
+                        else openLinkEditor(anchor);
+                      }
+                    }}
+                    onMouseLeave={() => setLinkPreview(null)}
+                    onBlurCapture={() => setLinkPreview(null)}
+                    className="blog-editor min-h-[96px] max-h-[40vh] overflow-y-auto overscroll-contain px-5 py-3 outline-none"
+                    suppressContentEditableWarning />
+                </div>
+                <p className="px-5 pb-4 pt-1 text-[11px] leading-relaxed text-[#0B0B0B]/45">
+                  Appears directly under the title, before the main content. Formatting is saved with the overview; a plain-text copy is kept for cards and SEO. Separate from the meta description.
+                </p>
+              </div>
+
+              {/* Editor */}
+              <div className="bg-white border border-[#0B0B0B]/10 rounded-2xl shadow-sm">
                 {mode === "visual" ? (
                   <div ref={editorRef} contentEditable
                      data-testid="blog-content-editor"
@@ -1909,11 +2041,12 @@ function PostEditor({
                      onBlurCapture={() => setLinkPreview(null)}
                     onMouseUp={saveSelection}
                     onKeyUp={saveSelection}
-                    className="blog-editor h-[65vh] min-h-[300px] max-h-[calc(100vh-300px)] overflow-y-auto overscroll-contain px-8 py-7 outline-none"
+                    onFocus={saveSelection}
+                    className="blog-editor rounded-t-2xl h-[65vh] min-h-[300px] max-h-[calc(100vh-300px)] overflow-y-auto overscroll-contain px-8 py-7 outline-none"
                     suppressContentEditableWarning />
                 ) : (
                   <textarea value={data.content} onChange={(e) => setField("content", e.target.value)}
-                    className="w-full h-[65vh] min-h-[300px] max-h-[calc(100vh-300px)] overflow-y-auto overscroll-contain px-7 py-6 text-[13px] text-[#0B0B0B]/65 font-mono leading-relaxed outline-none resize-none bg-[#fafafa]"
+                    className="rounded-t-2xl w-full h-[65vh] min-h-[300px] max-h-[calc(100vh-300px)] overflow-y-auto overscroll-contain px-7 py-6 text-[13px] text-[#0B0B0B]/65 font-mono leading-relaxed outline-none resize-none bg-[#fafafa]"
                     placeholder="Write your post content..." spellCheck={false} />
                 )}
                 <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-2.5 border-t border-[#0B0B0B]/6 bg-[#fafafa] rounded-b-2xl">
@@ -1932,14 +2065,14 @@ function PostEditor({
                     {mode === "visual" ? "Paste Markdown or rich text to auto-format" : "HTML source mode · switch to Visual for auto-format paste"}
                   </span>
                 </div>
-                {mode === "visual" && linkPreview && (
+                {linkPreview && (
                   <div role="status" className="fixed z-[100] pointer-events-none max-w-[min(420px,calc(100vw-24px))] rounded-lg bg-[#0B0B0B] px-3 py-2 text-white shadow-xl"
                     style={{ left: linkPreview.left, top: linkPreview.top }}>
                     <div className="text-[10px] font-bold uppercase tracking-wide text-white/65">{linkPreview.kind} link · URL</div>
                     <div className="text-[12px] font-medium break-all leading-snug">{linkPreview.url}</div>
                   </div>
                 )}
-                {mode === "visual" && editingLink && (
+                {editingLink && (
                   <form role="dialog" aria-label="Edit hyperlink" onSubmit={(e) => { e.preventDefault(); updateLink(); }}
                     onKeyDown={(e) => { if (e.key === "Escape") closeLinkEditor(); }}
                     className="fixed z-[101] w-[min(360px,calc(100vw-24px))] rounded-xl border border-[#0B0B0B]/10 bg-white p-4 text-[#0B0B0B] shadow-2xl"
@@ -1961,6 +2094,8 @@ function PostEditor({
                   </form>
                 )}
               </div>
+              <ArticleTocEditor content={liveContent} settings={data.toc} pageMode={pageMode}
+                onChange={(toc) => setFields({ toc })} />
             </>
           </div>
 

@@ -11,6 +11,8 @@ import { DEFAULT_TOC_VISIBLE, limitInlineToc, tocVisibleCount } from "@/lib/blog
 import SEOMeta from "@/components/SEOMeta";
 import { cachedGlobal, readBootstrap } from "@/lib/seoCache";
 import { ARTICLE_PARAGRAPH_CSS } from "@/lib/articleTypography";
+import { getArticleToc, articleHtmlWithHeadingIds } from "@/lib/articleToc";
+import { renderOverviewHtml } from "@/lib/articleOverview";
 
 const ARTICLE_CSS = `
 ${ARTICLE_PARAGRAPH_CSS}
@@ -37,9 +39,9 @@ ${ARTICLE_PARAGRAPH_CSS}
 .article-body h1,
 .article-body .wp-block-heading h1 { font-weight: 900; font-size: clamp(28px, 4vw, 42px); letter-spacing: -0.04em; color: #0A0A0A; margin: 56px 0 20px; line-height: 1.1; }
 .article-body h2,
-.article-body .wp-block-heading h2 { font-weight: 800; font-size: clamp(22px, 3vw, 28px); letter-spacing: -0.03em; color: #0A0A0A; margin: 56px 0 20px; line-height: 1.25; padding-bottom: 12px; border-bottom: 2px solid rgba(11,11,11,0.08); }
+.article-body .wp-block-heading h2 { font-weight: 800; font-size: clamp(22px, 3vw, 28px); letter-spacing: -0.03em; color: #0A0A0A; margin: 32px 0 12px; line-height: 1.25; }
 .article-body h3,
-.article-body .wp-block-heading h3 { font-weight: 700; font-size: clamp(17px, 2vw, 21px); letter-spacing: -0.02em; color: #0A0A0A; margin: 40px 0 12px; line-height: 1.35; }
+.article-body .wp-block-heading h3 { font-weight: 700; font-size: clamp(17px, 2vw, 21px); letter-spacing: -0.02em; color: #0A0A0A; margin: 24px 0 10px; line-height: 1.35; }
 .article-body h4,
 .article-body .wp-block-heading h4 { font-weight: 700; font-size: 17px; color: #0A0A0A; margin: 28px 0 10px; }
 .article-body h5, .article-body h6 { font-weight: 700; font-size: 15px; color: #0A0A0A; margin: 24px 0 8px; }
@@ -59,10 +61,10 @@ ${ARTICLE_PARAGRAPH_CSS}
 
 /* ── Lists ── */
 .article-body ul,
-.article-body .wp-block-list ul { margin: 22px 0; padding-left: 22px; list-style: disc; }
+.article-body .wp-block-list ul { margin: 16px 0; padding-left: 22px; list-style: disc; }
 .article-body ol,
-.article-body .wp-block-list ol { margin: 22px 0; padding-left: 22px; list-style: decimal; }
-.article-body li { font-size: 17px; color: rgba(11,11,11,0.78); line-height: 1.8; margin-bottom: 8px; padding-left: 4px; }
+.article-body .wp-block-list ol { margin: 16px 0; padding-left: 22px; list-style: decimal; }
+.article-body li { font-size: 16px; color: rgba(11,11,11,0.78); line-height: 1.6; margin-bottom: 4px; padding-left: 4px; }
 .article-body li:last-child { margin-bottom: 0; }
 .article-body li > p { margin: 0 0 8px; }
 .article-body li > ul, .article-body li > ol { margin: 8px 0 0; }
@@ -127,6 +129,7 @@ ${ARTICLE_PARAGRAPH_CSS}
 .article-body .blog-table-scroll table { margin: 0; min-width: 100%; }
 .article-body .blog-table-scroll th,
 .article-body .blog-table-scroll td { min-width: 110px; }
+.article-excerpt > :last-child { margin-bottom: 0 !important; }
 .article-body table,
 .article-body .wp-block-table table { width: 100%; border-collapse: collapse; margin: 30px 0; font-size: 15px; }
 .article-body .wp-block-table { overflow-x: auto; margin: 30px 0; }
@@ -330,7 +333,7 @@ ${ARTICLE_PARAGRAPH_CSS}
   /* Edge-to-edge images on phones for max impact */
   .article-body figure img, .article-body .wp-block-image img, .article-body img { border-radius: 12px; }
   .article-body h1, .article-body .wp-block-heading h1 { font-size: 26px; margin-top: 32px; line-height: 1.15; }
-  .article-body h2, .article-body .wp-block-heading h2 { font-size: 21px; margin-top: 28px; margin-bottom: 10px; padding-bottom: 6px; line-height: 1.25; }
+  .article-body h2, .article-body .wp-block-heading h2 { font-size: 21px; margin-top: 28px; margin-bottom: 10px; line-height: 1.25; }
   .article-body h3, .article-body .wp-block-heading h3 { font-size: 17px; margin-top: 20px; margin-bottom: 8px; }
   .article-body blockquote, .article-body .wp-block-quote { margin: 20px 0; padding: 14px 16px; }
   .article-body blockquote p, .article-body .wp-block-quote p { font-size: 16px; line-height: 1.6; }
@@ -406,7 +409,7 @@ function renderMarkdown(text: string): React.ReactElement[] {
 
     if (trimmed.startsWith("## ")) {
       elements.push(
-        <h2 key={key++} id={uniqueHeadingId(trimmed.slice(3), usedHeadingIds)} style={{ fontWeight: 800, fontSize: "clamp(22px, 3vw, 28px)", letterSpacing: "-0.03em", color: "#0A0A0A", marginTop: 56, marginBottom: 20, lineHeight: 1.25, paddingBottom: 12, borderBottom: "2px solid #E5E5E0" }}>
+        <h2 key={key++} id={uniqueHeadingId(trimmed.slice(3), usedHeadingIds)} style={{ fontWeight: 800, fontSize: "clamp(22px, 3vw, 28px)", letterSpacing: "-0.03em", color: "#0A0A0A", marginTop: 32, marginBottom: 12, lineHeight: 1.25 }}>
           {trimmed.slice(3)}
         </h2>
       );
@@ -415,7 +418,7 @@ function renderMarkdown(text: string): React.ReactElement[] {
 
     if (trimmed.startsWith("### ")) {
       elements.push(
-        <h3 key={key++} style={{ fontWeight: 700, fontSize: "clamp(17px, 2vw, 20px)", letterSpacing: "-0.02em", color: "#0A0A0A", marginTop: 36, marginBottom: 12, lineHeight: 1.35 }}>
+        <h3 key={key++} style={{ fontWeight: 700, fontSize: "clamp(17px, 2vw, 20px)", letterSpacing: "-0.02em", color: "#0A0A0A", marginTop: 24, marginBottom: 10, lineHeight: 1.35 }}>
           {trimmed.slice(4)}
         </h3>
       );
@@ -697,12 +700,19 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
 
   // Pre-compute heavy derived values once per post change.
   // Suppress our auto TOC when the WP content already has its own, so we never duplicate.
-  const wpHasToc = useMemo(() => post ? hasInlineToc(post.content) : false, [post]);
-  const toc = useMemo(() => (post && !wpHasToc) ? extractToc(post.content) : [], [post, wpHasToc]);
+  const wpHasToc = useMemo(() => post && !post.toc ? hasInlineToc(post.content) : false, [post]);
+  const toc = useMemo(() => (post && !wpHasToc) ? getArticleToc(post.content, post.toc) : [], [post, wpHasToc]);
   const enhancedContent = useMemo(() => {
     if (!post) return "";
     if (!isHtml(post.content)) return post.content;
-    const html = addHeadingIds(enhanceWpHtml(rewriteSelfAnchors(post.content)));
+    let html = articleHtmlWithHeadingIds(enhanceWpHtml(rewriteSelfAnchors(post.content)));
+    if (post.toc) {
+      // Explicit editor settings replace imported plugin TOCs only in this
+      // rendered view. The authored HTML in storage remains unchanged.
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      doc.querySelectorAll(".wp-block-table-of-contents,.ez-toc-container,#ez-toc-container,.lwptoc,.toc_container,.kb-table-of-content-nav,.ub_table-of-contents,.rank-math-toc,.wp-block-rank-math-toc-block,.rmp-toc,#table-of-contents").forEach(node => node.remove());
+      html = doc.body.innerHTML;
+    }
     return wpHasToc ? limitInlineToc(html, visibleCount, tocExpanded) : html;
   }, [post, wpHasToc, visibleCount, tocExpanded]);
 
@@ -792,15 +802,16 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
             {post.title}
           </motion.h1>
 
-          {post.excerpt && (
-            <motion.p
-              className="article-excerpt"
+          {(post.excerpt || post.excerptHtml) && (
+            <motion.div
+              className="article-excerpt article-body"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-            >
-              {post.excerpt}
-            </motion.p>
+              {...(post.excerptHtml
+                ? { dangerouslySetInnerHTML: { __html: renderOverviewHtml(post.excerptHtml) } }
+                : { children: post.excerpt })}
+            />
           )}
         </div>
 
@@ -831,7 +842,7 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
       <section className="gb-article-section" style={{ padding: "clamp(20px, 4vw, 36px) 18px 100px", background: "#FFFFFF" }}>
         <div className="max-w-[680px] mx-auto">
           {/* Auto Table of Contents - appears only if the article has 2+ H2 sections */}
-          {toc.length >= 2 && (
+          {toc.length >= (post.toc ? 1 : 2) && (
             <nav aria-label="On this page" className="article-toc" style={{ padding: "16px 20px", marginBottom: 24, background: "#F8F8F6", border: "1px solid #EFEFEA", borderRadius: 14 }}>
               <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.15em", textTransform: "uppercase", color: "#7A7A85", margin: 0, marginBottom: 12, display: "inline-flex", alignItems: "center", gap: 7 }}>
                 <List className="w-3.5 h-3.5" /> On this page

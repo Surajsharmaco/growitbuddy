@@ -99,6 +99,7 @@ export function formatPastedBlog({ html = "", text = "" }: ClipboardBlog): { htm
     scroller.appendChild(table);
   });
 
+  tidyDraftLayout(container);
   return { html: container.innerHTML, omittedImages };
 }
 
@@ -116,7 +117,7 @@ function plainBlock(node: Element): string | null {
 }
 
 function convertMarkdownBlocks(parent: Element): boolean {
-  if (["PRE", "CODE", "TABLE", "BLOCKQUOTE"].includes(parent.tagName)) return false;
+  if (["PRE", "CODE", "TABLE", "BLOCKQUOTE", "H1", "H2", "H3", "H4", "H5", "H6"].includes(parent.tagName)) return false;
   const children = Array.from(parent.children);
   let changed = false;
   for (let i = 0; i < children.length;) {
@@ -151,7 +152,10 @@ function convertMarkdownBlocks(parent: Element): boolean {
     if (["P", "DIV"].includes(node.tagName) &&
         !node.querySelector("p,div,h1,h2,h3,h4,h5,h6,table,ul,ol,pre,blockquote")) {
       const match = node.textContent?.match(/^\s{0,3}(#{1,6})\s+/);
-      if (match) {
+      // A Markdown marker at the start of a rich, multiline block does NOT
+      // make all its following paragraphs one giant heading.
+      if (match && !node.querySelector("br") && !/[\r\n]/.test(node.textContent ?? "") &&
+          (node.textContent?.trim().length ?? 0) <= 180) {
         const heading = document.createElement(`h${match[1].length}`);
         for (const attr of Array.from(node.attributes)) heading.setAttribute(attr.name, attr.value);
         const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
@@ -173,6 +177,29 @@ function convertMarkdownBlocks(parent: Element): boolean {
   return changed;
 }
 
+/** Draft-only cleanup, never a migration of saved/live content. Text/media/IDs survive. */
+function tidyDraftLayout(container: Element): void {
+  container.querySelectorAll("hr").forEach(node => node.remove());
+  container.querySelectorAll<HTMLElement>("p,div,h1,h2,h3,h4,h5,h6,ul,ol,li").forEach(node => {
+    for (const property of ["margin", "margin-top", "margin-right", "margin-bottom", "margin-left",
+      "padding", "padding-top", "padding-right", "padding-bottom", "padding-left",
+      "line-height", "font-size", "border", "border-bottom", "border-top"]) node.style.removeProperty(property);
+    if (!node.getAttribute("style")?.trim()) node.removeAttribute("style");
+  });
+  container.querySelectorAll("h1,h2,h3,h4,h5,h6").forEach(node => {
+    const blocks = node.querySelector("p,div,ul,ol,table,blockquote,pre,h1,h2,h3,h4,h5,h6");
+    if (!blocks && (node.textContent?.trim().length ?? 0) <= 180) return;
+    const replacement = document.createElement(blocks ? "div" : "p");
+    for (const attr of Array.from(node.attributes)) replacement.setAttribute(attr.name, attr.value);
+    while (node.firstChild) replacement.appendChild(node.firstChild);
+    node.replaceWith(replacement);
+  });
+  container.querySelectorAll("p,div").forEach(node => {
+    if (!node.id && !node.textContent?.replace(/\u00a0/g, " ").trim() &&
+        !node.querySelector("img,iframe,video,audio,table,svg,hr,figure,a[id],a[name]")) node.remove();
+  });
+}
+
 /** Format an existing draft without replacing its rich HTML, images or embeds. */
 export function optimizeBlogContent(content: string, sourceType: "html" | "markdown"): {
   html: string;
@@ -190,7 +217,11 @@ export function optimizeBlogContent(content: string, sourceType: "html" | "markd
     const formatted = formatPastedBlog({ text: container.textContent ?? "" });
     return { ...formatted, changed: formatted.html !== content };
   }
-  let changed = convertMarkdownBlocks(container);
+  // Remove imported sizing before looking for plain Markdown blocks, so one
+  // Optimize click produces the same result as two and doesn't nest headings.
+  tidyDraftLayout(container);
+  convertMarkdownBlocks(container);
+  tidyDraftLayout(container);
 
   container.querySelectorAll("table").forEach((table) => {
     if (table.parentElement?.classList.contains("blog-table-scroll")) return;
@@ -198,7 +229,7 @@ export function optimizeBlogContent(content: string, sourceType: "html" | "markd
     scroller.className = "blog-table-scroll";
     table.replaceWith(scroller);
     scroller.appendChild(table);
-    changed = true;
   });
+  const changed = container.innerHTML !== content;
   return { html: changed ? container.innerHTML : content, changed, omittedImages: 0 };
 }

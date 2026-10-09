@@ -28,6 +28,10 @@ export interface BlogPost {
   slug: string;
   title: string;
   excerpt: string;
+  /** Optional rich overview; excerpt remains plain text for cards and SEO. */
+  excerptHtml?: string;
+  /** Labels/order/visibility only: never rewrites article headings or SEO. */
+  toc?: { enabled?: boolean; entries?: { id: string; label: string; hidden?: boolean }[] };
   date: string;
   /** ISO 8601 date string for schema.org / Google */
   isoDate?: string;
