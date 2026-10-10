@@ -2933,7 +2933,9 @@ function PostEditor({
           <SidePanel title="Featured Image" defaultOpen={true}>
             <ImageCropUploader
               value={data.featuredImage ?? ""}
-              onChange={(url) => setField("featuredImage", url)}
+              onChange={(url, alt) => setFields({ featuredImage: url, ...(alt !== undefined ? { featuredImageAlt: alt } : {}) })}
+              altText={data.featuredImageAlt ?? ""}
+              onAltTextChange={(alt) => setField("featuredImageAlt", alt)}
               hint={pageMode ? "Recommended: 1200 × 630 px • JPG or PNG • Shown at the top of the page and as the social share image" : "Recommended: 1200 × 630 px • JPG or PNG • Shown at the top of the post and on the blog listing"}
             />
           </SidePanel>
@@ -3130,7 +3132,7 @@ function PostList({ posts, onEdit, onDelete, onDeleteSelected, onRestore, onPerm
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="shrink-0 w-12 h-9 rounded-lg overflow-hidden bg-[#0B0B0B]/6 flex items-center justify-center">
                       {post.featuredImage ? (
-                        <img src={post.featuredImage} alt={post.title} className="w-full h-full object-cover" />
+                        <img src={resolveMediaUrl(post.featuredImage)} alt={post.featuredImageAlt ?? post.title} className="w-full h-full object-cover" />
                       ) : (
                         <span className="text-[8px] font-bold text-[#0B0B0B]/20 uppercase tracking-widest">No img</span>
                       )}
@@ -3232,7 +3234,7 @@ function PostList({ posts, onEdit, onDelete, onDeleteSelected, onRestore, onPerm
                     <button onClick={() => onEdit(post)} className="text-left w-full flex items-center gap-3">
                       <div className="shrink-0 w-14 h-10 rounded-lg overflow-hidden bg-[#0B0B0B]/6 flex items-center justify-center">
                         {post.featuredImage ? (
-                          <img src={post.featuredImage} alt={post.title} className="w-full h-full object-cover" />
+                          <img src={resolveMediaUrl(post.featuredImage)} alt={post.featuredImageAlt ?? post.title} className="w-full h-full object-cover" />
                         ) : (
                           <span className="text-[9px] font-bold text-[#0B0B0B]/20 uppercase tracking-widest">No img</span>
                         )}

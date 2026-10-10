@@ -150,7 +150,7 @@ export default function Insights() {
                           {post.featuredImage ? (
                             <img
                               src={resolveMediaUrl(post.featuredImage)}
-                              alt={post.title}
+                              alt={post.featuredImageAlt ?? post.title}
                               loading={i < 3 ? "eager" : "lazy"}
                               decoding="async"
                               onLoad={(e) => { e.currentTarget.style.opacity = "1"; }}

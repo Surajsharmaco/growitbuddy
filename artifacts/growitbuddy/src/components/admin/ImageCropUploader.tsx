@@ -33,9 +33,15 @@ function roundedRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w:
   ctx.closePath();
 }
 
-interface Props { value: string; onChange: (url: string) => void; hint?: string; }
+interface Props {
+  value: string;
+  onChange: (url: string, altText?: string) => void;
+  hint?: string;
+  altText?: string;
+  onAltTextChange?: (altText: string) => void;
+}
 
-export function ImageCropUploader({ value, onChange, hint }: Props) {
+export function ImageCropUploader({ value, onChange, hint, altText = "", onAltTextChange }: Props) {
   const { authFetch } = useAdmin();
   const uid = useId();
   const inputId = `img_upload_${uid.replace(/:/g, "")}`;
@@ -47,6 +53,13 @@ export function ImageCropUploader({ value, onChange, hint }: Props) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [showLibrary, setShowLibrary] = useState(false);
+
+  useEffect(() => {
+    if (value === finalSrc) return;
+    setFinalSrc(value);
+    setStage(value ? "done" : "empty");
+    setRawSrc("");
+  }, [value]);
 
   const [aspectKey, setAspectKey] = useState<AspectKey>("free");
   const [roundness, setRoundness] = useState(0);
@@ -72,7 +85,11 @@ export function ImageCropUploader({ value, onChange, hint }: Props) {
   } | null>(null);
 
   function handleFileSelect(file: File) {
-    if (!file.type.startsWith("image/")) return;
+    if (!file.type.startsWith("image/")) {
+      setUploadError("Please select an image file.");
+      return;
+    }
+    setUploadError(null);
     const reader = new FileReader();
     reader.onload = (e) => {
       setRawSrc(e.target?.result as string);
@@ -211,6 +228,7 @@ export function ImageCropUploader({ value, onChange, hint }: Props) {
       if (uploadId !== uploadIdRef.current) return;
       const fd = new FormData();
       fd.append("file", blob, blob.type === "image/webp" ? "image.webp" : "image.png");
+       fd.append("altText", altText.trim());
       const res = await authFetch(`${API}/admin/upload`, {
         method: "POST",
         body: fd,
@@ -222,7 +240,7 @@ export function ImageCropUploader({ value, onChange, hint }: Props) {
         setFinalSrc(url);
         setStage("done");
         setUploadError(null);
-        onChange(url);
+        onChange(url, altText.trim());
       } else {
         const data = await res.json().catch(() => ({}));
         setUploadError(res.status === 401 ? "Session expired. Sign in and retry the upload."
@@ -248,13 +266,14 @@ export function ImageCropUploader({ value, onChange, hint }: Props) {
     uploadAbortRef.current = null;
     setUploading(false);
     setUploadError(null);
-    setStage("empty"); setRawSrc(""); setFinalSrc(""); onChange("");
+    setStage("empty"); setRawSrc(""); setFinalSrc(""); onChange("", "");
   }
 
-  function handleLibrarySelect(url: string) {
+  function handleLibrarySelect(url: string, libraryAlt = "") {
+    setRawSrc("");
     setFinalSrc(url);
     setStage("done");
-    onChange(url);
+    onChange(url, libraryAlt);
     setShowLibrary(false);
   }
 
@@ -262,6 +281,8 @@ export function ImageCropUploader({ value, onChange, hint }: Props) {
 
   return (
     <>
+      <input id={inputId} type="file" accept="image/*" className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileSelect(f); e.currentTarget.value = ""; }} />
       {showLibrary && <MediaLibrary onSelect={handleLibrarySelect} onClose={() => setShowLibrary(false)} />}
 
       {stage === "empty" && (
@@ -274,8 +295,6 @@ export function ImageCropUploader({ value, onChange, hint }: Props) {
             className={`border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-2.5 transition-colors cursor-pointer ${hovering ? "border-[#0B0B0B]/40 bg-[#0B0B0B]/5" : "border-[#0B0B0B]/15 bg-[#fafafa] hover:border-[#0B0B0B]/30 hover:bg-[#0B0B0B]/3"}`}
             style={{ minHeight: 120 }}
           >
-            <input id={inputId} type="file" accept="image/*" className="hidden"
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileSelect(f); e.currentTarget.value = ""; }} />
             <Upload size={20} className="text-[#0B0B0B]/30" />
             <div className="text-center px-4">
               <p className="text-[13px] font-semibold text-[#0B0B0B]/50">Click to upload or drag & drop</p>
@@ -298,23 +317,37 @@ export function ImageCropUploader({ value, onChange, hint }: Props) {
       {stage === "done" && (
         <div className="space-y-2">
           <div className="relative rounded-xl overflow-hidden group" style={{ height: 150 }}>
-            <img src={resolveMediaUrl(finalSrc)} alt="Featured" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-              <button onClick={() => setStage("crop")}
+            <img src={resolveMediaUrl(finalSrc)} alt={altText} className="w-full h-full object-contain" />
+          </div>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => document.getElementById(inputId)?.click()}
+                className="border text-[#0B0B0B] text-[11px] font-semibold px-3 py-2 rounded-lg hover:bg-[#f5f5f5] flex items-center gap-1">
+                <Upload size={11} /> Upload
+              </button>
+              <button type="button" onClick={() => setShowLibrary(true)}
                 className="bg-white text-[#0B0B0B] text-[11px] font-semibold px-3 py-1.5 rounded-lg hover:bg-[#f5f5f5] flex items-center gap-1">
+                <Images size={11} /> Choose from library
+              </button>
+              {rawSrc && <button type="button" onClick={() => setStage("crop")}
+                className="border text-[11px] font-semibold px-3 py-2 rounded-lg flex items-center gap-1">
                 <Crop size={11} /> Re-crop
-              </button>
-              <button onClick={() => setShowLibrary(true)}
-                className="bg-white text-[#0B0B0B] text-[11px] font-semibold px-3 py-1.5 rounded-lg hover:bg-[#f5f5f5] flex items-center gap-1">
-                <Images size={11} /> Library
-              </button>
-              <button onClick={reset}
+              </button>}
+              <button type="button" onClick={reset}
                 className="bg-white text-red-600 text-[11px] font-semibold px-3 py-1.5 rounded-lg hover:bg-red-50 flex items-center gap-1">
                 <X size={11} /> Remove
               </button>
             </div>
-          </div>
-          <p className="text-[10px] text-[#0B0B0B]/35 text-center">Hover to re-crop, pick from library, or remove</p>
+        </div>
+      )}
+      {onAltTextChange && (
+        <div className="mt-3 space-y-1.5">
+          <label htmlFor={`${inputId}_alt`} className="block text-xs font-semibold text-[#0B0B0B]/75">Featured image alt text</label>
+          <textarea id={`${inputId}_alt`} value={altText} maxLength={500} rows={3}
+            onChange={(e) => onAltTextChange(e.target.value)}
+            placeholder="Describe what the image shows in this article."
+            className="w-full border rounded-lg p-2.5 text-xs leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-[#0B0B0B]/20" />
+          <p className="text-[11px] leading-relaxed text-[#0B0B0B]/55">Saved with this post when you Save/Update. Library text is a starting suggestion; changing it here does not change other posts. Leave empty only for a decorative image.</p>
+          <p className="text-[10px] text-[#0B0B0B]/40">{altText.length}/500</p>
         </div>
       )}
 
@@ -400,7 +433,14 @@ export function ImageCropUploader({ value, onChange, hint }: Props) {
           )}
 
           <div className="flex gap-2 pt-1">
-            <button type="button" onClick={reset}
+            <button type="button" onClick={() => {
+              uploadIdRef.current++;
+              uploadAbortRef.current?.abort();
+              setUploading(false);
+              setUploadError(null);
+              setRawSrc("");
+              setStage(value ? "done" : "empty");
+            }}
               className="flex items-center gap-1.5 text-[12px] text-[#0B0B0B]/45 hover:text-[#0B0B0B] px-3 py-2 rounded-xl border border-[#0B0B0B]/12 hover:border-[#0B0B0B]/25 transition-colors">
               <RotateCcw size={12} /> Cancel
             </button>

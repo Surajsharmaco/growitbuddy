@@ -7,10 +7,11 @@ interface MediaItem {
   filename: string;
   url: string;
   uploadedAt: number;
+  altText?: string;
 }
 
 interface Props {
-  onSelect: (url: string) => void;
+  onSelect: (url: string, altText?: string) => void;
   onClose: () => void;
 }
 
@@ -20,13 +21,17 @@ export function MediaLibrary({ onSelect, onClose }: Props) {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadAlt, setUploadAlt] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function load() {
     setLoading(true);
     try {
       const res = await authFetch(`${API}/admin/media`);
-      if (res.ok) setItems(await res.json());
+      if (!res.ok) throw new Error(`Could not load library (${res.status}).`);
+      setItems(await res.json());
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : "Could not load library. Please retry.");
     } finally {
       setLoading(false);
     }
@@ -44,11 +49,13 @@ export function MediaLibrary({ onSelect, onClose }: Props) {
     try {
       const fd = new FormData();
       fd.append("file", file);
+      fd.append("altText", uploadAlt.trim());
       const res = await authFetch(`${API}/admin/upload`, {
         method: "POST",
         body: fd,
       });
       if (res.ok) {
+        setUploadAlt("");
         await load();
       } else {
         const data = await res.json().catch(() => ({}));
@@ -106,6 +113,13 @@ export function MediaLibrary({ onSelect, onClose }: Props) {
           </div>
         )}
 
+        <div className="px-4 py-3 border-b shrink-0">
+          <label className="block text-xs font-semibold" htmlFor="library-upload-alt">Alt text for next upload</label>
+          <input id="library-upload-alt" value={uploadAlt} onChange={(e) => setUploadAlt(e.target.value)} maxLength={500} disabled={uploading}
+            placeholder="Describe the image, then choose Upload new"
+            className="mt-1.5 w-full border rounded-lg p-2 text-xs" />
+          <p className="mt-1 text-[11px] text-[#0B0B0B]/55">Library default. You can edit it for this post after selecting an image.</p>
+        </div>
         <div className="flex-1 overflow-y-auto p-4">
           {loading ? (
             <div className="flex items-center justify-center h-40">
@@ -127,14 +141,14 @@ export function MediaLibrary({ onSelect, onClose }: Props) {
               {items.map((item) => (
                 <button
                   key={item.filename}
-                  onClick={() => { onSelect(resolveMediaUrl(item.url)); onClose(); }}
+                  onClick={() => { onSelect(resolveMediaUrl(item.url), item.altText ?? ""); onClose(); }}
                   className="group relative rounded-xl overflow-hidden border-2 border-transparent hover:border-[#0B0B0B] transition-colors focus:outline-none focus:border-[#0B0B0B]"
                   style={{ aspectRatio: "1" }}
                   title={item.filename}
                 >
                   <img
                     src={resolveMediaUrl(item.url)}
-                    alt={item.filename}
+                    alt={item.altText ?? ""}
                     className="w-full h-full object-cover"
                     loading="lazy"
                   />

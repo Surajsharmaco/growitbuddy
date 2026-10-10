@@ -39,6 +39,7 @@ export default function AdminMediaLibrary() {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState<number>(0);
+  const [pendingUploads, setPendingUploads] = useState<{ file: File; altText: string }[]>([]);
   const [search, setSearch] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -62,20 +63,31 @@ export default function AdminMediaLibrary() {
   useEffect(() => { load(); }, [load]);
 
   async function uploadFiles(files: FileList | File[]) {
+    if (uploading) return;
     const arr = Array.from(files).filter((f) => f.type.startsWith("image/"));
     if (!arr.length) {
       setUploadError("Please select image files only (PNG, JPG, WebP, GIF, SVG).");
       return;
     }
+    setUploadError(null);
+    setPendingUploads((prev) => [...prev, ...arr.map((file) => ({ file, altText: "" }))]);
+  }
+
+  async function confirmUploads() {
+    if (uploading || !pendingUploads.length) return;
+    const queue = [...pendingUploads];
     setUploading(true);
     setUploadError(null);
     setUploadSuccess(0);
     let succeeded = 0;
     const errors: string[] = [];
+    const failed: typeof queue = [];
     try {
-      await Promise.all(arr.map(async (file) => {
+      await Promise.all(queue.map(async (entry) => {
+        const { file, altText } = entry;
         const fd = new FormData();
         fd.append("file", file);
+        fd.append("altText", altText.trim());
         try {
           const res = await authFetch(`${API}/admin/upload`, {
             method: "POST",
@@ -84,16 +96,19 @@ export default function AdminMediaLibrary() {
           if (res.ok) {
             succeeded++;
           } else {
+            failed.push(entry);
             const data = await res.json().catch(() => ({}));
             errors.push((data as { error?: string }).error ?? `Failed to upload "${file.name}" (${res.status})`);
           }
         } catch {
+          failed.push(entry);
           errors.push(`Network error uploading "${file.name}"`);
         }
       }));
       if (errors.length > 0) {
         setUploadError(errors.join(" · "));
       }
+      setPendingUploads(failed);
       if (succeeded > 0) {
         setUploadSuccess(succeeded);
         setTimeout(() => setUploadSuccess(0), 3000);
@@ -266,6 +281,29 @@ export default function AdminMediaLibrary() {
           </p>
         </div>
       </div>
+
+      {pendingUploads.length > 0 && (
+        <div className="mb-5 rounded-2xl border p-4 space-y-3">
+          <h2 className="text-sm font-bold">Add alt text before uploading</h2>
+          <p className="text-xs text-[#0B0B0B]/60">Describe each image. This becomes its library default; each blog can have its own description.</p>
+          {pendingUploads.map((entry, index) => (
+            <div key={`${entry.file.name}-${index}`}>
+              <label htmlFor={`upload-alt-${index}`} className="block text-xs font-semibold break-all">{entry.file.name}</label>
+              <input id={`upload-alt-${index}`} value={entry.altText} disabled={uploading} maxLength={500}
+                onChange={(e) => { const altText = e.target.value; setPendingUploads((prev) => prev.map((item, i) => i === index ? { ...item, altText } : item)); }}
+                placeholder="What does this image show?"
+                className="mt-1.5 w-full border rounded-lg p-2.5 text-xs" />
+            </div>
+          ))}
+          <div className="flex gap-2">
+            <button type="button" onClick={confirmUploads} disabled={uploading}
+              className="rounded-lg bg-[#0B0B0B] text-white px-4 py-2 text-xs font-semibold disabled:opacity-50">
+              {uploading ? "Uploading..." : `Upload ${pendingUploads.length} image${pendingUploads.length === 1 ? "" : "s"}`}
+            </button>
+            <button type="button" disabled={uploading} onClick={() => setPendingUploads([])} className="rounded-lg border px-4 py-2 text-xs disabled:opacity-50">Cancel</button>
+          </div>
+        </div>
+      )}
 
       {/* Toolbar */}
       <div className="flex gap-3 mb-4">

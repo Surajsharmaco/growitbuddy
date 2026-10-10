@@ -747,7 +747,7 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
   }
 
   return (
-    <div style={{ background: "#F8F8F6", fontFamily: "'Inter', sans-serif" }}>
+    <div className={isPreview ? "article-preview" : undefined} style={{ background: "#F8F8F6", fontFamily: "'Inter', sans-serif" }}>
       {!isPreview && <ReadingProgress />}
       {!isPreview && resolvedSeo && <SEOMeta
         title={resolvedSeo.title}
@@ -767,7 +767,7 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
       />}
 
       {/* The fixed site header is 72px tall; keep the first row below it. */}
-      <section style={{ paddingTop: "calc(72px + clamp(16px, 3vw, 24px))", paddingBottom: 0, background: "#FFFFFF" }}>
+      <section style={{ paddingTop: isPreview ? "clamp(20px, 3vw, 32px)" : "calc(72px + clamp(16px, 3vw, 24px))", paddingBottom: 0, background: "#FFFFFF" }}>
         <div className="max-w-[760px] mx-auto" style={{ padding: "0 18px" }}>
           {!pageMode && <Link href="/blog">
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "#7A7A85", cursor: "pointer", marginBottom: 18, letterSpacing: "0.01em" }}>
@@ -831,7 +831,7 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
             >
               <img
                 src={resolveMediaUrl(post.featuredImage)}
-                alt={post.title}
+                 alt={post.featuredImageAlt ?? post.title}
                 loading="eager"
                 fetchPriority="high"
                 decoding="async"
@@ -933,7 +933,7 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
                     >
                       {p.featuredImage && (
                         <div style={{ height: 160, overflow: "hidden", flexShrink: 0 }}>
-                          <img src={resolveMediaUrl(p.featuredImage)} alt={p.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                          <img src={resolveMediaUrl(p.featuredImage)} alt={p.featuredImageAlt ?? p.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                         </div>
                       )}
                       <div style={{ padding: "22px 24px 24px", flex: 1, display: "flex", flexDirection: "column" }}>

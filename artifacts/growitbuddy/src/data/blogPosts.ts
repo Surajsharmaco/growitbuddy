@@ -43,6 +43,8 @@ export interface BlogPost {
   /** New drafts use editor-matched spacing; absent means preserve legacy layout. */
   contentLayout?: "editor-v1";
   featuredImage?: string;
+  /** Per-post description; undefined preserves legacy title fallback, "" is decorative. */
+  featuredImageAlt?: string;
   seo?: Partial<PostSeo>;
   status?: "draft" | "published";
   source?: "cms" | "wordpress";
