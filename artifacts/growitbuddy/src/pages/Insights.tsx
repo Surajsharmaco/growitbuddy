@@ -120,24 +120,22 @@ export default function Insights() {
             {filtered.map((post, i) => {
               const featured = i === 0 && activeTag === "All";
               return (
-                <motion.div
+                <div
                   key={post.slug || i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.05, duration: 0.45 }}
+                  className="flex min-w-0"
                 >
-                  <Link href={`/blog/${post.slug}`}>
+                  <Link href={`/blog/${post.slug}`} className="flex w-full" aria-label={`Read more: ${post.title}`} title={post.title}>
                     <div
                       style={{
                         background: featured ? "#1E293B" : "#FFFFFF",
-                        border: featured ? "none" : "1px solid rgba(20,32,46,0.14)",
+                        border: `1px solid ${featured ? "#1E293B" : "rgba(20,32,46,0.14)"}`,
                         boxShadow: featured ? "none" : "0 18px 44px -22px rgba(20,32,46,0.22), 0 4px 12px -6px rgba(20,32,46,0.08)",
                         borderRadius: 20,
                         overflow: "hidden",
                         cursor: "pointer",
                         transition: "transform 0.2s, box-shadow 0.2s",
                         height: "100%",
+                        width: "100%",
                         display: "flex",
                         flexDirection: "column",
                       }}
@@ -161,39 +159,24 @@ export default function Insights() {
                           )}
                         </div>
                       )}
-                      <div style={{ padding: "28px 28px 28px", flex: 1, display: "flex", flexDirection: "column" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-                          <span style={{
-                            fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
-                            padding: "5px 12px", borderRadius: 100,
-                            background: featured ? "rgba(255,255,255,0.12)" : "#EFEFEA",
-                            color: featured ? "#F8F8F6" : "#0A0A0A",
-                          }}>
-                            {normalizeBlogCategory(post.tag)}
-                          </span>
-                        </div>
+                      <div style={{ padding: 22, flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
                         <h2 style={{
-                          fontWeight: 800, fontSize: "clamp(20px, 2.5vw, 26px)", letterSpacing: "-0.03em",
-                          lineHeight: 1.2, color: featured ? "#fff" : "#0A0A0A", marginBottom: 16, flex: 1,
+                          fontWeight: 800, fontSize: 22, letterSpacing: "-0.03em",
+                          lineHeight: 1.28, color: featured ? "#fff" : "#0A0A0A", margin: 0,
+                          minHeight: "3.84em", display: "-webkit-box", WebkitLineClamp: 3,
+                          WebkitBoxOrient: "vertical", overflow: "hidden", overflowWrap: "anywhere",
                         }}>
                           {post.title}
                         </h2>
-                        <p style={{
-                          fontSize: 14, color: featured ? "#8A8A8A" : "rgba(11,11,11,0.55)",
-                          lineHeight: "1.75", marginBottom: 20,
-                        }}>
-                          {post.excerpt}
-                        </p>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 16, borderTop: `1px solid ${featured ? "rgba(248,248,246,0.12)" : "rgba(11,11,11,0.08)"}` }}>
-                          <span style={{ fontSize: 12, color: featured ? "rgba(248,248,246,0.5)" : "rgba(11,11,11,0.45)" }}>{post.date}</span>
+                        <div style={{ display: "flex", alignItems: "center", marginTop: "auto", paddingTop: 14, borderTop: `1px solid ${featured ? "rgba(248,248,246,0.12)" : "rgba(11,11,11,0.08)"}` }}>
                           <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13, fontWeight: 700, color: featured ? "#F8F8F6" : "#0A0A0A" }}>
-                            Read <ArrowRight className="w-3.5 h-3.5" />
+                            Read more <ArrowRight className="w-3.5 h-3.5" />
                           </span>
                         </div>
                       </div>
                     </div>
                   </Link>
-                </motion.div>
+                </div>
               );
             })}
           </div>
@@ -236,13 +219,14 @@ function SkeletonCard() {
       }}
     >
       <div className="gb-blog-shimmer" style={{ aspectRatio: "16/10" }} />
-      <div style={{ padding: 28 }}>
-        <div className="gb-blog-shimmer" style={{ width: 72, height: 24, borderRadius: 100, marginBottom: 22 }} />
-        <div className="gb-blog-shimmer" style={{ width: "92%", height: 20, borderRadius: 6, marginBottom: 10 }} />
-        <div className="gb-blog-shimmer" style={{ width: "64%", height: 20, borderRadius: 6, marginBottom: 22 }} />
-        <div className="gb-blog-shimmer" style={{ width: "100%", height: 13, borderRadius: 6, marginBottom: 8 }} />
-        <div className="gb-blog-shimmer" style={{ width: "100%", height: 13, borderRadius: 6, marginBottom: 8 }} />
-        <div className="gb-blog-shimmer" style={{ width: "80%", height: 13, borderRadius: 6 }} />
+      <div style={{ padding: 22 }}>
+        <div style={{ minHeight: 85, marginBottom: 16 }}>
+          <div className="gb-blog-shimmer" style={{ width: "92%", height: 22, borderRadius: 6, marginBottom: 6 }} />
+          <div className="gb-blog-shimmer" style={{ width: "72%", height: 22, borderRadius: 6 }} />
+        </div>
+        <div style={{ paddingTop: 14, borderTop: "1px solid rgba(11,11,11,0.08)" }}>
+          <div className="gb-blog-shimmer" style={{ width: 85, height: 16, borderRadius: 6 }} />
+        </div>
       </div>
     </div>
   );
