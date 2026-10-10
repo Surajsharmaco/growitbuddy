@@ -5,7 +5,19 @@ import { SkillPills } from '@/components/SkillPills';
 import { HeroTicker } from '@/components/HeroTicker';
 import { ACTS_CONTACT } from '@/lib/contact';
 
-const img = (n: string) => `${import.meta.env.BASE_URL}img/${n}.jpg`;
+const img = (n: string) => `${import.meta.env.BASE_URL}img/${n}.webp`;
+const photoWidths: Record<string, number> = { hero: 1600, 'hero-mobile': 900, creator: 1200, games: 1200, network: 1200, skills: 900, learn: 900, 'trips-retreats': 1024 };
+const photoSrcSet = (n: string) => `${img(`${n}-small`)} 640w, ${img(n)} ${photoWidths[n]}w`;
+const photoPosition = (n: string) => n === 'trips-retreats' ? 'center 56%' : ['skills', 'learn', 'network'].includes(n) ? 'center top' : 'center';
+const photoAlt: Record<string, string> = {
+  hero: 'A group of friends gathered at a cafe with board games',
+  creator: 'Friends posing together during a cafe meetup',
+  games: 'Friends playing card games around a cafe table',
+  network: 'Four friends connecting over a game at a cafe',
+  skills: 'Friends enjoying a board game together at a cafe',
+  learn: 'Friends talking and playing games around a cafe table',
+  'trips-retreats': 'Friends rafting together on a mountain river during a retreat',
+};
 const brandAsset = (n: string) => `${import.meta.env.BASE_URL}brand/${n}`;
 const legalHref = (path: string) => `${import.meta.env.BASE_URL}${path}`;
 const go = (id: string) => {
@@ -75,12 +87,12 @@ function WhyFlow() {
   );
 }
 
-function Photo({ n, alt, className = '', label, delay = 0 }: { n: string; alt: string; className?: string; label?: string; delay?: number }) {
+function Photo({ n, alt, className = '', label, delay = 0, featured = false }: { n: string; alt: string; className?: string; label?: string; delay?: number; featured?: boolean }) {
   return (
     <Reveal className={className} delay={delay}>
-    <div className="relative h-full w-full overflow-hidden rounded-3xl group">
-      <img src={img(n)} alt={alt} loading="lazy" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-      {label && <span className="absolute left-3 bottom-3 rounded-full bg-cream/95 px-3 py-1 text-xs font-bold text-ink">{label}</span>}
+    <div className="relative h-full w-full min-h-0 overflow-hidden rounded-2xl group">
+      <img src={img(n)} srcSet={photoSrcSet(n)} sizes={featured ? '(min-width: 1320px) 640px, (min-width: 768px) 50vw, 100vw' : '(min-width: 1320px) 310px, (min-width: 768px) 25vw, 50vw'} alt={alt} loading="lazy" decoding="async" style={{ objectPosition: photoPosition(n) }} className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+      {label && <span className={`absolute bottom-2 left-2 max-w-[calc(100%-1rem)] rounded-full px-3 py-1.5 text-xs font-extrabold leading-tight tracking-tight text-white sm:text-sm ${featured ? 'bg-ink ring-1 ring-white/60 shadow-md' : 'bg-ink/95 ring-1 ring-white/40 shadow-md'}`}>{label}</span>}
     </div>
     </Reveal>
   );
@@ -164,7 +176,7 @@ export default function Landing() {
   const cards = [
     ['01', 'Opportunities by your skills', 'Discover opportunities based on what you actually know and can do.', 'skills'],
     ['02', 'Work with GrowItBuddy', 'Get considered for relevant projects with GrowItBuddy.', 'creator'],
-    ['03', 'Trips & Retreats', 'Travel, create, connect and build relationships outside the screen.', 'trips'],
+    ['03', 'Trips & Retreats', 'Travel, create, connect and build relationships outside the screen.', 'trips-retreats'],
     ['04', 'Meetups & Board Games', 'Casual meetups, games and real-world community experiences.', 'games'],
     ['05', 'Networking Events', 'Meet freelancers, creators, entrepreneurs and professionals.', 'network'],
     ['06', 'Learn & Grow', 'Workshops, challenges, sessions and practical learning.', 'learn'],
@@ -206,7 +218,10 @@ export default function Landing() {
       {/* HERO */}
       <section id="top" ref={heroRef} className="w-full">
         <div className="hero-stage relative isolate flex overflow-hidden bg-ink text-center">
-          <img src={img('hero-original-younger')} alt="An illustrative crowded gathering of young Indian creators laughing together" className="hero-img absolute inset-0 h-full w-full object-cover" data-testid="img-hero" />
+          <picture className="absolute inset-0">
+            <source media="(max-width: 767px)" srcSet={photoSrcSet('hero-mobile')} sizes="100vw" />
+            <img src={img('hero')} srcSet={photoSrcSet('hero')} sizes="100vw" alt={photoAlt.hero} fetchPriority="high" decoding="async" className="hero-img absolute inset-0 h-full w-full object-cover" data-testid="img-hero" />
+          </picture>
           <div aria-hidden="true" className="hero-shade absolute inset-0" />
           <div className="hero-content relative z-10">
             <h1 style={{ ["--d" as string]: "60ms" }} className="rise hero-title text-cream" data-testid="text-hero-title">
@@ -215,7 +230,7 @@ export default function Landing() {
             </h1>
             <div className="hero-people" data-testid="hero-people">
               <div className="hero-faces" aria-hidden="true">
-                {[1, 2, 3, 4].map(n => <img key={n} src={img(`hero-original-younger-face-${n}`)} alt="" width={44} height={44} />)}
+                {[1, 2, 3, 4].map(n => <img key={n} src={img(`member-face-${n}`)} alt="" width={44} height={44} decoding="async" />)}
               </div>
               <p className="hero-people-label">Real people<br />Real opportunities</p>
             </div>
@@ -252,7 +267,7 @@ export default function Landing() {
               <Reveal key={n} delay={(i % 3) * 120 + Math.floor(i / 3) * 60}>
                 <article data-testid={`card-inside-${n}`} className="group overflow-hidden rounded-3xl bg-card ring-1 ring-ink/10 transition-all hover:-translate-y-1.5 hover:shadow-xl">
                   <div className="relative h-36 overflow-hidden sm:h-40 md:h-44">
-                    <img src={img(p)} alt={t} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    <img src={img(p)} srcSet={photoSrcSet(p)} sizes="(min-width: 1320px) 420px, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" alt={photoAlt[p]} loading="lazy" decoding="async" style={{ objectPosition: photoPosition(p) }} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
                     <span className="absolute left-4 top-4 rounded-full bg-ink px-3 py-1 font-display text-sm font-bold text-acts">{n}</span>
                   </div>
                   <div className="p-4 md:p-5">
@@ -290,7 +305,7 @@ export default function Landing() {
             <button data-testid="button-see-how" onClick={() => go('join')} className="btn-3d btn-3d--cream mt-5 min-h-11 px-5 py-3 text-sm font-display font-bold sm:px-6 md:mt-8 md:text-base">SEE HOW IT WORKS →</button>
           </div>
           <div className="relative h-48 min-h-0 sm:h-64 md:h-auto">
-            <img src={img('creator')} alt="A videographer filming in a studio" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+            <img src={img('creator')} srcSet={photoSrcSet('creator')} sizes="(min-width: 1320px) 640px, (min-width: 768px) 50vw, 100vw" alt={photoAlt.creator} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
           </div>
         </div></Reveal>
       </section>
@@ -301,12 +316,12 @@ export default function Landing() {
           <h2 className="h-sec font-extrabold uppercase leading-[0.98]">Real people.<br /><Em>Real connections.</Em></h2>
           <p className="mt-3 text-lg italic md:mt-4 md:text-xl text-ink/70">Some connections are better made offline.</p>
         </Reveal>
-        <div className="mt-5 grid grid-cols-2 gap-2 md:mt-7 md:grid-cols-4 md:gap-3 md:grid-rows-2">
-          <Photo n="hero" alt="Community meetup" label="Community Meetups" className="col-span-2 row-span-2 h-48 sm:h-64 md:h-[400px]" />
-          <Photo n="games" alt="Board games" label="Board Games" className="h-28 sm:h-32 md:h-auto" delay={70} />
-          <Photo n="network" alt="Networking" label="Networking" className="h-28 sm:h-32 md:h-auto" delay={140} />
-          <Photo n="trips" alt="Trips" label="Trips & Retreats" className="h-28 sm:h-32 md:h-auto" delay={210} />
-          <Photo n="learn" alt="Workshops" label="Workshops" className="h-28 sm:h-32 md:h-auto" delay={280} />
+        <div className="mt-5 grid grid-cols-2 gap-2 md:mt-7 md:h-[320px] md:grid-cols-4 md:grid-rows-[repeat(2,minmax(0,1fr))] lg:h-[360px]" data-testid="community-photo-grid">
+          <Photo n="trips-retreats" alt="Friends gathered at a historic stone monument during a trip" label="Trips and Retreats" featured className="col-span-2 min-h-0 min-w-0 aspect-[16/10] md:row-span-2 md:aspect-auto" />
+           <Photo n="games" alt={photoAlt.games} label="Board Games" className="min-h-0 min-w-0 aspect-[16/10] md:aspect-auto" delay={70} />
+           <Photo n="network" alt={photoAlt.network} label="Networking" className="min-h-0 min-w-0 aspect-[16/10] md:aspect-auto" delay={140} />
+           <Photo n="hero" alt={photoAlt.hero} label="Community Meetups" className="min-h-0 min-w-0 aspect-[16/10] md:aspect-auto" delay={210} />
+           <Photo n="learn" alt={photoAlt.learn} label="Workshops" className="min-h-0 min-w-0 aspect-[16/10] md:aspect-auto" delay={280} />
         </div>
       </section>
 
@@ -318,7 +333,7 @@ export default function Landing() {
             {[['Freelancers', 'For people turning their skills into professional work.', 'skills'], ['Creators', 'For people creating content, videos, designs, stories and ideas.', 'creator']].map(([t, d, p]) => (
               <Reveal key={t}>
                 <div data-testid={`card-audience-${t.toLowerCase()}`} className="group relative h-56 overflow-hidden sm:h-72 md:h-72 rounded-3xl">
-                  <img src={img(p)} alt={t} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                  <img src={img(p)} srcSet={photoSrcSet(p)} sizes="(min-width: 1320px) 640px, (min-width: 768px) 50vw, 100vw" alt={photoAlt[p]} loading="lazy" decoding="async" style={{ objectPosition: photoPosition(p) }} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
                   <div className="absolute inset-0 bg-gradient-to-t from-ink/90 to-transparent" />
                   <div className="absolute bottom-0 p-5 text-cream md:p-8"><h3 className="text-2xl font-extrabold uppercase md:text-3xl">{t}</h3><p className="mt-2 max-w-sm text-cream/85">{d}</p></div>
                 </div>
