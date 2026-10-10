@@ -40,6 +40,8 @@ export interface BlogPost {
   tag: string;
   readTime?: string;
   content: string;
+  /** New drafts use editor-matched spacing; absent means preserve legacy layout. */
+  contentLayout?: "editor-v1";
   featuredImage?: string;
   seo?: Partial<PostSeo>;
   status?: "draft" | "published";

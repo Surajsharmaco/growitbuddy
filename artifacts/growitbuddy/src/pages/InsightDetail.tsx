@@ -11,6 +11,7 @@ import { DEFAULT_TOC_VISIBLE, limitInlineToc, tocVisibleCount } from "@/lib/blog
 import SEOMeta from "@/components/SEOMeta";
 import { cachedGlobal, readBootstrap } from "@/lib/seoCache";
 import { ARTICLE_PARAGRAPH_CSS } from "@/lib/articleTypography";
+import { ARTICLE_EDITOR_LAYOUT_CSS, isSpacingRepairPage, repairHeadingWrappers, usesEditorLayout } from "@/lib/articleEditorLayout";
 import { getArticleToc, articleHtmlWithHeadingIds } from "@/lib/articleToc";
 import { renderOverviewHtml } from "@/lib/articleOverview";
 
@@ -372,6 +373,7 @@ ${ARTICLE_PARAGRAPH_CSS}
 /* Give the fixed contact CTA space at the end of the article. */
 .gb-article-section { padding-bottom: 96px !important; }
 @media (min-width: 900px) { .gb-article-section { padding-bottom: 80px !important; } }
+${ARTICLE_EDITOR_LAYOUT_CSS}
 `;
 
 function isHtml(text: string): boolean {
@@ -693,7 +695,11 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
       ...wpPosts,
     ];
 
-  const post: BlogPost | undefined = previewPost ?? allPosts.find((p) => p.slug === slug) ?? (isWp ? (wpPost ?? undefined) : undefined);
+  const sourcePost: BlogPost | undefined = previewPost ?? allPosts.find((p) => p.slug === slug) ?? (isWp ? (wpPost ?? undefined) : undefined);
+  const post = useMemo(() => sourcePost && usesEditorLayout(sourcePost, pageMode)
+    ? { ...sourcePost, content: repairHeadingWrappers(sourcePost.content, isSpacingRepairPage(sourcePost, pageMode)) }
+    : sourcePost, [sourcePost, pageMode]);
+  const editorSpacing = post && usesEditorLayout(post, pageMode) ? " editor-spacing" : "";
   const related = pageMode ? [] : allPosts.filter((p) => p.slug !== (post?.slug ?? slug)).slice(0, 3);
   const globalIndexable = (cachedGlobal() ?? readBootstrap(pageMode ? "cms-pages" : "insights").bootGlobal) && !pageVisibility[pageMode ? slug : "insights"]?.hidden;
   const resolvedSeo = post ? (pageMode ? resolveCmsPageSeo(post, { globalIndexable }) : resolveBlogSeo(post, { globalIndexable })) : undefined;
@@ -804,7 +810,7 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
 
           {(post.excerpt || post.excerptHtml) && (
             <motion.div
-              className="article-excerpt article-body"
+              className={`article-excerpt article-body${editorSpacing}`}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
@@ -866,7 +872,7 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
             </nav>
           )}
 
-        <div className="article-body" onClick={(event) => {
+        <div className={`article-body${editorSpacing}`} onClick={(event) => {
           const target = event.target;
           if (!(target instanceof Element) || !target.closest("[data-gb-toc-toggle]")) return;
           const article = event.currentTarget;

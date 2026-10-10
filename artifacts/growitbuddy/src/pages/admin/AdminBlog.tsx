@@ -16,6 +16,7 @@ import { DEFAULT_TOC_VISIBLE, tocVisibleCount } from "@/lib/blogToc";
 import { ArticleTocEditor } from "@/components/admin/ArticleTocEditor";
 import { analyzeBlogSeo } from "@/lib/blogSeoAudit";
 import { ARTICLE_PARAGRAPH_CSS } from "@/lib/articleTypography";
+import { ARTICLE_EDITOR_LAYOUT_CSS, isSpacingRepairPage, repairHeadingWrappers, usesEditorLayout } from "@/lib/articleEditorLayout";
 import { resolveBlogSeo, resolveCmsPageSeo, isReservedCmsPageSlug } from "@workspace/seo";
 
 export type CmsMode = "blog" | "page";
@@ -747,6 +748,7 @@ ${ARTICLE_PARAGRAPH_CSS}
 .blog-editor th, .blog-editor td { border: 1px solid rgba(11,11,11,0.15); padding: 10px 12px; min-width: 110px; text-align: left; }
 .blog-editor th { background: rgba(11,11,11,0.05); font-weight: 700; }
 .blog-editor hr { border: none; border-top: 1.5px solid rgba(11,11,11,0.1); margin: 36px 0; }
+${ARTICLE_EDITOR_LAYOUT_CSS}
 `;
 
 // ─────────────────────────────────────
@@ -787,7 +789,10 @@ function PostEditor({
   const AI_SEO_URL = API_BASE + "/admin/ai-seo/analyze";
   const ADMIN_API = API_BASE + "/admin";
   const pageMode = useContext(CmsModeContext) === "page";
-  const [data, setData] = useState<BlogPost>(post);
+  const [data, setData] = useState<BlogPost>(() => usesEditorLayout(post, pageMode)
+    ? { ...post, content: repairHeadingWrappers(mdToHtml(post.content ?? ""), isSpacingRepairPage(post, pageMode)) }
+    : post);
+  const editorSpacing = usesEditorLayout(data, pageMode) ? " editor-spacing" : "";
   const [seo, setSeo] = useState<PostSeo>({ ...defaultSeo(), ...(pageMode && !post.seo?.schemaType ? { schemaType: "WebPage" as const } : {}), ...post.seo });
   const [mode, setMode] = useState<"visual" | "text">("visual");
   const [activeTab, setActiveTab] = useState<"write" | "seo">("write");
@@ -1059,7 +1064,9 @@ function PostEditor({
   }
 
   useEffect(() => {
-    if (editorRef.current) editorRef.current.innerHTML = mdToHtml(post.content ?? "");
+    if (editorRef.current) editorRef.current.innerHTML = usesEditorLayout(post, pageMode)
+      ? repairHeadingWrappers(mdToHtml(post.content ?? ""), isSpacingRepairPage(post, pageMode))
+      : mdToHtml(post.content ?? "");
     if (overviewRef.current) overviewRef.current.innerHTML = overviewHtmlFor(post);
     const existing = document.getElementById("blog-editor-styles");
     if (!existing) {
@@ -2011,7 +2018,7 @@ function PostEditor({
                     }}
                     onMouseLeave={() => setLinkPreview(null)}
                     onBlurCapture={() => setLinkPreview(null)}
-                    className="blog-editor min-h-[96px] max-h-[40vh] overflow-y-auto overscroll-contain px-5 py-3 outline-none"
+                    className={`blog-editor${editorSpacing} min-h-[96px] max-h-[40vh] overflow-y-auto overscroll-contain px-5 py-3 outline-none`}
                     suppressContentEditableWarning />
                 </div>
                 <p className="px-5 pb-4 pt-1 text-[11px] leading-relaxed text-[#0B0B0B]/45">
@@ -2042,7 +2049,7 @@ function PostEditor({
                     onMouseUp={saveSelection}
                     onKeyUp={saveSelection}
                     onFocus={saveSelection}
-                    className="blog-editor rounded-t-2xl h-[65vh] min-h-[300px] max-h-[calc(100vh-300px)] overflow-y-auto overscroll-contain px-8 py-7 outline-none"
+                    className={`blog-editor${editorSpacing} rounded-t-2xl h-[65vh] min-h-[300px] max-h-[calc(100vh-300px)] overflow-y-auto overscroll-contain px-8 py-7 outline-none`}
                     suppressContentEditableWarning />
                 ) : (
                   <textarea value={data.content} onChange={(e) => setField("content", e.target.value)}
@@ -3497,6 +3504,7 @@ export default function AdminBlog({ mode = "blog" }: { mode?: CmsMode } = {}) {
               tag: "Founders",
               readTime: "5 min read",
               content: "",
+              contentLayout: "editor-v1",
               ...(pageMode ? { status: "draft" as const, visibility: "public" as const } : {}),
             },
           })
