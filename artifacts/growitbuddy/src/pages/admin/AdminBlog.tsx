@@ -989,7 +989,7 @@ function PostEditor({
 
   // Legacy plain excerpts are escaped text, never interpreted as markup.
   function overviewHtmlFor(d: BlogPost): string {
-    if (d.excerptHtml) return d.excerptHtml;
+    if (d.excerptHtml) return usesEditorLayout(d, pageMode) ? repairHeadingWrappers(d.excerptHtml) : d.excerptHtml;
     return (d.excerpt ?? "").split(/\n+/).filter((line) => line.trim())
       .map((line) => "<p>" + escapeHtmlAttribute(line).replace(/&quot;/g, '"') + "</p>").join("");
   }
@@ -1149,8 +1149,10 @@ function PostEditor({
   }
 
   function captureContent(): string {
-    if (mode === "visual" && editorRef.current) return editorRef.current.innerHTML;
-    return data.content;
+    const content = mode === "visual" && editorRef.current ? editorRef.current.innerHTML : data.content;
+    return usesEditorLayout(data, pageMode)
+      ? repairHeadingWrappers(mdToHtml(content), isSpacingRepairPage(data, pageMode))
+      : content;
   }
 
   function postForPublication(): BlogPost {
@@ -1374,6 +1376,7 @@ function PostEditor({
   }
 
   function applyBlockFormat(tag: "p" | "h1" | "h2" | "h3" | "h4" | "pre") {
+    if (tag === "h1" && usesEditorLayout(data, pageMode)) tag = "h2";
     if (!exec("formatBlock", tag)) {
       showToast("Click inside the overview or body first, then choose a format.", "error");
       return;
@@ -1391,9 +1394,13 @@ function PostEditor({
   }
 
   function switchMode(next: "visual" | "text") {
-    if (next === "text" && editorRef.current) setField("content", editorRef.current.innerHTML);
+    if (next === "text" && editorRef.current) setField("content", captureContent());
     setMode(next);
-    if (next === "visual") setTimeout(() => { if (editorRef.current) editorRef.current.innerHTML = mdToHtml(data.content); }, 0);
+    if (next === "visual") setTimeout(() => {
+      if (editorRef.current) editorRef.current.innerHTML = usesEditorLayout(data, pageMode)
+        ? repairHeadingWrappers(mdToHtml(data.content), isSpacingRepairPage(data, pageMode))
+        : mdToHtml(data.content);
+    }, 0);
   }
 
   async function handleSave(mode: "draft" | "publish" = "draft") {
@@ -1874,7 +1881,7 @@ function PostEditor({
                           { val: "h3", label: "Heading 3" },
                           { val: "h4", label: "Heading 4" },
                           { val: "pre", label: "Code block" },
-                        ] as const).map(({ val, label }) => (
+                        ] as const).filter(({ val }) => val !== "h1" || !usesEditorLayout(data, pageMode)).map(({ val, label }) => (
                           <button
                             key={val}
                             onMouseDown={(e) => {

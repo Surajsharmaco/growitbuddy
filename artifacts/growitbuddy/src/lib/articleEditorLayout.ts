@@ -23,6 +23,13 @@ export function repairHeadingWrappers(html: string, trimLeadingEmpty = false): s
     while (heading.firstChild) wrapper.appendChild(heading.firstChild);
     heading.replaceWith(wrapper);
   });
+  // The page title owns H1. Preserve authored body text and anchor attributes.
+  doc.body.querySelectorAll("h1").forEach(heading => {
+    const h2 = doc.createElement("h2");
+    for (const attr of Array.from(heading.attributes)) h2.setAttribute(attr.name, attr.value);
+    while (heading.firstChild) h2.appendChild(heading.firstChild);
+    heading.replaceWith(h2);
+  });
   if (trimLeadingEmpty) {
     // Only the explicitly selected existing page: retain deliberate blank lines
     // in new articles, and never remove text, media, links or anchor targets.
@@ -45,12 +52,14 @@ export function repairHeadingWrappers(html: string, trimLeadingEmpty = false): s
  * Heading margins are important to override legacy first/last-child resets.
  */
 export const ARTICLE_EDITOR_LAYOUT_CSS = `
+.article-heading.editor-spacing { font-size: clamp(28px, 5vw, 52px) !important; }
 :is(.article-body,.blog-editor).editor-spacing { font-family: Inter, sans-serif; line-height: 1.7; }
-:is(.article-body,.blog-editor).editor-spacing h1 { font-weight: 900; font-size: 36px; letter-spacing: -0.04em; margin: 0 0 16px !important; line-height: 1.1; }
-:is(.article-body,.blog-editor).editor-spacing h2 { font-weight: 800; font-size: 26px; letter-spacing: -0.03em; margin: 0 0 18px !important; line-height: 1.25; }
-:is(.article-body,.blog-editor).editor-spacing h3 { font-weight: 700; font-size: 20px; letter-spacing: -0.02em; margin: 0 0 12px !important; line-height: 1.35; }
-:is(.article-body,.blog-editor).editor-spacing h4 { font-weight: 700; font-size: 17px; margin: 0 0 10px !important; }
-:is(.article-body,.blog-editor).editor-spacing :is(h5,h6) { font-weight: 700; font-size: 15px; margin: 0 0 10px !important; }
+:is(.article-body,.blog-editor).editor-spacing h1,
+:is(.article-body,.blog-editor).editor-spacing h2 { font-weight: 800; font-size: 26px !important; letter-spacing: -0.03em; margin: 0 0 18px !important; line-height: 1.25; }
+:is(.article-body,.blog-editor).editor-spacing h3 { font-weight: 700; font-size: 20px !important; letter-spacing: -0.02em; margin: 0 0 12px !important; line-height: 1.35; }
+:is(.article-body,.blog-editor).editor-spacing h4 { font-weight: 700; font-size: 17px !important; margin: 0 0 10px !important; }
+:is(.article-body,.blog-editor).editor-spacing :is(h5,h6) { font-weight: 700; font-size: 15px !important; margin: 0 0 10px !important; }
+:is(.article-body,.blog-editor).editor-spacing :is(h1,h2,h3,h4,h5,h6) :is(span,font,strong,b,em,i,a) { font-size: inherit !important; line-height: inherit !important; }
 :is(.article-body,.blog-editor).editor-spacing p:not(blockquote p,.wp-block-quote p) { margin: 0 0 var(--article-paragraph-gap) !important; }
 :is(.article-body,.blog-editor).editor-spacing p:empty,
 :is(.article-body,.blog-editor).editor-spacing p:has(br:only-child) { display: block; }
@@ -67,4 +76,9 @@ export const ARTICLE_EDITOR_LAYOUT_CSS = `
 :is(.article-body,.blog-editor).editor-spacing figure img { max-width: 100%; height: auto; margin: 0; }
 :is(.article-body,.blog-editor).editor-spacing figcaption { font-size: 13px; line-height: 1.7; text-align: center; }
 :is(.article-body,.blog-editor).editor-spacing hr { margin: 36px 0; }
+@media (max-width: 640px) {
+  :is(.article-body,.blog-editor).editor-spacing h1,
+  :is(.article-body,.blog-editor).editor-spacing h2 { font-size: 22px !important; }
+  :is(.article-body,.blog-editor).editor-spacing h3 { font-size: 18px !important; }
+}
 `;
