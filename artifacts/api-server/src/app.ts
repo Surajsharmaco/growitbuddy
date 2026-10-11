@@ -3,7 +3,7 @@ import cors from "cors";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
-import { getOptimizeSettings } from "./routes/admin";
+import { getOptimizeSettings, authMiddleware } from "./routes/admin";
 
 const app: Express = express();
 
@@ -41,6 +41,7 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
 
 // Razorpay signs the exact request bytes. Preserve them before the JSON parser.
 app.use("/api/acts/membership/webhook", express.raw({ type: "application/json", limit: "256kb" }));
+app.use("/api/admin/cms/restore", authMiddleware, express.json({ limit: "50mb" }));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 

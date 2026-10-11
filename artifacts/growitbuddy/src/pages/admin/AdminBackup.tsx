@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { API_BASE } from "@/lib/api";
+import CmsSafetyPanel from "@/components/admin/CmsSafetyPanel";
 import {
   DownloadCloud,
   FileArchive,
@@ -326,6 +327,8 @@ export default function AdminBackup() {
         content</strong> ke hisaab se ban-ta hai, isliye jab bhi aap kuch change karo, dobara copy/download
         karne par naya updated prompt mil jata hai.
       </p>
+
+      <CmsSafetyPanel />
 
       {/* ── Master AI prompt card ── */}
       <div

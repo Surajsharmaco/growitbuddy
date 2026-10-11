@@ -14,6 +14,9 @@ import { analyzeKeywordSet, needsCombinedReview, needsRepetitionReview, countArt
 import { formatPastedBlog, optimizeBlogContent } from "@/lib/pasteBlogContent";
 import { DEFAULT_TOC_VISIBLE, tocVisibleCount } from "@/lib/blogToc";
 import { ArticleTocEditor } from "@/components/admin/ArticleTocEditor";
+import { CmsVersionHistory } from "@/components/admin/CmsVersionHistory";
+import { cmsRequest, notifyCmsChanged, type CmsCollection, type CmsOperation } from "@/lib/cmsSafetyClient";
+import { draftOwner, useCmsDraftRecovery } from "@/hooks/useCmsDraftRecovery";
 import { analyzeBlogSeo } from "@/lib/blogSeoAudit";
 import { ARTICLE_PARAGRAPH_CSS } from "@/lib/articleTypography";
 import { ARTICLE_EDITOR_LAYOUT_CSS, isSpacingRepairPage, repairHeadingWrappers, usesEditorLayout } from "@/lib/articleEditorLayout";
@@ -781,14 +784,15 @@ type AiAnalysis = {
 };
 
 function PostEditor({
-  post, isNew, onBack, onSave, allPosts,
+  post, isNew, onBack, onSave, allPosts, sectionKey,
 }: {
-  post: BlogPost; isNew: boolean; onBack: () => void; onSave: (p: BlogPost) => Promise<void>; allPosts: BlogPost[];
+  post: BlogPost; isNew: boolean; onBack: () => void; onSave: (p: BlogPost) => Promise<void>; allPosts: BlogPost[]; sectionKey?: string;
 }) {
   const { authFetch } = useAdmin();
   const AI_SEO_URL = API_BASE + "/admin/ai-seo/analyze";
   const ADMIN_API = API_BASE + "/admin";
   const pageMode = useContext(CmsModeContext) === "page";
+  const cmsSectionKey = sectionKey ?? (pageMode ? "cms-pages" : "blog");
   const [data, setData] = useState<BlogPost>(() => usesEditorLayout(post, pageMode)
     ? { ...post, content: repairHeadingWrappers(mdToHtml(post.content ?? ""), isSpacingRepairPage(post, pageMode)) }
     : post);
@@ -1160,6 +1164,22 @@ function PostEditor({
     return { ...data, slug, content: captureContent(), seo, status: "published", ...(pageMode ? { visibility } : {}) };
   }
 
+  const draftAdmin = useAdmin();
+  const draftKey = `gb-cms-draft:${draftOwner(draftAdmin.token)}:${cmsSectionKey}:${post.slug || "__new__"}`;
+  const draftRecovery = useCmsDraftRecovery(draftKey, () => ({
+    ...data, content: captureContent(), seo, status, ...(pageMode ? { visibility } : {}),
+  }));
+  function loadRecoveredPost(recovered: BlogPost) {
+    setData(recovered);
+    setSeo({ ...defaultSeo(), ...recovered.seo });
+    setStatus("draft");
+    setVisibility(recovered.visibility === "private" ? "private" : "public");
+    if (editorRef.current) editorRef.current.innerHTML = mdToHtml(recovered.content ?? "");
+    renderOverview(recovered);
+    setSaved(false);
+    showToast("Loaded into the editor as a draft. Review it, then Save Draft. It has not been published.", "info");
+  }
+
   async function getGlobalIndexable(): Promise<boolean> {
     // The SSR renderer reads this same public content section; do not assume
     // indexing is enabled if the authoritative section cannot be reached.
@@ -1427,6 +1447,7 @@ function PostEditor({
       }
       await onSave(finalPost);
       setStatus(resolvedStatus);
+      draftRecovery.clear(resolvedStatus);
       setPublishIssues([]);
       setSaved(true);
       if (mode === "publish") {
@@ -1825,6 +1846,19 @@ function PostEditor({
         </button>
       </div>
       {optimizationNotice && <p className="text-[12px] text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 mb-4" role="status">{optimizationNotice}</p>}
+      <p className="mb-3 text-xs text-[#0B0B0B]/60" role="status">{draftRecovery.message || "Server saves are conflict-protected. Browser-only recovery checks every 2 seconds; this is not an off-site backup."}</p>
+      {draftRecovery.recovery && <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm">
+        <p>Unsaved browser draft found from {new Date(draftRecovery.recovery.savedAt).toLocaleString()}. It has not been published.</p>
+        <div className="mt-3 flex flex-wrap gap-3">
+          <button type="button" className="font-semibold underline" onClick={() => {
+            loadRecoveredPost(draftRecovery.recovery!.post); draftRecovery.dismiss();
+          }}>Recover browser draft</button>
+          <button type="button" className="underline" onClick={() => {
+            if (confirm("Discard this browser-only draft permanently?")) draftRecovery.dismiss();
+          }}>Discard browser draft</button>
+        </div>
+      </div>}
+      {!isNew && <CmsVersionHistory section={cmsSectionKey} slug={post.slug} onLoad={loadRecoveredPost} />}
       {publishIssues.length > 0 && <div role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[12px] text-red-800">
         <strong>Publishing paused — fix these critical SEO issues:</strong>
         <ul className="mt-2 list-disc pl-5">{publishIssues.map((issue) => <li key={issue}>{issue}</li>)}</ul>
@@ -3337,9 +3371,10 @@ function PostList({ posts, onEdit, onDelete, onDeleteSelected, onRestore, onPerm
 // ─────────────────────────────────────
 
 export default function AdminBlog({ mode = "blog" }: { mode?: CmsMode } = {}) {
-  const { getContentResult, saveContent } = useAdmin();
+  const { authFetch, currentVariant } = useAdmin();
   const pageMode = mode === "page";
-  const SECTION = pageMode ? "cms-pages" : "blog";
+  const requestedVariant = new URLSearchParams(window.location.search).get("variant");
+  const SECTION = pageMode ? "cms-pages" : currentVariant?.sourceKey === "blog" ? `blog__v__${currentVariant.slug}` : "blog";
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [tocInitialVisible, setTocInitialVisible] = useState(DEFAULT_TOC_VISIBLE);
   const [tocDraft, setTocDraft] = useState(String(DEFAULT_TOC_VISIBLE));
@@ -3347,27 +3382,60 @@ export default function AdminBlog({ mode = "blog" }: { mode?: CmsMode } = {}) {
   const [tocFeedback, setTocFeedback] = useState("");
   const [editing, setEditing] = useState<{ post: BlogPost; isNew: boolean } | null>(null);
   const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
+  const versionsRef = useRef<Record<string, string>>({});
+  const tocVersionRef = useRef("");
+  const loadSequenceRef = useRef(0);
 
   const load = useCallback(() => {
+    const sequence = ++loadSequenceRef.current;
+    if (!pageMode && requestedVariant && (currentVariant?.slug !== requestedVariant || currentVariant.sourceKey !== "blog")) { setLoadState("error"); return; }
     setLoadState("loading");
-    getContentResult(SECTION).then((res) => {
+    cmsRequest<CmsCollection>(authFetch, `/${SECTION}`).then((res) => {
+      if (sequence !== loadSequenceRef.current) return;
       // Fail closed: on a load FAILURE never mount the editor, so a Save can
       // never overwrite real data with demo defaults (deleted-ghost re-intro).
-      if (!res.ok) { setLoadState("error"); return; }
       const d = res.data;
+      versionsRef.current = res.versions;
+      tocVersionRef.current = res.tocVersion;
       setPosts(Array.isArray(d?.posts) ? (d!.posts as BlogPost[]) : []);
       const count = tocVisibleCount(d?.tocInitialVisible);
       setTocInitialVisible(count);
       setTocDraft(String(count));
       setLoadState("ready");
-    });
-  }, [getContentResult, SECTION]);
+    }).catch(() => { if (sequence === loadSequenceRef.current) setLoadState("error"); });
+  }, [authFetch, SECTION, currentVariant, pageMode, requestedVariant]);
 
   useEffect(() => { load(); }, [load]);
 
-  async function persist(updated: BlogPost[]) {
-    await saveContent(SECTION, { posts: updated, tocInitialVisible });
-    setPosts(updated);
+  async function persist(updated: BlogPost[], rename?: { from: string; to: string }) {
+    const operations: CmsOperation[] = [];
+    for (const existing of posts) {
+      if (rename?.from === existing.slug) continue;
+      if (!updated.some((p) => p.slug === existing.slug)) {
+        operations.push({ type: "delete", previousSlug: existing.slug, expectedVersion: versionsRef.current[existing.slug] ?? null });
+      }
+    }
+    for (const post of updated) {
+      const previousSlug = rename?.to === post.slug ? rename.from : post.slug;
+      const existing = posts.find((p) => p.slug === previousSlug);
+      if (!existing || JSON.stringify(existing) !== JSON.stringify(post)) {
+        const before = existing as unknown as Record<string, unknown> | undefined;
+        const after = post as unknown as Record<string, unknown>;
+        const changed = [...new Set([...Object.keys(before ?? {}), ...Object.keys(after)])]
+          .filter((key) => JSON.stringify(before?.[key]) !== JSON.stringify(after[key]));
+        const metadataOnly = !!existing && changed.every((key) => ["status", "trashed", "trashedAt"].includes(key));
+        operations.push(metadataOnly
+          ? { type: "patch", previousSlug, expectedVersion: versionsRef.current[previousSlug] ?? null,
+              patch: Object.fromEntries(changed.map((key) => [key, after[key] ?? null])) }
+          : { type: "upsert", previousSlug, expectedVersion: versionsRef.current[previousSlug] ?? null, post });
+      }
+    }
+    if (!operations.length) return;
+    const result = await cmsRequest<CmsCollection>(authFetch, `/${SECTION}`, "PATCH", { operations });
+    versionsRef.current = result.versions;
+    tocVersionRef.current = result.tocVersion;
+    setPosts(result.data.posts);
+    notifyCmsChanged(SECTION);
   }
 
   async function saveTocSetting() {
@@ -3379,7 +3447,13 @@ export default function AdminBlog({ mode = "blog" }: { mode?: CmsMode } = {}) {
     setTocSaving(true);
     setTocFeedback("");
     try {
-      await saveContent(SECTION, { posts, tocInitialVisible: count });
+      const result = await cmsRequest<CmsCollection>(authFetch, `/${SECTION}`, "PATCH", {
+        operations: [], tocInitialVisible: count, expectedTocVersion: tocVersionRef.current,
+      });
+      versionsRef.current = result.versions;
+      tocVersionRef.current = result.tocVersion;
+      setPosts(result.data.posts);
+      notifyCmsChanged(SECTION);
       setTocInitialVisible(count);
       setTocFeedback("Table of Contents setting saved.");
     } catch {
@@ -3408,7 +3482,7 @@ export default function AdminBlog({ mode = "blog" }: { mode?: CmsMode } = {}) {
     } else {
       updated = posts.map((p) => (p.slug === editing?.post.slug ? post : p));
     }
-    await persist(updated);
+    await persist(updated, editing && !editing.isNew ? { from: editing.post.slug, to: post.slug } : undefined);
     setEditing({ post, isNew: false });
   }
 
@@ -3423,7 +3497,7 @@ export default function AdminBlog({ mode = "blog" }: { mode?: CmsMode } = {}) {
   }
 
   function handleRestore(idx: number) {
-    persist(posts.map((p, i) => (i === idx ? { ...p, trashed: false, trashedAt: undefined } : p))).catch(
+    persist(posts.map((p, i) => (i === idx ? { ...p, status: "draft", trashed: false, trashedAt: undefined } : p))).catch(
       () => alert("Couldn't restore the post. Please try again."),
     );
   }
@@ -3453,6 +3527,7 @@ export default function AdminBlog({ mode = "blog" }: { mode?: CmsMode } = {}) {
   if (editing) {
     return (
       <CmsModeContext.Provider value={mode}><PostEditor
+        sectionKey={SECTION}
         post={editing.post}
         isNew={editing.isNew}
         onBack={() => setEditing(null)}

@@ -6,6 +6,7 @@ import { logger } from "../lib/logger";
 import { cloudinaryConfigured, uploadToCloudinary } from "../lib/cloudinary";
 import { convertImageBuffer, prepareUploadedImage, type ConvertFormat } from "../lib/imageConvert";
 import { buildContentSnapshot, buildHandoffDocs, assembleBackupZip, buildMasterPrompt, type BackupMeta } from "../lib/backup";
+import { createCmsSafetyRouter } from "./cms-safety";
 import { buildBlogExport, WordPressDisconnectedError } from "../lib/blogExport";
 import { buildContentArchive } from "../lib/contentArchive";
 import {
@@ -678,6 +679,10 @@ const LOCKED_SECTIONS = [] as const;
 
 router.put("/content/:section", authMiddleware, requireSectionPermission, async (req, res) => {
   const section = String(req.params.section);
+  if (section === "blog" || section === "cms-pages" || section.startsWith("blog__v__")) {
+    res.status(409).json({ error: "This editor is out of date. Reload it to use protected per-post saves. Whole-collection overwrite is disabled." });
+    return;
+  }
   if ((LOCKED_SECTIONS as readonly string[]).includes(section)) {
     res.status(403).json({ error: `The "${section}" section is locked and cannot be modified. Contact a developer to make changes.` });
     return;
@@ -2131,6 +2136,8 @@ router.get("/content-backup", authMiddleware, superAdminOnly, async (_req, res) 
     }
   }
 });
+
+router.use("/cms", createCmsSafetyRouter({ auth: authMiddleware, section: requireSectionPermission, superAdmin: superAdminOnly }));
 
 export { authMiddleware };
 export default router;
