@@ -6,6 +6,7 @@ import { HeroTicker } from '@/components/HeroTicker';
 import { ACTS_CONTACT } from '@/lib/contact';
 
 const img = (n: string) => `${import.meta.env.BASE_URL}img/${n}.webp`;
+const jpg = (n: string) => `${import.meta.env.BASE_URL}img/${n}.jpg`;
 const photoWidths: Record<string, number> = { hero: 1600, 'hero-mobile': 900, creator: 1200, games: 1200, network: 1200, skills: 900, learn: 900, 'trips-retreats': 1024 };
 const photoSrcSet = (n: string) => `${img(`${n}-small`)} 640w, ${img(n)} ${photoWidths[n]}w`;
 const photoPosition = (n: string) => n === 'trips-retreats' ? 'center 56%' : ['skills', 'learn', 'network'].includes(n) ? 'center top' : 'center';
@@ -218,10 +219,7 @@ export default function Landing() {
       {/* HERO */}
       <section id="top" ref={heroRef} className="w-full">
         <div className="hero-stage relative isolate flex overflow-hidden bg-ink text-center">
-          <picture className="absolute inset-0">
-            <source media="(max-width: 767px)" srcSet={photoSrcSet('hero-mobile')} sizes="100vw" />
-            <img src={img('hero')} srcSet={photoSrcSet('hero')} sizes="100vw" alt={photoAlt.hero} fetchPriority="high" decoding="async" className="hero-img absolute inset-0 h-full w-full object-cover" data-testid="img-hero" />
-          </picture>
+          <img src={jpg('hero-original-younger')} alt="An illustrative crowded gathering of young Indian creators laughing together" fetchPriority="high" decoding="async" className="hero-img absolute inset-0 h-full w-full object-cover" data-testid="img-hero" />
           <div aria-hidden="true" className="hero-shade absolute inset-0" />
           <div className="hero-content relative z-10">
             <h1 style={{ ["--d" as string]: "60ms" }} className="rise hero-title text-cream" data-testid="text-hero-title">
@@ -230,7 +228,7 @@ export default function Landing() {
             </h1>
             <div className="hero-people" data-testid="hero-people">
               <div className="hero-faces" aria-hidden="true">
-                {[1, 2, 3, 4].map(n => <img key={n} src={img(`member-face-${n}`)} alt="" width={44} height={44} decoding="async" />)}
+                {[1, 2, 3, 4].map(n => <img key={n} src={jpg(`hero-original-younger-face-${n}`)} alt="" width={44} height={44} decoding="async" />)}
               </div>
               <p className="hero-people-label">Real people<br />Real opportunities</p>
             </div>
@@ -304,8 +302,8 @@ export default function Landing() {
             </div>
             <button data-testid="button-see-how" onClick={() => go('join')} className="btn-3d btn-3d--cream mt-5 min-h-11 px-5 py-3 text-sm font-display font-bold sm:px-6 md:mt-8 md:text-base">SEE HOW IT WORKS →</button>
           </div>
-          <div className="relative h-48 min-h-0 sm:h-64 md:h-auto">
-            <img src={img('creator')} srcSet={photoSrcSet('creator')} sizes="(min-width: 1320px) 640px, (min-width: 768px) 50vw, 100vw" alt={photoAlt.creator} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+          <div className="flex items-center justify-center p-4 sm:p-6">
+            <img src={brandAsset('growitbuddy-texture-logo.webp')} alt="GrowItBuddy logo on a light textured background" width="1254" height="1254" loading="lazy" decoding="async" className="block h-auto w-full max-w-[420px] rounded-2xl object-contain shadow-[0_18px_40px_rgba(33,24,19,0.14)]" />
           </div>
         </div></Reveal>
       </section>
