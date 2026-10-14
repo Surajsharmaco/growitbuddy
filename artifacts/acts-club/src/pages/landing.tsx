@@ -7,12 +7,13 @@ import { ACTS_CONTACT } from '@/lib/contact';
 
 const img = (n: string) => `${import.meta.env.BASE_URL}img/${n}.webp`;
 const jpg = (n: string) => `${import.meta.env.BASE_URL}img/${n}.jpg`;
-const photoWidths: Record<string, number> = { hero: 1600, 'hero-mobile': 900, creator: 1200, games: 1200, network: 1200, skills: 900, learn: 900, 'trips-retreats': 1024 };
+const photoWidths: Record<string, number> = { hero: 1600, 'hero-mobile': 900, creator: 1200, 'growitbuddy-marketing': 1200, games: 1200, network: 1200, skills: 900, learn: 900, 'trips-retreats': 1024 };
 const photoSrcSet = (n: string) => `${img(`${n}-small`)} 640w, ${img(n)} ${photoWidths[n]}w`;
 const photoPosition = (n: string) => n === 'trips-retreats' ? 'center 56%' : ['skills', 'learn', 'network'].includes(n) ? 'center top' : 'center';
 const photoAlt: Record<string, string> = {
   hero: 'A group of friends gathered at a cafe with board games',
   creator: 'Friends posing together during a cafe meetup',
+  'growitbuddy-marketing': 'ACTS members together with subtle marketing doodles and the centered GrowItBuddy logo',
   games: 'Friends playing card games around a cafe table',
   network: 'Four friends connecting over a game at a cafe',
   skills: 'Friends enjoying a board game together at a cafe',
@@ -176,7 +177,7 @@ export default function Landing() {
 
   const cards = [
     ['01', 'Opportunities by your skills', 'Discover opportunities based on what you actually know and can do.', 'skills'],
-    ['02', 'Work with GrowItBuddy', 'Get considered for relevant projects with GrowItBuddy.', 'creator'],
+    ['02', 'Work with GrowItBuddy', 'Get considered for relevant projects with GrowItBuddy.', 'growitbuddy-marketing'],
     ['03', 'Trips & Retreats', 'Travel, create, connect and build relationships outside the screen.', 'trips-retreats'],
     ['04', 'Meetups & Board Games', 'Casual meetups, games and real-world community experiences.', 'games'],
     ['05', 'Networking Events', 'Meet freelancers, creators, entrepreneurs and professionals.', 'network'],
