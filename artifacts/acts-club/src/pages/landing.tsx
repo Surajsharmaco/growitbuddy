@@ -13,7 +13,7 @@ const photoPosition = (n: string) => n === 'trips-retreats' ? 'center 56%' : ['s
 const photoAlt: Record<string, string> = {
   hero: 'A group of friends gathered at a cafe with board games',
   creator: 'Friends posing together during a cafe meetup',
-  'growitbuddy-marketing': 'ACTS members together with subtle marketing doodles and the centered GrowItBuddy logo',
+  'growitbuddy-marketing': 'GrowItBuddy logo centered on a light background with subtle hand-drawn marketing doodles',
   games: 'Friends playing card games around a cafe table',
   network: 'Four friends connecting over a game at a cafe',
   skills: 'Friends enjoying a board game together at a cafe',
