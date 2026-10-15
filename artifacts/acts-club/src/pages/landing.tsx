@@ -9,7 +9,7 @@ const img = (n: string) => `${import.meta.env.BASE_URL}img/${n}.webp`;
 const jpg = (n: string) => `${import.meta.env.BASE_URL}img/${n}.jpg`;
 const photoWidths: Record<string, number> = { hero: 1600, 'hero-mobile': 900, creator: 1200, 'growitbuddy-marketing': 1200, games: 1200, network: 1200, skills: 900, learn: 900, 'trips-retreats': 1024 };
 const photoSrcSet = (n: string) => `${img(`${n}-small`)} 640w, ${img(n)} ${photoWidths[n]}w`;
-const photoPosition = (n: string) => n === 'trips-retreats' ? 'center 56%' : ['skills', 'learn', 'network'].includes(n) ? 'center top' : 'center';
+const photoPosition = (n: string) => n === 'trips-retreats' ? 'center 56%' : n === 'growitbuddy-marketing' ? 'center 35%' : ['skills', 'learn', 'network'].includes(n) ? 'center top' : 'center';
 const photoAlt: Record<string, string> = {
   hero: 'A group of friends gathered at a cafe with board games',
   creator: 'Friends posing together during a cafe meetup',
