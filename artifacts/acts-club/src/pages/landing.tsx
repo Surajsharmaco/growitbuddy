@@ -304,7 +304,9 @@ export default function Landing() {
             <button data-testid="button-see-how" onClick={() => go('join')} className="btn-3d btn-3d--cream mt-5 min-h-11 px-5 py-3 text-sm font-display font-bold sm:px-6 md:mt-8 md:text-base">SEE HOW IT WORKS →</button>
           </div>
           <div className="flex items-center justify-center p-4 sm:p-6">
-            <img src={brandAsset('growitbuddy-texture-logo.webp')} alt="GrowItBuddy logo on a light textured background" width="1254" height="1254" loading="lazy" decoding="async" className="block h-auto w-full max-w-[420px] rounded-2xl object-contain shadow-[0_18px_40px_rgba(33,24,19,0.14)]" />
+            <div className="relative aspect-square w-full max-w-[420px] overflow-hidden rounded-2xl shadow-[0_18px_40px_rgba(33,24,19,0.14)]">
+              <img src={img('growitbuddy-marketing')} srcSet={photoSrcSet('growitbuddy-marketing')} sizes="(min-width: 768px) 420px, 100vw" alt={photoAlt['growitbuddy-marketing']} width="1200" height="675" loading="lazy" decoding="async" className="block h-full w-full object-cover object-center" />
+            </div>
           </div>
         </div></Reveal>
       </section>
