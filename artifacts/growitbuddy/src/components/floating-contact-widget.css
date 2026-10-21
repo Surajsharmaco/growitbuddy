@@ -1,0 +1,150 @@
+.gb-floating-contact {
+  --gb-contact-button-size: 62px;
+  --gb-contact-gap: 16px;
+  --gb-contact-inset: 13px;
+
+  position: fixed;
+  z-index: 45;
+  top: 50%;
+  right: max(24px, env(safe-area-inset-right, 0px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gb-contact-gap);
+  padding: var(--gb-contact-inset);
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 8px 28px rgba(20, 30, 45, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  -webkit-backdrop-filter: blur(22px);
+  backdrop-filter: blur(22px);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.gb-floating-contact__button {
+  display: grid;
+  width: var(--gb-contact-button-size);
+  height: var(--gb-contact-button-size);
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.66);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.94),
+    0 2px 7px rgba(20, 30, 45, 0.07);
+  color: #1e293b;
+  line-height: 0;
+  pointer-events: auto;
+  text-decoration: none;
+  transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.gb-floating-contact__button:focus-visible {
+  outline: 2px solid rgba(30, 41, 59, 0.72);
+  outline-offset: 3px;
+}
+
+.gb-floating-contact__button--whatsapp {
+  color: #25d366;
+}
+
+.gb-floating-contact__button--phone {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: #1e293b;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 3px 8px rgba(20, 30, 45, 0.12);
+  color: #fff;
+}
+
+.gb-floating-contact__whatsapp-mark {
+  width: 30px;
+  height: 30px;
+}
+
+.gb-floating-contact__phone-mark {
+  width: 25px;
+  height: 25px;
+}
+
+.gb-floating-contact__instagram-mark {
+  display: block;
+  width: 27px;
+  height: 27px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .gb-floating-contact__button:hover {
+    background-color: rgba(255, 255, 255, 0.86);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.98),
+      0 4px 10px rgba(20, 30, 45, 0.1);
+    transform: scale(1.03);
+  }
+
+  .gb-floating-contact__button--phone:hover {
+    background-color: #27364c;
+  }
+}
+
+@media (max-width: 900px) {
+  .gb-floating-contact {
+    --gb-contact-button-size: 54px;
+    --gb-contact-gap: 12px;
+    --gb-contact-inset: 10px;
+    right: max(14px, env(safe-area-inset-right, 0px));
+  }
+}
+
+@media (max-width: 640px) {
+  .gb-floating-contact {
+    --gb-contact-button-size: 48px;
+    --gb-contact-gap: 8px;
+    --gb-contact-inset: 8px;
+    right: max(8px, env(safe-area-inset-right, 0px));
+  }
+
+  .gb-floating-contact__whatsapp-mark {
+    width: 25px;
+    height: 25px;
+  }
+
+  .gb-floating-contact__phone-mark {
+    width: 22px;
+    height: 22px;
+  }
+
+  .gb-floating-contact__instagram-mark {
+    width: 23px;
+    height: 23px;
+  }
+}
+
+@media (max-height: 480px) {
+  .gb-floating-contact {
+    --gb-contact-button-size: 44px;
+    --gb-contact-gap: 6px;
+    --gb-contact-inset: 7px;
+  }
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .gb-floating-contact {
+    background: rgba(255, 255, 255, 0.92);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gb-floating-contact__button {
+    transition: none;
+  }
+
+  .gb-floating-contact__button:hover {
+    transform: none;
+  }
+}

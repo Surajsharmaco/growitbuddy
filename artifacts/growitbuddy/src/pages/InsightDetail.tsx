@@ -14,6 +14,7 @@ import { ARTICLE_PARAGRAPH_CSS } from "@/lib/articleTypography";
 import { ARTICLE_EDITOR_LAYOUT_CSS, isSpacingRepairPage, repairHeadingWrappers, usesEditorLayout } from "@/lib/articleEditorLayout";
 import { getArticleToc, articleHtmlWithHeadingIds } from "@/lib/articleToc";
 import { renderOverviewHtml } from "@/lib/articleOverview";
+import { FloatingContactWidget } from "@/components/FloatingContactWidget";
 
 const ARTICLE_CSS = `
 ${ARTICLE_PARAGRAPH_CSS}
@@ -749,6 +750,7 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
   return (
     <div className={isPreview ? "article-preview" : undefined} style={{ background: "#F8F8F6", fontFamily: "'Inter', sans-serif" }}>
       {!isPreview && <ReadingProgress />}
+      {!isPreview && <FloatingContactWidget />}
       {!isPreview && resolvedSeo && <SEOMeta
         title={resolvedSeo.title}
         description={resolvedSeo.description}
