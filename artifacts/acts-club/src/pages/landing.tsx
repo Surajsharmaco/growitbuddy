@@ -3,6 +3,7 @@ import { Instagram, Linkedin } from 'lucide-react';
 import { MembershipDialog } from '@/components/MembershipDialog';
 import { SkillPills } from '@/components/SkillPills';
 import { HeroTicker } from '@/components/HeroTicker';
+import '@/components/acts-how-works.css';
 import { ACTS_CONTACT } from '@/lib/contact';
 
 const img = (n: string) => `${import.meta.env.BASE_URL}img/${n}.webp`;
@@ -65,27 +66,51 @@ function SkillsFlow({ steps }: { steps: string[] }) {
   );
 }
 
-function WhyFlow() {
-  const ref = useRef<HTMLOListElement>(null);
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el || !('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const io = new IntersectionObserver(([entry]) => el.classList.toggle('in', entry.isIntersecting), { threshold: 0.12 });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
+type ActsJourneyStep = {
+  number: string;
+  title: string;
+  accent: string;
+  description: ReactNode;
+};
+
+const actsJourneySteps: ActsJourneyStep[] = [
+  { number: '01', title: 'Join ', accent: 'ACTS CLUB', description: <>Sign up and get<br />approved to join.</> },
+  { number: '02', title: 'Get ', accent: 'Verified', description: 'Build trust in a verified community.' },
+  { number: '03', title: 'Make ', accent: 'Friends', description: 'Meet like-minded freelancers and creators.' },
+  { number: '04', title: 'Connect ', accent: 'Locally', description: 'Join your local community on WhatsApp.' },
+  { number: '05', title: 'Find ', accent: 'Work & Talent', description: 'Discover projects and collaborate.' },
+  { number: '06', title: 'Meet & ', accent: 'Experience', description: 'Enjoy meetups, events, trips and activities.' },
+];
+
+function ActsJourney() {
   return (
-    <ol ref={ref} className="why-flow mt-5 grid list-none grid-cols-1 gap-3 p-0 md:mt-8 md:grid-cols-4 md:gap-4">
-      {['People', 'Connections', 'Collaboration', 'Opportunities'].map((word, i) => (
-        <li key={word} className="why-step relative min-w-0" style={{ ['--i' as string]: i }}>
-          <div data-testid={`flow-why-${i}`} className="why-card relative z-10 flex min-h-16 min-w-0 items-center gap-4 rounded-2xl border border-ink/20 bg-card px-4 py-3 md:min-h-28 md:flex-col md:items-start md:justify-between md:gap-3 md:rounded-3xl md:p-5">
-            <span className="why-number inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink font-display text-xs font-bold text-cream md:h-9 md:w-9">0{i + 1}</span>
-            <span className="font-display text-base font-extrabold uppercase leading-tight md:text-lg xl:text-xl">{word}</span>
-          </div>
-          {i < 3 && <span aria-hidden className="why-connector" />}
-        </li>
-      ))}
-    </ol>
+    <section id="why" aria-labelledby="acts-how-works-title" className="acts-how-works-section" data-testid="section-why">
+      <div className="acts-how-works-inner">
+        <header className="acts-how-works-heading">
+          <h2 id="acts-how-works-title" className="acts-how-works-title h-sec font-display font-extrabold leading-[0.98] text-center" data-testid="journey-heading">
+            How <Em>ACTS CLUB</Em> Works?
+          </h2>
+        </header>
+        <div className="acts-how-works-stage">
+          <span className="acts-how-works-spine" aria-hidden="true" />
+          <ol className="acts-how-works-list" aria-label="ACTS Club membership steps">
+            {actsJourneySteps.map((step, index) => (
+              <li
+                key={step.number}
+                className="acts-how-works-step"
+                data-testid={`journey-step-${index + 1}`}
+              >
+                <span className="acts-how-works-marker" aria-hidden="true">{step.number}</span>
+                <div className="acts-how-works-copy">
+                  <h3 data-testid={`journey-title-${index + 1}`}>{step.title}<span>{step.accent}</span></h3>
+                  <p data-testid={`journey-description-${index + 1}`}>{step.description}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -247,15 +272,8 @@ export default function Landing() {
 
       <HeroTicker />
 
-      {/* WHY */}
-      <section id="why" className="content-shell relative isolate py-6 md:py-9" data-testid="section-why">
-        <span aria-hidden className="accent-blob" />
-        <Reveal>
-          <h2 className="h-sec max-w-3xl font-extrabold uppercase leading-[0.98]">More than just <Em>a community.</Em></h2>
-          <p className="mt-3 max-w-lg text-base text-ink/70 md:mt-4 md:text-base">ACTS brings together people, skills, opportunities and experiences in one place.</p>
-        </Reveal>
-        <WhyFlow />
-      </section>
+      {/* HOW ACTS CLUB WORKS */}
+      <ActsJourney />
 
       {/* INSIDE */}
       <section id="inside" className="bg-cream" data-testid="section-inside">
