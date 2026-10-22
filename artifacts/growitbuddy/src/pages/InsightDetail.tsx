@@ -15,6 +15,8 @@ import { ARTICLE_EDITOR_LAYOUT_CSS, isSpacingRepairPage, repairHeadingWrappers, 
 import { getArticleToc, articleHtmlWithHeadingIds } from "@/lib/articleToc";
 import { renderOverviewHtml } from "@/lib/articleOverview";
 import { FloatingContactWidget } from "@/components/FloatingContactWidget";
+import { ServiceLandingHero } from "@/components/ServiceLandingHero";
+import { NAVBAR_DEFAULTS, type NavbarData } from "@/lib/navbarDefaults";
 
 const ARTICLE_CSS = `
 ${ARTICLE_PARAGRAPH_CSS}
@@ -653,6 +655,7 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
   const { posts: cmsPosts, tocInitialVisible } = usePublicContent<{ posts: BlogPost[]; tocInitialVisible?: number }>(
     pageMode ? "cms-pages" : "blog", { posts: [], tocInitialVisible: DEFAULT_TOC_VISIBLE },
   );
+  const navbar = usePublicContent<NavbarData>("navbar", NAVBAR_DEFAULTS);
   const pageVisibility = usePublicContent<Record<string, { hidden?: boolean }>>("page_visibility", {});
   const visibleCount = tocVisibleCount(tocInitialVisible);
   const [expandedSlug, setExpandedSlug] = useState("");
@@ -700,6 +703,8 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
   const post = useMemo(() => sourcePost && usesEditorLayout(sourcePost, pageMode)
     ? { ...sourcePost, content: repairHeadingWrappers(sourcePost.content, isSpacingRepairPage(sourcePost, pageMode)) }
     : sourcePost, [sourcePost, pageMode]);
+  const isServiceLandingPage = pageMode && post !== undefined &&
+    (post.serviceHeroEnabled ?? post.pageTemplate === "seo-service-landing");
   const editorSpacing = post && usesEditorLayout(post, pageMode) ? " editor-spacing" : "";
   const related = pageMode ? [] : allPosts.filter((p) => p.slug !== (post?.slug ?? slug)).slice(0, 3);
   const globalIndexable = (cachedGlobal() ?? readBootstrap(pageMode ? "cms-pages" : "insights").bootGlobal) && !pageVisibility[pageMode ? slug : "insights"]?.hidden;
@@ -720,8 +725,13 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
       doc.querySelectorAll(".wp-block-table-of-contents,.ez-toc-container,#ez-toc-container,.lwptoc,.toc_container,.kb-table-of-content-nav,.ub_table-of-contents,.rank-math-toc,.wp-block-rank-math-toc-block,.rmp-toc,#table-of-contents").forEach(node => node.remove());
       html = doc.body.innerHTML;
     }
+    if (isServiceLandingPage) {
+      html = html
+        .replace(/<h1(?=[\s>])([^>]*)>/gi, "<h2$1>")
+        .replace(/<\/h1\s*>/gi, "</h2>");
+    }
     return wpHasToc ? limitInlineToc(html, visibleCount, tocExpanded) : html;
-  }, [post, wpHasToc, visibleCount, tocExpanded]);
+  }, [post, wpHasToc, visibleCount, tocExpanded, isServiceLandingPage]);
 
   if (wpLoading) {
     return (
@@ -749,8 +759,8 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
 
   return (
     <div className={isPreview ? "article-preview" : undefined} style={{ background: "#F8F8F6", fontFamily: "'Inter', sans-serif" }}>
-      {!isPreview && <ReadingProgress />}
-      {!isPreview && <FloatingContactWidget />}
+      {!isPreview && !isServiceLandingPage && <ReadingProgress />}
+      {!isPreview && !isServiceLandingPage && <FloatingContactWidget />}
       {!isPreview && resolvedSeo && <SEOMeta
         title={resolvedSeo.title}
         description={resolvedSeo.description}
@@ -769,6 +779,24 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
       />}
 
       {/* The fixed site header is 72px tall; keep the first row below it. */}
+      {isServiceLandingPage && (
+        <ServiceLandingHero
+          title={post.title}
+          description={post.serviceHeroDescription ?? post.excerpt}
+          bookingUrl={post.serviceHeroBookingUrl?.trim() || navbar.ctaPath?.trim() || NAVBAR_DEFAULTS.ctaPath}
+          whatsappNumber={navbar.whatsappNumber?.trim() || NAVBAR_DEFAULTS.whatsappNumber}
+          instagramUrl={navbar.instagram?.trim() || NAVBAR_DEFAULTS.instagram}
+          xUrl={navbar.twitter?.trim() || NAVBAR_DEFAULTS.twitter}
+          linkedinUrl={navbar.linkedin?.trim() || NAVBAR_DEFAULTS.linkedin}
+          ctaLabel={post.serviceHeroCtaLabel?.trim() || "Book a Call Now"}
+          formHeading={navbar.serviceHeroFormHeading ?? NAVBAR_DEFAULTS.serviceHeroFormHeading}
+          formSubtitle={navbar.serviceHeroFormSubtitle ?? NAVBAR_DEFAULTS.serviceHeroFormSubtitle}
+          privacyMessage={navbar.serviceHeroPrivacyMessage ?? NAVBAR_DEFAULTS.serviceHeroPrivacyMessage}
+          privacyUrl={navbar.serviceHeroPrivacyUrl ?? NAVBAR_DEFAULTS.serviceHeroPrivacyUrl}
+          preview={isPreview}
+        />
+      )}
+      {!isServiceLandingPage && (
       <section style={{ paddingTop: isPreview ? "clamp(20px, 3vw, 32px)" : "calc(72px + clamp(16px, 3vw, 24px))", paddingBottom: 0, background: "#FFFFFF" }}>
         <div className="max-w-[760px] mx-auto" style={{ padding: "0 18px" }}>
           {!pageMode && <Link href="/blog">
@@ -845,6 +873,7 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
 
         <div style={{ height: 1, background: "rgba(10,10,10,0.03)", marginTop: post.featuredImage ? 20 : 0 }} />
       </section>
+      )}
 
       {/* Article body - tighter top padding so "On this page" sits close to the image */}
       <section className="gb-article-section" style={{ padding: "clamp(20px, 4vw, 36px) 18px 100px", background: "#FFFFFF" }}>

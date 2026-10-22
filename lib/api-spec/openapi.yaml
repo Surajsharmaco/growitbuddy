@@ -13,6 +13,41 @@ tags:
   - name: admin
     description: Authenticated admin operations
 paths:
+  /forms/service-inquiry:
+    post:
+      operationId: createServiceInquiry
+      summary: Save and notify a reusable SEO service-page inquiry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceInquiryInput"
+      responses:
+        "201":
+          description: Inquiry saved to the leads store
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceInquiryResponse"
+        "400":
+          description: Invalid form data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "429":
+          description: Too many form submissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "503":
+          description: The inquiry could not be saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /healthz:
     get:
       operationId: healthCheck
@@ -562,6 +597,22 @@ components:
         syncedAt:
           type: string
           format: date-time
+    ServiceInquiryInput:
+      type: object
+      required: [name, email, phone, message]
+      properties:
+        name: { type: string, minLength: 2, maxLength: 80 }
+        email: { type: string, format: email, maxLength: 254 }
+        phone: { type: string, minLength: 1, maxLength: 30 }
+        message: { type: string, minLength: 1, maxLength: 5000 }
+        website: { type: string, maxLength: 500 }
+        sourceUrl: { type: string, maxLength: 500 }
+    ServiceInquiryResponse:
+      type: object
+      required: [success, message]
+      properties:
+        success: { type: boolean, const: true }
+        message: { type: string }
     ApiError:
       type: object
       required: [error]

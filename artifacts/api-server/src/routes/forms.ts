@@ -2,6 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { and, eq } from "drizzle-orm";
 import { logger } from "../lib/logger";
 import { db, leads, pageVariants, siteContent } from "@workspace/db";
+import { CreateServiceInquiryBody, CreateServiceInquiryResponse } from "@workspace/api-zod";
 
 const router = Router();
 
@@ -135,14 +136,16 @@ function isValidEmail(email: string): boolean {
   return EMAIL_RE.test(email.trim());
 }
 
-async function saveLead(type: string, name: string | undefined, email: string, data: Record<string, unknown>) {
+async function saveLead(type: string, name: string | undefined, email: string, data: Record<string, unknown>): Promise<boolean> {
   try {
     await db.insert(leads).values({ type, name: name || null, email, data });
+    return true;
   } catch (err) {
     const code = err && typeof err === "object" && "code" in err && typeof err.code === "string"
       ? err.code
       : undefined;
     logger.error({ code }, "Failed to save lead to DB");
+    return false;
   }
 }
 
@@ -259,6 +262,73 @@ router.post("/contact", formLimit, async (req, res) => {
     email,
   );
   res.json({ success: true, message: "Thank you! We will be in touch within 24 hours." });
+});
+
+// ── SEO SERVICE PAGE INQUIRY ──
+router.post("/service-inquiry", formLimit, async (req, res) => {
+  const parsed = CreateServiceInquiryBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Complete all required fields and check the field lengths." });
+    return;
+  }
+  const name = parsed.data.name.trim().replace(/\s+/g, " ");
+  const email = parsed.data.email.trim();
+  const phone = parsed.data.phone.trim();
+  const message = parsed.data.message.trim();
+  const website = parsed.data.website?.trim() ?? "";
+  const sourceUrl = parsed.data.sourceUrl?.trim() ?? "";
+
+  if (website) {
+    res.status(400).json({ error: "Unable to process this inquiry." });
+    return;
+  }
+  if (name.length < 2 || !message) {
+    res.status(400).json({ error: "Complete all required fields and check the message length." });
+    return;
+  }
+  if (!isValidEmail(email)) {
+    res.status(400).json({ error: "Enter a valid email address." });
+    return;
+  }
+  const phoneDigits = phone.replace(/\D/g, "");
+  if (phoneDigits.length < 8 || phoneDigits.length > 15) {
+    res.status(400).json({ error: "Enter a valid phone number with country code if needed." });
+    return;
+  }
+
+  const leadData = { name, email, phone, message, sourceUrl: sourceUrl || null };
+  const saved = await saveLead("service-inquiry", name, email, leadData);
+  if (!saved) {
+    res.status(503).json({ error: "We couldn't save your inquiry. Please try again." });
+    return;
+  }
+
+  const pagePath = (() => {
+    try {
+      return sourceUrl ? new URL(sourceUrl).pathname : "/";
+    } catch {
+      return "/";
+    }
+  })().replace(/[\r\n]/g, "");
+  await sendEmail(
+    GENERAL_EMAIL,
+    `[SERVICE INQUIRY] ${name} — ${pagePath}`,
+    emailTemplate(
+      "SERVICE INQUIRY",
+      "New SEO Service Page Inquiry",
+      row("Name", name) +
+      row("Email", email) +
+      row("Phone / WhatsApp", phone) +
+      row("Message", message) +
+      row("Page", pagePath),
+      `SEO service page inquiry  →  ${pagePath}`,
+      email,
+    ),
+    email,
+  );
+
+  logger.info({ type: "service-inquiry", pagePath }, "SEO service inquiry saved");
+  res.status(201).json(CreateServiceInquiryResponse.parse({ success: true, message: "Your inquiry was received." }));
 });
 
 // ── RESOURCE UNLOCK (email gate)  →  growitbuddy@gmail.com ──────────────────

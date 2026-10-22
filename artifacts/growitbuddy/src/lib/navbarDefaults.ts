@@ -8,6 +8,11 @@ export interface NavbarData {
   linkedin: string;
   twitter: string;
   youtube: string;
+  whatsappNumber: string;
+  serviceHeroFormHeading: string;
+  serviceHeroFormSubtitle: string;
+  serviceHeroPrivacyMessage: string;
+  serviceHeroPrivacyUrl: string;
 }
 
 export const NAVBAR_DEFAULTS: NavbarData = {
@@ -18,4 +23,9 @@ export const NAVBAR_DEFAULTS: NavbarData = {
   linkedin: FOOTER_DEFAULTS.linkedin,
   twitter: FOOTER_DEFAULTS.twitter,
   youtube: FOOTER_DEFAULTS.youtube,
+  whatsappNumber: "919911990608",
+  serviceHeroFormHeading: "Send us a message",
+  serviceHeroFormSubtitle: "We respond to every inquiry within 24 hours.",
+  serviceHeroPrivacyMessage: "Your information will only be used to respond to your inquiry.",
+  serviceHeroPrivacyUrl: "/privacy",
 };

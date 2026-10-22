@@ -796,6 +796,7 @@ function PostEditor({
   const [data, setData] = useState<BlogPost>(() => usesEditorLayout(post, pageMode)
     ? { ...post, content: repairHeadingWrappers(mdToHtml(post.content ?? ""), isSpacingRepairPage(post, pageMode)) }
     : post);
+  const serviceHeroEnabled = pageMode && (data.serviceHeroEnabled ?? data.pageTemplate === "seo-service-landing");
   const editorSpacing = usesEditorLayout(data, pageMode) ? " editor-spacing" : "";
   const [seo, setSeo] = useState<PostSeo>({ ...defaultSeo(), ...(pageMode && !post.seo?.schemaType ? { schemaType: "WebPage" as const } : {}), ...post.seo });
   const [mode, setMode] = useState<"visual" | "text">("visual");
@@ -1430,6 +1431,24 @@ function PostEditor({
       showToast("Please add a title or URL slug before saving.", "error");
       return;
     }
+    if (mode === "publish" && pageMode &&
+        (candidate.serviceHeroEnabled ?? candidate.pageTemplate === "seo-service-landing") &&
+        !candidate.title.trim()) {
+      showToast("Add a page title before publishing an enabled SEO hero.", "error");
+      return;
+    }
+    const bookingOverride = candidate.serviceHeroBookingUrl?.trim();
+    if (mode === "publish" && pageMode &&
+        (candidate.serviceHeroEnabled ?? candidate.pageTemplate === "seo-service-landing") &&
+        bookingOverride) {
+      try {
+        const parsed = new URL(bookingOverride);
+        if (parsed.protocol !== "https:" && parsed.protocol !== "http:") throw new Error("Invalid protocol");
+      } catch {
+        showToast("Enter a valid http or https booking URL, or leave the override blank to use the global URL.", "error");
+        return;
+      }
+    }
     const resolvedStatus: "draft" | "published" = mode === "publish" ? "published" : "draft";
     const finalPost: BlogPost = { ...candidate, status: resolvedStatus };
     setSaving(true);
@@ -1885,13 +1904,76 @@ function PostEditor({
           {/* Keep both panels mounted: Write uses contentEditable DOM that holds unsaved formatting/content. */}
           <div hidden={activeTab !== "write"}>
             <>
+              {pageMode && (
+                <section className="mb-4 rounded-2xl border border-[#0B0B0B]/10 bg-white p-5 shadow-sm" aria-labelledby="service-hero-settings-title">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h2 id="service-hero-settings-title" className="text-[14px] font-bold text-[#0B0B0B]">Universal SEO Hero</h2>
+                      <p className="mt-1 text-[12px] text-[#0B0B0B]/55">Use the shared service landing design on this page. Existing pages stay on their current layout unless you enable it.</p>
+                    </div>
+                    <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-[#0B0B0B]/12 px-3 text-[12px] font-semibold text-[#0B0B0B]">
+                      <input
+                        type="checkbox"
+                        checked={serviceHeroEnabled}
+                        onChange={(event) => setField("serviceHeroEnabled", event.target.checked)}
+                        aria-label="Enable Universal SEO Hero"
+                        data-testid="switch-service-hero-enabled"
+                      />
+                      Enable hero
+                    </label>
+                  </div>
+                  {serviceHeroEnabled && (
+                    <div className="mt-4 grid grid-cols-1 gap-3">
+                      <label className="block text-[12px] font-semibold text-[#0B0B0B]/75">
+                        Hero description
+                        <textarea
+                          value={data.serviceHeroDescription ?? data.excerpt ?? ""}
+                          onChange={(event) => setField("serviceHeroDescription", event.target.value)}
+                          rows={3}
+                          maxLength={1200}
+                          placeholder="Describe this service or location page."
+                          aria-describedby="service-hero-description-hint"
+                          className="mt-1.5 block w-full resize-y rounded-xl border border-[#0B0B0B]/15 bg-white px-3 py-2.5 text-[13px] font-normal text-[#0B0B0B] outline-none transition focus:border-[#1E293B] focus:ring-2 focus:ring-[#1E293B]/10"
+                          data-testid="input-service-hero-description"
+                        />
+                        <span id="service-hero-description-hint" className="mt-1 block font-normal text-[#0B0B0B]/45">
+                          This copy appears below the visible page title. It is independent from the SEO meta description and can be left blank.
+                        </span>
+                      </label>
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <label className="block text-[12px] font-semibold text-[#0B0B0B]/75">
+                          Booking button label (optional)
+                          <input
+                            value={data.serviceHeroCtaLabel ?? ""}
+                            onChange={(event) => setField("serviceHeroCtaLabel", event.target.value)}
+                            maxLength={60}
+                            placeholder="Book a Call Now"
+                            className="mt-1.5 block w-full rounded-xl border border-[#0B0B0B]/15 bg-white px-3 py-2.5 text-[13px] font-normal text-[#0B0B0B] outline-none transition focus:border-[#1E293B] focus:ring-2 focus:ring-[#1E293B]/10"
+                          />
+                        </label>
+                        <label className="block text-[12px] font-semibold text-[#0B0B0B]/75">
+                          Booking URL override (optional)
+                          <input
+                            type="url"
+                            value={data.serviceHeroBookingUrl ?? ""}
+                            onChange={(event) => setField("serviceHeroBookingUrl", event.target.value)}
+                            placeholder="Uses global booking URL when blank"
+                            className="mt-1.5 block w-full rounded-xl border border-[#0B0B0B]/15 bg-white px-3 py-2.5 text-[13px] font-normal text-[#0B0B0B] outline-none transition focus:border-[#1E293B] focus:ring-2 focus:ring-[#1E293B]/10"
+                          />
+                        </label>
+                      </div>
+                      <p className="text-[11px] text-[#0B0B0B]/45">The page title above is the visible H1. Global social destinations and form copy are managed in Admin → Navbar.</p>
+                    </div>
+                  )}
+                </section>
+              )}
               {/* Title */}
               <div className="bg-white border border-[#0B0B0B]/10 rounded-2xl mb-4 overflow-hidden shadow-sm">
                 <input
                   value={data.title}
                   onChange={(e) => setField("title", e.target.value)}
-                  placeholder="Add title"
-                  aria-label="Title"
+                  placeholder={pageMode ? "Add page title (visible H1)" : "Add title"}
+                  aria-label={pageMode ? "Page title, visible H1" : "Title"}
                   className="w-full px-6 py-5 text-[28px] font-black tracking-tight text-[#0B0B0B] placeholder-[#0B0B0B]/18 outline-none bg-transparent"
                 />
               </div>
@@ -3589,7 +3671,13 @@ export default function AdminBlog({ mode = "blog" }: { mode?: CmsMode } = {}) {
               readTime: "5 min read",
               content: "",
               contentLayout: "editor-v1",
-              ...(pageMode ? { status: "draft" as const, visibility: "public" as const } : {}),
+              ...(pageMode ? {
+                status: "draft" as const,
+                visibility: "public" as const,
+                pageTemplate: "seo-service-landing" as const,
+              serviceHeroEnabled: true,
+              serviceHeroDescription: "",
+              } : {}),
             },
           })
         }

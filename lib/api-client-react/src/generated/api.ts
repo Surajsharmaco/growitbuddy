@@ -41,7 +41,9 @@ import type {
   ApiError,
   GoogleSheetsLeadSyncResult,
   HealthStatus,
-  ListActsCrmParams
+  ListActsCrmParams,
+  ServiceInquiryInput,
+  ServiceInquiryResponse
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -70,6 +72,18 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getCreateServiceInquiryUrl = () => `/api/forms/service-inquiry`;
+
+/** Save and notify a reusable SEO service-page inquiry. */
+export const createServiceInquiry = (
+  serviceInquiryInput: ServiceInquiryInput,
+): Promise<ServiceInquiryResponse> =>
+  customFetch<ServiceInquiryResponse>(getCreateServiceInquiryUrl(), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(serviceInquiryInput),
+  });
 
 export const getHealthCheckUrl = () => {
 

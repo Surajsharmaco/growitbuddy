@@ -8,6 +8,29 @@
 import * as zod from 'zod';
 
 
+/** @summary Save and notify a reusable SEO service-page inquiry. */
+export const createServiceInquiryBodyNameMin = 2;
+export const createServiceInquiryBodyNameMax = 80;
+export const createServiceInquiryBodyEmailMax = 254;
+export const createServiceInquiryBodyPhoneMax = 30;
+export const createServiceInquiryBodyMessageMax = 5000;
+export const createServiceInquiryBodyWebsiteMax = 500;
+export const createServiceInquiryBodySourceUrlMax = 500;
+
+export const CreateServiceInquiryBody = zod.object({
+  name: zod.string().min(createServiceInquiryBodyNameMin).max(createServiceInquiryBodyNameMax),
+  email: zod.string().email().max(createServiceInquiryBodyEmailMax),
+  phone: zod.string().min(1).max(createServiceInquiryBodyPhoneMax),
+  message: zod.string().min(1).max(createServiceInquiryBodyMessageMax),
+  website: zod.string().max(createServiceInquiryBodyWebsiteMax).optional(),
+  sourceUrl: zod.string().max(createServiceInquiryBodySourceUrlMax).optional(),
+});
+
+export const CreateServiceInquiryResponse = zod.object({
+  success: zod.literal(true),
+  message: zod.string(),
+});
+
 /**
  * Returns server health status
  * @summary Health check

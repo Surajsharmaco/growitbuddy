@@ -67,9 +67,23 @@ export default function AdminNavbar() {
             <Input label="LinkedIn URL" value={data.linkedin} onChange={(e) => set("linkedin", e.target.value)} placeholder="https://www.linkedin.com/company/growitbuddy" />
             <Input label="X (Twitter) URL" value={data.twitter} onChange={(e) => set("twitter", e.target.value)} placeholder="https://x.com/growitbuddy" />
             <Input label="YouTube URL" value={data.youtube} onChange={(e) => set("youtube", e.target.value)} placeholder="https://youtube.com/@growitbuddy" />
+            <Input label="WhatsApp number (international format)" value={data.whatsappNumber} onChange={(e) => set("whatsappNumber", e.target.value)} placeholder="919911990608" />
           </div>
           <p className="text-[12px] text-[#0B0B0B]/45 mt-3">
-            These links control the header icons on desktop and in the mobile menu. Footer links are edited separately under Footer. Blank fields use the default GrowitBuddy profile.
+            These links control the header icons and SEO landing page links. Enter WhatsApp with the country code; punctuation is removed when creating the chat link. Footer links are edited separately under Footer. Blank social fields use the default GrowitBuddy profile.
+          </p>
+        </Card>
+
+        <Card>
+          <SectionTitle>SEO service page form</SectionTitle>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Input label="Form heading" value={data.serviceHeroFormHeading} onChange={(e) => set("serviceHeroFormHeading", e.target.value)} placeholder="Send us a message" />
+            <Input label="Form supporting text" value={data.serviceHeroFormSubtitle} onChange={(e) => set("serviceHeroFormSubtitle", e.target.value)} placeholder="We respond to every inquiry within 24 hours." />
+            <Input label="Privacy message" value={data.serviceHeroPrivacyMessage} onChange={(e) => set("serviceHeroPrivacyMessage", e.target.value)} placeholder="Your information will only be used to respond to your inquiry." />
+            <Input label="Privacy policy URL" value={data.serviceHeroPrivacyUrl} onChange={(e) => set("serviceHeroPrivacyUrl", e.target.value)} placeholder="/privacy" />
+          </div>
+          <p className="mt-3 text-[12px] text-[#0B0B0B]/45">
+            These values are shared by every enabled SEO service page. Booking and social destinations above are the global defaults; page-specific booking overrides are managed in each page.
           </p>
         </Card>
       </div>

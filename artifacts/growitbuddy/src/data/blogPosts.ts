@@ -51,6 +51,15 @@ export interface BlogPost {
   /** Soft-delete flag: when true the post lives in Trash, hidden from the public site and the main admin list. */
   /** Pages only: private pages are never publicly rendered. */
   visibility?: "public" | "private";
+  /** New CMS Pages use the shared SEO service landing hero; legacy pages omit this. */
+  pageTemplate?: "seo-service-landing";
+  /** CMS Pages can opt into the reusable SEO service hero without changing legacy page layouts. */
+  serviceHeroEnabled?: boolean;
+  /** Visible hero copy is independent from SEO metadata and the article overview. */
+  serviceHeroDescription?: string;
+  /** Optional page-level booking overrides; blank values inherit global settings. */
+  serviceHeroBookingUrl?: string;
+  serviceHeroCtaLabel?: string;
   trashed?: boolean;
   /** ISO timestamp of when the post was moved to Trash. */
   trashedAt?: string;

@@ -359,6 +359,26 @@ export interface GoogleSheetsLeadSyncResult {
   syncedAt: string;
 }
 
+export interface ServiceInquiryInput {
+  /** @minLength 2 @maxLength 80 */
+  name: string;
+  /** @format email @maxLength 254 */
+  email: string;
+  /** @minLength 1 @maxLength 30 */
+  phone: string;
+  /** @minLength 1 @maxLength 5000 */
+  message: string;
+  /** @maxLength 500 */
+  website?: string;
+  /** @maxLength 500 */
+  sourceUrl?: string;
+}
+
+export interface ServiceInquiryResponse {
+  success: true;
+  message: string;
+}
+
 export interface ApiError {
   error: string;
 }
