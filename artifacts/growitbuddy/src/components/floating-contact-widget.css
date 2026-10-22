@@ -1,25 +1,25 @@
 .gb-floating-contact {
-  --gb-contact-button-size: 62px;
-  --gb-contact-gap: 16px;
-  --gb-contact-inset: 13px;
+  --gb-contact-button-size: 42px;
+  --gb-contact-gap: 5px;
+  --gb-contact-inset: 5px;
 
   position: fixed;
   z-index: 45;
   top: 50%;
-  right: max(24px, env(safe-area-inset-right, 0px));
+  right: max(16px, env(safe-area-inset-right, 0px));
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--gb-contact-gap);
   padding: var(--gb-contact-inset);
-  border: 1px solid rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.18);
   box-shadow:
-    0 8px 28px rgba(20, 30, 45, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.82);
-  -webkit-backdrop-filter: blur(22px);
-  backdrop-filter: blur(22px);
+    0 6px 20px rgba(20, 30, 45, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.52);
+  -webkit-backdrop-filter: blur(16px) saturate(155%);
+  backdrop-filter: blur(16px) saturate(155%);
   pointer-events: none;
   transform: translateY(-50%);
 }
@@ -30,17 +30,19 @@
   height: var(--gb-contact-button-size);
   flex: 0 0 auto;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.48);
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.66);
+  background: rgba(255, 255, 255, 0.24);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.94),
-    0 2px 7px rgba(20, 30, 45, 0.07);
+    inset 0 1px 0 rgba(255, 255, 255, 0.56),
+    0 2px 6px rgba(20, 30, 45, 0.08);
+  -webkit-backdrop-filter: blur(10px) saturate(155%);
+  backdrop-filter: blur(10px) saturate(155%);
   color: #1e293b;
   line-height: 0;
   pointer-events: auto;
   text-decoration: none;
-  transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+  transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -55,81 +57,100 @@
 
 .gb-floating-contact__button--phone {
   border-color: rgba(255, 255, 255, 0.3);
-  background: #1e293b;
+  background: rgba(30, 41, 59, 0.48);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    0 3px 8px rgba(20, 30, 45, 0.12);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 2px 7px rgba(20, 30, 45, 0.1);
   color: #fff;
 }
 
 .gb-floating-contact__whatsapp-mark {
-  width: 30px;
-  height: 30px;
+  width: 20px;
+  height: 20px;
 }
 
 .gb-floating-contact__phone-mark {
-  width: 25px;
-  height: 25px;
+  width: 17px;
+  height: 17px;
 }
 
 .gb-floating-contact__instagram-mark {
   display: block;
-  width: 27px;
-  height: 27px;
+  width: 18px;
+  height: 18px;
+}
+
+.gb-floating-contact__button--instagram {
+  color: #c13584;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .gb-floating-contact__button:hover {
-    background-color: rgba(255, 255, 255, 0.86);
+    background-color: rgba(255, 255, 255, 0.38);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.98),
-      0 4px 10px rgba(20, 30, 45, 0.1);
-    transform: scale(1.03);
+      inset 0 1px 0 rgba(255, 255, 255, 0.66),
+      0 3px 8px rgba(20, 30, 45, 0.1);
+    transform: scale(1.035);
   }
 
   .gb-floating-contact__button--phone:hover {
-    background-color: #27364c;
+    background-color: rgba(30, 41, 59, 0.62);
   }
 }
 
 @media (max-width: 900px) {
   .gb-floating-contact {
-    --gb-contact-button-size: 54px;
-    --gb-contact-gap: 12px;
-    --gb-contact-inset: 10px;
-    right: max(14px, env(safe-area-inset-right, 0px));
+    --gb-contact-button-size: 36px;
+    --gb-contact-gap: 4px;
+    --gb-contact-inset: 4px;
+    right: max(12px, env(safe-area-inset-right, 0px));
+  }
+
+  .gb-floating-contact__whatsapp-mark {
+    width: 17px;
+    height: 17px;
+  }
+
+  .gb-floating-contact__phone-mark {
+    width: 15px;
+    height: 15px;
+  }
+
+  .gb-floating-contact__instagram-mark {
+    width: 16px;
+    height: 16px;
   }
 }
 
 @media (max-width: 640px) {
   .gb-floating-contact {
-    --gb-contact-button-size: 48px;
-    --gb-contact-gap: 8px;
-    --gb-contact-inset: 8px;
-    right: max(8px, env(safe-area-inset-right, 0px));
+    --gb-contact-button-size: clamp(32px, 8.5vw, 35px);
+    --gb-contact-gap: 3px;
+    --gb-contact-inset: 4px;
+    right: max(7px, env(safe-area-inset-right, 0px));
   }
 
   .gb-floating-contact__whatsapp-mark {
-    width: 25px;
-    height: 25px;
+    width: 16px;
+    height: 16px;
   }
 
   .gb-floating-contact__phone-mark {
-    width: 22px;
-    height: 22px;
+    width: 14px;
+    height: 14px;
   }
 
   .gb-floating-contact__instagram-mark {
-    width: 23px;
-    height: 23px;
+    width: 15px;
+    height: 15px;
   }
 }
 
 @media (max-height: 480px) {
   .gb-floating-contact {
-    --gb-contact-button-size: 44px;
-    --gb-contact-gap: 6px;
-    --gb-contact-inset: 7px;
+    --gb-contact-button-size: 32px;
+    --gb-contact-gap: 2px;
+    --gb-contact-inset: 3px;
   }
 }
 
