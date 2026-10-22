@@ -1,12 +1,13 @@
 import { Phone } from "lucide-react";
 import { SiInstagram, SiWhatsapp } from "react-icons/si";
+import { Link } from "wouter";
 import { usePublicContent } from "@/hooks/usePublicContent";
 import { NAVBAR_DEFAULTS, type NavbarData } from "@/lib/navbarDefaults";
 import "./floating-contact-widget.css";
 
 const CONTACT_WIDGET_LINKS = {
   whatsapp: "https://wa.me/919911990608",
-  phone: "tel:+919911990608",
+  contact: "/contact",
   instagramFallback: NAVBAR_DEFAULTS.instagram,
 } as const;
 
@@ -37,13 +38,14 @@ export function FloatingContactWidget() {
       >
         <SiWhatsapp className="gb-floating-contact__whatsapp-mark" aria-hidden="true" />
       </a>
-      <a
+      <Link
         className="gb-floating-contact__button gb-floating-contact__button--phone"
-        href={CONTACT_WIDGET_LINKS.phone}
-        aria-label="Call GrowitBuddy"
+        href={CONTACT_WIDGET_LINKS.contact}
+        aria-label="Contact GrowitBuddy"
+        title="Contact us"
       >
         <Phone className="gb-floating-contact__phone-mark" aria-hidden="true" strokeWidth={2.1} />
-      </a>
+      </Link>
       <a
         className="gb-floating-contact__button gb-floating-contact__button--instagram"
         href={instagramHref}
