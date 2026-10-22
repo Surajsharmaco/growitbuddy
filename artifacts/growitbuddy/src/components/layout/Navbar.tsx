@@ -157,7 +157,7 @@ export function Navbar() {
                   <div key={link.label} style={{ position: "relative" }}>
                     <button
                       onClick={() => toggleDropdown(link.label)}
-                      className="text-[15px] font-medium cursor-pointer transition-all duration-150 rounded-full px-4 py-2 inline-flex items-center gap-1"
+                      className="text-[15px] font-medium cursor-pointer transition-all duration-150 rounded-full px-3 xl:px-4 py-2 inline-flex items-center gap-1 whitespace-nowrap"
                       style={{
                         fontFamily: "'Inter', sans-serif",
                         color: isActive ? "#fff" : "#8A8A8A",
@@ -245,7 +245,7 @@ export function Navbar() {
               return (
                 <Link key={link.href} href={link.href!}>
                   <span
-                    className="text-[15px] font-medium cursor-pointer transition-all duration-150 rounded-full px-4 py-2"
+                    className="text-[15px] font-medium cursor-pointer transition-all duration-150 rounded-full px-3 xl:px-4 py-2 whitespace-nowrap"
                     style={{
                       fontFamily: "'Inter', sans-serif",
                       color: location === link.href ? "#fff" : "#8A8A8A",
@@ -267,7 +267,7 @@ export function Navbar() {
             </div>
             <button
               onClick={() => goContact("form")}
-              className="inline-flex items-center gap-1.5 rounded-full px-5 py-2 text-[15px] font-semibold cursor-pointer transition-all"
+              className="hidden xl:inline-flex items-center gap-1.5 rounded-full px-5 py-2 text-[15px] font-semibold cursor-pointer transition-all"
               style={{
                 fontFamily: "'Inter', sans-serif",
                 color: "#5F5F5F",
