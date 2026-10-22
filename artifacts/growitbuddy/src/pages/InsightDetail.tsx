@@ -876,7 +876,16 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
       )}
 
       {/* Article body - tighter top padding so "On this page" sits close to the image */}
-      <section className="gb-article-section" style={{ padding: "clamp(20px, 4vw, 36px) 18px 100px", background: "#FFFFFF" }}>
+      <section
+        className="gb-article-section"
+        style={{
+          paddingTop: isServiceLandingPage ? 0 : "clamp(12px, 2vw, 20px)",
+          paddingRight: 18,
+          paddingBottom: 100,
+          paddingLeft: 18,
+          background: "#FFFFFF",
+        }}
+      >
         <div className="max-w-[680px] mx-auto">
           {/* Auto Table of Contents - appears only if the article has 2+ H2 sections */}
           {toc.length >= (post.toc ? 1 : 2) && (
