@@ -7,6 +7,11 @@ import {
   CheckSquare, Square, Tag, FileText, ArrowUpDown,
 } from "lucide-react";
 import ExcelJS from "exceljs";
+import {
+  getPageContactPath,
+  PageContactInsights,
+  PageContactSubmissionDetails,
+} from "./PageContactAnalytics";
 
 import { API_BASE } from "@/lib/api";
 const PAGE_SIZE = 25;
@@ -24,6 +29,7 @@ interface Lead {
 
 const TYPE_META: Record<string, { label: string; color: string; bg: string }> = {
   contact:                    { label: "Contact",             color: "#2563eb", bg: "#eff6ff" },
+  "service-inquiry":          { label: "Page Contact",        color: "#8B3A1A", bg: "#fdf2e9" },
   creator:                    { label: "Influencer",          color: "#1E293B", bg: "#e8edf2" },
   "page-owner":               { label: "Page Owner",          color: "#0891b2", bg: "#ecfeff" },
   page:                       { label: "Page Owner",          color: "#0891b2", bg: "#ecfeff" },
@@ -231,7 +237,9 @@ function LeadDrawer({
           </div>
 
           {/* Submission data */}
-          {Object.keys(lead.data).length > 0 && (
+          {lead.type === "service-inquiry" ? (
+            <PageContactSubmissionDetails lead={lead} />
+          ) : Object.keys(lead.data).length > 0 ? (
             <div>
               <p className="text-[10px] font-bold text-[#0B0B0B]/35 uppercase tracking-widest mb-2">Submission Data</p>
               <div className="rounded-xl border border-[#0B0B0B]/8 divide-y divide-[#0B0B0B]/5 overflow-hidden">
@@ -243,7 +251,7 @@ function LeadDrawer({
                 ))}
               </div>
             </div>
-          )}
+          ) : null}
 
           {/* Notes */}
           <div>
@@ -276,6 +284,8 @@ function LeadDrawer({
 export default function AdminLeads() {
   const [leads, setLeads]               = useState<Lead[]>([]);
   const [loading, setLoading]           = useState(true);
+  const [refreshError, setRefreshError] = useState("");
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
   const [typeFilter, setTypeFilter]     = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter]     = useState("all");
@@ -289,24 +299,38 @@ export default function AdminLeads() {
 
   const { authFetch } = useAdmin();
   const searchRef = useRef<HTMLInputElement>(null);
+  const loadInFlight = useRef(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (silent = false) => {
+    if (loadInFlight.current) return;
+    loadInFlight.current = true;
+    if (!silent) setLoading(true);
     try {
       const r = await authFetch(`${API_BASE}/admin/leads`);
+      if (!r.ok) throw new Error("Unable to load CRM submissions.");
       const data = await r.json();
-      setLeads(Array.isArray(data) ? data : []);
+      if (!Array.isArray(data)) throw new Error("Unexpected CRM response.");
+      setLeads(data);
+      setLastSyncedAt(new Date());
+      setRefreshError("");
     } catch {
-      setLeads([]);
+      setRefreshError("Could not sync submissions. Showing the last loaded data.");
+      if (!silent) setLeads([]);
     } finally {
-      setLoading(false);
+      loadInFlight.current = false;
+      if (!silent) setLoading(false);
     }
   }, [authFetch]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    void load();
+    const interval = window.setInterval(() => { void load(true); }, 15_000);
+    return () => window.clearInterval(interval);
+  }, [load]);
 
   /* Reset page on filter change */
   useEffect(() => { setPage(1); }, [typeFilter, statusFilter, dateFilter, search, sortDir]);
+  useEffect(() => { setSelected(new Set()); }, [typeFilter]);
 
   async function handleDelete(id: number) {
     if (!confirm("Delete this lead permanently?")) return;
@@ -352,6 +376,11 @@ export default function AdminLeads() {
 
   /* Date-filtered base - used for counts so chips reflect active period */
   const dateFiltered = applyDateFilter(leads, dateFilter);
+  const isPageContactView = typeFilter === "service-inquiry";
+  const pageContactLeads = leads.filter((lead) => lead.type === "service-inquiry");
+  const pageContactCount = pageContactLeads.length;
+  const pageContactInRange = dateFiltered.filter((lead) => lead.type === "service-inquiry");
+  const dateRangeLabel = DATE_PRESETS.find((preset) => preset.key === dateFilter)?.label ?? "Selected range";
 
   /* Type-filtered base - byStatus counts must match what the list will actually show */
   const typeFiltered = typeFilter !== "all"
@@ -519,6 +548,9 @@ export default function AdminLeads() {
   }
 
   const activeFilters = (typeFilter !== "all" ? 1 : 0) + (statusFilter !== "all" ? 1 : 0) + (dateFilter !== "all" ? 1 : 0);
+  const tableGridColumns = isPageContactView
+    ? "grid-cols-[36px_125px_1fr_1fr_1.15fr_100px_120px_44px]"
+    : "grid-cols-[36px_150px_1fr_1fr_100px_120px_44px]";
 
   return (
     <div>
@@ -534,7 +566,9 @@ export default function AdminLeads() {
 
       <PageHeader
         title="Leads & CRM"
-        description={`${leads.length} total submission${leads.length !== 1 ? "s" : ""}${dateFilter !== "all" ? ` · ${dateFiltered.length} in period` : ""}`}
+        description={isPageContactView
+          ? `${pageContactCount} Page Contact submission${pageContactCount !== 1 ? "s" : ""}${dateFilter !== "all" ? ` · ${pageContactInRange.length} in period` : ""}`
+          : `${leads.length} total submission${leads.length !== 1 ? "s" : ""}${dateFilter !== "all" ? ` · ${dateFiltered.length} in period` : ""}`}
       />
 
       {/* Type stats strip */}
@@ -545,6 +579,7 @@ export default function AdminLeads() {
             <button
               key={key}
               onClick={() => setTypeFilter(key)}
+              aria-pressed={typeFilter === key}
               className={`text-left p-3 rounded-xl border transition-all ${typeFilter === key ? "border-[#0B0B0B] bg-[#0B0B0B] text-white" : "border-[#0B0B0B]/10 bg-white hover:border-[#0B0B0B]/25"}`}
             >
               <p className={`text-[18px] font-black tracking-tight leading-none ${typeFilter === key ? "text-white" : "text-[#0B0B0B]"}`}>{count}</p>
@@ -553,6 +588,14 @@ export default function AdminLeads() {
           );
         })}
       </div>
+
+      {isPageContactView && !loading && (
+        <PageContactInsights
+          leads={pageContactInRange}
+          allLeads={pageContactLeads}
+          rangeLabel={dateRangeLabel}
+        />
+      )}
 
       {/* Toolbar */}
       <div className="flex gap-2 mb-3 flex-wrap">
@@ -587,9 +630,14 @@ export default function AdminLeads() {
           <ArrowUpDown size={14} />
           <span className="hidden sm:inline">{sortDir === "desc" ? "Newest" : "Oldest"}</span>
         </button>
-        <button onClick={load} className="p-2.5 border border-[#0B0B0B]/12 rounded-xl hover:bg-[#0B0B0B]/5 text-[#0B0B0B]/50 transition-colors">
+        <button onClick={() => { void load(); }} aria-label="Refresh leads" className="p-2.5 border border-[#0B0B0B]/12 rounded-xl hover:bg-[#0B0B0B]/5 text-[#0B0B0B]/50 transition-colors">
           <RefreshCw size={15} />
         </button>
+        {lastSyncedAt && (
+          <span className="self-center text-[10px] text-[#0B0B0B]/35">
+            Auto-sync 15s · {lastSyncedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          </span>
+        )}
         <button
           onClick={exportExcel}
           className="flex items-center gap-2 border border-[#0B0B0B]/12 rounded-xl px-3.5 py-2.5 text-[13px] font-semibold text-[#0B0B0B]/60 hover:bg-[#0B0B0B]/5 transition-colors"
@@ -598,6 +646,11 @@ export default function AdminLeads() {
           <span className="hidden sm:inline">Export Excel</span>
         </button>
       </div>
+      {refreshError && (
+        <p role="alert" className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-[12px] text-amber-800">
+          {refreshError}
+        </p>
+      )}
 
       {/* Filter panel */}
       {filtersOpen && (
@@ -699,7 +752,7 @@ export default function AdminLeads() {
           <div className="py-12 text-center text-[13px] text-[#0B0B0B]/35">Loading leads...</div>
         ) : visible.length === 0 ? (
           <div className="py-12 text-center">
-            <p className="text-[14px] font-semibold text-[#0B0B0B]/30">No leads found</p>
+            <p className="text-[14px] font-semibold text-[#0B0B0B]/30">{isPageContactView ? "No Page Contact submissions found" : "No leads found"}</p>
             <p className="text-[12px] text-[#0B0B0B]/25 mt-1">
               {search || dateFilter !== "all" || statusFilter !== "all" ? "Try adjusting your filters" : "Form submissions will appear here automatically"}
             </p>
@@ -707,14 +760,14 @@ export default function AdminLeads() {
         ) : (
           <div>
             {/* Header */}
-            <div className="hidden md:grid grid-cols-[36px_150px_1fr_1fr_100px_120px_44px] gap-0 px-4 py-3 border-b border-[#0B0B0B]/6 bg-[#FAFAFA]">
+            <div className={`hidden md:grid ${tableGridColumns} gap-0 px-4 py-3 border-b border-[#0B0B0B]/6 bg-[#FAFAFA]`}>
               <div className="flex items-center">
                 <button onClick={toggleSelectAll} className="text-[#0B0B0B]/30 hover:text-[#0B0B0B]">
                   {allPageSelected ? <CheckSquare size={14} /> : <Square size={14} />}
                 </button>
               </div>
-              {["Type", "Name", "Email", "Status", "Date", ""].map((h) => (
-                <span key={h} className="text-[10px] font-bold text-[#0B0B0B]/35 uppercase tracking-widest self-center">{h}</span>
+              {["Type", "Name", "Email", ...(isPageContactView ? ["Page"] : []), "Status", "Date", ""].map((h, i) => (
+                <span key={`${h}-${i}`} className="text-[10px] font-bold text-[#0B0B0B]/35 uppercase tracking-widest self-center">{h}</span>
               ))}
             </div>
 
@@ -725,7 +778,7 @@ export default function AdminLeads() {
                 onClick={() => setDrawer(lead)}
               >
                 {/* Desktop row */}
-                <div className="hidden md:grid grid-cols-[36px_150px_1fr_1fr_100px_120px_44px] gap-0 px-4 py-3.5 items-center">
+                <div className={`hidden md:grid ${tableGridColumns} gap-0 px-4 py-3.5 items-center`}>
                   <div onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => setSelected((s) => { const n = new Set(s); n.has(lead.id) ? n.delete(lead.id) : n.add(lead.id); return n; })}
@@ -741,6 +794,11 @@ export default function AdminLeads() {
                   <div className="flex items-center gap-2 min-w-0 pr-3">
                     <span className="text-[13px] text-[#0B0B0B]/60 truncate">{lead.email}</span>
                   </div>
+                  {isPageContactView && (
+                    <div className="min-w-0 pr-3">
+                      <span className="block truncate text-[11px] text-[#0B0B0B]/55" title={getPageContactPath(lead)}>{getPageContactPath(lead)}</span>
+                    </div>
+                  )}
                   <div><StatusBadge status={lead.status} /></div>
                   <div className="flex items-center gap-1">
                     <span className="text-[11px] text-[#0B0B0B]/40">{fmtShort(lead.createdAt)}</span>
@@ -766,6 +824,7 @@ export default function AdminLeads() {
                   </div>
                   <p className="text-[13px] font-semibold text-[#0B0B0B]">{lead.name || <span className="italic text-[#0B0B0B]/40">No name</span>}</p>
                   <p className="text-[12px] text-[#0B0B0B]/55 mt-0.5 truncate">{lead.email}</p>
+                  {isPageContactView && <p className="mt-1 truncate text-[11px] text-[#0B0B0B]/45">{getPageContactPath(lead)}</p>}
                   {lead.notes && <p className="text-[11px] text-[#0B0B0B]/40 mt-1 truncate italic">{lead.notes}</p>}
                 </div>
               </div>
