@@ -70,11 +70,11 @@ type ActsJourneyStep = {
   number: string;
   title: string;
   accent: string;
-  description: ReactNode;
+  description: string;
 };
 
 const actsJourneySteps: ActsJourneyStep[] = [
-  { number: '01', title: 'Join ', accent: 'ACTS CLUB', description: <>Sign up and get<br />approved to join.</> },
+  { number: '01', title: 'Join ', accent: 'ACTS CLUB', description: 'Sign up and get approved to join.' },
   { number: '02', title: 'Get ', accent: 'Verified', description: 'Build trust in a verified community.' },
   { number: '03', title: 'Make ', accent: 'Friends', description: 'Meet like-minded freelancers and creators.' },
   { number: '04', title: 'Connect ', accent: 'Locally', description: 'Join your local community on WhatsApp.' },
