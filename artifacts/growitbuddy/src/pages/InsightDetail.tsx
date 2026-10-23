@@ -16,6 +16,7 @@ import { getArticleToc, articleHtmlWithHeadingIds } from "@/lib/articleToc";
 import { renderOverviewHtml } from "@/lib/articleOverview";
 import { FloatingContactWidget } from "@/components/FloatingContactWidget";
 import { ServiceLandingHero } from "@/components/ServiceLandingHero";
+import { AuthorCard } from "@/components/blog/AuthorCard";
 import { NAVBAR_DEFAULTS, type NavbarData } from "@/lib/navbarDefaults";
 
 const ARTICLE_CSS = `
@@ -950,6 +951,11 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
           </div>
         </div>
         </div>
+        {!pageMode && (
+          <div className="gb-author-card-shell">
+            <AuthorCard />
+          </div>
+        )}
       </section>
 
       {/* Compact contact CTA replaces article share controls */}
