@@ -2,10 +2,17 @@ import { useEffect, useState, useCallback } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import { PageHeader, Card, SectionTitle, Input, Textarea, SaveBar } from "@/components/admin/AdminField";
 import { PageVisibilityCard } from "@/components/admin/PageVisibilityCard";
-import { Plus, Trash2, ChevronDown, ChevronUp, GripVertical } from "lucide-react";
+import { Plus, Trash2, ChevronDown, ChevronUp, GripVertical, ArrowDown, ArrowUp } from "lucide-react";
 import { BulkSelectionBar, CollectionSelectionCheckbox } from "@/components/admin/BulkSelectionBar";
 
-import { SERVICES_DEFAULTS, type ServiceItem as Service, type ServicesStat as Stat } from "@/lib/servicesDefaults";
+import {
+  SERVICES_DEFAULTS,
+  isValidServiceHref,
+  normalizeOfflineService,
+  type OfflineServiceItem,
+  type ServiceItem as Service,
+  type ServicesStat as Stat,
+} from "@/lib/servicesDefaults";
 
 
 function ServiceRow({
@@ -104,6 +111,10 @@ export default function AdminServices() {
   const [heroSubtext, setHeroSubtext] = useState("We don't just create content. We build the content marketing infrastructure that turns your expertise into recognition, trust, and consistent inbound opportunities.");
   const [heroCTA, setHeroCTA] = useState("Book a strategy call");
   const [stats, setStats] = useState<Stat[]>(SERVICES_DEFAULTS.stats);
+  const [offlineService, setOfflineService] = useState<OfflineServiceItem>(
+    normalizeOfflineService(SERVICES_DEFAULTS.offlineService),
+  );
+  const [saveError, setSaveError] = useState("");
   const [selectedServices, setSelectedServices] = useState<Set<number>>(new Set());
   const [selectedStats, setSelectedStats] = useState<Set<number>>(new Set());
 
@@ -121,6 +132,7 @@ export default function AdminServices() {
       if (d?.heroSubtext) setHeroSubtext(d.heroSubtext as string);
       if (d?.heroCTA) setHeroCTA(d.heroCTA as string);
       if (Array.isArray(d?.stats)) setStats(d!.stats as Stat[]);
+      setOfflineService(normalizeOfflineService(d?.offlineService));
       setLoadState("ready");
     });
   }, [getContentResult]);
@@ -128,20 +140,63 @@ export default function AdminServices() {
   useEffect(() => { load(); }, [load]);
 
   async function handleSave() {
+    if (!isValidServiceHref(offlineService.ctaHref || "/contact")) {
+      setSaveError("Enter a valid path or URL for the offline advertising CTA link.");
+      return;
+    }
+
+    const normalizedOfflineService = {
+      ...offlineService,
+      ctaHref: offlineService.ctaHref.trim() || "/contact",
+      tags: offlineService.tags.map((tag) => tag.trim()).filter(Boolean),
+    };
+    setOfflineService(normalizedOfflineService);
+    setSaveError("");
     setSaving(true);
     try {
-      await saveContent("services", { headline, subtext, services, heroHeadline, heroSubtext, heroCTA, stats });
+      await saveContent("services", {
+        headline,
+        subtext,
+        services,
+        heroHeadline,
+        heroSubtext,
+        heroCTA,
+        stats,
+        offlineService: normalizedOfflineService,
+      });
       setSaved(true);
     } finally {
       setSaving(false);
     }
   }
 
-  function mark() { setSaved(false); }
+  function mark() {
+    setSaved(false);
+    setSaveError("");
+  }
 
   function handleChange(i: number, val: Service) {
-    setSaved(false);
+    mark();
     setServices((p) => p.map((x, idx) => (idx === i ? val : x)));
+  }
+
+  function updateOfflineService(patch: Partial<OfflineServiceItem>) {
+    mark();
+    setOfflineService((current) => ({ ...current, ...patch }));
+  }
+
+  function updateOfflineTag(index: number, value: string) {
+    const tags = [...offlineService.tags];
+    tags[index] = value;
+    updateOfflineService({ tags });
+  }
+
+  function moveOfflineTag(index: number, direction: -1 | 1) {
+    const target = index + direction;
+    if (target < 0 || target >= offlineService.tags.length) return;
+    const tags = [...offlineService.tags];
+    [tags[index], tags[target]] = [tags[target], tags[index]];
+    updateOfflineService({ tags });
   }
 
   function handleDelete(i: number) {
@@ -239,6 +294,92 @@ export default function AdminServices() {
         ))}
       </div>
 
+      <Card className="mt-5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <SectionTitle>Seventh Service Card</SectionTitle>
+          <label className="inline-flex items-center gap-2 text-[12px] font-semibold text-[#0B0B0B]/65">
+            <input
+              type="checkbox"
+              checked={offlineService.enabled}
+              onChange={(e) => updateOfflineService({ enabled: e.target.checked })}
+              className="w-4 h-4 accent-[#0B0B0B]"
+            />
+            Show on the public Services page
+          </label>
+        </div>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Input label="Category Number" value={offlineService.categoryNumber} onChange={(e) => updateOfflineService({ categoryNumber: e.target.value })} placeholder="07" />
+            <Input label="Category Label" value={offlineService.categoryLabel} onChange={(e) => updateOfflineService({ categoryLabel: e.target.value })} placeholder="LOCAL REACH & BRAND ACTIVATION" />
+          </div>
+          <Input label="Heading" value={offlineService.title} onChange={(e) => updateOfflineService({ title: e.target.value })} placeholder="Offline Advertising & Brand Activation" />
+          <Textarea label="Description" value={offlineService.description} onChange={(e) => updateOfflineService({ description: e.target.value })} rows={3} />
+          <p className="text-[11px] text-[#0B0B0B]/45">Card icon: Megaphone. This editor does not currently include an icon picker.</p>
+
+          <div>
+            <p className="text-[12px] font-semibold text-[#0B0B0B]/60 uppercase tracking-wider mb-2">Service Tags</p>
+            <div className="space-y-2">
+              {offlineService.tags.map((tag, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <Input value={tag} onChange={(e) => updateOfflineTag(i, e.target.value)} aria-label={`Service tag ${i + 1}`} placeholder="Service tag" />
+                  <button
+                    type="button"
+                    aria-label={`Move service tag ${i + 1} up`}
+                    title="Move up"
+                    disabled={i === 0}
+                    onClick={() => moveOfflineTag(i, -1)}
+                    className="p-2 rounded-lg text-[#0B0B0B]/45 hover:bg-[#0B0B0B]/5 disabled:opacity-25"
+                  >
+                    <ArrowUp size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`Move service tag ${i + 1} down`}
+                    title="Move down"
+                    disabled={i === offlineService.tags.length - 1}
+                    onClick={() => moveOfflineTag(i, 1)}
+                    className="p-2 rounded-lg text-[#0B0B0B]/45 hover:bg-[#0B0B0B]/5 disabled:opacity-25"
+                  >
+                    <ArrowDown size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`Remove service tag ${i + 1}`}
+                    title="Remove tag"
+                    onClick={() => updateOfflineService({ tags: offlineService.tags.filter((_, index) => index !== i) })}
+                    className="p-2 rounded-lg text-[#0B0B0B]/35 hover:bg-red-50 hover:text-red-500"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => updateOfflineService({ tags: [...offlineService.tags, ""] })}
+              className="mt-3 flex items-center gap-1.5 text-[12px] font-semibold text-[#0B0B0B]/50 hover:text-[#0B0B0B]"
+            >
+              <Plus size={13} /> Add Tag
+            </button>
+            <p className="mt-1 text-[11px] text-[#0B0B0B]/40">Tags are informational, non-clickable labels. Use the arrows to change their order.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Input label="CTA Button Text" value={offlineService.cta} onChange={(e) => updateOfflineService({ cta: e.target.value })} placeholder="Explore Services" />
+            <Input
+              label="CTA Link"
+              value={offlineService.ctaHref || "/contact"}
+              onChange={(e) => updateOfflineService({ ctaHref: e.target.value })}
+              placeholder="/contact or https://example.com"
+              hint={isValidServiceHref(offlineService.ctaHref || "/contact")
+                ? "Use an absolute site path or a valid http(s), mailto, or tel URL."
+                : "Invalid link. Use /path, #anchor, or a valid http(s), mailto, or tel URL."}
+              aria-invalid={!isValidServiceHref(offlineService.ctaHref || "/contact")}
+            />
+          </div>
+        </div>
+      </Card>
+      {saveError && <p role="alert" className="mt-4 text-[12px] font-medium text-red-600">{saveError}</p>}
       <PageVisibilityCard slug="services" />
       <SaveBar onSave={handleSave} saving={saving} saved={saved} />
     </div>

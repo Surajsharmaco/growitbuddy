@@ -208,7 +208,39 @@ function renderContentBody(
   const blocks: ContentBlock[] = [];
   for (const sec of sections) {
     const data = content[sec];
-    if (data && typeof data === "object") collectBlocks(data, sec, blocks, 0);
+    if (!data || typeof data !== "object") continue;
+
+    if (sec !== "services" || Array.isArray(data)) {
+      collectBlocks(data, sec, blocks, 0);
+      continue;
+    }
+
+    const serviceData = data as Record<string, unknown>;
+    const { offlineService: rawOfflineService, ...existingServices } = serviceData;
+    collectBlocks(existingServices, sec, blocks, 0);
+
+    // `collectBlocks` intentionally skips generic `title` keys as structural
+    // metadata. Render this dedicated card explicitly so its heading and copy
+    // appear in the no-JS/SEO body, while honoring its admin visibility toggle.
+    if (!rawOfflineService || typeof rawOfflineService !== "object" || Array.isArray(rawOfflineService)) continue;
+    const offlineService = rawOfflineService as Record<string, unknown>;
+    if (offlineService.enabled === false) continue;
+
+    const appendOfflineText = (tag: ContentBlock["tag"], value: unknown) => {
+      if (typeof value !== "string" || isNoiseValue(value)) return;
+      const text = value.trim();
+      if (text) blocks.push({ tag, text });
+    };
+    const category = [offlineService.categoryNumber, offlineService.categoryLabel]
+      .filter((value): value is string => typeof value === "string" && Boolean(value.trim()))
+      .join(" | ");
+    appendOfflineText("p", category);
+    appendOfflineText("h2", offlineService.title);
+    appendOfflineText("p", offlineService.description);
+    if (Array.isArray(offlineService.tags)) {
+      offlineService.tags.forEach((tag) => appendOfflineText("p", tag));
+    }
+    appendOfflineText("p", offlineService.cta);
   }
 
   const seen = new Set<string>();

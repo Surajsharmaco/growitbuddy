@@ -1,11 +1,18 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Check, BadgeCheck, Video, Rocket, LayoutTemplate, Cpu, ShoppingBag } from "lucide-react";
+import { ArrowRight, Check, BadgeCheck, Video, Rocket, LayoutTemplate, Cpu, ShoppingBag, Megaphone } from "lucide-react";
 import { getSolidCardStyle, solidIsDark, CardGrain, WashIconChip } from "@/components/WashCard";
 import { Link } from "wouter";
 import SEOMeta from "@/components/SEOMeta";
 import { usePublicContent } from "@/hooks/usePublicContent";
 
-import { SERVICES_DEFAULTS as PAGE_DEFAULTS, type ServicesData as ServicesPageData, type ServiceItem } from "@/lib/servicesDefaults";
+import {
+  SERVICES_DEFAULTS as PAGE_DEFAULTS,
+  isExternalServiceHref,
+  normalizeOfflineService,
+  safeServiceHref,
+  type ServicesData as ServicesPageData,
+  type ServiceItem,
+} from "@/lib/servicesDefaults";
 
 const SVC_ICONS = [BadgeCheck, Video, Rocket, LayoutTemplate, Cpu, ShoppingBag];
 
@@ -13,6 +20,9 @@ const SVC_ICONS = [BadgeCheck, Video, Rocket, LayoutTemplate, Cpu, ShoppingBag];
 export default function Services() {
   const cms = usePublicContent<ServicesPageData>("services", PAGE_DEFAULTS);
   const services = cms.services || PAGE_DEFAULTS.services;
+  const offlineService = normalizeOfflineService(cms.offlineService);
+  const offlineDark = solidIsDark(6);
+  const offlineCtaHref = safeServiceHref(offlineService.ctaHref, "/contact");
 
   return (
     <div style={{ background: "#F8F8F6", fontFamily: "'Inter', sans-serif" }}>
@@ -420,12 +430,111 @@ export default function Services() {
           .svc-bento-card.is-dark .svc-bento-desc { color: rgba(255,255,255,0.72); }
           .svc-bento-card.is-dark .svc-bento-pill { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.80); border-color: rgba(255,255,255,0.14); }
           .svc-bento-card.is-dark .svc-bento-cta { color: #FFFFFF; }
+          .svc-offline-card {
+            margin-top: 22px;
+            display: grid;
+            grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.2fr);
+            gap: 38px;
+            align-items: start;
+            padding: 32px 30px;
+          }
+          .svc-offline-left, .svc-offline-details { min-width: 0; }
+          .svc-offline-left .svc-bento-sub {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 9px;
+            line-height: 1.45;
+            letter-spacing: 0.10em;
+            margin-bottom: 12px;
+          }
+          .svc-offline-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 34px;
+            height: 26px;
+            padding: 0 8px;
+            border: 1px solid rgba(194,168,120,0.38);
+            border-radius: 999px;
+            background: rgba(194,168,120,0.14);
+            color: #715D38;
+            font-size: 10px;
+            letter-spacing: 0.04em;
+            line-height: 1;
+          }
+          .svc-offline-left .svc-bento-title {
+            max-width: 18ch;
+            font-size: clamp(20px, 2.2vw, 26px);
+            line-height: 1.2;
+            margin-bottom: 12px;
+          }
+          .svc-offline-left .svc-bento-desc {
+            max-width: 58ch;
+            margin: 0;
+          }
+          .svc-offline-formats {
+            margin-bottom: 13px;
+            color: #8A7B5E;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            line-height: 1.4;
+            text-transform: uppercase;
+          }
+          .svc-offline-details .svc-bento-pills { margin: 0; flex: 0; gap: 9px; }
+          .svc-offline-action { display: flex; justify-content: flex-start; margin-top: 23px; }
+          .svc-offline-cta-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-height: 46px;
+            padding: 0 19px;
+            border: 1px solid #1E293B;
+            border-radius: 999px;
+            background: #1E293B;
+            color: #FFFFFF;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1;
+            text-decoration: none;
+            transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+          }
+          .svc-offline-cta-link svg { transition: transform 0.18s ease; }
+          .svc-offline-cta-link:hover {
+            background: #334155;
+            border-color: #334155;
+            box-shadow: 0 8px 18px -10px rgba(30,41,59,0.55);
+            transform: translateY(-1px);
+          }
+          .svc-offline-cta-link:hover svg { transform: translateX(3px); }
+          .svc-offline-cta-link:focus-visible { outline: 3px solid rgba(194,168,120,0.8); outline-offset: 3px; }
+          .svc-bento-card.is-dark .svc-offline-left .svc-bento-sub,
+          .svc-bento-card.is-dark .svc-offline-formats { color: #D9C28E; }
+          .svc-bento-card.is-dark .svc-offline-number {
+            border-color: rgba(217,194,142,0.38);
+            background: rgba(217,194,142,0.12);
+            color: #F0D9A7;
+          }
+          .svc-bento-card.is-dark .svc-offline-left .svc-bento-title { color: #FFFFFF; }
+          .svc-bento-card.is-dark .svc-offline-left .svc-bento-desc { color: rgba(255,255,255,0.72); }
+          .svc-bento-card.is-dark .svc-offline-details .svc-bento-pill { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.80); border-color: rgba(255,255,255,0.14); }
+          .svc-bento-card.is-dark .svc-offline-cta-link {
+            background: #D9C28E;
+            border-color: #D9C28E;
+            color: #16202E;
+          }
+          .svc-bento-card.is-dark .svc-offline-cta-link:hover { background: #E6D4AB; border-color: #E6D4AB; }
           @media (max-width: 980px) {
             .svc-bento-grid { grid-template-columns: repeat(2, 1fr); }
+            .svc-offline-card { gap: 26px; }
           }
           @media (max-width: 680px) {
             .svc-bento-grid { grid-template-columns: 1fr; }
             .svc-bento-card { padding: 28px 22px; }
+            .svc-offline-card { grid-template-columns: 1fr; gap: 24px; padding: 24px 22px; }
+            .svc-offline-left .svc-bento-title { max-width: 24ch; }
           }
         `}</style>
         <div className="max-w-[1200px] mx-auto">
@@ -490,6 +599,50 @@ export default function Services() {
               );
             })}
           </div>
+
+          {offlineService.enabled && (
+            <motion.div
+              className={`svc-bento-card svc-offline-card${offlineDark ? " is-dark" : ""}`}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              id="service-offline"
+              style={{ scrollMarginTop: 80, ...getSolidCardStyle(offlineDark, { borderRadius: 22 }) }}
+            >
+              <CardGrain dark={offlineDark} />
+              <div className="svc-offline-left">
+                <WashIconChip index={6} icon={Megaphone} iconSize={25} size={50} dark={offlineDark} style={{ marginBottom: 16 }} />
+                <div className="svc-bento-sub">
+                  <span className="svc-offline-number">{offlineService.categoryNumber}</span>
+                  <span>{offlineService.categoryLabel}</span>
+                </div>
+                <h3 className="svc-bento-title">{offlineService.title}</h3>
+                <p className="svc-bento-desc">{offlineService.description}</p>
+              </div>
+              <div className="svc-offline-details">
+                <div className="svc-offline-formats">Campaign formats</div>
+                <div className="svc-bento-pills">
+                  {offlineService.tags.map((tag, index) => (
+                    <span key={`${index}-${tag}`} className="svc-bento-pill">{tag}</span>
+                  ))}
+                </div>
+                <div className="svc-offline-action">
+                  {isExternalServiceHref(offlineCtaHref) ? (
+                    <a href={offlineCtaHref} className="svc-offline-cta-link">
+                      {offlineService.cta || "Explore Services"}
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </a>
+                  ) : (
+                    <Link href={offlineCtaHref} className="svc-offline-cta-link">
+                      {offlineService.cta || "Explore Services"}
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
         </div>
       </section>
 

@@ -13,6 +13,17 @@ export interface ServiceItem {
 
 export interface ServicesStat { num: string; label: string; }
 
+export interface OfflineServiceItem {
+  enabled: boolean;
+  categoryNumber: string;
+  categoryLabel: string;
+  title: string;
+  description: string;
+  tags: string[];
+  cta: string;
+  ctaHref: string;
+}
+
 export interface ServicesData {
   heroHeadline: string;
   heroSubtext: string;
@@ -21,6 +32,7 @@ export interface ServicesData {
   subtext: string;
   stats: ServicesStat[];
   services: ServiceItem[];
+  offlineService: OfflineServiceItem;
 }
 
 export const SERVICES_DEFAULTS: ServicesData = {
@@ -96,4 +108,77 @@ export const SERVICES_DEFAULTS: ServicesData = {
       ctaHref: "/contact",
     },
   ],
+  offlineService: {
+    enabled: true,
+    categoryNumber: "07",
+    categoryLabel: "LOCAL REACH & BRAND ACTIVATION",
+    title: "Offline Advertising & Brand Activation",
+    description: "Take your brand beyond the screen with campaigns people can see and experience, from outdoor media and transit branding to retail displays, print, events and on-ground activations.",
+    tags: [
+      "Auto Rickshaw Branding",
+      "E-Rickshaw Branding",
+      "Hoarding Advertising",
+      "Billboard Advertising",
+      "Metro Advertising",
+      "Bus Branding",
+      "Indoor Branding",
+      "Office Branding",
+      "Event Branding",
+      "Exhibition Branding",
+      "Brand Activation",
+      "Mall Activation",
+      "Standee & Banner Printing",
+      "Pamphlet & Brochure Printing",
+    ],
+    cta: "Explore Services",
+    // The dedicated page is not live yet; keep the CTA useful until it exists.
+    ctaHref: "/contact",
+  },
 };
+
+const ALLOWED_SERVICE_HREF_PROTOCOLS = new Set(["http:", "https:", "mailto:", "tel:"]);
+
+export function isValidServiceHref(value: string | undefined): boolean {
+  const href = value?.trim() ?? "";
+  if (!href || /[\u0000-\u0020]/.test(href)) return false;
+  if (href.startsWith("#") || href.startsWith("?")) return true;
+
+  try {
+    if (href.startsWith("/") && !href.startsWith("//")) {
+      return new URL(href, "https://growitbuddy.com").origin === "https://growitbuddy.com";
+    }
+    const parsed = new URL(href.startsWith("//") ? `https:${href}` : href);
+    return ALLOWED_SERVICE_HREF_PROTOCOLS.has(parsed.protocol);
+  } catch {
+    return false;
+  }
+}
+
+export function safeServiceHref(value: string | undefined, fallback: string): string {
+  const href = value?.trim() ?? "";
+  return isValidServiceHref(href) ? href : fallback;
+}
+
+export function isExternalServiceHref(href: string): boolean {
+  return /^(https?:\/\/|\/\/|mailto:|tel:)/i.test(href);
+}
+
+export function normalizeOfflineService(value: unknown): OfflineServiceItem {
+  const defaults = SERVICES_DEFAULTS.offlineService;
+  const saved = value && typeof value === "object"
+    ? value as Partial<OfflineServiceItem>
+    : {};
+
+  return {
+    enabled: typeof saved.enabled === "boolean" ? saved.enabled : defaults.enabled,
+    categoryNumber: typeof saved.categoryNumber === "string" ? saved.categoryNumber : defaults.categoryNumber,
+    categoryLabel: typeof saved.categoryLabel === "string" ? saved.categoryLabel : defaults.categoryLabel,
+    title: typeof saved.title === "string" ? saved.title : defaults.title,
+    description: typeof saved.description === "string" ? saved.description : defaults.description,
+    tags: Array.isArray(saved.tags)
+      ? saved.tags.filter((tag): tag is string => typeof tag === "string")
+      : [...defaults.tags],
+    cta: typeof saved.cta === "string" ? saved.cta : defaults.cta,
+    ctaHref: typeof saved.ctaHref === "string" ? saved.ctaHref : defaults.ctaHref,
+  };
+}
