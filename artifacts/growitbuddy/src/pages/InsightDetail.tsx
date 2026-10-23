@@ -938,22 +938,26 @@ export default function InsightDetail({ previewPost, pageMode = false }: { previ
             </section>
           )}
 
-          <div style={{ marginTop: 40, padding: "26px 22px", background: "#EFEFEA", borderRadius: 18, textAlign: "center" }}>
-            <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#8A8A8A", marginBottom: 10 }}>Ready to build your authority?</p>
-            <h3 style={{ fontWeight: 800, fontSize: "clamp(20px, 3vw, 26px)", letterSpacing: "-0.03em", color: "#0A0A0A", marginBottom: 16, lineHeight: 1.25 }}>
-              Turn your expertise into consistent inbound demand.
-            </h3>
-            <Link href="/authority-audit">
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#FFFFFF", color: "#0A0A0A", fontWeight: 700, fontSize: 14, padding: "13px 28px", borderRadius: 100, cursor: "pointer", letterSpacing: "-0.01em" }}>
-                Get your free audit <ArrowRight className="w-4 h-4" />
-              </span>
-            </Link>
-          </div>
         </div>
         </div>
         {!pageMode && (
           <div className="gb-author-card-shell">
             <AuthorCard />
+          </div>
+        )}
+        {!pageMode && (
+          <div className="max-w-[680px] mx-auto" style={{ marginTop: 40 }}>
+            <div style={{ padding: "26px 22px", background: "#EFEFEA", borderRadius: 18, textAlign: "center" }}>
+              <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#8A8A8A", marginBottom: 10 }}>Ready to build your authority?</p>
+              <h3 style={{ fontWeight: 800, fontSize: "clamp(20px, 3vw, 26px)", letterSpacing: "-0.03em", color: "#0A0A0A", marginBottom: 16, lineHeight: 1.25 }}>
+                Turn your expertise into consistent inbound demand.
+              </h3>
+              <Link href="/authority-audit">
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#FFFFFF", color: "#0A0A0A", fontWeight: 700, fontSize: 14, padding: "13px 28px", borderRadius: 100, cursor: "pointer", letterSpacing: "-0.01em" }}>
+                  Get your free audit <ArrowRight className="w-4 h-4" />
+                </span>
+              </Link>
+            </div>
           </div>
         )}
       </section>
