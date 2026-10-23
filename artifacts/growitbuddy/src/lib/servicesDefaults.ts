@@ -8,6 +8,7 @@ export interface ServiceItem {
   badge?: string;
   note?: string;
   cta?: string;
+  ctaHref?: string;
 }
 
 export interface ServicesStat { num: string; label: string; }
@@ -42,6 +43,7 @@ export const SERVICES_DEFAULTS: ServicesData = {
       description: "Authority positioning systems that help founders, creators, and brands become recognized voices in their category.",
       features: ["Founder Positioning", "LinkedIn Growth", "Instagram Growth", "Authority Strategy", "Thought Leadership", "Audience Positioning", "Brand Messaging", "Content Strategy", "Personal Branding", "Category Positioning"],
       cta: "Build Authority",
+      ctaHref: "/contact",
     },
     {
       id: "2",
@@ -51,6 +53,7 @@ export const SERVICES_DEFAULTS: ServicesData = {
       description: "High-volume content systems designed to build visibility, trust, and long-term authority across modern platforms.",
       features: ["Short-form Editing", "Long-form Editing", "Podcast Editing", "Script Writing", "Thumbnail Design", "Content Repurposing", "Social Media Content", "UGC Content", "YouTube Content", "Creative Direction"],
       cta: "Build Visibility",
+      ctaHref: "/contact",
     },
     {
       id: "3",
@@ -60,6 +63,7 @@ export const SERVICES_DEFAULTS: ServicesData = {
       description: "Distribution infrastructure designed to amplify reach, compound attention, and generate inbound demand.",
       features: ["Distribution Campaigns", "Influencer Campaigns", "Meta Ads", "Google Ads", "Lead Generation", "Newsletter Systems", "Viral Distribution", "Growth Systems", "YouTube Distribution", "Community Growth", "Clipping"],
       cta: "Scale Reach",
+      ctaHref: "/contact",
     },
     {
       id: "4",
@@ -69,6 +73,7 @@ export const SERVICES_DEFAULTS: ServicesData = {
       description: "Digital systems built to convert authority into inbound leads, trust, and scalable opportunities.",
       features: ["Website Development", "Landing Pages", "CRM Integration", "Admin Dashboards", "Booking Systems", "Client Portals", "Funnel Systems", "Ecommerce Websites", "UI/UX Systems", "Conversion Optimization"],
       cta: "Launch Systems",
+      ctaHref: "/contact",
     },
     {
       id: "5",
@@ -78,6 +83,7 @@ export const SERVICES_DEFAULTS: ServicesData = {
       description: "AI-powered systems that automate communication, support, lead flow, and creator operations.",
       features: ["AI Chatbots", "AI Voice Agents", "WhatsApp AI Systems", "Lead Qualification AI", "Custom AI Agents", "AI Customer Support", "Workflow Automation", "CRM Automation", "AI Content Systems", "Internal AI Tools"],
       cta: "Automate Growth",
+      ctaHref: "/contact",
     },
     {
       id: "6",
@@ -87,6 +93,7 @@ export const SERVICES_DEFAULTS: ServicesData = {
       description: "Systems designed to help creators and brands monetize attention through products, communities, and scalable offers.",
       features: ["Course Launches", "Ebook Systems", "Community Growth", "Email Marketing", "Creator Monetization", "Membership Funnels", "Webinar Funnels", "Digital Products", "Paid Communities", "Distribution Systems"],
       cta: "Scale Authority",
+      ctaHref: "/contact",
     },
   ],
 };

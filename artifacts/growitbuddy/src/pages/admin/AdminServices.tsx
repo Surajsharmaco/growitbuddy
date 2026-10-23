@@ -81,8 +81,9 @@ function ServiceRow({
             rows={5}
             hint="Each line becomes a bullet point feature"
           />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input label="CTA Button Label" value={service.cta || ""} onChange={(e) => set({ cta: e.target.value })} placeholder="Build Authority" hint="Button shown on the service card" />
+            <Input label="CTA Link" value={service.ctaHref || "/contact"} onChange={(e) => set({ ctaHref: e.target.value })} placeholder="/contact#form or https://example.com" hint="Use a site path (such as /contact) or a full URL." />
             <Input label="Note (optional)" value={service.note || ""} onChange={(e) => set({ note: e.target.value })} placeholder="Starting at $5k/mo" hint="Small note shown under the CTA" />
           </div>
         </div>
@@ -164,7 +165,7 @@ export default function AdminServices() {
 
   function addNew() {
     setSaved(false);
-    setServices((p) => [...p, { id: Date.now().toString(), title: "", subtitle: "", headline: "", badge: "", description: "", features: [], cta: "", note: "" }]);
+    setServices((p) => [...p, { id: Date.now().toString(), title: "", subtitle: "", headline: "", badge: "", description: "", features: [], cta: "", ctaHref: "/contact", note: "" }]);
   }
 
   if (loadState !== "ready") {

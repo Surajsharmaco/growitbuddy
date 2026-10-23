@@ -452,6 +452,14 @@ export default function Services() {
             {services.map((s, i) => {
               const Icon = SVC_ICONS[i % SVC_ICONS.length];
               const dark = solidIsDark(i);
+              const ctaHref = s.ctaHref?.trim() || "/contact";
+              const isExternalCta = /^(https?:\/\/|mailto:|tel:|\/\/)/i.test(ctaHref);
+              const ctaContent = (
+                <span className="svc-bento-cta">
+                  {s.cta || "Learn More"}
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </span>
+              );
               return (
                 <motion.div
                   key={s.id}
@@ -473,12 +481,11 @@ export default function Services() {
                       <span key={fi} className="svc-bento-pill">{f}</span>
                     ))}
                   </div>
-                  <Link href="/contact">
-                    <span className="svc-bento-cta">
-                      {s.cta || "Learn More"}
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </span>
-                  </Link>
+                  {isExternalCta ? (
+                    <a href={ctaHref}>{ctaContent}</a>
+                  ) : (
+                    <Link href={ctaHref}>{ctaContent}</Link>
+                  )}
                 </motion.div>
               );
             })}
