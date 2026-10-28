@@ -6,7 +6,7 @@
   --service-field-border: #dde2e8;
   --service-paper: #fff;
   width: 100%;
-  padding: calc(72px + clamp(44px, 6vw, 80px)) clamp(22px, 4vw, 56px) 16px;
+  padding: calc(72px + clamp(26px, 3.5vw, 48px)) clamp(22px, 4vw, 56px) 16px;
   color: var(--service-ink);
   background: #fff;
   font-family: var(--app-font-sans, 'Inter', sans-serif);
@@ -495,7 +495,7 @@
 
 @media (max-width: 767px) {
   .service-landing-hero {
-    padding: calc(72px + clamp(40px, 8vw, 56px)) 20px 24px;
+    padding: calc(72px + clamp(22px, 4.4vw, 32px)) 20px 24px;
   }
 
   .service-landing-hero.is-preview {
