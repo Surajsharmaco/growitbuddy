@@ -100,6 +100,7 @@ export type ActsMembershipOrderAmount = typeof ActsMembershipOrderAmount[keyof t
 
 export const ActsMembershipOrderAmount = {
   NUMBER_9900: 9900,
+  NUMBER_149900: 149900,
 } as const;
 
 export type ActsMembershipOrderCurrency = typeof ActsMembershipOrderCurrency[keyof typeof ActsMembershipOrderCurrency];
@@ -131,6 +132,7 @@ export type ActsMembershipStatusAmount = typeof ActsMembershipStatusAmount[keyof
 
 export const ActsMembershipStatusAmount = {
   NUMBER_9900: 9900,
+  NUMBER_149900: 149900,
 } as const;
 
 export type ActsMembershipStatusCurrency = typeof ActsMembershipStatusCurrency[keyof typeof ActsMembershipStatusCurrency];
@@ -359,14 +361,65 @@ export interface GoogleSheetsLeadSyncResult {
   syncedAt: string;
 }
 
+export type ManualExportCatalogGroupsItem = {
+  id: string;
+  label: string;
+  description: string;
+  datasets: string[];
+};
+
+export type ManualExportCatalogDatasetsItem = {
+  id: string;
+  label: string;
+};
+
+export interface ManualExportCatalog {
+  version: number;
+  automaticSnapshots: boolean;
+  serverZipGeneration: boolean;
+  exclusions: string[];
+  groups: ManualExportCatalogGroupsItem[];
+  datasets: ManualExportCatalogDatasetsItem[];
+}
+
+export interface ManualExportStats {
+  /** @minimum 0 */
+  count: number;
+  signature: string;
+}
+
+export type ManualExportIndexRecordsItem = {
+  key: string;
+  chars: number;
+  digest: string;
+};
+
+export interface ManualExportIndex {
+  records: ManualExportIndexRecordsItem[];
+}
+
+export interface ManualExportChunk {
+  text: string;
+  chars: number;
+}
+
 export interface ServiceInquiryInput {
-  /** @minLength 2 @maxLength 80 */
+  /**
+     * @minLength 2
+     * @maxLength 80
+     */
   name: string;
-  /** @format email @maxLength 254 */
+  /** @maxLength 254 */
   email: string;
-  /** @minLength 1 @maxLength 30 */
+  /**
+     * @minLength 1
+     * @maxLength 30
+     */
   phone: string;
-  /** @minLength 1 @maxLength 5000 */
+  /**
+     * @minLength 1
+     * @maxLength 5000
+     */
   message: string;
   /** @maxLength 500 */
   website?: string;
@@ -387,6 +440,26 @@ export interface ApiError {
  * The operation failed. No membership approval is implied.
  */
 export type ActsErrorResponse = ApiError;
+
+export type GetManualExportRecordsParams = {
+after?: string;
+};
+
+export type GetManualExportChunkParams = {
+digest: string;
+/**
+ * @minimum 0
+ */
+offset?: number;
+};
+
+export type GetManualExportMediaChunkParams = {
+digest: string;
+/**
+ * @minimum 0
+ */
+offset?: number;
+};
 
 export type ListActsCrmParams = {
 search?: string;

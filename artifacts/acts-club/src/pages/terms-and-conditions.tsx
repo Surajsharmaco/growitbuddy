@@ -14,7 +14,7 @@ export function TermsAndConditionsPage() {
 
       <LegalSection title="2. Membership">
         <p>ACTS membership is subject to the applicable membership process and approval requirements.</p>
-        <p>The current membership fee displayed on the website is ₹99.</p>
+        <p>The current membership fee displayed on the website is ₹1,499.</p>
         <p>Membership does not guarantee:</p>
         <LegalList items={['Employment', 'Freelance work', 'Clients', 'Projects', 'Income', 'Business opportunities', 'Selection for any specific opportunity']} />
         <p>ACTS provides access to a community and opportunities ecosystem, not guaranteed professional outcomes.</p>

@@ -16,7 +16,7 @@ test("ACTS Apps Script exports all fields safely, reports only completed writes 
     fullName: "Synthetic applicant", contactNumber: "+919000000001", whatsappNumber: "+919000000002",
     city: "Test City", youAre: "Creator", creatorType: "Other", otherType: "Tester", primarySkill: "Other",
     otherSkill: "Test skill", instagramId: "test.creator", lookingFor: "Learning", agreesToGuidelines: true,
-  }, paymentStatus: "form_submitted", amount: 9900, currency: "INR", stage: "contacted", notes: "=1+1",
+  }, paymentStatus: "form_submitted", amount: 149900, currency: "INR", stage: "contacted", notes: "=1+1",
     archived: true, followUpAt: "2026-10-06T03:30:00Z", createdAt: "2026-10-05T00:00:00Z", updatedAt: "2026-10-05T00:00:00Z" };
   const workbook = {
     getSheetByName(title) { return sheets.get(title); },

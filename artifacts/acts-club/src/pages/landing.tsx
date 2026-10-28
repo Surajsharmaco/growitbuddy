@@ -5,6 +5,7 @@ import { SkillPills } from '@/components/SkillPills';
 import { HeroTicker } from '@/components/HeroTicker';
 import '@/components/acts-how-works.css';
 import { ACTS_CONTACT } from '@/lib/contact';
+import { ACTS_MEMBERSHIP_PRICE_PAISE, formatActsPrice } from '@/lib/acts-price';
 
 const img = (n: string) => `${import.meta.env.BASE_URL}img/${n}.webp`;
 const jpg = (n: string) => `${import.meta.env.BASE_URL}img/${n}.jpg`;
@@ -141,23 +142,23 @@ function PriceOffer({
   testId?: string;
 }) {
   const sizes = {
-    compact: { old: 'text-xs', badge: 'px-2 py-1 text-[10px]', current: 'text-2xl', term: 'text-[10px]' },
-    hero: { old: 'text-xs sm:text-sm lg:text-base', badge: 'px-2 py-1.5 text-[10px] lg:px-3 lg:py-2 lg:text-xs', current: 'text-2xl sm:text-3xl lg:text-[2.75rem]', term: 'text-[10px] lg:text-xs' },
-    standard: { old: 'text-sm', badge: 'px-2.5 py-1.5 text-[10px]', current: 'text-3xl', term: 'text-[10px]' },
-    large: { old: 'text-xs sm:text-sm', badge: 'px-2 py-1.5 text-[10px]', current: 'text-4xl sm:text-6xl', term: 'text-[10px] sm:text-xs' },
+    compact: { current: 'text-2xl', term: 'text-[10px]' },
+    hero: { current: 'text-2xl sm:text-3xl lg:text-[2.75rem]', term: 'text-[10px] lg:text-xs' },
+    standard: { current: 'text-3xl', term: 'text-[10px]' },
+    large: { current: 'text-4xl sm:text-6xl', term: 'text-[10px] sm:text-xs' },
   }[size];
   const onDark = tone === 'dark';
 
   return (
     <div
       role="group"
-      aria-label="Regular price ₹799; limited-time offer ₹99"
+      aria-label={`One-time ACTS membership price ${formatActsPrice(ACTS_MEMBERSHIP_PRICE_PAISE)}`}
       data-testid={testId}
-      className={`inline-flex items-center gap-1.5 whitespace-nowrap ${className}`}
+      className={`inline-flex items-center gap-2 whitespace-nowrap ${className}`}
     >
-      <s className={`font-display font-bold ${sizes.old} ${onDark ? 'text-cream/65' : 'text-ink/45'}`}>₹799</s>
-      <span className={`rounded-full bg-acts font-bold tracking-wide text-cream ${sizes.badge}`}>FOR LIMITED TIME</span>
-      <span className={`font-display font-extrabold leading-none ${sizes.current} ${onDark ? 'text-cream' : 'text-ink'}`}>₹99</span>
+      <span className={`font-display font-extrabold leading-none ${sizes.current} ${onDark ? 'text-cream' : 'text-ink'}`}>
+        {formatActsPrice(ACTS_MEMBERSHIP_PRICE_PAISE)}
+      </span>
       {oneTime && <span className={`font-bold tracking-widest ${sizes.term} ${onDark ? 'text-cream/75' : 'text-ink/65'}`}>ONE-TIME</span>}
     </div>
   );
@@ -223,7 +224,9 @@ export default function Landing() {
             ))}
           </nav>
           <div className="flex items-center gap-2 sm:gap-3">
-            <button data-testid="button-join-nav" onClick={join} className="btn-3d btn-3d--orange btn-3d--compact hidden min-h-11 px-4 py-2.5 text-xs font-bold min-[400px]:inline-flex sm:text-sm">JOIN ACTS →</button>
+            <button data-testid="button-join-nav" onClick={join} className="btn-3d btn-3d--orange btn-3d--compact hidden min-h-11 whitespace-nowrap px-4 py-2.5 text-xs font-bold min-[400px]:inline-flex sm:text-sm">
+              JOIN ACTS <span aria-hidden className="opacity-75">·</span> {formatActsPrice(ACTS_MEMBERSHIP_PRICE_PAISE)} <span aria-hidden>→</span>
+            </button>
             <button ref={menuBtn} data-testid="button-menu" type="button" aria-label={menu ? 'Close menu' : 'Open menu'} aria-expanded={menu} aria-controls="mobile-menu" onClick={() => setMenu(m => !m)} className="flex h-11 w-11 items-center justify-center rounded-full border border-ink/20 md:hidden">
               <span aria-hidden className="relative block h-3.5 w-5">
                 <span className={`absolute left-0 h-0.5 w-5 bg-ink transition-transform ${menu ? 'top-1.5 rotate-45' : 'top-0'}`} />
@@ -259,10 +262,7 @@ export default function Landing() {
               <p className="hero-people-label">Real people<br />Real opportunities</p>
             </div>
             <p style={{ ["--d" as string]: "140ms" }} className="rise hero-description" data-testid="text-hero-sub">Meet talented people, find real opportunities, collaborate on projects, and build a network that moves your career forward.</p>
-            <div style={{ ["--d" as string]: "220ms" }} className="rise hero-offer" data-testid="text-offer-badge">
-              <PriceOffer size="hero" tone="dark" oneTime className="max-w-full flex-wrap justify-center gap-y-1" testId="price-offer-hero" />
-            </div>
-            <div style={{ ["--d" as string]: "280ms" }} className="rise hero-actions flex items-center justify-center">
+            <div style={{ ["--d" as string]: "220ms" }} className="rise hero-actions flex items-center justify-center">
               <JoinBtn id="hero" />
               <button data-testid="button-explore-hero" onClick={() => go('why')} className="btn-3d hero-explore min-h-11 px-4 py-2.5 text-sm font-display font-bold sm:px-5 sm:py-3">EXPLORE COMMUNITY →</button>
             </div>

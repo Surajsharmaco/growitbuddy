@@ -59,12 +59,12 @@ globalThis.fetch = async (input, init) => {
   let data: unknown;
   if (url.endsWith("/orders") && init?.method === "POST") {
     const body = JSON.parse(String(init.body));
-    assert.equal(body.amount, 9900);
+    assert.equal(body.amount, 149900);
     assert.equal(body.currency, "INR");
     assert.ok(!JSON.stringify(body.notes).includes("Contact"), "Do not send personal data in order notes");
     const id = `order_Test${randomUUID().replace(/-/g, "")}`;
     orders.push(id);
-    data = { id, amount: 9900, currency: "INR" };
+    data = { id, amount: 149900, currency: "INR" };
   } else if (url.includes("/orders/") && url.includes("/payments")) {
     const id = url.split("/orders/")[1].split("/")[0];
     data = { items: [...payments.values()].filter(payment => payment.order_id === id) };
@@ -114,10 +114,10 @@ async function start() {
   assert.equal(result.status, 200);
   return result.body as { orderId: string; checkoutToken: string; amount: number; currency: string };
 }
-function payment(orderId: string, captured = false) {
+function payment(orderId: string, captured = false, amount = 149900) {
   const value = {
     id: `pay_Test${randomUUID().replace(/-/g, "")}`, order_id: orderId,
-    amount: 9900, currency: "INR", status: captured ? "captured" : "authorized", captured,
+    amount, currency: "INR", status: captured ? "captured" : "authorized", captured,
   };
   payments.set(value.id, value);
   return value;
@@ -247,7 +247,7 @@ test("ACTS admin isolation, CRM persistence and live changes", async t => {
     assert.equal(found.body!.items[0].paymentId, captured.id);
     assert.equal(found.body!.items[0].reviewStatus, "pending_review");
     const after = (await admin("/stats", "GET", undefined, token)).body!;
-    assert.equal(after.paid, before.paid + 1); assert.equal(after.capturedAmount, before.capturedAmount + 9900);
+    assert.equal(after.paid, before.paid + 1); assert.equal(after.capturedAmount, before.capturedAmount + 149900);
     // Lost order responses retry the original order rather than create a second one.
     const key = submissionKeys[submissionKeys.length - 1];
     assert.equal((await request("/orders", { ...application, submissionKey: key })).status, 409);
@@ -308,15 +308,35 @@ test("ACTS payment safety and persisted membership flow", async t => {
   const initialOrderCount = orders.length;
   const order = await start();
   const pay = payment(order.orderId);
-  await t.test("order creation uses ₹99 INR and stores no paid member", async () => {
-    assert.equal(order.amount, 9900);
+  await t.test("new order creation uses ₹1,499 INR and stores no paid member", async () => {
+    assert.equal(order.amount, 149900);
     assert.equal(order.currency, "INR");
     assert.equal((await membersFor(order.orderId)).length, 0);
     const resumed = await request("/orders", { ...application, checkoutToken: order.checkoutToken, amount: 9 });
     assert.equal(resumed.status, 200, "JSONB key ordering must not break checkout resumption");
     assert.equal(resumed.body.orderId, order.orderId);
-    assert.equal(resumed.body.amount, 9900);
+    assert.equal(resumed.body.amount, 149900);
     assert.equal(orders.length, initialOrderCount + 1);
+  });
+
+  await t.test("a pre-price-change checkout resumes and settles at its stored ₹99 amount", async () => {
+    const legacyOrder = await start();
+    const [checkout] = await db.select().from(actsMembershipCheckouts)
+      .where(eq(actsMembershipCheckouts.orderId, legacyOrder.orderId)).limit(1);
+    await db.update(actsMembershipCheckouts).set({ amount: 9900 })
+      .where(eq(actsMembershipCheckouts.id, checkout.id));
+
+    const resumed = await request("/orders", { ...application, checkoutToken: legacyOrder.checkoutToken });
+    assert.equal(resumed.status, 200);
+    assert.equal(resumed.body.amount, 9900);
+
+    const legacyPayment = payment(legacyOrder.orderId, true, 9900);
+    const verified = await request("/verify", verification(legacyOrder.orderId, legacyPayment.id), legacyOrder.checkoutToken);
+    assert.equal(verified.status, 200);
+    assert.equal(verified.body.amount, 9900);
+    assert.equal(verified.body.paymentStatus, "successful");
+    const [member] = await membersFor(legacyOrder.orderId);
+    assert.equal(member.amount, 9900);
   });
 
   await t.test("private tokens, signatures and order binding are enforced", async () => {
@@ -356,7 +376,7 @@ test("ACTS payment safety and persisted membership flow", async t => {
     assert.equal(member.application.fullName, application.fullName);
     assert.equal(member.application.contactNumber, "+919876543210");
     assert.equal(member.application.otherSkill, "Test skill");
-    assert.equal(member.amount, 9900);
+    assert.equal(member.amount, 149900);
     assert.equal(member.reviewStatus, "pending_review");
     assert.equal((await request("/orders", { ...application, checkoutToken: order.checkoutToken })).status, 409);
   });

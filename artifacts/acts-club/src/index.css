@@ -150,7 +150,6 @@ section[id] { scroll-margin-top: 5rem; }
 .hero-faces img { display: block; width: 44px; height: 44px; margin-left: -10px; border: 2px solid #eee5d9; border-radius: 50%; object-fit: cover; }
 .hero-people-label { margin: 0; padding-left: 16px; border-left: 1px solid rgb(246 239 227 / 25%); color: #e7e2dc; font-size: 10px; font-weight: 500; line-height: 1.9; letter-spacing: .16em; text-align: left; text-transform: uppercase; }
 .hero-description { max-width: 510px; margin: 22px 0 0; color: #e7e2dc; font-size: 1.0625rem; font-weight: 400; line-height: 1.5; text-wrap: pretty; }
-.hero-offer { display: flex; justify-content: center; width: min(100%, 340px); margin-top: 24px; padding: 9px 12px; border: 1px solid rgb(246 239 227 / 22%); border-radius: 999px; background: rgb(246 239 227 / 3%); }
 .hero-actions { flex-direction: column; width: min(100%, 300px); margin-top: 14px; gap: 10px; }
 .hero-actions .btn-3d { width: 100%; font-family: var(--font-sans); font-size: .8125rem; font-weight: 500; padding: .625rem 1.25rem; min-height: 48px; --btn-depth: 0px; box-shadow: none; }
 .hero-actions .hero-explore { background: transparent; color: var(--color-cream); border: 1px solid rgb(246 239 227 / 40%); }
@@ -164,7 +163,6 @@ section[id] { scroll-margin-top: 5rem; }
   .hero-faces img { width: clamp(56px, 3.4vw, 64px); height: clamp(56px, 3.4vw, 64px); margin-left: -12px; }
   .hero-people-label { padding-left: 20px; font-size: 12px; }
   .hero-description { max-width: 680px; margin-top: 24px; font-size: clamp(1.125rem, 1.1vw, 1.25rem); }
-  .hero-offer { width: min(100%, 440px); margin-top: 28px; padding: 12px 16px; }
   .hero-actions { flex-direction: row; width: min(100%, 660px); margin-top: 18px; gap: 16px; }
   .hero-actions .btn-3d { flex: 1; min-width: 0; width: auto; min-height: 54px; padding: 12px 24px; font-size: .9375rem; font-weight: 600; }
 }
@@ -176,7 +174,6 @@ section[id] { scroll-margin-top: 5rem; }
   .hero-line-break { display: inline; }
   .hero-people { margin-top: 18px; }
   .hero-description { max-width: 320px; margin-top: 20px; font-size: 1rem; line-height: 1.45; }
-  .hero-offer { margin-top: 20px; padding: 8px 10px; }
   .hero-actions { gap: 8px; margin-top: 12px; }
   .hero-actions .btn-3d { padding-inline: .875rem; font-size: .75rem; white-space: nowrap; gap: .25rem; }
 }
@@ -187,7 +184,6 @@ section[id] { scroll-margin-top: 5rem; }
   .hero-people-label { padding-left: 12px; font-size: 9px; }
   .hero-actions { gap: 8px; }
   .hero-actions .btn-3d { padding-inline: .75rem; font-size: .6875rem; }
-  .hero-offer { padding-inline: 8px; }
 }
 @media (max-width: 767px) and (max-height: 620px) {
   .hero-content { padding-block: 10px; }
@@ -197,7 +193,6 @@ section[id] { scroll-margin-top: 5rem; }
   .hero-faces { padding-left: 7px; }
   .hero-people-label { font-size: 8px; line-height: 1.75; padding-left: 12px; }
   .hero-description { margin-top: 12px; font-size: 14px; line-height: 1.35; }
-  .hero-offer { margin-top: 12px; padding-block: 5px; }
   .hero-actions { margin-top: 10px; }
   .hero-actions .btn-3d { min-height: 44px; }
 }

@@ -8,28 +8,144 @@
 import * as zod from 'zod';
 
 
-/** @summary Save and notify a reusable SEO service-page inquiry. */
+/**
+ * @summary Save and notify a reusable SEO service page inquiry
+ */
 export const createServiceInquiryBodyNameMin = 2;
 export const createServiceInquiryBodyNameMax = 80;
+
 export const createServiceInquiryBodyEmailMax = 254;
+
 export const createServiceInquiryBodyPhoneMax = 30;
+
 export const createServiceInquiryBodyMessageMax = 5000;
+
 export const createServiceInquiryBodyWebsiteMax = 500;
+
 export const createServiceInquiryBodySourceUrlMax = 500;
 
+
+
 export const CreateServiceInquiryBody = zod.object({
-  name: zod.string().min(createServiceInquiryBodyNameMin).max(createServiceInquiryBodyNameMax),
-  email: zod.string().email().max(createServiceInquiryBodyEmailMax),
-  phone: zod.string().min(1).max(createServiceInquiryBodyPhoneMax),
-  message: zod.string().min(1).max(createServiceInquiryBodyMessageMax),
-  website: zod.string().max(createServiceInquiryBodyWebsiteMax).optional(),
-  sourceUrl: zod.string().max(createServiceInquiryBodySourceUrlMax).optional(),
-});
+  "name": zod.string().min(createServiceInquiryBodyNameMin).max(createServiceInquiryBodyNameMax),
+  "email": zod.string().email().max(createServiceInquiryBodyEmailMax),
+  "phone": zod.string().min(1).max(createServiceInquiryBodyPhoneMax),
+  "message": zod.string().min(1).max(createServiceInquiryBodyMessageMax),
+  "website": zod.string().max(createServiceInquiryBodyWebsiteMax).optional(),
+  "sourceUrl": zod.string().max(createServiceInquiryBodySourceUrlMax).optional()
+})
 
 export const CreateServiceInquiryResponse = zod.object({
-  success: zod.literal(true),
-  message: zod.string(),
-});
+  "success": zod.literal(true),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Owner-only manual export scopes without scheduled jobs
+ */
+export const GetManualExportCatalogResponse = zod.object({
+  "version": zod.number().int(),
+  "automaticSnapshots": zod.boolean(),
+  "serverZipGeneration": zod.boolean(),
+  "exclusions": zod.array(zod.string()),
+  "groups": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "description": zod.string(),
+  "datasets": zod.array(zod.string())
+})),
+  "datasets": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string()
+}))
+})
+
+
+/**
+ * @summary Owner-only database-side count and change fingerprint
+ */
+export const GetManualExportStatsParams = zod.object({
+  "dataset": zod.coerce.string()
+})
+
+export const getManualExportStatsResponseCountMin = 0;
+
+
+
+export const GetManualExportStatsResponse = zod.object({
+  "count": zod.number().int().min(getManualExportStatsResponseCountMin),
+  "signature": zod.string()
+})
+
+
+/**
+ * @summary Owner-only paged key/digest index without payloads
+ */
+export const GetManualExportRecordsParams = zod.object({
+  "dataset": zod.coerce.string()
+})
+
+export const GetManualExportRecordsQueryParams = zod.object({
+  "after": zod.coerce.string().optional()
+})
+
+export const GetManualExportRecordsResponse = zod.object({
+  "records": zod.array(zod.object({
+  "key": zod.string(),
+  "chars": zod.number().int(),
+  "digest": zod.string()
+}))
+})
+
+
+/**
+ * @summary Owner-only 16384-character original JSON slice
+ */
+export const GetManualExportChunkParams = zod.object({
+  "dataset": zod.coerce.string(),
+  "key": zod.coerce.string()
+})
+
+export const getManualExportChunkQueryOffsetMin = 0;
+
+
+
+export const GetManualExportChunkQueryParams = zod.object({
+  "digest": zod.coerce.string(),
+  "offset": zod.coerce.number().int().min(getManualExportChunkQueryOffsetMin).optional()
+})
+
+export const GetManualExportChunkResponse = zod.object({
+  "text": zod.string(),
+  "chars": zod.number().int()
+})
+
+
+/**
+ * @summary Owner-only media stream using bounded 48 KiB buffers
+ */
+export const GetManualExportMediaChunkParams = zod.object({
+  "id": zod.coerce.number().int()
+})
+
+export const getManualExportMediaChunkQueryOffsetMin = 0;
+
+
+
+export const GetManualExportMediaChunkQueryParams = zod.object({
+  "digest": zod.coerce.string(),
+  "offset": zod.coerce.number().int().min(getManualExportMediaChunkQueryOffsetMin).optional()
+})
+
+export const GetManualExportMediaChunkResponse = zod.unknown()
+
+
+/**
+ * @summary Owner-only back-pressured relay of a GitHub-generated ZIP
+ */
+export const GetManualExportSourceResponse = zod.unknown()
+
 
 /**
  * Returns server health status
@@ -118,7 +234,7 @@ export const CreateActsMembershipOrderBody = zod.object({
 export const CreateActsMembershipOrderResponse = zod.object({
   "orderId": zod.string(),
   "keyId": zod.string(),
-  "amount": zod.literal(9900),
+  "amount": zod.union([zod.literal(9900),zod.literal(149900)]),
   "currency": zod.enum(['INR']),
   "checkoutToken": zod.string()
 })
@@ -161,7 +277,7 @@ export const verifyActsMembershipPaymentResponseApplicationOtherSkillMax = 100;
 export const VerifyActsMembershipPaymentResponse = zod.object({
   "orderId": zod.string(),
   "keyId": zod.string(),
-  "amount": zod.literal(9900),
+  "amount": zod.union([zod.literal(9900),zod.literal(149900)]),
   "currency": zod.enum(['INR']),
   "paymentStatus": zod.enum(['pending', 'successful']),
   "reviewStatus": zod.enum(['not_submitted', 'pending_review']),
@@ -211,7 +327,7 @@ export const getActsMembershipStatusResponseApplicationOtherSkillMax = 100;
 export const GetActsMembershipStatusResponse = zod.object({
   "orderId": zod.string(),
   "keyId": zod.string(),
-  "amount": zod.literal(9900),
+  "amount": zod.union([zod.literal(9900),zod.literal(149900)]),
   "currency": zod.enum(['INR']),
   "paymentStatus": zod.enum(['pending', 'successful']),
   "reviewStatus": zod.enum(['not_submitted', 'pending_review']),

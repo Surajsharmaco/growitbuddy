@@ -145,7 +145,7 @@ export function useActsMembership(open: boolean) {
       tokenRef.current = order.checkoutToken;
       setHasCheckout(true);
       setSnapshot({
-        orderId: order.orderId, keyId: order.keyId, amount: 9900, currency: "INR",
+        orderId: order.orderId, keyId: order.keyId, amount: order.amount, currency: order.currency,
         application, paymentStatus: "pending", reviewStatus: "not_submitted",
       });
       // Persist only a private recovery token, not the visitor's personal information.

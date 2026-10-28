@@ -2,7 +2,7 @@ import { EventEmitter } from "node:events";
 import { randomUUID } from "node:crypto";
 import { and, eq, sql, desc, asc, inArray } from "drizzle-orm";
 import { db, actsCrmRecords, actsMembershipCheckouts, actsMembers } from "@workspace/db";
-import { ActsPaymentError } from "./acts-razorpay";
+import { ACTS_AMOUNT, ActsPaymentError } from "./acts-razorpay";
 import { actsDateRange } from "./acts-date-range";
 
 export const actsCrmEvents = new EventEmitter();
@@ -41,7 +41,7 @@ export const crmSelection = {
   followUpAt: actsCrmRecords.followUpAt, archived: actsCrmRecords.archived,
   createdAt: actsCrmRecords.createdAt, updatedAt: actsCrmRecords.updatedAt,
   paymentStatus: sql<string>`CASE WHEN ${actsMembers.id} IS NOT NULL THEN 'successful' WHEN ${actsMembershipCheckouts.id} IS NOT NULL THEN 'pending' ELSE 'form_submitted' END`,
-  amount: sql<number>`COALESCE(${actsMembers.amount}, ${actsMembershipCheckouts.amount}, 9900)`,
+  amount: sql<number>`COALESCE(${actsMembers.amount}, ${actsMembershipCheckouts.amount}, ${ACTS_AMOUNT})`,
   currency: sql<string>`'INR'`,
   orderId: actsMembershipCheckouts.orderId, paymentId: actsMembers.paymentId,
   paidAt: actsMembers.paidAt,

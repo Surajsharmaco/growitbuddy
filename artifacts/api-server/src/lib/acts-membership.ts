@@ -78,7 +78,7 @@ export async function saveCapturedMembership(payment: RazorpayPayment): Promise<
     const [checkout] = await transaction.select().from(actsMembershipCheckouts)
       .where(eq(actsMembershipCheckouts.orderId, payment.order_id)).limit(1).for("update");
     if (!checkout) throw new ActsPaymentError(409, "The ACTS checkout could not be found.");
-    assertPaymentMatches(payment, checkout.orderId);
+    assertPaymentMatches(payment, checkout.orderId, checkout.amount);
     if (!isCaptured(payment)) throw new ActsPaymentError(409, "This payment has not been captured yet.");
     const [existing] = await transaction.select().from(actsMembers)
       .where(eq(actsMembers.checkoutId, checkout.id)).limit(1);
@@ -88,7 +88,7 @@ export async function saveCapturedMembership(payment: RazorpayPayment): Promise<
     if (!existing) {
       await transaction.insert(actsMembers).values({
         id: randomUUID(), checkoutId: checkout.id, paymentId: payment.id,
-        application: checkout.application, amount: ACTS_AMOUNT, currency: ACTS_CURRENCY,
+        application: checkout.application, amount: checkout.amount, currency: checkout.currency,
         paymentStatus: "successful", reviewStatus: "pending_review", paidAt: new Date(),
       });
     }
@@ -115,7 +115,7 @@ export async function membershipStatus(checkout: ActsCheckout, reconcile = true)
   if (reconcile) await reconcileCheckout(checkout);
   const [member] = await db.select().from(actsMembers).where(eq(actsMembers.checkoutId, checkout.id)).limit(1);
   return GetActsMembershipStatusResponse.parse({
-    orderId: checkout.orderId, keyId: checkout.keyId, amount: ACTS_AMOUNT, currency: ACTS_CURRENCY,
+    orderId: checkout.orderId, keyId: checkout.keyId, amount: checkout.amount, currency: checkout.currency,
     application: checkout.application,
     paymentStatus: member ? "successful" : "pending",
     reviewStatus: member ? "pending_review" : "not_submitted",
@@ -132,7 +132,7 @@ export async function createMembershipOrder(input: ReturnType<typeof ActsApplica
     if (stableApplication(application) !== stableApplication(checkout.application)) {
       throw new ActsPaymentError(409, "Your details are linked to an existing checkout. Resume it with the original submitted details.");
     }
-    return { orderId: checkout.orderId, keyId: checkout.keyId, amount: ACTS_AMOUNT, currency: ACTS_CURRENCY, checkoutToken: input.checkoutToken };
+    return { orderId: checkout.orderId, keyId: checkout.keyId, amount: checkout.amount, currency: checkout.currency, checkoutToken: input.checkoutToken };
   }
   // Save a submitted form even if credentials/provider/order creation fail.
   const crm = await recordActsSubmission(application, input.submissionKey);
@@ -146,7 +146,7 @@ export async function createMembershipOrder(input: ReturnType<typeof ActsApplica
       if (previous.paymentStatus === "successful") throw new ActsPaymentError(409, "Payment is already confirmed for this submission. Do not pay again.");
       const checkoutToken = randomBytes(32).toString("hex");
       await transaction.update(actsMembershipCheckouts).set({ tokenHash: tokenHash(checkoutToken) }).where(eq(actsMembershipCheckouts.id, previous.id));
-      return { orderId: previous.orderId, keyId, amount: ACTS_AMOUNT, currency: ACTS_CURRENCY, checkoutToken };
+      return { orderId: previous.orderId, keyId, amount: previous.amount, currency: previous.currency, checkoutToken };
     }
     const id = randomUUID();
     const order = await razorpayRequest<{ id: string; amount: number; currency: string }>("/orders", {

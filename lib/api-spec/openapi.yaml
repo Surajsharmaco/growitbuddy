@@ -16,7 +16,7 @@ paths:
   /forms/service-inquiry:
     post:
       operationId: createServiceInquiry
-      summary: Save and notify a reusable SEO service-page inquiry
+      summary: Save and notify a reusable SEO service page inquiry
       requestBody:
         required: true
         content:
@@ -48,6 +48,90 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+  /admin/exports/catalog:
+    get:
+      operationId: getManualExportCatalog
+      tags: [admin]
+      summary: Owner-only manual export scopes without scheduled jobs
+      responses:
+        "200":
+          description: Exact available scopes and exclusions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManualExportCatalog"
+  /admin/exports/stats/{dataset}:
+    get:
+      operationId: getManualExportStats
+      tags: [admin]
+      summary: Owner-only database-side count and change fingerprint
+      parameters:
+        - {name: dataset, in: path, required: true, schema: {type: string}}
+      responses:
+        "200":
+          description: Stable record summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManualExportStats"
+  /admin/exports/records/{dataset}:
+    get:
+      operationId: getManualExportRecords
+      tags: [admin]
+      summary: Owner-only paged key/digest index without payloads
+      parameters:
+        - {name: dataset, in: path, required: true, schema: {type: string}}
+        - {name: after, in: query, schema: {type: string}}
+      responses:
+        "200":
+          description: At most 20 record keys
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManualExportIndex"
+  /admin/exports/record/{dataset}/{key}:
+    get:
+      operationId: getManualExportChunk
+      tags: [admin]
+      summary: Owner-only 16384-character original JSON slice
+      parameters:
+        - {name: dataset, in: path, required: true, schema: {type: string}}
+        - {name: key, in: path, required: true, schema: {type: string}}
+        - {name: digest, in: query, required: true, schema: {type: string}}
+        - {name: offset, in: query, schema: {type: integer, minimum: 0}}
+      responses:
+        "200":
+          description: Original JSON chunk and Unicode character count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManualExportChunk"
+  /admin/exports/media/{id}:
+    get:
+      operationId: getManualExportMediaChunk
+      tags: [admin]
+      summary: Owner-only media stream using bounded 48 KiB buffers
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {name: digest, in: query, required: true, schema: {type: string}}
+        - {name: offset, in: query, schema: {type: integer, minimum: 0}}
+      responses:
+        "200":
+          description: Sequential original-file stream; optional offset returns one slice with X-Base64-Chars
+          content:
+            application/octet-stream:
+              schema: {type: string, format: binary}
+  /admin/exports/source:
+    get:
+      operationId: getManualExportSource
+      tags: [admin]
+      summary: Owner-only back-pressured relay of a GitHub-generated ZIP
+      responses:
+        "200":
+          description: GitHub source ZIP stream; no server compression
+          content:
+            application/zip:
+              schema: {type: string, format: binary}
   /healthz:
     get:
       operationId: healthCheck
@@ -398,7 +482,7 @@ components:
           type: string
         amount:
           type: integer
-          enum: [9900]
+          enum: [9900, 149900]
         currency:
           type: string
           enum: [INR]
@@ -427,7 +511,7 @@ components:
           type: string
         amount:
           type: integer
-          enum: [9900]
+          enum: [9900, 149900]
         currency:
           type: string
           enum: [INR]
@@ -597,22 +681,73 @@ components:
         syncedAt:
           type: string
           format: date-time
+    ManualExportCatalog:
+      type: object
+      required: [version, groups, datasets, exclusions, automaticSnapshots, serverZipGeneration]
+      properties:
+        version: {type: integer}
+        automaticSnapshots: {type: boolean}
+        serverZipGeneration: {type: boolean}
+        exclusions: {type: array, items: {type: string}}
+        groups:
+          type: array
+          items:
+            type: object
+            required: [id, label, datasets, description]
+            properties:
+              id: {type: string}
+              label: {type: string}
+              description: {type: string}
+              datasets: {type: array, items: {type: string}}
+        datasets:
+          type: array
+          items:
+            type: object
+            required: [id, label]
+            properties:
+              id: {type: string}
+              label: {type: string}
+    ManualExportStats:
+      type: object
+      required: [count, signature]
+      properties:
+        count: {type: integer, minimum: 0}
+        signature: {type: string}
+    ManualExportIndex:
+      type: object
+      required: [records]
+      properties:
+        records:
+          type: array
+          items:
+            type: object
+            required: [key, chars, digest]
+            properties:
+              key: {type: string}
+              chars: {type: integer}
+              digest: {type: string}
+    ManualExportChunk:
+      type: object
+      required: [text, chars]
+      properties:
+        text: {type: string}
+        chars: {type: integer}
     ServiceInquiryInput:
       type: object
       required: [name, email, phone, message]
       properties:
-        name: { type: string, minLength: 2, maxLength: 80 }
-        email: { type: string, format: email, maxLength: 254 }
-        phone: { type: string, minLength: 1, maxLength: 30 }
-        message: { type: string, minLength: 1, maxLength: 5000 }
-        website: { type: string, maxLength: 500 }
-        sourceUrl: { type: string, maxLength: 500 }
+        name: {type: string, minLength: 2, maxLength: 80}
+        email: {type: string, format: email, maxLength: 254}
+        phone: {type: string, minLength: 1, maxLength: 30}
+        message: {type: string, minLength: 1, maxLength: 5000}
+        website: {type: string, maxLength: 500}
+        sourceUrl: {type: string, maxLength: 500}
     ServiceInquiryResponse:
       type: object
       required: [success, message]
       properties:
-        success: { type: boolean, const: true }
-        message: { type: string }
+        success: {type: boolean, enum: [true]}
+        message: {type: string}
     ApiError:
       type: object
       required: [error]

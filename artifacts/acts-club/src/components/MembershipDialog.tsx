@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'rea
 import type { ActsMemberInput } from '@workspace/api-client-react';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { useActsMembership } from '@/hooks/use-acts-membership';
+import { ACTS_MEMBERSHIP_PRICE_PAISE, formatActsPrice } from '@/lib/acts-price';
 
 const YOU_ARE = ['Freelancer', 'Creator', 'Entrepreneur', 'Other'];
 const CREATOR = ['Content Creator', 'Video Creator', 'UGC Creator', 'Influencer', 'Educator', 'Podcaster', 'Photographer', 'Other'];
@@ -120,6 +121,9 @@ export function MembershipDialog({ open, onOpenChange }: { open: boolean; onOpen
 
   const app = m.snapshot?.application;
   const showForm = m.phase === 'form' || m.phase === 'restoring' || m.phase === 'preparing' || m.phase === 'checkout';
+  const priceLabel = m.phase === 'restoring' && !m.snapshot
+    ? 'Checking saved checkout…'
+    : formatActsPrice(m.snapshot?.amount ?? ACTS_MEMBERSHIP_PRICE_PAISE);
 
   return (
     <Dialog open={open && m.phase !== 'checkout'} onOpenChange={onOpenChange}>
@@ -129,7 +133,7 @@ export function MembershipDialog({ open, onOpenChange }: { open: boolean; onOpen
             <p className="text-xs font-bold tracking-widest text-acts">PAYMENT SUCCESSFUL</p>
             <DialogTitle className="font-display text-3xl font-extrabold uppercase">Payment received</DialogTitle>
             <DialogDescription className="text-ink/75">
-              Thank you! Your ₹99 one-time payment for ACTS Membership was successful, and your membership application has been received. Community access is subject to verification and approval.
+              Thank you! Your {formatActsPrice(m.snapshot.amount)} one-time payment for ACTS Membership was successful, and your membership application has been received. Community access is subject to verification and approval.
             </DialogDescription>
             <dl className="rounded-2xl bg-card p-4 text-sm ring-1 ring-ink/10">
               <div className="flex justify-between gap-4"><dt className="text-ink/60">Name</dt><dd className="font-bold" data-testid="text-success-name">{m.snapshot.application.fullName}</dd></div>
@@ -163,7 +167,7 @@ export function MembershipDialog({ open, onOpenChange }: { open: boolean; onOpen
               <p className="text-xs font-bold tracking-widest text-acts">FOUNDING MEMBER ACCESS</p>
               <DialogTitle className="font-display text-2xl font-extrabold uppercase sm:text-3xl">ACTS Membership</DialogTitle>
               <DialogDescription className="mt-1 flex flex-wrap items-baseline gap-x-2 text-ink/75">
-                <span className="font-display text-2xl font-extrabold text-ink">₹99</span><span>One-time payment</span>
+                <span className="font-display text-2xl font-extrabold text-ink">{priceLabel}</span><span>One-time payment</span>
               </DialogDescription>
             </div>
             {m.phase === 'restoring' && <p className="rounded-xl bg-ink/5 p-3 text-sm" role="status" data-testid="status-restoring">Checking your earlier checkout...</p>}
@@ -237,7 +241,7 @@ export function MembershipDialog({ open, onOpenChange }: { open: boolean; onOpen
                   {errs.agrees && <p id="agrees-err" role="alert" className="mt-1 text-xs font-medium text-red-700">{errs.agrees}</p>}
                 </div>
                 <button type="submit" disabled={m.busy} aria-busy={m.busy} data-testid="button-submit-join" className="btn-3d btn-3d--orange w-full min-h-11 py-3 font-display font-bold">
-                  {m.busy ? 'Please wait...' : 'Join ACTS for ₹99 →'}
+                  {m.busy ? 'Please wait...' : `Join ACTS for ${priceLabel} →`}
                 </button>
               </form>
             )}

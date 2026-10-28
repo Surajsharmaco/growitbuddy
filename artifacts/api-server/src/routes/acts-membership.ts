@@ -73,7 +73,7 @@ router.post("/verify", limit("status", 120, 60_000), async (req: Request, res: R
       throw new ActsPaymentError(401, "Payment verification failed. Your membership has not been confirmed.");
     }
     const payment = await razorpayRequest<RazorpayPayment>(`/payments/${encodeURIComponent(paymentId)}`);
-    assertPaymentMatches(payment, checkout.orderId);
+    assertPaymentMatches(payment, checkout.orderId, checkout.amount);
     if (isCaptured(payment)) await saveCapturedMembership(payment);
     res.json(VerifyActsMembershipPaymentResponse.parse(await membershipStatus(checkout, false)));
   } catch (error) { failure(req, res, error); }
@@ -107,7 +107,7 @@ router.post("/webhook", async (req: Request, res: Response): Promise<void> => {
     if (!checkout) { res.json({ received: true }); return; }
     if (entity?.id && /^pay_[A-Za-z0-9]+$/.test(entity.id)) {
       const payment = await razorpayRequest<RazorpayPayment>(`/payments/${encodeURIComponent(entity.id)}`);
-      assertPaymentMatches(payment, checkout.orderId);
+      assertPaymentMatches(payment, checkout.orderId, checkout.amount);
       if (!isCaptured(payment)) throw new ActsPaymentError(409, "Payment capture is not yet confirmed.");
       await saveCapturedMembership(payment);
     } else {

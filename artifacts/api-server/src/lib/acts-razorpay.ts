@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-export const ACTS_AMOUNT = 9900;
+export const ACTS_AMOUNT = 149900;
 export const ACTS_CURRENCY = "INR";
 
 export class ActsPaymentError extends Error {
@@ -55,9 +55,9 @@ export interface RazorpayPayment {
   captured: boolean;
 }
 
-export function assertPaymentMatches(payment: RazorpayPayment, orderId: string): void {
+export function assertPaymentMatches(payment: RazorpayPayment, orderId: string, expectedAmount = ACTS_AMOUNT): void {
   if (!payment || !/^pay_[A-Za-z0-9]+$/.test(payment.id) ||
-      payment.order_id !== orderId || payment.amount !== ACTS_AMOUNT || payment.currency !== ACTS_CURRENCY) {
+      payment.order_id !== orderId || payment.amount !== expectedAmount || payment.currency !== ACTS_CURRENCY) {
     throw new ActsPaymentError(409, "The payment does not match this ACTS membership order.");
   }
 }

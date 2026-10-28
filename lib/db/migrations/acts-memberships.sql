@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS acts_membership_checkouts (
   token_hash text NOT NULL UNIQUE,
   key_id text NOT NULL,
   application jsonb NOT NULL,
-  amount integer NOT NULL CHECK (amount = 9900),
+  amount integer NOT NULL CHECK (amount IN (9900, 149900)),
   currency text NOT NULL CHECK (currency = 'INR'),
   payment_status text NOT NULL DEFAULT 'pending' CHECK (payment_status IN ('pending', 'successful')),
   created_at timestamptz NOT NULL DEFAULT now()
@@ -15,11 +15,19 @@ CREATE TABLE IF NOT EXISTS acts_members (
   checkout_id uuid NOT NULL UNIQUE REFERENCES acts_membership_checkouts(id),
   payment_id text NOT NULL UNIQUE,
   application jsonb NOT NULL,
-  amount integer NOT NULL CHECK (amount = 9900),
+  amount integer NOT NULL CHECK (amount IN (9900, 149900)),
   currency text NOT NULL CHECK (currency = 'INR'),
   payment_status text NOT NULL DEFAULT 'successful' CHECK (payment_status = 'successful'),
   review_status text NOT NULL DEFAULT 'pending_review' CHECK (review_status = 'pending_review'),
   paid_at timestamptz NOT NULL,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+ALTER TABLE acts_membership_checkouts
+  DROP CONSTRAINT IF EXISTS acts_membership_checkouts_amount_check;
+ALTER TABLE acts_membership_checkouts
+  ADD CONSTRAINT acts_membership_checkouts_amount_check CHECK (amount IN (9900, 149900));
+ALTER TABLE acts_members
+  DROP CONSTRAINT IF EXISTS acts_members_amount_check;
+ALTER TABLE acts_members
+  ADD CONSTRAINT acts_members_amount_check CHECK (amount IN (9900, 149900));
 COMMIT;
