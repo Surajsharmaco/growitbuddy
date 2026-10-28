@@ -14,6 +14,7 @@ import { analyzeKeywordSet, needsCombinedReview, needsRepetitionReview, countArt
 import { formatPastedBlog, optimizeBlogContent } from "@/lib/pasteBlogContent";
 import { DEFAULT_TOC_VISIBLE, tocVisibleCount } from "@/lib/blogToc";
 import { ArticleTocEditor } from "@/components/admin/ArticleTocEditor";
+import { collectCmsInternalLinks, InternalLinkManager, replaceCmsInternalLinkHref, isCmsInternalHref, type CmsInternalLink } from "@/components/admin/InternalLinkManager";
 import { CmsVersionHistory } from "@/components/admin/CmsVersionHistory";
 import { cmsRequest, notifyCmsChanged, type CmsCollection, type CmsOperation } from "@/lib/cmsSafetyClient";
 import { draftOwner, useCmsDraftRecovery } from "@/hooks/useCmsDraftRecovery";
@@ -1142,6 +1143,32 @@ function PostEditor({
     setData((p) => ({ ...p, ...patch }));
   }
 
+
+  function saveInternalLink(link: CmsInternalLink, href: string) {
+    if (!isCmsInternalHref(href)) {
+      showToast("Enter an internal path or a GrowitBuddy URL.", "error");
+      return;
+    }
+    const sourceHtml = link.surface === "body"
+      ? mode === "visual" && editorRef.current
+        ? editorRef.current.innerHTML
+        : mdToHtml(data.content ?? "")
+      : overviewRef.current?.innerHTML ?? overviewHtmlFor(data);
+    const updatedHtml = replaceCmsInternalLinkHref(sourceHtml, link.anchorIndex, href);
+    if (updatedHtml === null) {
+      showToast("That link changed in the editor. Refresh the list and try again.", "error");
+      return;
+    }
+
+    if (link.surface === "body") {
+      if (mode === "visual" && editorRef.current) editorRef.current.innerHTML = updatedHtml;
+      setField("content", updatedHtml);
+    } else {
+      if (overviewRef.current) overviewRef.current.innerHTML = updatedHtml;
+      setFields({ excerptHtml: updatedHtml, excerpt: plainFromHtml(updatedHtml) });
+    }
+    showToast("Internal link updated. Save the draft or publish to keep the change.", "success");
+  }
   function setSeoField<K extends keyof PostSeo>(key: K, val: PostSeo[K]) {
     setSaved(false);
     setOptimizationUndo(null);
@@ -2224,6 +2251,14 @@ function PostEditor({
                   </form>
                 )}
               </div>
+              <InternalLinkManager
+                links={collectCmsInternalLinks(
+                  mode === "visual" && editorRef.current ? editorRef.current.innerHTML : mdToHtml(data.content ?? ""),
+                  overviewRef.current?.innerHTML ?? overviewHtmlFor(data),
+                )}
+                pageMode={pageMode}
+                onSave={saveInternalLink}
+              />
               <ArticleTocEditor content={liveContent} settings={data.toc} pageMode={pageMode}
                 onChange={(toc) => setFields({ toc })} />
             </>
